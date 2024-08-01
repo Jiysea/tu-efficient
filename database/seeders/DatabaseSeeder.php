@@ -21,22 +21,22 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        // User::factory()->create([
-        //     'first_name' => 'TU-Admin',
-        //     'middle_name' => '-',
-        //     'last_name' => '-',
-        //     'extension_name' => '-',
-        //     'email' => 'tu-admin@gmail.com',
-        //     'password' => Hash::make('password'),
-        //     'contact_num' => fake()->phoneNumber(),
-        //     'regional_office' => 'N/A',
-        //     'field_office' => 'N/A',
-        //     'user_type' => 'Admin',
-        // ]);
-        // User::factory()->create([
-        //     'user_type' => 'Focal',
-        // ]);
-        // User::factory(10)->create();
+        User::factory()->create([
+            'first_name' => 'TU-Admin',
+            'middle_name' => '-',
+            'last_name' => '-',
+            'extension_name' => '-',
+            'email' => 'tu-admin@gmail.com',
+            'password' => Hash::make('password'),
+            'contact_num' => fake()->phoneNumber(),
+            'regional_office' => 'N/A',
+            'field_office' => 'N/A',
+            'user_type' => 'Admin',
+        ]);
+        User::factory()->create([
+            'user_type' => 'Focal',
+        ]);
+        User::factory(10)->create();
 
         $randImpAmount = rand(6, 12);
         Implementation::factory($randImpAmount)->create();
