@@ -1,51 +1,132 @@
-<!-- Sidebar Navigation Menu -->
-<nav :class="{ 'block': open, 'hidden': !open }"
-    class="fixed inset-y-0 left-0 w-64 z-30 bg-white border-l border-gray-200 transform transition-transform duration-300 ease-in-out hidden sm:hidden">
-    <div class="h-full flex flex-col">
-        <button @click="open = ! open"
-            class="fixed top-3 left-2 p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
+<nav>
+    <!-- Show drawer on certain screen size -->
+    <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button"
+        class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-blue-500 rounded-lg lg:hidden hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200">
+        <span class="sr-only">Open sidebar</span>
+        <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path clip-rule="evenodd" fill-rule="evenodd"
+                d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z">
+            </path>
+        </svg>
+    </button>
 
-        <!-- Logo -->
-        {{-- <div class="flex items-center h-16 px-4 border-gray-200">
-            <a href="{{ route('index') }}" class="shrink-0 flex flex-row items-center">
-                <x-application-logo class="block h-9 w-auto" />
-                <p class="flex font-bold text-lg text-red-500 ml-3">Chat<span class="text-red-700">Dug</span></p>
-            </a>
-        </div> --}}
+    <aside id="logo-sidebar"
+        class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0"
+        aria-label="Sidebar">
+        <div class="h-full px-3 py-4 overflow-y-auto bg-blue-900">
+            <div class="text-center text-blue-50 text-3xl font-bold whitespace-nowrap mt-3 mb-5">TU-EFFICIENT</div>
 
-        <!-- Navigation Links -->
-        <div class="flex-1 px-4 py-6 space-y-1">
-            <h1 class="mt-6 mb-2 pb-2 text-md text-gray-500 border-b border-gray-200">Navigation</h1>
-            <x-responsive-nav-link :href="route('index')" :active="request()->routeIs('index')">
-                {{ __('Chats') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('users')" :active="request()->routeIs('users')">
-                {{ __('Users') }}
-            </x-responsive-nav-link>
-        </div>
+            <ul class="space-y-2 font-medium">
+                <li>
+                    <a href="#" wire:click="setCurrentPage('assignments')" wire:loading.attr="disabled"
+                        class="flex items-center mx-2 p-2 text-blue-50 rounded-lg hover:text-blue-200 focus:text-blue-200 hover:bg-blue-1000 focus:outline-none focus:bg-blue-1000 transition duration-75 ease-in-out group">
 
-        <!-- Settings Options -->
-        <div class="px-4 py-6">
-            <div class="pt-4 border-t border-gray-200 font-medium text-base text-gray-800">{{ Auth::user()->name }}
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                            class="flex-shrink-0 w-5 h-5 text-blue-50 group-hover:text-blue-200 group-focus:text-blue-200"
+                            viewBox="0, 0, 400,400">
+                            <g>
+                                <path
+                                    d="M19.012 1.437 C 11.395 4.085,4.454 10.951,1.479 18.780 C 0.018 22.627,-0.039 24.744,0.171 67.845 L 0.391 112.891 3.039 117.775 C 6.257 123.708,11.126 128.347,17.051 131.125 L 21.484 133.203 91.797 133.203 L 162.109 133.203 166.787 130.907 C 172.745 127.981,177.997 122.729,180.914 116.780 L 183.203 112.109 183.203 66.797 L 183.203 21.484 181.125 17.051 C 178.347 11.126,173.708 6.257,167.775 3.039 L 162.891 0.391 92.969 0.212 C 27.452 0.045,22.793 0.122,19.012 1.437 M236.597 1.080 C 228.602 3.960,222.381 9.575,218.856 17.094 L 216.797 21.484 216.797 116.797 L 216.797 212.109 219.093 216.787 C 222.019 222.745,227.271 227.997,233.220 230.914 L 237.891 233.203 308.203 233.203 L 378.516 233.203 382.949 231.125 C 388.874 228.347,393.743 223.708,396.961 217.775 L 399.609 212.891 399.609 116.797 L 399.609 20.703 397.486 16.380 C 394.776 10.862,389.138 5.224,383.620 2.514 L 379.297 0.391 309.375 0.221 C 253.179 0.085,238.892 0.254,236.597 1.080 M20.536 167.531 C 12.785 169.974,6.632 175.263,2.566 182.980 L 0.391 187.109 0.391 283.203 L 0.391 379.297 2.514 383.620 C 5.224 389.138,10.862 394.776,16.380 397.486 L 20.703 399.609 91.797 399.609 L 162.891 399.609 167.775 396.961 C 173.708 393.743,178.347 388.874,181.125 382.949 L 183.203 378.516 183.203 283.203 L 183.203 187.891 180.907 183.213 C 177.981 177.255,172.745 172.019,166.787 169.093 L 162.109 166.797 92.969 166.645 C 37.339 166.523,23.185 166.697,20.536 167.531 M236.092 267.944 C 230.294 270.043,225.117 273.983,221.651 278.935 C 216.283 286.604,216.330 286.088,216.576 334.857 L 216.797 378.516 218.875 382.949 C 221.653 388.874,226.292 393.743,232.225 396.961 L 237.109 399.609 308.203 399.609 L 379.297 399.609 383.620 397.486 C 389.138 394.776,394.776 389.138,397.486 383.620 L 399.609 379.297 399.609 333.203 L 399.609 287.109 396.961 282.225 C 393.743 276.292,388.874 271.653,382.949 268.875 L 378.516 266.797 309.375 266.621 C 242.928 266.452,240.073 266.504,236.092 267.944 "
+                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                            </g>
+                        </svg>
+                        <span class="flex ms-3 whitespace-nowrap ">Assignments</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" wire:click="setCurrentPage('submissions')" wire:loading.attr="disabled"
+                        class="flex items-center mx-2 p-2 text-blue-50 rounded-lg hover:text-blue-200 focus:text-blue-200 hover:bg-blue-1000 focus:outline-none focus:bg-blue-1000 transition duration-75 ease-in-out group">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                            class="flex-shrink-0 w-6 h-6 text-blue-50 group-hover:text-blue-200 group-focus:text-blue-200"
+                            viewBox="0, 0, 400,400">
+                            <g>
+                                <path
+                                    d="M53.906 51.221 C 39.995 54.908,27.658 65.001,21.471 77.756 C 16.088 88.855,16.357 81.997,16.588 202.133 L 16.797 310.547 18.890 316.277 C 24.292 331.065,34.839 341.735,49.811 347.560 L 55.078 349.609 184.312 349.816 C 327.345 350.045,317.483 350.378,328.516 344.950 C 338.363 340.105,346.265 332.146,351.257 322.041 C 355.003 314.462,379.688 193.540,379.688 182.774 C 379.688 169.710,372.772 158.686,360.938 152.881 L 355.859 150.391 246.154 150.185 C 124.740 149.957,132.449 149.656,121.484 155.050 C 111.485 159.969,103.795 167.734,98.691 178.063 C 96.032 183.444,94.854 188.707,82.556 250.137 L 69.290 316.406 67.262 316.402 C 61.198 316.389,54.702 312.188,51.838 306.427 C 49.582 301.889,49.582 98.111,51.838 93.573 C 56.558 84.079,58.687 83.603,96.471 83.598 L 127.709 83.594 151.263 99.279 C 164.218 107.907,176.177 115.450,177.838 116.042 C 180.289 116.916,190.903 117.125,234.057 117.153 L 287.254 117.188 290.697 119.005 C 294.922 121.236,298.406 125.998,298.988 130.339 L 299.424 133.594 316.509 133.594 L 333.594 133.594 333.594 130.203 C 333.594 111.647,318.357 91.911,298.996 85.388 L 292.578 83.227 240.149 82.824 L 187.719 82.422 163.671 66.406 L 139.624 50.391 98.913 50.236 C 65.372 50.109,57.446 50.283,53.906 51.221 "
+                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                            </g>
+                        </svg>
+                        <span class="flex ms-3 whitespace-nowrap ">Submissions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" wire:click="setCurrentPage('forms')" wire:loading.attr="disabled"
+                        class="flex items-center mx-2 p-2 text-blue-50 rounded-lg hover:text-blue-200 focus:text-blue-200 hover:bg-blue-1000 focus:outline-none focus:bg-blue-1000 transition duration-75 ease-in-out group">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                            class="flex-shrink-0 w-6 h-6 text-blue-50 group-hover:text-blue-200  group-focus:text-blue-200"
+                            viewBox="0, 0, 400,400">
+                            <g>
+                                <path
+                                    d="M179.297 21.169 C 104.101 31.859,73.033 123.800,126.530 177.329 C 179.392 230.224,269.545 201.449,282.429 127.570 C 292.969 67.125,240.054 12.533,179.297 21.169 M276.172 205.112 C 218.214 215.924,187.133 278.009,213.222 330.859 C 245.879 397.017,342.184 394.911,371.981 327.388 C 400.252 263.323,344.634 192.342,276.172 205.112 M169.434 218.751 C 99.783 223.928,44.377 249.569,26.728 284.793 C 21.264 295.699,20.703 299.077,20.703 321.094 L 20.703 341.016 23.168 346.218 C 27.442 355.239,34.901 360.883,44.639 362.463 C 49.816 363.303,215.625 363.677,215.625 362.849 C 215.625 362.611,213.734 360.062,211.422 357.185 C 179.719 317.717,180.502 261.313,213.269 224.087 C 215.518 221.532,217.185 219.268,216.973 219.056 C 216.239 218.322,178.472 218.080,169.434 218.751 M300.880 241.001 C 309.269 246.514,310.030 258.978,302.400 265.872 C 291.856 275.398,275.781 268.311,275.781 254.135 C 275.781 241.042,289.789 233.712,300.880 241.001 M296.873 280.859 C 298.119 281.503,300.123 283.321,301.327 284.899 L 303.516 287.769 303.516 312.577 C 303.516 340.299,303.673 339.465,297.664 343.555 C 292.503 347.067,284.623 344.897,281.342 339.059 C 278.788 334.515,278.782 290.496,281.335 285.954 C 284.392 280.514,291.622 278.143,296.873 280.859 "
+                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                            </g>
+                        </svg>
+                        <span class="flex ms-3 whitespace-nowrap ">Forms</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="absolute left-0 bottom-0 w-full min-w-full flex items-center justify-center font-medium">
+
+                <button id="profileTopButton" data-dropdown-toggle="profileTopDropdown"
+                    class="flex w-full items-center justify-center py-2 text-blue-50 hover:text-blue-200 focus:text-blue-200 hover:bg-blue-1000 focus:outline-none focus:bg-blue-1000 transition duration-75 ease-in-out group">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                        class="flex-shrink-0 w-9 h-9 text-blue-50 transition duration-75 group-hover:text-blue-200  group-focus:text-blue-200">
+                        <path fill-rule="evenodd"
+                            d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <p class="flex whitespace-nowrap mx-2 text-sm">
+                        {{ Auth::user()->first_name . ' ' . Auth::user()->last_name }}</p>
+                </button>
             </div>
-            <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Edit Profile') }}
-                </x-responsive-nav-link>
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault(); this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
+
+            <!-- Profile Dropdown menu -->
+            <div id="profileTopDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-40">
+                <ul class="py-2 text-sm text-gray-700" aria-labelledby="profileTopButton">
+                    <li>
+                        <a aria-label="{{ __('Profile') }}"
+                            class="flex items-center justify-start text-blue-1100 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-6 pe-2">
+                                <path fill-rule="evenodd"
+                                    d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a aria-label="{{ __('Settings') }}"
+                            class="flex items-center justify-start text-blue-1100 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-6 pe-2">
+                                <path fill-rule="evenodd"
+                                    d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Settings
+                        </a>
+                    </li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <li>
+
+                            <button type="submit" aria-label="{{ __('Logout') }}"
+                                class="flex items-center w-full justify-start text-blue-1100 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6 pe-2">
+                                    <path fill-rule="evenodd"
+                                        d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm5.03 4.72a.75.75 0 0 1 0 1.06l-1.72 1.72h10.94a.75.75 0 0 1 0 1.5H10.81l1.72 1.72a.75.75 0 1 1-1.06 1.06l-3-3a.75.75 0 0 1 0-1.06l3-3a.75.75 0 0 1 1.06 0Z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                Logout
+                            </button>
+
+                        </li>
+                    </form>
+                </ul>
             </div>
         </div>
-    </div>
+    </aside>
 </nav>

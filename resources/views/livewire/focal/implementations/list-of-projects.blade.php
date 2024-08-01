@@ -42,10 +42,10 @@
         </div>
     </div>
 
-    {{-- Table --}}
+    {{-- List of Projects Table --}}
     <div class="relative min-h-60 max-h-60 overflow-y-auto overflow-x-auto">
 
-        <table class=" w-full text-sm text-left text-indigo-1100">
+        <table class="relative w-full text-sm text-left text-indigo-1100">
             <thead class="text-xs text-indigo-50 uppercase bg-indigo-600 sticky top-0 whitespace-nowrap">
                 <tr>
                     <th scope="col" class="pe-2 ps-4 py-2">
@@ -65,14 +65,14 @@
                     </th>
                 </tr>
             </thead>
-            <tbody class="text-xs">
+            <tbody class="relative text-xs">
                 @foreach ($projects as $key => $project)
                     @php
                         $encryptedId = Crypt::encrypt($project['id']);
                     @endphp
                     <tr wire:click='selectRow({{ $key }}, "{{ $encryptedId }}")'
                         wire:key='{{ $key }}'
-                        class="border-b {{ $selectedRow === $key ? 'bg-indigo-200' : '' }} hover:bg-indigo-100 whitespace-nowrap">
+                        class="relative border-b {{ $selectedRow === $key ? 'bg-indigo-200' : '' }} hover:bg-indigo-100 whitespace-nowrap">
                         <th scope="row" class="pe-2 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap ">
                             {{ $project['project_num'] }}
                         </th>
@@ -85,8 +85,9 @@
                         <td class="pr-2 py-2">
                             {{ $project['days_of_work'] }}
                         </td>
-                        <td class="py-2 flex ">
-                            <a href="#"
+                        <td class="py-2 flex">
+                            <button @click.stop id="projectRowButton-{{ $key }}"
+                                data-dropdown-toggle="projectRowDropdown-{{ $key }}"
                                 class="z-40 font-medium text-indigo-700 hover:text-indigo-500 active:text-indigo-900 bg-transparent hover:bg-indigo-100 active:bg-indigo-200 rounded mx-1 p-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                     class="w-4">
@@ -94,8 +95,44 @@
                                         d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
                                         clip-rule="evenodd" />
                                 </svg>
+                            </button>
+                            <!-- Project Row Dropdown menu -->
+                            <div id="projectRowDropdown-{{ $key }}"
+                                class="absolute z-50 hidden bg-white divide-y border divide-gray-100 rounded-lg shadow w-40">
+                                <ul class="py-2 text-sm text-gray-700"
+                                    aria-labelledby="projectRowButton-{{ $key }}">
+                                    <li>
+                                        <a aria-label="{{ __('Projects Dropdown') }}"
+                                            class="flex items-center justify-start text-indigo-1100 px-4 py-2 hover:bg-gray-100 cursor-pointer">
 
-                            </a>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 pe-2">
+                                                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                                                <path fill-rule="evenodd"
+                                                    d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+
+                                            View Project
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a aria-label="{{ __('Settings') }}"
+                                            class="flex items-center justify-start text-indigo-1100 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="size-6 pe-2">
+                                                <path
+                                                    d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                                                <path
+                                                    d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+                                            </svg>
+
+                                            Edit Project
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                 @endforeach
@@ -104,76 +141,6 @@
     </div>
 
     {{-- Create Button | Main Modal --}}
-
-    <div id="create-modal" tabindex="-1" aria-hidden="true"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="relative p-4 w-full max-w-5xl max-h-full">
-            <!-- Modal content -->
-            <div class="relative bg-white rounded-lg shadow ">
-                <!-- Modal header -->
-                <div class="flex items-center justify-between py-2 px-4 border-b rounded-t ">
-                    <h3 class="text-lg font-semibold text-gray-900 ">
-                        Create New Product
-                    </h3>
-                    <button type="button"
-                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center  "
-                        data-modal-toggle="create-modal">
-                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 14 14">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                        </svg>
-                        <span class="sr-only">Close modal</span>
-                    </button>
-                </div>
-                <!-- Modal body -->
-                <form class="p-4 md:p-5">
-                    <div class="grid gap-4 mb-4 grid-cols-2">
-                        <div class="col-span-2">
-                            <label for="name" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
-                            <input type="text" name="name" id="name"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5      "
-                                placeholder="Type product name" required="">
-                        </div>
-                        <div class="col-span-2 sm:col-span-1">
-                            <label for="price" class="block mb-2 text-sm font-medium text-gray-900 ">Price</label>
-                            <input type="number" name="price" id="price"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5      "
-                                placeholder="$2999" required="">
-                        </div>
-                        <div class="col-span-2 sm:col-span-1">
-                            <label for="category"
-                                class="block mb-2 text-sm font-medium text-gray-900 ">Category</label>
-                            <select id="category"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5      ">
-                                <option selected="">Select category</option>
-                                <option value="TV">TV/Monitors</option>
-                                <option value="PC">PC</option>
-                                <option value="GA">Gaming/Console</option>
-                                <option value="PH">Phones</option>
-                            </select>
-                        </div>
-                        <div class="col-span-2">
-                            <label for="description" class="block mb-2 text-sm font-medium text-gray-900 ">Product
-                                Description</label>
-                            <textarea id="description" rows="4"
-                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500      "
-                                placeholder="Write product description here"></textarea>
-                        </div>
-                    </div>
-                    <button type="submit"
-                        class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center   ">
-                        <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        Add new product
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <livewire:focal.implementations.create-project-modal />
 
 </div>

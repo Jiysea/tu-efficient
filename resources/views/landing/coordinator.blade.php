@@ -34,7 +34,7 @@
                                     placeholder="Email">
                             </div>
                             <div>
-                                <input type="text" name="password" id="password"
+                                <input type="password" name="password" id="password"
                                     class="block w-full px-5 py-2 text-sm text-blue-1000 placeholder-blue-600 transition duration-200 ease-in-out transform border border-transparent rounded-lg bg-blue-200 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-blue-100"
                                     placeholder="Password">
                             </div>
