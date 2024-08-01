@@ -1,0 +1,29 @@
+@import "fonts";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        font-family: "Inter", sans-serif;
+    }
+}
+
+/* ::-webkit-scrollbar {
+    width: 1.25rem;
+} */
+
+/* ::-webkit-scrollbar-track {
+    background: #fdf1ef;
+} */
+
+/* ::-webkit-scrollbar-thumb {
+    background: #a22c24;
+    border-radius: 0px;
+} */
+
+/* Handle on hover */
+/* ::-webkit-scrollbar-thumb:hover {
+    background: #6c1d18;
+} */
