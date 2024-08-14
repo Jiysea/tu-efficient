@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
 
-    Route::post('/focal/login', [AuthenticatedSessionController::class, 'store'])->name('focal.login');
-    Route::post('/coordinator/login', [AuthenticatedSessionController::class, 'store'])->name('coordinator.login');
-    Route::post('/barangay/check-access', [BarangayController::class, 'checkAccess'])->name('barangay.access');
+
+    // Route::post('/coordinator/login', [AuthenticatedSessionController::class, 'store'])->name('coordinator.login');
+
 
     // Route::get('register', [RegisteredUserController::class, 'create'])
     //             ->name('register');

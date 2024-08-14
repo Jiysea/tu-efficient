@@ -26,10 +26,10 @@ class ListOfBeneficiaries extends Component
         $this->dispatch('change-beneficiary', beneficiaryId: $encryptedId);
     }
 
-    public function mount()
+    public function mount($accessCode)
     {
         // Retrieve the access code from the session
-        $this->accessCode = session('access_code');
+        $this->accessCode = $accessCode;
 
         $this->beneficiaries = Beneficiary::join('batches', 'beneficiaries.batches_id', '=', 'batches.id')
             ->join('codes', 'batches.id', '=', 'codes.batches_id')

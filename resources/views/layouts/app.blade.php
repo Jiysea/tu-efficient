@@ -16,7 +16,7 @@
 
     {{-- Favicon --}}
     @isset($favicons)
-        {{ $favicons }}
+        {{ $favicons ?? '' }}
     @endisset
 
     <!-- Scripts -->

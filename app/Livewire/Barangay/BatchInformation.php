@@ -22,10 +22,10 @@ class BatchInformation extends Component
     #[Locked]
     public $slots;
 
-    public function mount()
+    public function mount($accessCode)
     {
         // Retrieve the access code from the session
-        $this->accessCode = session('access_code');
+        $this->accessCode = $accessCode;
 
         $this->users = User::join('assignments', 'users.id', '=', 'assignments.users_id')
             ->join('batches', 'batches.id', '=', 'assignments.batches_id')

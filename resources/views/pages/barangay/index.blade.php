@@ -15,14 +15,14 @@
         <div class="grid grid-cols-7 gap-4">
             {{-- Left --}}
             <div class="grid gap-y-4 col-span-7 lg:col-span-4 lg:ml-4">
-                <livewire:barangay.batch-information />
+                <livewire:barangay.batch-information :accessCode="$accessCode" />
 
-                <livewire:barangay.list-of-beneficiaries />
+                <livewire:barangay.list-of-beneficiaries :accessCode="$accessCode" />
             </div>
 
             {{-- Right --}}
             <div class="bg-white col-span-7 lg:col-span-3 h-full lg:mr-4">
-                <livewire:barangay.beneficiary-preview />
+                <livewire:barangay.beneficiary-preview :accessCode="$accessCode" />
             </div>
         </div>
     </main>

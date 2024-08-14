@@ -7,20 +7,9 @@ use Illuminate\Http\Request;
 
 class BarangayIndexController extends Controller
 {
-    public function showAll(Request $request)
+    public function showAll($accessCode)
     {
-        $accessCode = json_decode($request->query('accessCode'));
+        return view('pages.barangay.index', ['accessCode' => $accessCode]);
 
-        $data = $request->session()->all();
-        // dd($data);
-        if (session('access_code')) {
-            return view('pages.barangay.index');
-        } else if ($accessCode === null || $accessCode === '') {
-            session()->flush();
-            return redirect()->route('barangay');
-        } else {
-            session(['access_code' => $accessCode]);
-            return view('pages.barangay.index');
-        }
     }
 }

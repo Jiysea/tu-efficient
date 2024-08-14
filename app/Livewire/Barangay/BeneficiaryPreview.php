@@ -57,10 +57,10 @@ class BeneficiaryPreview extends Component
         }
     }
 
-    public function mount()
+    public function mount($accessCode)
     {
         // Retrieve the access code from the session
-        $this->accessCode = session('access_code');
+        $this->accessCode = $accessCode;
 
         $this->preview = Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
             ->join('codes', 'batches.id', '=', 'codes.batches_id')

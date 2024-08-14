@@ -18,7 +18,7 @@
         </div>
         {{-- Search and Add Button | and Slots (for lower lg) --}}
         <div class="mx-2 flex items-end justify-between">
-            <button
+            <button {{-- data-modal-target="assign-batches-modal" data-modal-toggle="assign-batches-modal" --}}
                 class="flex items-center bg-indigo-900 text-indigo-50 rounded-md px-3 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500">
                 ASSIGN
                 <svg class="w-4 ml-2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -36,7 +36,7 @@
     <div class="relative min-h-60 max-h-60 overflow-y-auto">
 
         <table class="relative w-full text-sm text-left text-indigo-1100">
-            <thead class="text-xs text-indigo-50 uppercase bg-indigo-600 sticky top-0">
+            <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                 <tr>
                     <th scope="col" class="ps-4 py-2">
                         barangay
@@ -60,7 +60,7 @@
                     <tr wire:click='selectRow({{ $key }}, "{{ $encryptedId }}")'
                         wire:key='{{ $key }}'
                         class="relative border-b {{ $selectedRow === $key ? 'bg-indigo-200' : '' }} hover:bg-indigo-100 whitespace-nowrap">
-                        <th scope="row" class="ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap">
+                        <th scope="row" class="z-0 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap">
                             {{ $batch['barangay_name'] }}
                         </th>
                         <td class="px-2 py-2 text-center">
@@ -75,7 +75,7 @@
                         <td class="px-2 py-2 flex">
                             <button @click.stop id="batchRowButton-{{ $key }}"
                                 data-dropdown-toggle="batchRowDropdown-{{ $key }}"
-                                class="font-medium text-indigo-700 hover:text-indigo-500 active:text-indigo-900 bg-transparent hover:bg-indigo-100 active:bg-indigo-200 rounded mx-1 p-1">
+                                class="z-0 font-medium text-indigo-700 hover:text-indigo-500 active:text-indigo-900 bg-transparent hover:bg-indigo-100 active:bg-indigo-200 rounded mx-1 p-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                     class="w-4">
                                     <path fill-rule="evenodd"
@@ -125,4 +125,7 @@
             </tbody>
         </table>
     </div>
+
+    {{-- Assign Button | Main Modal --}}
+    {{-- <livewire:focal.implementations.assign-batches-modal /> --}}
 </div>

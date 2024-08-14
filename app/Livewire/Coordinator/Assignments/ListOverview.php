@@ -88,6 +88,7 @@ class ListOverview extends Component
             ->select(
                 DB::raw('batches.id AS batches_id'),
             )->first();
+        // dd($defaultBatch);
 
         $this->beneficiaries = User::where('users_id', $coordinatorUserId)
             ->join('assignments', 'users.id', '=', 'assignments.users_id')

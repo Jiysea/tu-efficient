@@ -3,38 +3,52 @@
 namespace App\Livewire\Focal\Implementations;
 
 use App\Models\Implementation;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CreateProjectModal extends Component
 {
-    #[Validate('required', as: 'project number', onUpdate: false)]
+    #[Validate('required')]
     public $project_num;
-    #[Validate('required', as: 'project title', onUpdate: false)]
+    #[Validate('required')]
     public $project_title;
-    #[Locked]
+    #[Validate('required')]
     public $purpose;
-    #[Validate('required', onUpdate: false)]
+    #[Validate('required')]
     public $district;
-    #[Validate('required', onUpdate: false)]
+    #[Validate('required')]
     public $province;
-    #[Validate('required', as: 'city/municipality', onUpdate: false)]
+    #[Validate('required')]
     public $city_municipality;
-    #[Validate('required|min:0', as: 'budget amount', onUpdate: false)]
+    #[Validate('required|numeric|min:1')]
     public $budget_amount;
-    #[Validate('required|min:0', as: 'total slots', onUpdate: false)]
+    #[Validate('required|numeric|integer|min:1')]
     public $total_slots;
-    #[Validate('required|min:0|max:15', as: 'days of work', onUpdate: false)]
+    #[Validate('required|numeric|integer|min:1|max:15')]
     public $days_of_work;
 
     public function saveProject()
     {
-        $validated = $this->validate();
+        $this->validate();
 
-        Implementation::create($validated);
+        Implementation::create([
+            'users_id' => Auth()->id(),
+            'project_num' => $this->project_num,
+            'project_title' => $this->project_title,
+            'purpose' => $this->purpose,
+            'district' => $this->district,
+            'province' => $this->province,
+            'city_municipality' => $this->city_municipality,
+            'budget_amount' => $this->budget_amount,
+            'total_slots' => $this->total_slots,
+            'days_of_work' => $this->days_of_work
+        ]);
 
-        session()->flash('success', 'Project implementation successfully created!');
+        $messages[] = 'Project implementation successfully created!';
+        session()->put('success', $messages);
+        // session()->flash('success', 'Project implementation successfully created!');
     }
 
     public function render()

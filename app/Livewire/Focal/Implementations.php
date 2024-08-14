@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Livewire\Focal;
+
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+
+#[Layout('layouts.app')]
+#[Title('Implementations | TU-Efficient')]
+class Implementations extends Component
+{
+    public function render()
+    {
+        if (Auth::user()->user_type === 'Focal')
+            return view('livewire.focal.implementations');
+        else if (Auth::user()->user_type === 'Coordinator')
+            return redirect()->route('coordinator.home');
+    }
+}

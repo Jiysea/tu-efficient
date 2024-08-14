@@ -57,6 +57,7 @@
 @script
     <script>
         let data = @json($implementationCount);
+
         const totalMale = data.total_male;
         const totalFemale = data.total_female;
         const totalPwdMale = data.total_pwd_male;
@@ -77,7 +78,7 @@
             const options = (labelName, seriesValues, my_id) => {
                 return {
                     series: seriesValues,
-                    colors: ["#e74c3c", "#f1c40f"],
+                    colors: ["#7986CB", "#283593"],
                     chart: {
                         id: my_id,
                         fontFamily: "Inter, sans-serif",
@@ -179,7 +180,6 @@
             overall.render();
             pwd.render();
             senior.render();
-
 
         };
 
