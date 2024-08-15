@@ -273,15 +273,3 @@
         </div>
     </aside>
 </nav>
-
-@script
-    <script>
-        document.addEventListener("livewire:navigating", () => {
-            initFlowbite();
-        });
-
-        document.addEventListener('livewire:navigated', () => {
-            initFlowbite();
-        });
-    </script>
-@endscript

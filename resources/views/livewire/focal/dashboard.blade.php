@@ -123,6 +123,20 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             placeholder="Select date end">
                     </div>
                 </div>
+
+                {{-- Loading State --}}
+                <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
+                    wire:loading.flex>
+                    <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                            stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                </div>
             </div>
 
             {{-- Project Counters --}}
@@ -536,190 +550,194 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 </div>
 
 @script
-    <script>
-        const datepickerStart = document.getElementById('start-date');
-        const datepickerEnd = document.getElementById('end-date');
+    <script data-navigate-once>
+        document.addEventListener('livewire:navigated', () => {
 
-        datepickerStart.addEventListener('changeDate', function(event) {
-            console.log(event.target.value);
-            $wire.dispatchSelf('start-change', {
-                value: datepickerStart.value
+            const datepickerStart = document.getElementById('start-date');
+            const datepickerEnd = document.getElementById('end-date');
+
+            datepickerStart.addEventListener('changeDate', function(event) {
+                $wire.dispatchSelf('start-change', {
+                    value: datepickerStart.value
+                });
             });
-        });
 
-        datepickerEnd.addEventListener('changeDate', function(event) {
-            console.log(event.target.value);
-            $wire.dispatchSelf('end-change', {
-                value: datepickerEnd.value
+            datepickerEnd.addEventListener('changeDate', function(event) {
+                $wire.dispatchSelf('end-change', {
+                    value: datepickerEnd.value
+                });
             });
-        });
 
-        const anchorTags = document.querySelectorAll('#implementations-list a');
-        anchorTags.forEach(anchor => {
-            anchor.addEventListener('click', (event) => {
-                event.preventDefault();
-                // const value = anchor.getAttribute('data-value');
+            const anchorTags = document.querySelectorAll('#implementations-list a');
+            anchorTags.forEach(anchor => {
+                anchor.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    // const value = anchor.getAttribute('data-value');
+                });
             });
-        });
 
-        let data = @json($implementationCount);
+            let data = @json($implementationCount);
 
-        let overallValues = [parseInt(data.total_male), parseInt(data.total_female)];
-        let pwdValues = [parseInt(data.total_pwd_male), parseInt(data.total_pwd_female)];
-        let seniorValues = [parseInt(data.total_senior_male), parseInt(data.total_senior_female)];
+            let overallValues = [parseInt(data.total_male), parseInt(data.total_female)];
+            let pwdValues = [parseInt(data.total_pwd_male), parseInt(data.total_pwd_female)];
+            let seniorValues = [parseInt(data.total_senior_male), parseInt(data.total_senior_female)];
 
-        const options = (labelName, seriesValues, my_id) => {
-            return {
-                series: seriesValues,
-                colors: ["#C0392B", "#F9A825"],
-                chart: {
-                    id: my_id,
-                    fontFamily: "Inter, sans-serif",
-                    height: 250,
-                    width: "100%",
-                    type: "donut",
-                },
-                stroke: {
-                    colors: ["transparent"],
-                    lineCap: "",
-                },
-                plotOptions: {
-                    pie: {
-                        expandOnClick: false,
-                        donut: {
-                            labels: {
-                                show: true,
-                                name: {
+            const options = (labelName, seriesValues, my_id) => {
+                return {
+                    series: seriesValues,
+                    colors: ["#C0392B", "#F9A825"],
+                    chart: {
+                        id: my_id,
+                        fontFamily: "Inter, sans-serif",
+                        height: 250,
+                        width: "100%",
+                        type: "donut",
+                    },
+                    stroke: {
+                        colors: ["transparent"],
+                        lineCap: "",
+                    },
+                    plotOptions: {
+                        pie: {
+                            expandOnClick: false,
+                            donut: {
+                                labels: {
                                     show: true,
-                                    offsetY: 20,
-                                },
-                                total: {
-                                    showAlways: true,
-                                    show: true,
-                                    label: labelName,
-                                    formatter: function(w) {
-                                        const sum = w.globals.seriesTotals.reduce(
-                                            (a, b) => {
-                                                return a + b;
-                                            },
-                                            0
-                                        );
-                                        return sum;
+                                    name: {
+                                        show: true,
+                                        offsetY: 20,
+                                    },
+                                    total: {
+                                        showAlways: true,
+                                        show: true,
+                                        label: labelName,
+                                        formatter: function(w) {
+                                            const sum = w.globals.seriesTotals.reduce(
+                                                (a, b) => {
+                                                    return a + b;
+                                                },
+                                                0
+                                            );
+                                            return sum;
+                                        },
+                                    },
+                                    value: {
+                                        show: true,
+                                        offsetY: -20,
+                                        formatter: function(value) {
+                                            return value;
+                                        },
                                     },
                                 },
-                                value: {
-                                    show: true,
-                                    offsetY: -20,
-                                    formatter: function(value) {
-                                        return value;
-                                    },
-                                },
+                                size: "80%",
                             },
-                            size: "80%",
                         },
                     },
-                },
-                grid: {
-                    padding: {
-                        top: -2,
-                    },
-                },
-                labels: ["Male", "Female"],
-                dataLabels: {
-                    enabled: false,
-                },
-                legend: {
-                    position: "bottom",
-                    fontFamily: "Inter, sans-serif",
-                },
-                yaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return value;
+                    grid: {
+                        padding: {
+                            top: -2,
                         },
                     },
-                },
-                xaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return value;
+                    labels: ["Male", "Female"],
+                    dataLabels: {
+                        enabled: false,
+                    },
+                    legend: {
+                        position: "bottom",
+                        fontFamily: "Inter, sans-serif",
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: function(value) {
+                                return value;
+                            },
                         },
                     },
-                    axisTicks: {
-                        show: false,
+                    xaxis: {
+                        labels: {
+                            formatter: function(value) {
+                                return value;
+                            },
+                        },
+                        axisTicks: {
+                            show: false,
+                        },
+                        axisBorder: {
+                            show: false,
+                        },
                     },
-                    axisBorder: {
-                        show: false,
-                    },
-                },
+                };
             };
-        };
 
-        let overall = new ApexCharts(
-            document.getElementById("overall-chart"),
-            options("Overall", overallValues, "overallDonut")
-        );
+            let overall = new ApexCharts(
+                document.getElementById("overall-chart"),
+                options("Overall", overallValues, "overallDonut")
+            );
 
-        let pwd = new ApexCharts(
-            document.getElementById("pwd-chart"),
-            options("PWDs", pwdValues, "pwdDonut")
-        );
+            let pwd = new ApexCharts(
+                document.getElementById("pwd-chart"),
+                options("PWDs", pwdValues, "pwdDonut")
+            );
 
-        let senior = new ApexCharts(
-            document.getElementById("senior-chart"),
-            options("Senior Citizens", seniorValues, "seniorDonut")
-        );
+            let senior = new ApexCharts(
+                document.getElementById("senior-chart"),
+                options("Senior Citizens", seniorValues, "seniorDonut")
+            );
 
-        overall.render();
-        pwd.render();
-        senior.render();
+            overall.render();
+            pwd.render();
+            senior.render();
 
-        $wire.on('series-change', (data) => {
-            const overallValues = [parseInt(data.overallValues[0]), parseInt(data.overallValues[1])];
-            const pwdValues = [parseInt(data.pwdValues[0]), parseInt(data.pwdValues[1])];
-            const seniorValues = [parseInt(data.seniorValues[0]), parseInt(data.seniorValues[1])];
+            $wire.on('series-change', (data) => {
+                const overallValues = [parseInt(data.overallValues[0]), parseInt(data.overallValues[1])];
+                const pwdValues = [parseInt(data.pwdValues[0]), parseInt(data.pwdValues[1])];
+                const seniorValues = [parseInt(data.seniorValues[0]), parseInt(data.seniorValues[1])];
 
-            if (data.overallValues[0] == null || data.overallValues[1] == null) {
-                overall.updateOptions({
-                    labels: ['None'],
-                    series: [0],
-                    colors: ['#f0f0f0'],
-                });
-            } else {
-                overall.updateOptions({
-                    labels: ['Male', 'Female'],
-                    colors: ['#C0392B', '#F9A825'],
-                });
-                overall.updateSeries(overallValues);
-            }
+                if (data.overallValues[0] == null || data.overallValues[1] == null) {
+                    overall.updateOptions({
+                        labels: ['None'],
+                        series: [0],
+                        colors: ['#f0f0f0'],
+                    });
+                } else {
+                    overall.updateOptions({
+                        labels: ['Male', 'Female'],
+                        colors: ['#C0392B', '#F9A825'],
+                    });
+                    overall.updateSeries(overallValues);
+                }
 
-            if (data.pwdValues[0] == null || data.pwdValues[1] == null) {
-                pwd.updateOptions({
-                    labels: ['None'],
-                    series: [0],
-                    colors: ['#f0f0f0'],
-                });
-            } else {
-                pwd.updateOptions({
-                    labels: ['Male', 'Female'],
-                    colors: ['#C0392B', '#F9A825'],
-                });
-                pwd.updateSeries(pwdValues);
-            }
+                if (data.pwdValues[0] == null || data.pwdValues[1] == null) {
+                    pwd.updateOptions({
+                        labels: ['None'],
+                        series: [0],
+                        colors: ['#f0f0f0'],
+                    });
+                } else {
+                    pwd.updateOptions({
+                        labels: ['Male', 'Female'],
+                        colors: ['#C0392B', '#F9A825'],
+                    });
+                    pwd.updateSeries(pwdValues);
+                }
 
-            if (data.seniorValues[0] == null || data.seniorValues[1] == null) {
-                senior.updateOptions({
-                    labels: ['None'],
-                    series: [0],
-                    colors: ['#f0f0f0'],
-                });
-            } else {
-                senior.updateOptions({
-                    labels: ['Male', 'Female'],
-                    colors: ['#C0392B', '#F9A825'],
-                });
-                senior.updateSeries(seniorValues);
-            }
+                if (data.seniorValues[0] == null || data.seniorValues[1] == null) {
+                    senior.updateOptions({
+                        labels: ['None'],
+                        series: [0],
+                        colors: ['#f0f0f0'],
+                    });
+                } else {
+                    senior.updateOptions({
+                        labels: ['Male', 'Female'],
+                        colors: ['#C0392B', '#F9A825'],
+                    });
+                    senior.updateSeries(seniorValues);
+                }
+            });
+
+        }, {
+            once: true
         });
     </script>
 @endscript

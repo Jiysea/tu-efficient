@@ -12,3 +12,7 @@ window.Chart = Chart;
 // window.Alpine = Alpine;
 
 // Alpine.start();
+
+document.addEventListener("livewire:navigated", () => {
+    initFlowbite();
+});
