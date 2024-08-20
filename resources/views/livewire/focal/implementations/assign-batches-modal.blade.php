@@ -6,7 +6,7 @@
             <!-- Modal header -->
             <div class="flex items-center justify-between py-2 px-4 border-b rounded-t ">
                 <h3 class="text-lg font-semibold text-gray-900 ">
-                    Create New Project Implementation
+                    Assign Batches to Coordinators
                 </h3>
                 <button type="button"
                     class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center focus:outline-none"

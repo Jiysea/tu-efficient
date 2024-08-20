@@ -6,6 +6,7 @@ use App\Models\Implementation;
 use Crypt;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -16,6 +17,7 @@ use Livewire\Component;
 #[Title('Implementations | TU-Efficient')]
 class Implementations extends Component
 {
+    public $beneficiaries_on_page = 15;
     public $selectedImplementationRow = 0;
     public $selectedBatchRow = 0;
     public $selectedBeneficiaryRow = 0;
@@ -37,6 +39,8 @@ class Implementations extends Component
     public function setStartDate($value)
     {
         $this->start = date('Y-m-d', strtotime($value));
+        $this->beneficiaries_on_page = 15;
+
         $this->setListOfImplementations();
         $this->setListOfBatchAssignments();
         $this->setListOfBeneficiaries();
@@ -44,12 +48,17 @@ class Implementations extends Component
         $this->selectedImplementationRow = 0;
         $this->selectedBatchRow = 0;
         $this->selectedBeneficiaryRow = 0;
+
+        $this->dispatch('init-reload')->self();
+
     }
 
     #[On('end-change')]
     public function setEndDate($value)
     {
         $this->end = date('Y-m-d', strtotime($value));
+        $this->beneficiaries_on_page = 15;
+
         $this->setListOfImplementations();
         $this->setListOfBatchAssignments();
         $this->setListOfBeneficiaries();
@@ -57,12 +66,15 @@ class Implementations extends Component
         $this->selectedImplementationRow = 0;
         $this->selectedBatchRow = 0;
         $this->selectedBeneficiaryRow = 0;
+
+        $this->dispatch('init-reload')->self();
     }
 
     public function selectImplementationRow($key, $encryptedId)
     {
         $this->selectedImplementationRow = $key;
         $this->implementationId = Crypt::decrypt($encryptedId);
+        $this->beneficiaries_on_page = 15;
 
         $this->setListOfBatchAssignments();
         $this->setListOfBeneficiaries();
@@ -75,6 +87,7 @@ class Implementations extends Component
     {
         $this->selectedBatchRow = $key;
         $this->batchId = Crypt::decrypt($encryptedId);
+        $this->beneficiaries_on_page = 15;
 
         $this->setListOfBeneficiaries();
 
@@ -133,10 +146,32 @@ class Implementations extends Component
             ->select(
                 DB::raw('beneficiaries.*'),
             )
+            ->latest()
+            ->take($this->beneficiaries_on_page)
             ->get()
             ->toArray();
 
         $this->beneficiaryId = $this->beneficiaries[0]['id'];
+    }
+
+    public function loadMoreBeneficiaries()
+    {
+        $focalUserId = auth()->id();
+        $this->beneficiaries_on_page += 15;
+
+        $this->beneficiaries = Implementation::where('users_id', $focalUserId)
+            ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
+            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('batches.id', $this->batchId)
+            ->select(
+                DB::raw('beneficiaries.*'),
+            )
+            ->latest()
+            ->take($this->beneficiaries_on_page)
+            ->get()
+            ->toArray();
+
+        $this->dispatch('init-reload')->self();
     }
 
     public function mount()
@@ -168,7 +203,6 @@ class Implementations extends Component
     }
     public function render()
     {
-
         if (Auth::user()->user_type === 'Focal')
             return view('livewire.focal.implementations');
         else if (Auth::user()->user_type === 'Coordinator')

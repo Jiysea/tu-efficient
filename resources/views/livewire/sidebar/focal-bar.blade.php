@@ -15,7 +15,7 @@
             'w-20': open === false,
             'w-20 xl:w-64': open === true,
         }"
-        class="fixed top-0 left-0 z-40 w-20 xl:w-64 h-screen duration-500 ease-in-out" aria-label="Sidebar">
+        class="fixed top-0 left-0 z-40 w-20 xl:w-64 h-screen duration-500 ease-in-out select-none" aria-label="Sidebar">
 
         {{-- Sidebar Opener --}}
         <div :class="{
@@ -195,10 +195,10 @@
             <div>
                 <ul class="font-medium text-sm">
                     <li class="relative">
-                        <a @click="profileShow = !profileShow"
-                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none focus:bg-indigo-1000 group duration-300 ease-in-out cursor-pointer">
+                        <button @click="profileShow = !profileShow"
+                            class="flex items-center w-full px-3 py-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none group duration-300 ease-in-out cursor-pointer">
 
-                            <svg class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300 group-focus:text-indigo-300"
+                            <svg class="text-center flex-shrink-0 size-8 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300 group-focus:text-indigo-300"
                                 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 width="400" height="400" viewBox="0, 0, 400,400">
                                 <g>
@@ -214,7 +214,7 @@
                                 class="-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100 origin-right ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
                                 {{ Auth::user()->first_name . ' ' . Auth::user()->last_name }}
                             </div>
-                        </a>
+                        </button>
                         <!-- Profile Dropdown menu -->
                         <div x-show="profileShow" @click.away="profileShow = !profileShow"
                             :class="{

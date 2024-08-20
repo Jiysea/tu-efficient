@@ -13,7 +13,7 @@ use Nette\Utils\Random;
 class ImplementationFactory extends Factory
 {
     protected static $counter = 1;
-    protected $currentMinimumWage = 462;
+    protected $currentMinimumWage = config('wage.minimum_wage');
     /**
      * Define the model's default state.
      *
