@@ -53,7 +53,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/focal/user-management', UserManagement::class)->name('focal.user-management');
     Route::get('/focal/activity-logs', ActivityLogs::class)->name('focal.activity-logs');
 
-
     Route::get('/coordinator/home', CoordinatorIndexController::class)->name('coordinator.home');
 
 });

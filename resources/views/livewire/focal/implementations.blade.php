@@ -685,7 +685,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         $wire.on('init-reload', () => {
             setTimeout(() => {
                 initFlowbite();
-                console.log('Livewire Reloaded');
             }, 1);
         });
 
