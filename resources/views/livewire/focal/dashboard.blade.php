@@ -221,16 +221,18 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </h1>
                         <div class="relative w-52 z-20">
                             <div @click="show = !show ; rotation += 180"
-                                class="w-full bg-indigo-900 text-indigo-50 hover:bg-indigo-800 text-sm font-semibold px-4 py-2 rounded-lg flex items-center justify-between transition duration-150 ease-in-out cursor-pointer">
+                                class="w-full bg-indigo-900 text-indigo-50 hover:bg-indigo-800 text-sm font-semibold px-4 py-2 rounded-lg flex items-center justify-between duration-200 ease-in-out cursor-pointer">
                                 {!! $currentImplementation !!}
+
                                 <svg :class="{
                                     'rotate-0': rotation % 360 === 0,
                                     'rotate-180': rotation % 360 === 180,
                                 }"
-                                    class="w-2.5 h-2.5 ms-3 transition duration-300 ease-in-out" aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="m1 1 4 4 4-4" />
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-5 duration-200 ease-in-out">
+                                    <path fill-rule="evenodd"
+                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </div>
                             <div x-show="show" @click.away="show = !show; rotation += 180"
@@ -241,13 +243,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 class="hidden end-0 absolute text-indigo-1100 bg-white w-60 shadow-lg border border-indigo-100 rounded p-3 mt-2">
                                 <div class="relative flex items-center justify-center py-1 group">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                        class="absolute start-0 ps-2 w-6 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-500 ease-in-out pointer-events-none">
+                                        class="absolute start-0 ps-2 w-6 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none">
                                         <path fill-rule="evenodd"
                                             d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
                                             clip-rule="evenodd" />
                                     </svg>
                                     <input id="searchProject" wire:model.live="searchProject" type="text"
-                                        class="rounded w-full ps-8 text-sm text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-500 ease-in-out"
+                                        class="rounded w-full ps-8 text-sm text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
                                         placeholder="Search project number">
                                 </div>
                                 <ul class="mt-2 text-sm overflow-y-auto max-h-44">
@@ -257,7 +259,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 wire:click.prevent="updateCurrentImplementation({{ $key }})"
                                                 @click="show= !show ; rotation += 180" wire:loading.attr="disabled"
                                                 aria-label="{{ __('Implementation') }}"
-                                                class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:font-medium hover:bg-indigo-100 duration-300 ease-in-out">{{ $implementation['project_num'] }}</button>
+                                                class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">{{ $implementation['project_num'] }}</button>
                                         </li>
                                     @endforeach
                                 </ul>

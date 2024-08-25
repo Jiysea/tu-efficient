@@ -10,6 +10,10 @@
     }
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 /* SOmething something fade delay */
 .fade-enter-active,
 .fade-leave-active {

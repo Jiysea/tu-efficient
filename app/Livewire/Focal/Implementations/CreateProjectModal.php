@@ -5,6 +5,7 @@ namespace App\Livewire\Focal\Implementations;
 use App\Models\Implementation;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Js;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -57,7 +58,7 @@ class CreateProjectModal extends Component
         // $this->toggleTry();
 
         return [
-            'project_num' => 'required',
+            'project_num' => 'required|unique:implementations',
             'project_title' => 'required',
             'purpose' => 'required',
             'district' => 'required',
@@ -82,6 +83,8 @@ class CreateProjectModal extends Component
             'budget_amount.required' => 'The :attribute should not be empty.',
             'total_slots.required' => 'The :attribute should not be empty.',
             'days_of_work.required' => 'Invalid :attribute.',
+
+            'project_num.unique' => 'This :attribute already exists.',
 
             'budget_amount.integer' => 'The :attribute should be a valid amount.',
             'budget_amount.min' => 'The :attribute value should be more than 1.',
@@ -125,14 +128,14 @@ class CreateProjectModal extends Component
             'district' => $this->district,
             'province' => $this->province,
             'city_municipality' => $this->city_municipality,
-            'budget_amount' => $this->budgetToInt,
+            'budget_amount' => $this->budget_amount,
             'total_slots' => $this->total_slots,
             'days_of_work' => $this->days_of_work
         ]);
 
-        $messages[] = 'Project implementation successfully created!';
-        session()->put('success', $messages);
-        // session()->flash('success', 'Project implementation successfully created!');
+        $this->reset();
+        $this->dispatch('update-implementations');
+
     }
 
     # a livewire action for toggling the auto computation for total slots

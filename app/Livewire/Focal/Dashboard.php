@@ -50,7 +50,10 @@ class Dashboard extends Component
     #[On('start-change')]
     public function setStartDate($value)
     {
-        $this->start = date('Y-m-d', strtotime($value));
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+
+        $this->start = $choosenDate . ' ' . $currentTime;
         $this->setProjectCounters();
         $this->setListOfImplementations();
     }
@@ -58,7 +61,10 @@ class Dashboard extends Component
     #[On('end-change')]
     public function setEndDate($value)
     {
-        $this->end = date('Y-m-d', strtotime($value));
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+
+        $this->end = $choosenDate . ' ' . $currentTime;
         $this->setProjectCounters();
         $this->setListOfImplementations();
     }
@@ -155,9 +161,8 @@ class Dashboard extends Component
         /*
          *  Setting default dates in the datepicker
          */
-        $this->start = date('Y-m-d', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d', strtotime(now()));
-
+        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
+        $this->end = date('Y-m-d H:i:s', strtotime(now()));
 
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));

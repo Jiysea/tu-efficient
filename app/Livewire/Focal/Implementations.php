@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Focal;
 
+use App\Models\Batch;
 use App\Models\Implementation;
 use Crypt;
 use Illuminate\Support\Facades\Auth;
@@ -17,10 +18,14 @@ use Livewire\Component;
 #[Title('Implementations | TU-Efficient')]
 class Implementations extends Component
 {
+    public $showAlert = false;
     public $beneficiaries_on_page = 15;
     public $selectedImplementationRow = 0;
     public $selectedBatchRow = 0;
     public $selectedBeneficiaryRow = 0;
+    public $batchesCount;
+    public $isBatchFull = false;
+    public $remainingBatchSlots;
     #[Locked]
     public $implementationId;
     #[Locked]
@@ -38,12 +43,16 @@ class Implementations extends Component
     #[On('start-change')]
     public function setStartDate($value)
     {
-        $this->start = date('Y-m-d', strtotime($value));
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+
+        $this->start = $choosenDate . ' ' . $currentTime;
         $this->beneficiaries_on_page = 15;
 
         $this->setListOfImplementations();
         $this->setListOfBatchAssignments();
         $this->setListOfBeneficiaries();
+        $this->checkIfFullSlots();
 
         $this->selectedImplementationRow = 0;
         $this->selectedBatchRow = 0;
@@ -56,12 +65,16 @@ class Implementations extends Component
     #[On('end-change')]
     public function setEndDate($value)
     {
-        $this->end = date('Y-m-d', strtotime($value));
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+
+        $this->end = $choosenDate . ' ' . $currentTime;
         $this->beneficiaries_on_page = 15;
 
         $this->setListOfImplementations();
         $this->setListOfBatchAssignments();
         $this->setListOfBeneficiaries();
+        $this->checkIfFullSlots();
 
         $this->selectedImplementationRow = 0;
         $this->selectedBatchRow = 0;
@@ -81,6 +94,7 @@ class Implementations extends Component
 
         $this->selectedBatchRow = 0;
         $this->selectedBeneficiaryRow = 0;
+        $this->checkIfFullSlots();
     }
 
     public function selectBatchRow($key, $encryptedId)
@@ -110,7 +124,7 @@ class Implementations extends Component
             ->get()
             ->toArray();
 
-        $this->implementationId = $this->implementations[0]['id'];
+        $this->implementationId = $this->implementations[0]['id'] ?? null;
     }
 
     public function setListOfBatchAssignments()
@@ -132,7 +146,8 @@ class Implementations extends Component
             ->get()
             ->toArray();
 
-        $this->batchId = $this->batches[0]['batches_id'];
+        $this->batchId = $this->batches[0]['batches_id'] ?? null;
+
     }
 
     public function setListOfBeneficiaries()
@@ -151,7 +166,35 @@ class Implementations extends Component
             ->get()
             ->toArray();
 
-        $this->beneficiaryId = $this->beneficiaries[0]['id'];
+        $this->beneficiaryId = $this->beneficiaries[0]['id'] ?? null;
+    }
+
+    public function checkIfFullSlots()
+    {
+        $focalUserId = auth()->id();
+
+        if ($this->implementationId) {
+
+            $implementation = Implementation::where('users_id', $focalUserId)
+                ->where('id', $this->implementationId)
+                ->first();
+
+            $this->remainingBatchSlots = $implementation['total_slots'];
+
+            $batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->where('implementations.users_id', $focalUserId)
+                ->where('implementations.id', $this->implementationId)
+                ->select('batches.slots_allocated')
+                ->get()
+                ->toArray();
+
+            foreach ($batchesCount as $batch) {
+                $this->remainingBatchSlots -= $batch['slots_allocated'];
+            }
+        } else {
+            $this->remainingBatchSlots = null;
+        }
+
     }
 
     public function loadMoreBeneficiaries()
@@ -174,13 +217,40 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    #[On('update-implementations')]
+    public function updateImplementations()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->setListOfImplementations();
+
+        // $messages[] = 'Project implementation successfully created!';
+        // session()->put('success-now', $messages);
+        $this->showAlert = true;
+        $this->dispatch('show-alert');
+    }
+
+    // public function removeSuccessMessage($sessionMessage, $index)
+    // {
+    //     $messages = session()->get($sessionMessage, []);
+    //     if (isset($messages[$index])) {
+    //         unset($messages[$index]);
+    //         session()->put($sessionMessage, array_values($messages));
+    //     }
+    // }
+
     public function mount()
     {
         /*
          *  Setting default dates in the datepicker
          */
-        $this->start = date('Y-m-d', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d', strtotime(now()));
+        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
+        $this->end = date('Y-m-d H:i:s', strtotime(now()));
 
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
@@ -199,6 +269,11 @@ class Implementations extends Component
          *  Setting the list of implementation projects
          */
         $this->setListOfBeneficiaries();
+
+        /*
+         *   Check Full Slots
+         */
+        $this->checkIfFullSlots();
 
     }
     public function render()
