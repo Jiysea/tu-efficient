@@ -14,8 +14,7 @@
                 <div class="flex items-center justify-center">
                     {{-- Loading State for Changes --}}
                     <div class="z-50 text-blue-900" wire:loading
-                        wire:target="addBatchRow, editBatchRow, addToastCoordinator, removeToastCoordinator, updateCurrentCoordinator"
-                        wire:target="editBatchRow, updateCurrentCoordinator, addToastCoordinator, removeToastCoordinator">
+                        wire:target="addBatchRow, editBatchRow, addToastCoordinator, removeToastCoordinator, updateCurrentCoordinator, removeBatchRow">
                         <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -97,8 +96,7 @@
                         @enderror
                     </div>
                     <div class="relative flex flex-col col-span-5 sm:col-span-2 mb-4">
-                        <p class="block mb-1 font-medium text-blue-1100 ">Add
-                            Coordinator</p>
+                        <p class="block mb-1 font-medium text-blue-1100 ">Add Coordinator</p>
                         <div class="relative z-50">
                             <div id="coordinator_name" @click="show = !show ; rotation += 180"
                                 class="w-full bg-blue-50 border border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600 text-xs px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out cursor-pointer">
@@ -278,7 +276,7 @@
                                                 {{ $batch['barangay_name'] }}
                                             </td>
                                             <td class="grid-flow-row">
-                                                @foreach ($assigned_coordinators as $coordinator)
+                                                @foreach ($batch['assigned_coordinators'] as $coordinator)
                                                     <span
                                                         class="p-1 mx-1 rounded duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'bg-green-300 text-green-1000' : 'bg-blue-300 text-blue-1000' }}">
                                                         {{ $coordinator['last_name'] }}
@@ -322,8 +320,8 @@
                                                 {{ $batch['slots_allocated'] }}
                                             </td>
                                             <td class="py-2 flex justify-end items-center">
-                                                <button type="button"
-                                                    wire:click='editBatchRow({{ $key }}, "{{ $batchEncryptedId }}")'
+                                                {{-- Edit/Pen Button --}}
+                                                <button type="button" wire:click='editBatchRow({{ $key }})'
                                                     class="p-1 mx-1 rounded-md duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 active:text-green-200' : 'bg-transparent text-blue-1100 hover:text-blue-900 active:text-blue-1000 hover:bg-blue-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
                                                         class="size-4" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -338,7 +336,9 @@
                                                     </svg>
                                                 </button>
 
+                                                {{-- X button (table list) --}}
                                                 <button type="button"
+                                                    wire:click="removeBatchRow({{ $key }})"
                                                     class="p-1 me-3 rounded-md text-blue-1100 hover:text-blue-900 active:text-blue-1000 bg-transparent hover:bg-blue-300 duration-200 ease-in-out">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"

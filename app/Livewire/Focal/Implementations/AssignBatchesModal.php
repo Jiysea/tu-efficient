@@ -30,6 +30,7 @@ class AssignBatchesModal extends Component
     public $selectedBatchRow = -1;
     public $previousSelectedBatchRow = -1;
     public $remainingSlots;
+    public $totalSlots;
 
     # -------------------------------------
     public $coordinators;
@@ -56,7 +57,13 @@ class AssignBatchesModal extends Component
         return [
             'batch_num' => 'required|unique:batches',
             'barangay_name' => 'required',
-            'slots_allocated' => 'required|integer|min:1',
+            'slots_allocated' => [
+                'required',
+                'integer',
+                'gte:0',
+                'min:1',
+                'lte:' . $this->totalSlots,
+            ],
             'assigned_coordinators' => 'required',
         ];
     }
@@ -72,8 +79,10 @@ class AssignBatchesModal extends Component
 
             'batch_num.unique' => 'This :attribute already exists.',
 
-            'slots_allocated.integer' => 'The :attribute should be a valid number.',
-            'slots_allocated.min' => 'The :attribute should be > 0.',
+            'slots_allocated.integer' => ':attribute should be a valid number.',
+            'slots_allocated.min' => ':attribute should be > 0.',
+            'slots_allocated.gte' => ':attribute should be nonnegative.',
+            'slots_allocated.lte' => ':attribute should be less than total.',
         ];
     }
 
@@ -85,7 +94,7 @@ class AssignBatchesModal extends Component
         return [
             'batch_num' => 'batch number',
             'barangay_name' => 'barangay',
-            'slots_allocated' => 'slots',
+            'slots_allocated' => 'Slots',
             'assigned_coordinators' => 'assigned coordinator',
         ];
     }
@@ -121,12 +130,12 @@ class AssignBatchesModal extends Component
     # triggers when a user clicks the `pen` button which activates the edit mode
     # of the batch row that enables users to modify the coordinators, allocated slots 
     # and barangay names.
-    public function editBatchRow($key, $encryptedId)
+    public function editBatchRow($key)
     {
         if ($this->previousSelectedBatchRow === $key) {
             # resets the rows styling/emphasis
             $this->selectedBatchRow = -1;
-            $this->batchId = null;
+            // $this->batchId = null;
 
             # also resets the input text boxes
             // $this->batch_num = null;
@@ -135,7 +144,7 @@ class AssignBatchesModal extends Component
             // $this->assigned_coordinators = [];
         } else {
             $this->selectedBatchRow = $key;
-            $this->batchId = Crypt::decrypt($encryptedId);
+            // $this->batchId = Crypt::decrypt($encryptedId);
 
             // $this->batch_num = $this->batches[$key]['batch_num'];
             // $this->barangay_name = $this->batches[$key]['barangay_name'];
@@ -147,31 +156,8 @@ class AssignBatchesModal extends Component
         $this->previousSelectedBatchRow = $this->selectedBatchRow;
     }
 
-    // public function getBatchCoordinators($key)
-    // {
-    //     $coordinators = [];
-    //     foreach ($this->assignments[$key]['assignments'] as $assignment) {
-    //         $coordinators[] = $assignment['last_name'];
-    //     }
-
-    //     return $coordinators;
-    // }
-
-    // public function commaLastNames() {
-    //     $coordinators = '';
-    //     $lastIndex = count($this->assignments[$key]['assignments']) - 1;
-    //     foreach ($this->assignments[$key]['assignments'] as $index => $assignment) {
-    //         if ($index === $lastIndex) {
-    //             $coordinators .= $assignment['last_name'];
-    //         } else {
-    //             $coordinators .= $assignment['last_name'] . ', ';
-    //         }
-    //     }
-    //     return $coordinators;
-    // }
-
     # triggers when clicking the `ADD BATCH` button which adds the user input
-    # to the temporary batch list table for saving later
+    # to the temporary batch list table for saving later.
     public function addBatchRow()
     {
         $this->validate();
@@ -184,10 +170,36 @@ class AssignBatchesModal extends Component
             'batch_num' => $this->batch_num,
             'barangay_name' => $this->barangay_name,
             'slots_allocated' => $this->slots_allocated,
+            'assigned_coordinators' => $this->assigned_coordinators,
             'assignments' => [
                 'users_id' => $users_id,
             ],
         ];
+
+        $this->totalSlots -= $this->slots_allocated;
+        $this->batch_num = null;
+        $this->barangay_name = null;
+        $this->slots_allocated = null;
+        $this->assigned_coordinators = [];
+        $this->getAllCoordinators();
+
+    }
+
+    # triggers when clicking the `X` button which removes the
+    # batch row from the list and temporary batch array.
+    public function removeBatchRow($key)
+    {
+        $this->totalSlots += $this->temporaryBatchesList[$key]['slots_allocated'];
+        $this->liveUpdateRemainingSlots();
+
+        if ($this->selectedBatchRow === $key) {
+            # resets the rows styling/emphasis
+            $this->selectedBatchRow = -1;
+        } else if ($key > $this->selectedBatchRow) {
+            $this->selectedBatchRow -= 1;
+        }
+
+        unset($this->temporaryBatchesList[$key]);
     }
 
     # this function adds the selected coordinator from the `Add Coordinator` dropdown
@@ -208,6 +220,7 @@ class AssignBatchesModal extends Component
             $ignoredIDs[] = $coordinatorId['users_id'];
 
         $this->getAllCoordinators($ignoredIDs);
+        $this->validateOnly('assigned_coordinators');
     }
 
     # triggers when a user clicks the `X` from the toast of the `Assigned Coordinators` box
@@ -224,39 +237,64 @@ class AssignBatchesModal extends Component
         $this->getAllCoordinators($ignoredIDs);
     }
 
-    public function liveUpdateRemainingSlots($firstTime = false)
+    public function liveUpdateRemainingSlots()
     {
         $focalUserId = auth()->id();
-
-        if ($firstTime) {
-            $this->remainingSlots = $this->implementation['total_slots'];
-        }
-
-        $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-            ->where('implementations.users_id', $focalUserId)
-            ->where('implementations.id', $this->implementationId)
-            ->select('batches.slots_allocated')
-            ->get()
-            ->toArray();
-
-
-        # get the id of each batches, probably a foreach loop
-        # then some code to get the coordinator's last names in a certain format by row
-        # in assignment table
         $batchCountDelta = 0;
-        foreach ($this->batchesCount as $batch) {
-            # determine the remaining slots
-            $batchCountDelta -= $batch['slots_allocated'];
+
+        # this condition initializes the slots
+        # and it makes sense to have when the 1st time this component
+        # is rendered will have empty and temporary batch list.
+        #
+        # It's also counterproductive to also retrieve all the existing batches
+        # from the selected implementation project because it's designed to 
+        # assign and create `new` batch assignments.
+        #
+        # So, the only value that we're retrieving is the `total_slots` from the implementations
+        # and the `slots_alloted` from the batches to give an indicator of how many remaining
+        # slots left for the user to input.
+        if (!$this->temporaryBatchesList) {
+            $this->totalSlots = $this->implementation['total_slots'];
+
+            # retrieves all of the `slots_alloted` values from the batches table
+            $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->where('implementations.users_id', $focalUserId)
+                ->where('implementations.id', $this->implementationId)
+                ->select('batches.slots_allocated')
+                ->get()
+                ->toArray();
+
+            # retrieves all the slots allocated from existing (if any) batches
+            # and iterate it as a single value
+            foreach ($this->batchesCount as $batch) {
+                $batchCountDelta += $batch['slots_allocated'];
+            }
+
+            # re-assign the total slots based on batch counts (if any)
+            # then assign the remaining slots to it
+            $this->totalSlots -= $batchCountDelta;
+            $this->remainingSlots = $this->totalSlots;
+
+        } else {
+
+            # re-assigns the remaining slots to the total slots that was
+            # also re-assigned during addition of the new batch to the temporary list.
+            $this->remainingSlots = $this->totalSlots;
+
         }
 
-        if (is_int(intval($this->slots_allocated))) {
-            $this->remainingSlots -= $this->slots_allocated - $batchCountDelta;
-        }
+        # this condition basically filters the input to take only numbers
+        if (ctype_digit($this->slots_allocated)) {
+            # assign the difference between the remaining slots and the input slots value
+            $newRemainingSlots = intval($this->remainingSlots) - intval($this->slots_allocated);
 
-        if (!$firstTime) {
-            $this->validateOnly('slots_allocated');
+            # it also filters
+            if ($newRemainingSlots >= 0) {
+                $this->remainingSlots = $newRemainingSlots;
+            } else if ($newRemainingSlots < 0) {
+                $this->remainingSlots = 0;
+            }
         }
-
     }
 
     # triggers when a user clicks one of the list from the `Add Coordinator` dropdown
@@ -326,7 +364,7 @@ class AssignBatchesModal extends Component
             ->where('id', $this->implementationId)
             ->first();
 
-        $this->liveUpdateRemainingSlots(true);
+        $this->liveUpdateRemainingSlots();
 
         # determine the remaining slots
         // $this->remainingSlots -= $batch['slots_allocated'];

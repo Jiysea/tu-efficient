@@ -50,6 +50,7 @@ class Dashboard extends Component
     #[On('start-change')]
     public function setStartDate($value)
     {
+        $this->searchProject = null;
         $choosenDate = date('Y-m-d', strtotime($value));
         $currentTime = date('H:i:s', strtotime(now()));
 
@@ -61,6 +62,7 @@ class Dashboard extends Component
     #[On('end-change')]
     public function setEndDate($value)
     {
+        $this->searchProject = null;
         $choosenDate = date('Y-m-d', strtotime($value));
         $currentTime = date('H:i:s', strtotime(now()));
 
