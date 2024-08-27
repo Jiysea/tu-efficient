@@ -19,14 +19,9 @@ class AssignBatchesModal extends Component
     #[Locked]
     #[Reactive]
     public $implementationId;
-    #[Locked]
-    public $batchId;
-    #[Locked]
-    public $batches_id;
+    public $implementation;
     public $temporaryBatchesList = [];
     public $batchesCount;
-    public $implementation;
-    public $assignments;
     public $selectedBatchRow = -1;
     public $previousSelectedBatchRow = -1;
     public $remainingSlots;
@@ -37,9 +32,10 @@ class AssignBatchesModal extends Component
     public $currentCoordinator;
     public $coordinatorFullName;
     public $selectedCoordinatorKey;
-    public $selectedCoordinatorId;
-    public $selectedCoordinatorIds = [];
     public $searchCoordinator;
+    # ---------------------------------------
+    public $batchListCoordinators;
+    public $selectedCoordinatorKeyInBatchListDropdown;
 
     # -------------------------------------
     #[Validate]
@@ -55,8 +51,27 @@ class AssignBatchesModal extends Component
     public function rules()
     {
         return [
-            'batch_num' => 'required|unique:batches',
-            'barangay_name' => 'required',
+            'batch_num' => [
+                'required',
+                'unique:batches',
+                function ($attribute, $value, $fail) {
+                    foreach ($this->temporaryBatchesList as $batch) {
+                        if ($batch['batch_num'] === $value) {
+                            $fail('The :attribute has already been added.');
+                        }
+                    }
+                },
+            ],
+            'barangay_name' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    foreach ($this->temporaryBatchesList as $batch) {
+                        if ($batch['barangay_name'] === $value) {
+                            $fail('The :attribute has already been added.');
+                        }
+                    }
+                },
+            ],
             'slots_allocated' => [
                 'required',
                 'integer',
@@ -65,6 +80,7 @@ class AssignBatchesModal extends Component
                 'lte:' . $this->totalSlots,
             ],
             'assigned_coordinators' => 'required',
+            'temporaryBatchesList' => 'required',
         ];
     }
 
@@ -76,6 +92,7 @@ class AssignBatchesModal extends Component
             'barangay_name.required' => 'The :attribute should not be empty.',
             'slots_allocated.required' => 'Invalid :attribute amount.',
             'assigned_coordinators' => 'There should be at least 1 :attribute.',
+            'temporaryBatchesList.required' => 'There should be at least 1 :attribute before finishing.',
 
             'batch_num.unique' => 'This :attribute already exists.',
 
@@ -96,35 +113,42 @@ class AssignBatchesModal extends Component
             'barangay_name' => 'barangay',
             'slots_allocated' => 'Slots',
             'assigned_coordinators' => 'assigned coordinator',
+            'temporaryBatchesList' => 'batch assignment',
         ];
     }
 
     # a livewire action executes after clicking the `Finish` button
     public function saveBatches()
     {
-        $this->validate();
+        $this->validateOnly('temporaryBatchesList');
 
-        $batch = Batch::create([
-            'users_id' => Auth()->id(),
-            'batch_num' => $this->batch_num,
-            'barangay_name' => $this->barangay_name,
-            'slots_allocated' => $this->slots_allocated,
-        ]);
-
-        # Get the ID and return the newly created Batch
-        $this->batches_id = $batch->id;
-
-        foreach ($this->selectedCoordinatorIds as $coordinator_id) {
-            Assignment::create([
-                'batches_id' => $this->batches_id,
-                'users_id' => $coordinator_id,
+        foreach ($this->temporaryBatchesList as $keyBatch => $batch) {
+            $batch = Batch::create([
+                'implementations_id' => $this->implementationId,
+                'batch_num' => $batch['batch_num'],
+                'barangay_name' => $batch['barangay_name'],
+                'slots_allocated' => $batch['slots_allocated'],
+                'approval_status' => 'PENDING',
+                'submission_status' => 'UNOPENED'
             ]);
+
+            $batch_id = $batch->id;
+
+            foreach ($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'] as $coordinator) {
+                Assignment::create([
+                    'batches_id' => $batch_id,
+                    'users_id' => $coordinator['users_id'],
+                ]);
+            }
         }
 
-        # it's bugged
-        // $this->reset();
-
-        $this->dispatch('update-batches');
+        # resets after submitting
+        $this->batch_num = null;
+        $this->barangay_name = null;
+        $this->slots_allocated = null;
+        $this->assigned_coordinators = [];
+        $this->temporaryBatchesList = [];
+        $this->dispatch('assign-create-batches');
     }
 
     # triggers when a user clicks the `pen` button which activates the edit mode
@@ -135,22 +159,10 @@ class AssignBatchesModal extends Component
         if ($this->previousSelectedBatchRow === $key) {
             # resets the rows styling/emphasis
             $this->selectedBatchRow = -1;
-            // $this->batchId = null;
 
-            # also resets the input text boxes
-            // $this->batch_num = null;
-            // $this->barangay_name = null;
-            // $this->slots_allocated = null;
-            // $this->assigned_coordinators = [];
+
         } else {
             $this->selectedBatchRow = $key;
-            // $this->batchId = Crypt::decrypt($encryptedId);
-
-            // $this->batch_num = $this->batches[$key]['batch_num'];
-            // $this->barangay_name = $this->batches[$key]['barangay_name'];
-            // $this->slots_allocated = $this->batches[$key]['slots_allocated'];
-            // $this->assigned_coordinators = $this->getBatchCoordinators($key);
-            // $this->validate();
         }
 
         $this->previousSelectedBatchRow = $this->selectedBatchRow;
@@ -160,20 +172,16 @@ class AssignBatchesModal extends Component
     # to the temporary batch list table for saving later.
     public function addBatchRow()
     {
-        $this->validate();
-
-        $users_id = [];
-        foreach ($this->assigned_coordinators as $coordinator)
-            $users_id[] = $coordinator['users_id'];
+        $this->validateOnly('batch_num');
+        $this->validateOnly('barangay_name');
+        $this->validateOnly('slots_allocated');
+        $this->validateOnly('assigned_coordinators');
 
         $this->temporaryBatchesList[] = [
             'batch_num' => $this->batch_num,
             'barangay_name' => $this->barangay_name,
             'slots_allocated' => $this->slots_allocated,
             'assigned_coordinators' => $this->assigned_coordinators,
-            'assignments' => [
-                'users_id' => $users_id,
-            ],
         ];
 
         $this->totalSlots -= $this->slots_allocated;
@@ -182,6 +190,8 @@ class AssignBatchesModal extends Component
         $this->slots_allocated = null;
         $this->assigned_coordinators = [];
         $this->getAllCoordinators();
+        $this->getAllCoordinatorsForBatchList();
+        $this->validateOnly('temporaryBatchesList');
 
     }
 
@@ -208,19 +218,24 @@ class AssignBatchesModal extends Component
     # so as to avoid duplicating/conflicting names.
     public function addToastCoordinator()
     {
-        # appends the coordinator to the `Assigned Coordinators` box
-        $this->assigned_coordinators[] = [
-            'users_id' => $this->coordinators[$this->selectedCoordinatorKey]['id'],
-            'last_name' => $this->coordinators[$this->selectedCoordinatorKey]['last_name'],
-        ];
+        if (count($this->coordinators) === 0) {
+            # nope not happening
 
-        # removes the coordinator from the `Add Coordinator` dropdown
-        $ignoredIDs = [];
-        foreach ($this->assigned_coordinators as $coordinatorId)
-            $ignoredIDs[] = $coordinatorId['users_id'];
+        } else {
+            # appends the coordinator to the `Assigned Coordinators` box
+            $this->assigned_coordinators[] = [
+                'users_id' => $this->coordinators[$this->selectedCoordinatorKey]['id'],
+                'last_name' => $this->coordinators[$this->selectedCoordinatorKey]['last_name'],
+            ];
 
-        $this->getAllCoordinators($ignoredIDs);
-        $this->validateOnly('assigned_coordinators');
+            # removes the coordinator from the `Add Coordinator` dropdown
+            $ignoredIDs = [];
+            foreach ($this->assigned_coordinators as $coordinator)
+                $ignoredIDs[] = $coordinator['users_id'];
+
+            $this->getAllCoordinators($ignoredIDs);
+            $this->validateOnly('assigned_coordinators');
+        }
     }
 
     # triggers when a user clicks the `X` from the toast of the `Assigned Coordinators` box
@@ -235,6 +250,47 @@ class AssignBatchesModal extends Component
             $ignoredIDs[] = $coordinatorId['users_id'];
 
         $this->getAllCoordinators($ignoredIDs);
+    }
+
+    public function addToastCoordinatorInBatchList()
+    {
+        if (count($this->batchListCoordinators) === 0) {
+            # nope not happening
+
+        } else {
+            # appends the coordinator to the `Assigned Coordinators` box
+            $this->temporaryBatchesList[$this->selectedBatchRow]['assigned_coordinators'][] = [
+                'users_id' => $this->batchListCoordinators[$this->selectedCoordinatorKeyInBatchListDropdown]['id'],
+                'last_name' => $this->batchListCoordinators[$this->selectedCoordinatorKeyInBatchListDropdown]['last_name'],
+            ];
+            # removes the coordinator from the `Add Coordinator` dropdown
+            $ignoredIDs = [];
+            foreach ($this->temporaryBatchesList[$this->selectedBatchRow]['assigned_coordinators'] as $coordinatorId)
+                $ignoredIDs[] = $coordinatorId['users_id'];
+
+            $this->getAllCoordinatorsForBatchList($ignoredIDs);
+        }
+    }
+
+    # triggers when a user clicks the `X` from the toast of the `Assigned Coordinators` box
+    public function removeToastCoordinatorFromBatchList($keyBatch, $keyCoodinator)
+    {
+        # check first if there is only 1 key value in the `assigned_coordinators` nested array
+        if (count($this->temporaryBatchesList[$keyBatch]['assigned_coordinators']) === 1) {
+            # nope not happening
+
+        } else {
+            # removes the coordinator from the `assigned_coordinators` nested array
+            # in the `temporaryBatchesList` array
+            unset($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'][$keyCoodinator]);
+
+            # resets the coordinator list for the `+` button dropup
+            $ignoredIDs = [];
+            foreach ($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'] as $coordinatorId)
+                $ignoredIDs[] = $coordinatorId['users_id'];
+
+            $this->getAllCoordinatorsForBatchList($ignoredIDs);
+        }
     }
 
     public function liveUpdateRemainingSlots()
@@ -302,7 +358,6 @@ class AssignBatchesModal extends Component
     {
         $this->setFullName($key);
         $this->currentCoordinator = $this->coordinatorFullName;
-        // $this->selectedCoordinatorId = $this->coordinators[$key]['id'];
         $this->selectedCoordinatorKey = $key;
     }
 
@@ -324,7 +379,43 @@ class AssignBatchesModal extends Component
         }
     }
 
-    # mount (1 time)
+    # triggers when a user clicks one of the list from the `+` dropup
+    # in batch list.
+    public function selectCurrentCoordinator($key)
+    {
+        $this->selectedCoordinatorKeyInBatchListDropdown = $key;
+    }
+
+    # this should be called after clicking the + button
+    public function getAllCoordinatorsForBatchList($ignoredIDs = null)
+    {
+        $focalInfo = User::where('id', auth()->id())
+            ->first()
+            ->toArray();
+
+        if ($ignoredIDs) {
+            if (!is_array($ignoredIDs)) {
+                $ignoredIDs = json_decode($ignoredIDs, true);
+            }
+
+            $this->batchListCoordinators = User::where('user_type', 'Coordinator')
+                ->where('regional_office', $focalInfo['regional_office'])
+                ->where('field_office', $focalInfo['field_office'])
+                ->whereNotIn('id', $ignoredIDs)
+                ->get()
+                ->toArray();
+        } else {
+            $this->batchListCoordinators = User::where('user_type', 'Coordinator')
+                ->where('regional_office', $focalInfo['regional_office'])
+                ->where('field_office', $focalInfo['field_office'])
+                ->get()
+                ->toArray();
+        }
+        // $this->setFullName(0);
+        $this->selectedCoordinatorKeyInBatchListDropdown = 0;
+    }
+
+    # mount and call from click (1 time)
     public function getAllCoordinators($ignoredIDs = null)
     {
         $focalInfo = User::where('id', auth()->id())
@@ -345,15 +436,22 @@ class AssignBatchesModal extends Component
                 ->get()
                 ->toArray();
         }
-        $this->setFullName(0);
-        $this->selectedCoordinatorKey = 0;
-        $this->selectedCoordinatorId = $this->coordinators[0]['id'];
-        $this->currentCoordinator = $this->coordinatorFullName;
+
+        if (!$this->coordinators) {
+            $this->selectedCoordinatorKey = -1;
+            $this->currentCoordinator = 'N/A';
+        } else {
+            $this->setFullName(0);
+            $this->selectedCoordinatorKey = 0;
+            $this->currentCoordinator = $this->coordinatorFullName;
+        }
+
     }
 
     public function mount()
     {
         $this->getAllCoordinators();
+        $this->getAllCoordinatorsForBatchList();
     }
 
     public function render()
@@ -365,34 +463,6 @@ class AssignBatchesModal extends Component
             ->first();
 
         $this->liveUpdateRemainingSlots();
-
-        # determine the remaining slots
-        // $this->remainingSlots -= $batch['slots_allocated'];
-        # some code to keep adding more array for each batch row
-        // $assignments = Assignment::join('users', 'users.id', '=', 'assignments.users_id')
-        //     ->where('assignments.batches_id', $batch['id'])
-        //     ->select([
-        //         'assignments.*',
-        //         'users.last_name'
-        //     ])
-        //     ->get()
-        //     ->toArray();
-
-        # supposedly should return every row/array by batch row
-        // $this->assignments[] = [
-        //     'batch_id' => $batch['id'], // Store batch ID as a reference
-        //     'assignments' => $assignments // Store the fetched assignments
-        // ];
-
-        // $users_id = [];
-        // foreach ($assignments as $assignment) {
-        //     $users_id[] = $assignment['users_id'];
-        // }
-
-        // $this->selectedCoordinatorIds[] = [
-        //     'batch_id' => $batch['id'], // Store batch ID as a reference
-        //     'users_id' => $users_id,
-        // ];
 
         return view('livewire.focal.implementations.assign-batches-modal');
     }

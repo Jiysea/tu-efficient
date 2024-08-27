@@ -158,7 +158,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <td class="pr-2 py-2 text-center">
                                                 {{ $implementation['days_of_work'] }}
                                             </td>
-                                            {{--  --}}
+                                            {{-- Implementation Dropdown --}}
                                             <td x-data="iDropdownRotation({{ $key }})" class="py-2 flex">
                                                 <button @click.stop="handleClick()"
                                                     id="implementationRowButton-{{ $key }}"
@@ -268,17 +268,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         {{-- Assign Button --}}
                         <div class="mx-2 flex items-center">
                             @if ($remainingBatchSlots || $remainingBatchSlots === 0)
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5 text-blue-900 me-1.5"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                    viewBox="0, 0, 400,400">
-                                    <g>
-                                        <path
-                                            d="M184.196 15.727 L 183.984 31.641 178.516 32.224 C 171.754 32.946,151.363 36.733,150.645 37.401 C 150.205 37.810,155.816 67.795,156.452 68.431 C 156.567 68.546,161.930 67.622,168.370 66.377 C 174.809 65.133,181.045 64.103,182.227 64.088 L 184.375 64.063 184.375 78.787 L 184.375 93.511 197.852 94.038 C 250.195 96.087,286.431 121.605,300.616 166.406 C 322.920 236.856,273.312 305.582,200.186 305.538 C 138.393 305.501,96.793 263.282,94.079 197.852 L 93.520 184.375 78.791 184.375 L 64.063 184.375 64.088 182.227 C 64.103 181.045,65.133 174.809,66.377 168.370 C 67.622 161.930,68.546 156.567,68.431 156.452 C 67.795 155.816,37.810 150.205,37.401 150.645 C 36.733 151.363,32.946 171.754,32.224 178.516 L 31.641 183.984 15.727 184.196 L -0.187 184.408 0.225 204.118 C 2.580 316.951,87.310 399.691,200.391 399.585 C 314.566 399.477,399.597 314.284,399.597 200.000 C 399.597 87.202,316.793 2.577,204.118 0.225 L 184.408 -0.187 184.196 15.727 M228.125 34.065 C 324.751 49.396,386.873 144.717,363.249 241.403 C 341.937 328.632,254.982 382.915,165.552 364.818 C 93.595 350.258,41.154 292.414,32.595 218.164 L 32.302 215.625 47.792 215.625 L 63.281 215.625 63.281 217.651 C 63.281 235.698,78.634 271.046,95.026 290.738 C 143.697 349.208,237.965 354.106,295.176 301.138 C 351.859 248.657,351.819 151.305,295.092 98.785 C 274.860 80.053,245.441 66.120,220.789 63.594 L 215.625 63.065 215.625 47.684 L 215.625 32.302 218.164 32.595 C 219.561 32.756,224.043 33.417,228.125 34.065 M108.837 56.491 C 85.071 72.464,69.819 88.002,54.433 111.914 L 50.035 118.750 62.891 127.344 C 69.962 132.070,76.042 135.938,76.403 135.938 C 76.764 135.938,79.834 131.825,83.224 126.798 C 96.632 106.918,106.920 96.627,126.758 83.250 C 131.807 79.845,135.938 76.764,135.938 76.403 C 135.938 75.762,118.907 49.955,118.543 50.046 C 118.442 50.071,114.075 52.971,108.837 56.491 M121.676 121.676 L 110.158 133.195 133.593 156.639 L 157.027 180.084 155.349 184.378 C 147.515 204.413,158.075 231.389,177.734 241.567 C 219.060 262.962,262.625 219.490,241.635 177.802 C 231.781 158.233,204.432 147.508,184.378 155.349 L 180.084 157.027 156.639 133.593 L 133.195 110.158 121.676 121.676 M206.867 186.636 C 220.833 193.764,215.702 214.844,200.000 214.844 C 184.117 214.844,179.224 193.926,193.359 186.457 C 196.631 184.729,203.303 184.817,206.867 186.636 "
-                                            stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                    </g>
-                                </svg>
+                                <p class="text-xs text-indigo-1100 capitalize font-medium me-1">remaining slots:</p>
                                 <div
-                                    class="{{ $remainingBatchSlots > 0 ? 'bg-blue-300 text-blue-1000' : 'bg-red-300 text-red-950' }} rounded-md py-1 px-2 text-xs me-2 duration-200 ease-in-out">
+                                    class="{{ $remainingBatchSlots > 0 ? 'bg-blue-300 text-blue-1000' : 'bg-red-300 text-red-900' }} rounded-md py-1 px-2 text-xs me-2">
                                     {{ $remainingBatchSlots }}</div>
                             @endif
                             <button @if (!$remainingBatchSlots || $remainingBatchSlots === null || $remainingBatchSlots === 0) disabled @endif
@@ -744,12 +736,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
     <div x-data="{
         successShow: $wire.entangle('showAlert'),
+        successMessage: $wire.entangle('alertMessage'),
         init() {
             window.addEventListener('show-alert', () => {
                 setTimeout(() => { $wire.showAlert = false; }, 3000);
             });
         },
-    }" x-cloak x-show="successShow" x-effect="console.log(successShow);"
+    }" x-cloak x-show="successShow" {{-- x-effect="console.log(successShow);" --}}
         x-transition:enter="transition ease-in-out duration-300 origin-left"
         x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
         x-transition:leave="origin-left transition ease-in-out duration-500"
@@ -761,7 +754,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z"
                 clip-rule="evenodd" />
         </svg>
-        <p>Project implementation successfully created!</p>
+        <p x-text="successMessage"></p>
     </div>
 </div>
 

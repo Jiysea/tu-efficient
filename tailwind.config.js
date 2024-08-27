@@ -64,6 +64,7 @@ export default {
 
     plugins: [
         forms,
+        require("tailwind-scrollbar")({ nocompatible: true }),
         require("flowbite/plugin")({
             charts: true,
         }),

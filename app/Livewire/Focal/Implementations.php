@@ -18,7 +18,9 @@ use Livewire\Component;
 #[Title('Implementations | TU-Efficient')]
 class Implementations extends Component
 {
+    public $temporaryCount = 0;
     public $showAlert = false;
+    public $alertMessage = '';
     public $beneficiaries_on_page = 15;
     public $selectedImplementationRow = 0;
     public $selectedBatchRow = 0;
@@ -133,7 +135,7 @@ class Implementations extends Component
 
         $this->batches = Implementation::where('users_id', $focalUserId)
             ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
-            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->leftJoin('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
             ->where('implementations.id', $this->implementationId)
             ->select(
                 DB::raw('batches.id AS batches_id'),
@@ -145,6 +147,7 @@ class Implementations extends Component
             ->groupBy('batches.id', 'barangay_name', 'slots_allocated', 'approval_status')
             ->get()
             ->toArray();
+
 
         $this->batchId = $this->batches[0]['batches_id'] ?? null;
 
@@ -232,7 +235,28 @@ class Implementations extends Component
         // $messages[] = 'Project implementation successfully created!';
         // session()->put('success-now', $messages);
         $this->showAlert = true;
+        $this->alertMessage = 'Project implementation successfully created!';
         $this->dispatch('show-alert');
+    }
+
+    #[On('assign-create-batches')]
+    public function updateBatches()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->setListOfBatchAssignments();
+
+        // $messages[] = 'Project implementation successfully created!';
+        // session()->put('success-now', $messages);
+        $this->showAlert = true;
+        $this->alertMessage = 'Batches successfully assigned!';
+        $this->dispatch('show-alert');
+        $this->checkIfFullSlots();
     }
 
     // public function removeSuccessMessage($sessionMessage, $index)

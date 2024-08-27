@@ -1,6 +1,13 @@
 <div wire:ignore.self id="assign-batches-modal" tabindex="-1" aria-hidden="true"
     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-4 w-full max-w-5xl max-h-full">
+    <div x-data="{
+        init() {
+            window.addEventListener('assign-create-batches', () => {
+                const modal = FlowbiteInstances.getInstance('Modal', 'assign-batches-modal');
+                modal.hide();
+            });
+        },
+    }" class="relative p-4 w-full max-w-5xl max-h-full">
         <!-- Modal content -->
         <div x-data="{
             show: false,
@@ -14,7 +21,7 @@
                 <div class="flex items-center justify-center">
                     {{-- Loading State for Changes --}}
                     <div class="z-50 text-blue-900" wire:loading
-                        wire:target="addBatchRow, editBatchRow, addToastCoordinator, removeToastCoordinator, updateCurrentCoordinator, removeBatchRow">
+                        wire:target="addBatchRow, editBatchRow, removeBatchRow, addToastCoordinator, addToastCoordinatorInBatchList, removeToastCoordinatorFromBatchList, removeToastCoordinator, getAllCoordinatorsForBatchList, updateCurrentCoordinator, liveUpdateRemainingSlots">
                         <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -68,7 +75,7 @@
                             class="text-xs {{ $errors->has('batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-blue-50 border border-blue-300 text-blue-1100 rounded focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
                             placeholder="Type batch number">
                         @error('batch_num')
-                            <p class="mt-1 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
+                            <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="relative col-span-3 sm:col-span-2 mb-4">
@@ -78,7 +85,7 @@
                             class="text-xs {{ $errors->has('barangay_name') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-blue-50 border border-blue-300 text-blue-1100  rounded focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5      "
                             placeholder="Type barangay name">
                         @error('barangay_name')
-                            <p class="mt-1 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
+                            <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="relative col-span-2 sm:col-span-1 mb-4">
@@ -91,20 +98,21 @@
                                 placeholder="Type slots allocation">
                         </div>
                         @error('slots_allocated')
-                            <p class="mt-1 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}
+                            <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}
                             </p>
                         @enderror
                     </div>
                     <div class="relative flex flex-col col-span-5 sm:col-span-2 mb-4">
                         <p class="block mb-1 font-medium text-blue-1100 ">Add Coordinator</p>
-                        <div class="relative z-50">
-                            <div id="coordinator_name" @click="show = !show ; rotation += 180"
-                                class="w-full bg-blue-50 border border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600 text-xs px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out cursor-pointer">
+                        <div class="relative z-50 h-full">
+                            <div id="coordinator_name"
+                                @if ($coordinators) @click="show = !show ; rotation += 180" @endif
+                                class="w-full h-full border {{ $coordinators ? 'bg-blue-50 border-blue-300 text-blue-1100 cursor-pointer' : 'bg-gray-50 border-gray-300 text-gray-500' }} text-sm px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out">
                                 <p> {{ $currentCoordinator }}</p>
-                                <svg :class="{
+                                <svg @if ($coordinators) :class="{
                                     'rotate-0': rotation % 360 === 0,
                                     'rotate-180': rotation % 360 === 180,
-                                }"
+                                }" @endif
                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                     class="size-4 ms-3 duration-200 ease-in-out">
                                     <path fill-rule="evenodd"
@@ -112,65 +120,74 @@
                                         clip-rule="evenodd" />
                                 </svg>
                             </div>
-                            <div x-show="show" @click.away="show = !show; rotation += 180"
-                                :class="{
-                                    'block': show === true,
-                                    'hidden': show === false,
-                                }"
-                                class="hidden end-0 absolute text-blue-1100 bg-blue-50 shadow-lg border border-blue-300 rounded p-3 mt-2">
-                                <div class="relative flex items-center justify-center py-1 group">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                        class="absolute start-0 ps-2 w-6 group-hover:text-blue-500 group-focus:text-blue-900 duration-200 ease-in-out pointer-events-none">
-                                        <path fill-rule="evenodd"
-                                            d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    <input id="searchCoordinator" wire:model.live="searchCoordinator" type="text"
-                                        class="rounded w-full ps-8 text-xs text-blue-1100 border-blue-200 hover:placeholder-blue-500 hover:border-blue-500 focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none duration-200 ease-in-out"
-                                        placeholder="Search project number">
+                            @if ($coordinators)
+                                <div x-show="show" @click.away="show = !show; rotation += 180"
+                                    :class="{
+                                        'block': show === true,
+                                        'hidden': show === false,
+                                    }"
+                                    class="hidden end-0 absolute text-blue-1100 bg-blue-50 shadow-lg border border-blue-300 rounded p-3 mt-2">
+                                    <div class="relative flex items-center justify-center py-1 group">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                            fill="currentColor"
+                                            class="absolute start-0 ps-2 w-6 group-hover:text-blue-500 group-focus:text-blue-900 duration-200 ease-in-out pointer-events-none">
+                                            <path fill-rule="evenodd"
+                                                d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        <input id="searchCoordinator" wire:model.live="searchCoordinator"
+                                            type="text"
+                                            class="rounded w-full ps-8 text-xs text-blue-1100 border-blue-200 hover:placeholder-blue-500 hover:border-blue-500 focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none duration-200 ease-in-out"
+                                            placeholder="Search coordinator">
+                                    </div>
+                                    <ul
+                                        class="mt-2 text-xs overflow-y-auto max-h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-900">
+                                        @foreach ($coordinators as $key => $coordinator)
+                                            <li wire:key={{ $key }}>
+                                                <button wire:click="updateCurrentCoordinator({{ $key }})"
+                                                    type="button" @click="show= !show ; rotation += 180"
+                                                    wire:loading.attr="disabled" aria-label="{{ __('Coordinator') }}"
+                                                    class="w-full flex items-center justify-start px-4 py-2 text-blue-1100 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out">
+                                                    @php
+                                                        $fullName = '';
+                                                        $first = $this->coordinators[$key]['first_name'];
+                                                        $middle = $this->coordinators[$key]['middle_name'];
+                                                        $last = $this->coordinators[$key]['last_name'];
+                                                        $ext = $this->coordinators[$key]['extension_name'];
+
+                                                        if ($ext === '-' && $middle === '-') {
+                                                            $fullName = $first . ' ' . $last;
+                                                        } elseif ($middle === '-' && $ext !== '-') {
+                                                            $fullName = $first . ' ' . $last . ' ' . $ext;
+                                                        } elseif ($middle !== '-' && $ext === '-') {
+                                                            $fullName = $first . ' ' . $middle . ' ' . $last;
+                                                        } else {
+                                                            $fullName =
+                                                                $first . ' ' . $middle . ' ' . $last . ' ' . $ext;
+                                                        }
+                                                    @endphp
+
+                                                    {{ $fullName }}
+                                                </button>
+                                            </li>
+                                        @endforeach
+                                    </ul>
                                 </div>
-                                <ul class="mt-2 text-xs overflow-y-auto max-h-44">
-                                    @foreach ($coordinators as $key => $coordinator)
-                                        <li wire:key={{ $key }}>
-                                            <button wire:click="updateCurrentCoordinator({{ $key }})"
-                                                type="button" @click="show= !show ; rotation += 180"
-                                                wire:loading.attr="disabled" aria-label="{{ __('Coordinator') }}"
-                                                class="w-full flex items-center justify-start px-4 py-2 text-blue-1100 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out">
-                                                @php
-                                                    $fullName = '';
-                                                    $first = $this->coordinators[$key]['first_name'];
-                                                    $middle = $this->coordinators[$key]['middle_name'];
-                                                    $last = $this->coordinators[$key]['last_name'];
-                                                    $ext = $this->coordinators[$key]['extension_name'];
-
-                                                    if ($ext === '-' && $middle === '-') {
-                                                        $fullName = $first . ' ' . $last;
-                                                    } elseif ($middle === '-' && $ext !== '-') {
-                                                        $fullName = $first . ' ' . $last . ' ' . $ext;
-                                                    } elseif ($middle !== '-' && $ext === '-') {
-                                                        $fullName = $first . ' ' . $middle . ' ' . $last;
-                                                    } else {
-                                                        $fullName = $first . ' ' . $middle . ' ' . $last . ' ' . $ext;
-                                                    }
-                                                @endphp
-
-                                                {{ $fullName }}
-                                            </button>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                            @endif
                         </div>
                     </div>
                     <div class="relative grid grid-cols-5 flex-grow col-span-5 sm:col-span-3 mb-4">
                         <div class="relative col-span-5">
-                            <p class="block mb-1 ms-16 font-medium text-blue-1100 ">Assigned
-                                Coordinators</p>
+                            <p class="block mb-1 ms-16 font-medium text-blue-1100 ">Assigned Coordinators</p>
                             <input type="hidden" id="assigned_coordinators" wire:model.live="assigned_coordinators">
                             <div class="relative flex">
                                 {{-- Arrow button --}}
-                                <button type="button" wire:click="addToastCoordinator"
-                                    class="me-4 px-2 flex items-center justify-center rounded text-blue-700 hover:text-blue-50 active:text-blue-300 border-2 border-blue-700 hover:border-transparent hover:bg-blue-800 active:bg-blue-900 focus:outline-none duration-200 ease-in-out">
+                                <button type="button"
+                                    @if ($coordinators) wire:click="addToastCoordinator" @else disabled @endif
+                                    class="me-4 px-2 flex items-center justify-center rounded border-2 focus:outline-none duration-200 ease-in-out
+                                        {{ $coordinators
+                                            ? 'text-blue-700 hover:text-blue-50 active:text-blue-300 border-blue-700 hover:border-transparent hover:bg-blue-800 active:bg-blue-900'
+                                            : 'text-gray-300 border-gray-300' }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
@@ -181,11 +198,11 @@
                                         </g>
                                     </svg>
                                 </button>
-                                <div class="text-xs border rounded w-full ps-2 py-2.5 duration-200 ease-in-out overflow-x-auto whitespace-nowrap
+                                <div
+                                    class="text-xs border rounded w-full ps-2 py-2.5 duration-200 ease-in-out overflow-x-scroll whitespace-nowrap scrollbar-thin {{ $assigned_coordinators ? 'scrollbar-thumb-blue-700 scrollbar-track-blue-50' : 'scrollbar-thumb-gray-700 scrollbar-track-gray-100' }}
                                     @if ($errors->has('assigned_coordinators')) border-red-500 bg-red-200 placeholder-red-600
                                     @else
-                                    {{ $assigned_coordinators ? 'bg-blue-50 border-blue-300' : 'bg-gray-100 border-gray-400' }} @endif"
-                                    style="-ms-overflow-style: none; scrollbar-width: none; overflow-x: scroll;">
+                                    {{ $assigned_coordinators ? 'bg-blue-50 border-blue-300' : 'bg-gray-100 border-gray-400' }} @endif">
                                     @forelse ($assigned_coordinators as $key => $coordinator)
                                         <span
                                             class="p-1 me-2 rounded duration-200 ease-in-out bg-blue-300 text-blue-1000">
@@ -211,14 +228,14 @@
                                     @endforelse
                                 </div>
                                 @error('assigned_coordinators')
-                                    <p class="ms-14 mt-1 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
+                                    <p class="ms-14 mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
                                         {{ $message }}
                                     </p>
                                 @enderror
                                 {{-- Adding Batch button --}}
                                 <button type="button" wire:click="addBatchRow"
                                     class="flex items-center justify-center space-x-2 text-sm py-2 px-3 whitespace-nowrap rounded ms-4 font-bold uppercase bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:outline-none duration-200 ease-in-out">
-                                    <p>add batch</p>
+                                    <p>create batch</p>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
@@ -236,13 +253,115 @@
                     </div>
 
                     @if ($temporaryBatchesList)
+                        {{-- Dropdown Area --}}
+                        @foreach ($temporaryBatchesList as $keyBatch => $batch)
+                            @if ($selectedBatchRow === $keyBatch)
+                                @if ($batchListCoordinators)
+                                    <div wire:key="batchListDropdownHoorah-{{ $keyBatch }}"
+                                        x-data="{
+                                            openBatchDropdown: false,
+                                            dropdownStyles: '',
+                                            init() {
+                                                window.addEventListener('resize', () => {
+                                                    if (this.openBatchDropdown) {
+                                                        this.updateDropdownPosition();
+                                                    }
+                                                });
+                                            },
+                                        
+                                            updateDropdownPosition() {
+                                                const button = document.querySelector('#batchListRowButton-{{ $keyBatch }}');
+                                                const dropdown = this.$refs.dropdownContent{{ $keyBatch }};
+                                                if (button && dropdown) {
+                                                    const rect = button.getBoundingClientRect();
+                                                    this.dropdownStyles = `top: ${rect.top - dropdown.offsetHeight - 10}px; left: ${rect.right - dropdown.offsetWidth}px;`;
+                                                }
+                                        
+                                            },
+                                            toggleDropdown() {
+                                                this.openBatchDropdown = !this.openBatchDropdown;
+                                        
+                                                this.updateDropdownPosition();
+                                            }
+                                        }" x-init="init()"
+                                        @toggle-batchlistrowdropdown.window="
+                                if ($event.detail.id === {{ $keyBatch }}) {
+                                    toggleDropdown();
+                                }"
+                                        class="z-50 fixed" :style="dropdownStyles" x-show="openBatchDropdown"
+                                        @click.outside="openBatchDropdown = false">
+                                        <div x-ref="dropdownContent{{ $keyBatch }}"
+                                            class="relative z-50 text-blue-1100 bg-blue-50 shadow-lg border border-blue-300 rounded p-3">
+                                            <ul
+                                                class="text-xs overflow-y-auto min-h-44 max-h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-700">
+                                                @foreach ($batchListCoordinators as $keyCoordinator => $coordinator)
+                                                    <li wire:key={{ $keyCoordinator }}>
+                                                        <button
+                                                            wire:click="selectCurrentCoordinator({{ $keyCoordinator }})"
+                                                            type="button" wire:loading.attr="disabled"
+                                                            aria-label="{{ __('Coordinator') }}"
+                                                            class="w-full flex items-center justify-start px-4 py-2 {{ $selectedCoordinatorKeyInBatchListDropdown === $keyCoordinator ? 'text-blue-50 hover:text-blue-100 bg-blue-900 hover:bg-blue-800' : 'text-blue-1100 hover:text-blue-900 hover:bg-blue-100' }} duration-200 ease-in-out">
+                                                            @php
+                                                                $fullName = '';
+                                                                $first =
+                                                                    $this->batchListCoordinators[$keyCoordinator][
+                                                                        'first_name'
+                                                                    ];
+                                                                $middle =
+                                                                    $this->batchListCoordinators[$keyCoordinator][
+                                                                        'middle_name'
+                                                                    ];
+                                                                $last =
+                                                                    $this->batchListCoordinators[$keyCoordinator][
+                                                                        'last_name'
+                                                                    ];
+                                                                $ext =
+                                                                    $this->batchListCoordinators[$keyCoordinator][
+                                                                        'extension_name'
+                                                                    ];
+
+                                                                if ($ext === '-' && $middle === '-') {
+                                                                    $fullName = $first . ' ' . $last;
+                                                                } elseif ($middle === '-' && $ext !== '-') {
+                                                                    $fullName = $first . ' ' . $last . ' ' . $ext;
+                                                                } elseif ($middle !== '-' && $ext === '-') {
+                                                                    $fullName = $first . ' ' . $middle . ' ' . $last;
+                                                                } else {
+                                                                    $fullName =
+                                                                        $first .
+                                                                        ' ' .
+                                                                        $middle .
+                                                                        ' ' .
+                                                                        $last .
+                                                                        ' ' .
+                                                                        $ext;
+                                                                }
+                                                            @endphp
+
+                                                            {{ $fullName }}
+                                                        </button>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                            <div class="relative flex items-center justify-center w-full">
+                                                <button wire:click="addToastCoordinatorInBatchList"
+                                                    class="text-sm font-semibold w-full p-2 mt-2 rounded border-2 duration-200 ease-in-out hover:bg-blue-800 active:bg-blue-900 text-blue-700 hover:text-blue-50 active:text-blue-100 border-blue-700 hover:border-transparent focus:outline-none"
+                                                    type="button">
+                                                    ADD
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endif
+                        @endforeach
                         {{-- Label --}}
                         <div class="relative col-span-5 font-semibold text-base text-blue-1100 ms-2">
                             Batch List
                         </div>
                         {{-- Batch List Table --}}
                         <div
-                            class="relative col-span-5 min-h-[12.375rem] max-h-[12.375rem] overflow-y-auto bg-blue-50 border border-blue-300 rounded-md">
+                            class="relative col-span-5 min-h-[12.375rem] max-h-[12.375rem] overflow-y-auto bg-blue-50 border border-blue-300 rounded-md whitespace-nowrap scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-700">
 
                             <table class="relative w-full text-sm text-left text-blue-1100 rounded-md">
                                 <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0 ">
@@ -265,9 +384,9 @@
                                     </tr>
                                 </thead>
                                 <tbody class="text-xs relative">
-                                    @foreach ($temporaryBatchesList as $key => $batch)
-                                        <tr wire:key='batch-{{ $key }}'
-                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-blue-100' : 'bg-blue-50' }} whitespace-nowrap duration-200 ease-in-out">
+                                    @foreach ($temporaryBatchesList as $keyBatch => $batch)
+                                        <tr wire:key='batch-{{ $keyBatch }}'
+                                            class="relative border-b {{ $selectedBatchRow === $keyBatch ? 'bg-blue-100' : 'bg-blue-50' }} whitespace-nowrap duration-200 ease-in-out">
                                             <th scope="row"
                                                 class="z-0 ps-4 py-2 font-medium text-blue-1100 whitespace-nowrap">
                                                 {{ $batch['batch_num'] }}
@@ -276,12 +395,14 @@
                                                 {{ $batch['barangay_name'] }}
                                             </td>
                                             <td class="grid-flow-row">
-                                                @foreach ($batch['assigned_coordinators'] as $coordinator)
+                                                @foreach ($batch['assigned_coordinators'] as $keyCoordinator => $coordinator)
                                                     <span
-                                                        class="p-1 mx-1 rounded duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'bg-green-300 text-green-1000' : 'bg-blue-300 text-blue-1000' }}">
+                                                        class="p-1 mx-1 rounded duration-200 ease-in-out {{ $selectedBatchRow === $keyBatch ? 'bg-green-300 text-green-1000' : 'bg-blue-300 text-blue-1000' }}">
                                                         {{ $coordinator['last_name'] }}
-                                                        @if ($selectedBatchRow === $key)
+                                                        @if ($selectedBatchRow === $keyBatch && count($batch['assigned_coordinators']) !== 1)
+                                                            {{-- x button near coordinator names --}}
                                                             <button type="button"
+                                                                wire:click="removeToastCoordinatorFromBatchList({{ $keyBatch }}, {{ $keyCoordinator }})"
                                                                 class="ms-1 text-green-1100 hover:text-green-900 active:text-green-1000 duration-200 ease-in-out">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-2"
                                                                     xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -299,21 +420,41 @@
                                                         @endif
                                                     </span>
                                                 @endforeach
-                                                @if ($selectedBatchRow === $key)
-                                                    {{-- Add Sign Coordinator button --}}
-                                                    <button type="button"
-                                                        class="p-1.5 mx-1 rounded bg-green-300 text-center text-green-1100 hover:text-green-900 active:text-green-1000 duration-200 ease-in-out">
-                                                        <svg class="size-2" xmlns="http://www.w3.org/2000/svg"
-                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                            height="400" viewBox="0, 0, 400,400">
-                                                            <g>
-                                                                <path
-                                                                    d="M192.319 1.634 C 190.381 2.618,188.044 4.697,186.850 6.501 L 184.766 9.651 184.560 97.013 L 184.355 184.375 97.893 184.375 L 11.431 184.375 8.008 186.032 C -2.600 191.167,-2.600 208.833,8.008 213.968 L 11.431 215.625 97.903 215.625 L 184.375 215.625 184.375 302.097 L 184.375 388.569 186.032 391.992 C 191.167 402.600,208.833 402.600,213.968 391.992 L 215.625 388.569 215.625 302.097 L 215.625 215.625 302.097 215.625 L 388.569 215.625 391.992 213.968 C 402.600 208.833,402.600 191.167,391.992 186.032 L 388.569 184.375 302.097 184.375 L 215.625 184.375 215.625 97.903 L 215.625 11.431 213.968 8.008 C 210.474 0.790,200.036 -2.284,192.319 1.634 "
-                                                                    stroke="none" fill="currentColor"
-                                                                    fill-rule="evenodd"></path>
-                                                            </g>
-                                                        </svg>
-                                                    </button>
+                                                @if ($selectedBatchRow === $keyBatch)
+                                                    @if ($batchListCoordinators)
+                                                        {{-- Get all the assigned_coordinators users_ids for ignore --}}
+                                                        @php
+                                                            $ignoredIDs = [];
+                                                            foreach (
+                                                                $batch['assigned_coordinators']
+                                                                as $coordinatorId
+                                                            ) {
+                                                                $ignoredIDs[] = $coordinatorId['users_id'];
+                                                            }
+                                                        @endphp
+                                                        {{-- + button Coordinator button --}}
+                                                        <button type="button"
+                                                            @click="$wire.getAllCoordinatorsForBatchList({{ json_encode($ignoredIDs) }})
+                                                                .then(() => {
+                                                                    $nextTick(() => {
+                                                                        $dispatch('toggle-batchlistrowdropdown', { id: {{ $keyBatch }} })
+                                                                    });
+                                                                });"
+                                                            id="batchListRowButton-{{ $keyBatch }}"
+                                                            class="p-1.5 mx-1 rounded bg-green-300 text-center text-green-1100 hover:text-green-900 active:text-green-1000 duration-200 ease-in-out">
+                                                            <svg class="size-2" xmlns="http://www.w3.org/2000/svg"
+                                                                xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                width="400" height="400"
+                                                                viewBox="0, 0, 400,400">
+                                                                <g>
+                                                                    <path
+                                                                        d="M192.319 1.634 C 190.381 2.618,188.044 4.697,186.850 6.501 L 184.766 9.651 184.560 97.013 L 184.355 184.375 97.893 184.375 L 11.431 184.375 8.008 186.032 C -2.600 191.167,-2.600 208.833,8.008 213.968 L 11.431 215.625 97.903 215.625 L 184.375 215.625 184.375 302.097 L 184.375 388.569 186.032 391.992 C 191.167 402.600,208.833 402.600,213.968 391.992 L 215.625 388.569 215.625 302.097 L 215.625 215.625 302.097 215.625 L 388.569 215.625 391.992 213.968 C 402.600 208.833,402.600 191.167,391.992 186.032 L 388.569 184.375 302.097 184.375 L 215.625 184.375 215.625 97.903 L 215.625 11.431 213.968 8.008 C 210.474 0.790,200.036 -2.284,192.319 1.634 "
+                                                                        stroke="none" fill="currentColor"
+                                                                        fill-rule="evenodd"></path>
+                                                                </g>
+                                                            </svg>
+                                                        </button>
+                                                    @endif
                                                 @endif
                                             </td>
                                             <td class="px-2 py-2 text-center">
@@ -321,8 +462,9 @@
                                             </td>
                                             <td class="py-2 flex justify-end items-center">
                                                 {{-- Edit/Pen Button --}}
-                                                <button type="button" wire:click='editBatchRow({{ $key }})'
-                                                    class="p-1 mx-1 rounded-md duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 active:text-green-200' : 'bg-transparent text-blue-1100 hover:text-blue-900 active:text-blue-1000 hover:bg-blue-300' }}">
+                                                <button type="button"
+                                                    @click.stop="$wire.editBatchRow({{ $keyBatch }});"
+                                                    class="p-1 mx-1 rounded-md duration-200 ease-in-out {{ $selectedBatchRow === $keyBatch ? 'bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 active:text-green-200' : 'bg-transparent text-blue-1100 hover:text-blue-900 active:text-blue-1000 hover:bg-blue-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
                                                         class="size-4" xmlns:xlink="http://www.w3.org/1999/xlink"
                                                         width="400" height="400" viewBox="0, 0, 400,400">
@@ -338,7 +480,7 @@
 
                                                 {{-- X button (table list) --}}
                                                 <button type="button"
-                                                    wire:click="removeBatchRow({{ $key }})"
+                                                    wire:click="removeBatchRow({{ $keyBatch }})"
                                                     class="p-1 me-3 rounded-md text-blue-1100 hover:text-blue-900 active:text-blue-1000 bg-transparent hover:bg-blue-300 duration-200 ease-in-out">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
@@ -360,10 +502,11 @@
                         </div>
                     @else
                         <div
-                            class="relative col-span-5 bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
+                            class="relative col-span-5 bg-white px-4 pb-6 pt-2 h-60 min-w-full flex flex-col items-center justify-center">
                             <div
-                                class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-gray-300"
+                                class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-gray-500 bg-red-50 border-red-300' : 'text-gray-500 bg-gray-50 border-gray-300' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="size-12 sm:size-20 mb-4 duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-red-300' : 'text-gray-300' }}"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -373,13 +516,19 @@
                                     </g>
                                 </svg>
                                 <p>No batches found.</p>
-                                {{-- @if ($implementations) --}}
-                                <p>Try creating a <span class="text-blue-900">new batch</span>.</p>
-
-                                {{-- @endif --}}
-
+                                <p>Try creating a <span
+                                        class="duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-red-700' : 'text-blue-900' }} ">new
+                                        batch</span>.</p>
                             </div>
+                            @error('temporaryBatchesList')
+                                <div class="absolute bottom-0 flex items-center justify-center w-full">
+                                    <p class="text-red-500 z-10 text-xs">
+                                        {{ $message }}
+                                    </p>
+                                </div>
+                            @enderror
                         </div>
+
                     @endif
                 </div>
 
