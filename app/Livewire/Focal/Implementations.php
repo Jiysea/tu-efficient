@@ -3,6 +3,7 @@
 namespace App\Livewire\Focal;
 
 use App\Models\Batch;
+use App\Models\Beneficiary;
 use App\Models\Implementation;
 use Crypt;
 use Illuminate\Support\Facades\Auth;
@@ -18,16 +19,6 @@ use Livewire\Component;
 #[Title('Implementations | TU-Efficient')]
 class Implementations extends Component
 {
-    public $temporaryCount = 0;
-    public $showAlert = false;
-    public $alertMessage = '';
-    public $beneficiaries_on_page = 15;
-    public $selectedImplementationRow = 0;
-    public $selectedBatchRow = 0;
-    public $selectedBeneficiaryRow = 0;
-    public $batchesCount;
-    public $isBatchFull = false;
-    public $remainingBatchSlots;
     #[Locked]
     public $implementationId;
     #[Locked]
@@ -37,10 +28,27 @@ class Implementations extends Component
     public $implementations;
     public $batches;
     public $beneficiaries;
+
+    # ------------------------------------------
+
+    public $temporaryCount = 0; # debugging purposes
+    public $showAlert = false;
+    public $alertMessage = '';
+    public $beneficiaries_on_page = 15;
+    public $selectedImplementationRow = 0;
+    public $selectedBatchRow = 0;
+    public $selectedBeneficiaryRow = 0;
+    public $remainingBatchSlots;
+    public $beneficiarySlots = [];
+
+    # ------------------------------------------
+
     public $start;
     public $end;
     public $defaultStart;
     public $defaultEnd;
+
+    # ------------------------------------------
 
     #[On('start-change')]
     public function setStartDate($value)
@@ -54,14 +62,12 @@ class Implementations extends Component
         $this->setListOfImplementations();
         $this->setListOfBatchAssignments();
         $this->setListOfBeneficiaries();
-        $this->checkIfFullSlots();
 
         $this->selectedImplementationRow = 0;
         $this->selectedBatchRow = 0;
         $this->selectedBeneficiaryRow = 0;
 
         $this->dispatch('init-reload')->self();
-
     }
 
     #[On('end-change')]
@@ -76,7 +82,6 @@ class Implementations extends Component
         $this->setListOfImplementations();
         $this->setListOfBatchAssignments();
         $this->setListOfBeneficiaries();
-        $this->checkIfFullSlots();
 
         $this->selectedImplementationRow = 0;
         $this->selectedBatchRow = 0;
@@ -96,7 +101,8 @@ class Implementations extends Component
 
         $this->selectedBatchRow = 0;
         $this->selectedBeneficiaryRow = 0;
-        $this->checkIfFullSlots();
+
+        $this->dispatch('init-reload')->self();
     }
 
     public function selectBatchRow($key, $encryptedId)
@@ -108,13 +114,14 @@ class Implementations extends Component
         $this->setListOfBeneficiaries();
 
         $this->selectedBeneficiaryRow = 0;
+
+        $this->dispatch('init-reload')->self();
     }
 
     public function selectBeneficiaryRow($key, $encryptedId)
     {
         $this->selectedBeneficiaryRow = $key;
         $this->beneficiaryId = Crypt::decrypt($encryptedId);
-
     }
 
     public function setListOfImplementations()
@@ -127,6 +134,7 @@ class Implementations extends Component
             ->toArray();
 
         $this->implementationId = $this->implementations[0]['id'] ?? null;
+
     }
 
     public function setListOfBatchAssignments()
@@ -147,7 +155,6 @@ class Implementations extends Component
             ->groupBy('batches.id', 'barangay_name', 'slots_allocated', 'approval_status')
             ->get()
             ->toArray();
-
 
         $this->batchId = $this->batches[0]['batches_id'] ?? null;
 
@@ -170,9 +177,10 @@ class Implementations extends Component
             ->toArray();
 
         $this->beneficiaryId = $this->beneficiaries[0]['id'] ?? null;
+
     }
 
-    public function checkIfFullSlots()
+    public function checkBatchRemainingSlots()
     {
         $focalUserId = auth()->id();
 
@@ -196,6 +204,30 @@ class Implementations extends Component
             }
         } else {
             $this->remainingBatchSlots = null;
+        }
+
+    }
+
+    public function checkBeneficiarySlots()
+    {
+
+        if ($this->batchId) {
+
+            $batch = Batch::where('id', $this->batchId)
+                ->first();
+
+            $this->beneficiarySlots = $batch['slots_allocated'];
+
+            $beneficiaryCount = Beneficiary::where('batches_id', $this->batchId)
+                ->count();
+
+            $this->beneficiarySlots = [
+                'batch_slots_allocated' => $batch['slots_allocated'],
+                'num_of_beneficiaries' => $beneficiaryCount
+            ];
+
+        } else {
+            $this->beneficiarySlots = [];
         }
 
     }
@@ -237,6 +269,7 @@ class Implementations extends Component
         $this->showAlert = true;
         $this->alertMessage = 'Project implementation successfully created!';
         $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
     }
 
     #[On('assign-create-batches')]
@@ -251,22 +284,11 @@ class Implementations extends Component
 
         $this->setListOfBatchAssignments();
 
-        // $messages[] = 'Project implementation successfully created!';
-        // session()->put('success-now', $messages);
         $this->showAlert = true;
         $this->alertMessage = 'Batches successfully assigned!';
         $this->dispatch('show-alert');
-        $this->checkIfFullSlots();
     }
 
-    // public function removeSuccessMessage($sessionMessage, $index)
-    // {
-    //     $messages = session()->get($sessionMessage, []);
-    //     if (isset($messages[$index])) {
-    //         unset($messages[$index]);
-    //         session()->put($sessionMessage, array_values($messages));
-    //     }
-    // }
 
     public function mount()
     {
@@ -294,17 +316,19 @@ class Implementations extends Component
          */
         $this->setListOfBeneficiaries();
 
+    }
+
+    public function render()
+    {
         /*
          *   Check Full Slots
          */
-        $this->checkIfFullSlots();
+        $this->checkBatchRemainingSlots();
+        $this->checkBeneficiarySlots();
 
-    }
-    public function render()
-    {
-        if (Auth::user()->user_type === 'Focal')
+        if (Auth::user()->user_type === 'focal')
             return view('livewire.focal.implementations');
-        else if (Auth::user()->user_type === 'Coordinator')
+        else if (Auth::user()->user_type === 'coordinator')
             return redirect()->route('coordinator.home');
     }
 }

@@ -19,7 +19,7 @@ class CodeFactory extends Factory
         return [
             'batches_id' => 1,
             'access_code' => fake()->bothify('?##??#?#'),
-            'accessible' => 'Yes',
+            'accessible' => 'no',
             'created_at' => now(),
         ];
     }

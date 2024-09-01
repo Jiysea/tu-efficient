@@ -19,9 +19,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
 
     if (Auth::check()) {
-        if (Auth::user()->user_type === 'Focal')
+        if (Auth::user()->user_type === 'focal')
             return redirect()->route('focal.dashboard');
-        else if (Auth::user()->user_type === 'Coordinator')
+        else if (Auth::user()->user_type === 'coordinator')
             return redirect()->route('coordinator.home');
     } else
         return view('landing.focal');
@@ -30,9 +30,9 @@ Route::get('/', function () {
 
 Route::get('/barangay', function () {
     if (Auth::check()) {
-        if (Auth::user()->user_type === 'Focal')
+        if (Auth::user()->user_type === 'focal')
             return redirect()->route('focal.dashboard');
-        else if (Auth::user()->user_type === 'Coordinator')
+        else if (Auth::user()->user_type === 'coordinator')
             return redirect()->route('coordinator.home');
     } else
         return view('landing.barangay');
@@ -53,11 +53,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/focal/user-management', UserManagement::class)->name('focal.user-management');
     Route::get('/focal/activity-logs', ActivityLogs::class)->name('focal.activity-logs');
 
-    Route::get('/coordinator/home', CoordinatorIndexController::class)->name('coordinator.home');
+    // Route::get('/coordinator/home', CoordinatorIndexController::class)->name('coordinator.home');
 
 });
 
-Route::get('/barangay/{accessCode}', [BarangayIndexController::class, 'showAll'])->name('barangay.index');
+// Route::get('/barangay/{accessCode}', [BarangayIndexController::class, 'showAll'])->name('barangay.index');
 
 // --------------------------------------
 
@@ -65,10 +65,10 @@ Route::get('/barangay/{accessCode}', [BarangayIndexController::class, 'showAll']
 // Route::get('/coordinator/verify', CoordinatorSMSVerificationController::class)->name('coordinator.verify');
 
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Route::middleware('auth')->group(function () {
+//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// });
 
 require __DIR__ . '/auth.php';

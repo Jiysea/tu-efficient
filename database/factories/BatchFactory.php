@@ -22,8 +22,8 @@ class BatchFactory extends Factory
             'batch_num' => fake()->bothify('DCFO-BN-######'),
             'barangay_name' => '',
             'slots_allocated' => 0,
-            'submission_status' => 'UNOPENED',
-            'approval_status' => 'PENDING',
+            'submission_status' => 'unopened', // submitted unopened revalidate encoding
+            'approval_status' => 'approved', // approved pending
             'created_at' => now(),
             'updated_at' => now(),
         ];

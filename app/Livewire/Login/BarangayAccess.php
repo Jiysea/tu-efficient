@@ -12,15 +12,16 @@ class BarangayAccess extends Component
     public $accessCode;
     public function checkAccess()
     {
-        $this->validate();
+        // $this->validate();
 
-        if (Code::where('access_code', $this->accessCode)->value('accessible') === 'Yes') {
-            session()->regenerate();
+        // if (Code::where('access_code', $this->accessCode)->value('accessible') === 'Yes') {
+        //     session()->regenerate();
 
-            return redirect()->route('barangay.index', ['accessCode' => $this->accessCode]);
-        }
+        //     return redirect()->route('barangay.index', ['accessCode' => $this->accessCode]);
+        // }
 
-        session()->flash('access-code', 'Access code do not match our records.');
+        // session()->flash('access-code', 'Access code do not match our records.');
+        session()->flash('access-code', 'Temporarily blocked access. Please try again later.');
     }
 
     public function render()

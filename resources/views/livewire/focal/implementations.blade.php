@@ -17,7 +17,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
         <div class="p-2 min-h-screen select-none">
 
-            {{-- Nav Title and Time Dropdown --}}
+            {{-- Nav Title and Date Dropdown --}}
             <div class="relative flex items-center my-2">
                 <h1 class="text-xl font-bold me-4 ms-3">Implementations</h1>
 
@@ -65,7 +65,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             </div>
 
             <div class="relative grid grid-cols-1 w-full h-full gap-4 lg:grid-cols-5">
-
                 {{-- List of Projects --}}
                 <div class="relative lg:col-span-3 h-full w-full rounded bg-white shadow">
 
@@ -116,7 +115,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     @if ($implementations)
                         {{-- List of Projects Table --}}
-                        <div class="relative min-h-60 max-h-60 overflow-y-auto overflow-x-auto">
+                        <div id="implementations-table"
+                            class="relative min-h-60 max-h-60 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                             <table class="relative w-full text-sm text-left text-indigo-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
@@ -143,8 +143,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             $encryptedId = Crypt::encrypt($implementation['id']);
                                         @endphp
                                         <tr @if ($beneficiaries) @click="scrollToTop()" @endif
-                                            wire:click='selectImplementationRow({{ $key }}, "{{ $encryptedId }}")'
                                             wire:key="implementation-{{ $key }}"
+                                            wire:click.prevent='selectImplementationRow({{ $key }}, "{{ $encryptedId }}")'
                                             class="relative border-b {{ $selectedImplementationRow === $key ? 'bg-indigo-100 hover:bg-indigo-200' : 'bg-white hover:bg-indigo-50' }}  whitespace-nowrap duration-200 ease-in-out">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium text-indigo-1100">
                                                 {{ $implementation['project_num'] }}
@@ -268,7 +268,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         {{-- Assign Button --}}
                         <div class="mx-2 flex items-center">
                             @if ($remainingBatchSlots || $remainingBatchSlots === 0)
-                                <p class="text-xs text-indigo-1100 capitalize font-medium me-1">remaining slots:</p>
+                                <p class="text-xs text-indigo-1100 capitalize font-light me-1">remaining slots:</p>
                                 <div
                                     class="{{ $remainingBatchSlots > 0 ? 'bg-blue-300 text-blue-1000' : 'bg-red-300 text-red-900' }} rounded-md py-1 px-2 text-xs me-2">
                                     {{ $remainingBatchSlots }}</div>
@@ -291,7 +291,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     @if ($batches)
                         {{-- Table --}}
-                        <div class="relative min-h-60 max-h-60 overflow-y-auto">
+                        <div id="batches-table"
+                            class="relative min-h-60 max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
 
                             <table class="relative w-full text-sm text-left text-blue-1100">
                                 <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
@@ -328,7 +329,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             </td>
                                             <td class="py-2">
                                                 <p
-                                                    class="px-1 py-1 text-xs rounded font-semibold uppercase {{ $batch['approval_status'] === 'APPROVED' ? 'bg-lime-200 text-lime-950' : 'bg-gray-500 text-gray-50' }}  text-center">
+                                                    class="px-1 py-1 text-xs rounded font-semibold uppercase {{ $batch['approval_status'] === 'approved' ? 'bg-green-300 text-green-1000' : 'bg-gray-500 text-gray-50' }}  text-center">
                                                     {{ $batch['approval_status'] }}
                                                 </p>
                                             </td>
@@ -443,6 +444,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </g>
                             </svg>
                             <h1 class="font-bold m-2">List of Beneficiaries</h1>
+                            @if ($batches)
+                                <span
+                                    class="bg-green-100 text-green-700 rounded px-2 py-1 text-xs font-semibold">{{ $beneficiarySlots['num_of_beneficiaries'] }}
+                                    / {{ $beneficiarySlots['batch_slots_allocated'] }}</span>
+                            @endif
+
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="col-span-1 mx-2 flex items-center justify-end">
@@ -458,8 +465,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     class="ps-7 py-1 text-xs text-green-1100 placeholder-green-800 border border-green-500 rounded-lg w-full bg-green-50 focus:ring-green-500 focus:border-green-500"
                                     placeholder="Search for beneficiaries">
                             </div>
+
                             <button
-                                class="flex items-center bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 rounded-md px-4 py-1 text-sm font-bold focus:ring-green-200 focus:border-green-300 focus:outline-green-200 duration-200 ease-in-out">
+                                @if ($batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) data-modal-target="add-beneficiaries-modal" data-modal-toggle="add-beneficiaries-modal" @else disabled @endif
+                                class="flex items-center {{ $batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 focus:ring-green-500 focus:border-green-500 focus:outline-green-500' : 'bg-green-300 text-green-50' }} rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
                                 ADD
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -476,8 +485,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     @if ($beneficiaries)
 
-                        {{-- Table --}}
-                        <div id="beneficiary-table" class="relative max-h-60 overflow-y-auto overflow-x-auto">
+                        {{-- Beneficiaries Table --}}
+                        <div id="beneficiary-table"
+                            class="relative max-h-60 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-green-50 scrollbar-thumb-green-700">
                             <table class="relative w-full text-sm text-left text-green-1100">
                                 <thead
                                     class="text-xs z-20 text-green-50 uppercase bg-green-600 sticky top-0 whitespace-nowrap">
@@ -513,13 +523,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             age
                                         </th>
                                         <th scope="col" class="px-2 py-2">
-                                            occupation
-                                        </th>
-                                        <th scope="col" class="px-2 py-2">
                                             Senior Citizen
                                         </th>
                                         <th scope="col" class="px-2 py-2">
                                             PWD
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            occupation
                                         </th>
                                         <th scope="col" class="px-2 py-2">
                                             avg monthly income
@@ -561,7 +571,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         @php
                                             $encryptedId = Crypt::encrypt($beneficiary['id']);
                                         @endphp
-                                        <tr wire:click="selectBeneficiaryRow({{ $key }}, '{{ $encryptedId }}')"
+                                        <tr wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ $encryptedId }}')"
                                             wire:key="beneficiary-{{ $key }}"
                                             class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-green-100 hover:bg-green-200' : 'bg-white hover:bg-green-50' }} border-b whitespace-nowrap">
                                             <th scope="row"
@@ -572,13 +582,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $beneficiary['first_name'] }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['middle_name'] }}
+                                                {{ $beneficiary['middle_name'] ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
                                                 {{ $beneficiary['last_name'] }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['extension_name'] }}
+                                                {{ $beneficiary['extension_name'] ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
                                                 {{ $beneficiary['birthdate'] }}
@@ -586,53 +596,57 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <td class="px-2 border-r border-gray-200">
                                                 {{ $beneficiary['contact_num'] }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 border-r border-gray-200 capitalize">
                                                 {{ $beneficiary['sex'] }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 border-r border-gray-200 capitalize">
                                                 {{ $beneficiary['civil_status'] }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
                                                 {{ $beneficiary['age'] }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['occupation'] }}
-                                            </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 border-r border-gray-200 capitalize">
                                                 {{ $beneficiary['is_senior_citizen'] }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 border-r border-gray-200 capitalize">
                                                 {{ $beneficiary['is_pwd'] }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['avg_monthly_income'] }}
+                                                {{ $beneficiary['occupation'] ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['e_payment_acc_num'] }}
+                                                @if ($beneficiary['avg_monthly_income'] === null || $beneficiary['avg_monthly_income'] === 0)
+                                                    -
+                                                @else
+                                                    {{ number_format($beneficiary['avg_monthly_income'] / 100, 2) }}
+                                                @endif
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
+                                                {{ $beneficiary['e_payment_acc_num'] ?? '-' }}
+                                            </td>
+                                            <td class="px-2 border-r border-gray-200 capitalize">
                                                 {{ $beneficiary['beneficiary_type'] }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['dependent'] }}
+                                                {{ $beneficiary['dependent'] ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 border-r border-gray-200 capitalize">
                                                 {{ $beneficiary['self_employment'] }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 border-r border-gray-200 capitalize">
                                                 {{ $beneficiary['skills_training'] }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['spouse_first_name'] }}
+                                                {{ $beneficiary['spouse_first_name'] ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['spouse_middle_name'] }}
+                                                {{ $beneficiary['spouse_middle_name'] ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['spouse_last_name'] }}
+                                                {{ $beneficiary['spouse_last_name'] ?? '-' }}
                                             </td>
-                                            <td class="px-2 ">
-                                                {{ $beneficiary['spouse_extension_name'] }}
+                                            <td class="px-2">
+                                                {{ $beneficiary['spouse_extension_name'] ?? '-' }}
                                             </td>
                                             <td x-data="bfDropdownRotation({{ $key }})" class="py-2 flex">
                                                 <button @click.stop="handleClick()"
@@ -717,7 +731,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                     </g>
                                 </svg>
-                                <p>No assignments found.</p>
+                                <p>No beneficiaries found.</p>
                                 @if (!$implementations)
                                     <p>Try creating a <span class="text-green-900">new project</span>.</p>
                                 @elseif (!$batches)
@@ -729,6 +743,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                         </div>
                     @endif
+                    @if ($batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'])
+                        {{-- Add Button | Add Beneficiaries Modal --}}
+                        <livewire:focal.implementations.add-beneficiaries-modal :$batchId />
+                    @endif
+
                 </div>
             </div>
         </div>

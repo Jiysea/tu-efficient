@@ -13,7 +13,7 @@ use Nette\Utils\Random;
 class ImplementationFactory extends Factory
 {
     protected static $counter = 1;
-    protected $currentMinimumWage = config('wage.minimum_wage');
+    protected $currentMinimumWage;
     /**
      * Define the model's default state.
      *
@@ -21,24 +21,26 @@ class ImplementationFactory extends Factory
      */
     public function definition(): array
     {
-        $startDate = Carbon::createFromDate(2023, 07, 30); // Start date (YYYY, MM, DD)
-        $endDate = Carbon::createFromDate(2024, 07, 30); // End date (YYYY, MM, DD)
+        $startDate = Carbon::createFromDate(2023, 9, 1); // Start date (YYYY, MM, DD)
+        $endDate = Carbon::createFromDate(2024, 9, 1); // End date (YYYY, MM, DD)
 
-        $budgetAmount = fake()->numberBetween(750000, 2000000);
+        $project_title = ucwords(fake()->words(mt_rand(1, 3), true));
+        $budgetAmount = fake()->numberBetween(100000000, 250000000);
         $daysOfWork = fake()->randomElement([10, 15]);
-        $district = fake()->randomElement(['Agdao', 'Talomo', 'Bunawan', 'Poblacion', 'Buhangin']);
+        $total_slots = $this->calculateTotalSlots($budgetAmount, $daysOfWork);
+        $district = fake()->randomElement(['Poblacion', 'Talomo', 'Agdao', 'Buhangin', 'Bunawan', 'Paquibato', 'Baguio', 'Calinan', 'Marilog', 'Toril', 'Tugbok']);
         $currentDate = $this->dateRandomizer($startDate, $endDate);
 
         return [
-            'users_id' => 2,
+            'users_id' => 3,
             'project_num' => fake()->bothify('XII-DCFO-######'),
-            'project_title' => 'Implementation Numero ' . static::$counter++,
+            'project_title' => $project_title,
             'purpose' => 'DUE TO DISPLACEMENT/DISADVANTAGE',
             'province' => 'Davao del Sur',
             'city_municipality' => 'Davao City',
             'district' => $district,
             'budget_amount' => $budgetAmount,
-            'total_slots' => $this->calculateTotalSlots($budgetAmount, $daysOfWork),
+            'total_slots' => $total_slots,
             'days_of_work' => $daysOfWork,
             'created_at' => $currentDate,
             'updated_at' => $currentDate,
@@ -59,7 +61,7 @@ class ImplementationFactory extends Factory
 
     protected function calculateTotalSlots(int $budgetAmount, int $daysOfWork): int
     {
-
+        $this->currentMinimumWage = intval(str_replace([',', '.'], '', number_format(floatval(config('wage.minimum_wage')), 2)));
         return intdiv($budgetAmount, $this->currentMinimumWage * $daysOfWork);
     }
 }

@@ -13,9 +13,9 @@ class UserManagement extends Component
 {
     public function render()
     {
-        if (Auth::user()->user_type === 'Focal')
+        if (Auth::user()->user_type === 'focal')
             return view('livewire.focal.user-management');
-        else if (Auth::user()->user_type === 'Coordinator')
+        else if (Auth::user()->user_type === 'coordinator')
             return redirect()->route('coordinator.home');
     }
 }

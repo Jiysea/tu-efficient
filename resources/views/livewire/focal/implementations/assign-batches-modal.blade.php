@@ -68,6 +68,7 @@
             <form wire:submit.prevent="saveBatches" class="p-4 md:pt-3 md:px-4 md:pb-4">
                 @csrf
                 <div class="grid gap-4 mb-4 grid-cols-5 text-xs">
+                    {{-- Batch Number --}}
                     <div class="relative col-span-5 sm:col-span-2 mb-4">
                         <label for="batch_num" class="block mb-1  font-medium text-blue-1100 ">Batch
                             Number</label>
@@ -78,6 +79,7 @@
                             <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
                         @enderror
                     </div>
+                    {{-- Barangay Name --}}
                     <div class="relative col-span-3 sm:col-span-2 mb-4">
                         <label for="barangay_name" class="block mb-1  font-medium text-blue-1100 ">Barangay
                         </label>
@@ -88,6 +90,7 @@
                             <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
                         @enderror
                     </div>
+                    {{-- Slots --}}
                     <div class="relative col-span-2 sm:col-span-1 mb-4">
                         <label for="slots_allocated" class="block mb-1 font-medium text-blue-1100 ">Slots</label>
                         <div class="relative">
@@ -102,6 +105,7 @@
                             </p>
                         @enderror
                     </div>
+                    {{-- Add Coordinators dropdown --}}
                     <div class="relative flex flex-col col-span-5 sm:col-span-2 mb-4">
                         <p class="block mb-1 font-medium text-blue-1100 ">Add Coordinator</p>
                         <div class="relative z-50 h-full">
@@ -176,6 +180,7 @@
                             @endif
                         </div>
                     </div>
+                    {{-- Assigned Coordinators toast box --}}
                     <div class="relative grid grid-cols-5 flex-grow col-span-5 sm:col-span-3 mb-4">
                         <div class="relative col-span-5">
                             <p class="block mb-1 ms-16 font-medium text-blue-1100 ">Assigned Coordinators</p>
@@ -199,10 +204,11 @@
                                     </svg>
                                 </button>
                                 <div
-                                    class="text-xs border rounded w-full ps-2 py-2.5 duration-200 ease-in-out overflow-x-scroll whitespace-nowrap scrollbar-thin {{ $assigned_coordinators ? 'scrollbar-thumb-blue-700 scrollbar-track-blue-50' : 'scrollbar-thumb-gray-700 scrollbar-track-gray-100' }}
-                                    @if ($errors->has('assigned_coordinators')) border-red-500 bg-red-200 placeholder-red-600
+                                    class="text-xs border rounded w-full ps-2 py-2.5 duration-200 ease-in-out overflow-x-scroll whitespace-nowrap scrollbar-thin 
+                                    
+                                    @if ($errors->has('assigned_coordinators')) border-red-500 bg-red-200 placeholder-red-600 scrollbar-thumb-red-600 scrollbar-track-red-200
                                     @else
-                                    {{ $assigned_coordinators ? 'bg-blue-50 border-blue-300' : 'bg-gray-100 border-gray-400' }} @endif">
+                                    {{ $assigned_coordinators ? 'bg-blue-50 border-blue-300 scrollbar-thumb-blue-700 scrollbar-track-blue-50' : 'bg-gray-100 border-gray-400 scrollbar-thumb-gray-700 scrollbar-track-gray-100' }} @endif">
                                     @forelse ($assigned_coordinators as $key => $coordinator)
                                         <span
                                             class="p-1 me-2 rounded duration-200 ease-in-out bg-blue-300 text-blue-1000">
@@ -224,7 +230,9 @@
                                             </button>
                                         </span>
                                     @empty
-                                        <p class="ms-1 text-gray-500">Added coordinators will be shown here!</p>
+                                        <p
+                                            class="ms-1 {{ $errors->has('assigned_coordinators') ? 'text-red-600' : 'text-gray-500' }} ">
+                                            Added coordinators will be shown here!</p>
                                     @endforelse
                                 </div>
                                 @error('assigned_coordinators')
@@ -249,9 +257,9 @@
                                 </button>
                             </div>
                         </div>
-
                     </div>
 
+                    {{-- Modal body 2 (Table Area) --}}
                     @if ($temporaryBatchesList)
                         {{-- Dropdown Area --}}
                         @foreach ($temporaryBatchesList as $keyBatch => $batch)
@@ -500,6 +508,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        {{-- Shows up on initial modal open or when there's no batches created yet --}}
                     @else
                         <div
                             class="relative col-span-5 bg-white px-4 pb-6 pt-2 h-60 min-w-full flex flex-col items-center justify-center">
@@ -528,10 +537,10 @@
                                 </div>
                             @enderror
                         </div>
-
                     @endif
                 </div>
 
+                {{-- Modal footer --}}
                 <div class="w-full flex relative items-center justify-end">
                     {{-- Loading State for Changes --}}
                     <div class="z-50 text-blue-900" wire:loading wire:target="saveBatches">

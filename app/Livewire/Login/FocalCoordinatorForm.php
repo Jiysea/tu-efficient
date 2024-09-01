@@ -21,11 +21,11 @@ class FocalCoordinatorForm extends Component
         $this->validate();
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
-            if (Auth::user()->user_type === 'Focal') {
+            if (strtolower(Auth::user()->user_type) === 'focal') {
                 session()->regenerate();
 
                 return redirect()->route('focal.dashboard');
-            } else if (Auth::user()->user_type === 'Coordinator') {
+            } else if (strtolower(Auth::user()->user_type) === 'coordinator') {
                 session()->regenerate();
 
                 return redirect()->route('coordinator.home');

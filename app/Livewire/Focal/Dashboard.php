@@ -79,8 +79,8 @@ class Dashboard extends Component
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->select([
                 DB::raw('COUNT(DISTINCT implementations.id) AS total_implementations'),
-                DB::raw('SUM(CASE WHEN batches.approval_status = "APPROVED" THEN 1 ELSE 0 END) AS total_approved_assignments'),
-                DB::raw('SUM(CASE WHEN batches.approval_status = "PENDING" THEN 1 ELSE 0 END) AS total_pending_assignments'),
+                DB::raw('SUM(CASE WHEN batches.approval_status = "approved" THEN 1 ELSE 0 END) AS total_approved_assignments'),
+                DB::raw('SUM(CASE WHEN batches.approval_status = "pending" THEN 1 ELSE 0 END) AS total_pending_assignments'),
             ])
             ->first()
             ->toArray();
@@ -111,12 +111,12 @@ class Dashboard extends Component
         $this->implementationCount = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
             ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
             ->select([
-                DB::raw('SUM(CASE WHEN beneficiaries.sex = "Male" THEN 1 ELSE 0 END) AS total_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.sex = "Female" THEN 1 ELSE 0 END) AS total_female'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "Yes" AND beneficiaries.sex = "Male" THEN 1 ELSE 0 END) AS total_pwd_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "Yes" AND beneficiaries.sex = "Female" THEN 1 ELSE 0 END) AS total_pwd_female'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "Yes" AND beneficiaries.sex = "Male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "Yes" AND beneficiaries.sex = "Female" THEN 1 ELSE 0 END) AS total_senior_female')
+                DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
             ])
             ->where('implementations.users_id', $focalUserId)
             ->where('implementations.id', $this->implementationsId)
@@ -141,8 +141,8 @@ class Dashboard extends Component
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->select([
                 DB::raw('COUNT(DISTINCT beneficiaries.id) AS total_beneficiaries'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "Yes" THEN 1 ELSE 0 END) AS total_pwd_beneficiaries'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "Yes" THEN 1 ELSE 0 END) AS total_senior_citizen_beneficiaries'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" THEN 1 ELSE 0 END) AS total_pwd_beneficiaries'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" THEN 1 ELSE 0 END) AS total_senior_citizen_beneficiaries'),
             ])
             ->first()
             ->toArray();
@@ -208,12 +208,12 @@ class Dashboard extends Component
             ->select([
                 'batches.id',
                 'batches.barangay_name',
-                DB::raw('SUM(CASE WHEN beneficiaries.sex = "Male" THEN 1 ELSE 0 END) AS total_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.sex = "Female" THEN 1 ELSE 0 END) AS total_female'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "Yes" AND beneficiaries.sex = "Male" THEN 1 ELSE 0 END) AS total_pwd_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "Yes" AND beneficiaries.sex = "Female" THEN 1 ELSE 0 END) AS total_pwd_female'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "Yes" AND beneficiaries.sex = "Male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "Yes" AND beneficiaries.sex = "Female" THEN 1 ELSE 0 END) AS total_senior_female')
+                DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
             ])
             ->where('implementations.users_id', $focalUserId)
             ->where('implementations.id', $this->implementationsId)
@@ -223,9 +223,9 @@ class Dashboard extends Component
 
         $this->batchesCount = $batches->total();
 
-        if (Auth::user()->user_type === 'Focal')
+        if (Auth::user()->user_type === 'focal')
             return view('livewire.focal.dashboard', ['batches' => $batches]);
-        else if (Auth::user()->user_type === 'Coordinator')
+        else if (Auth::user()->user_type === 'coordinator')
             return redirect()->route('coordinator.home');
     }
 }

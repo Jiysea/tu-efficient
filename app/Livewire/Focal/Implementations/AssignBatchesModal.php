@@ -80,7 +80,7 @@ class AssignBatchesModal extends Component
                 'lte:' . $this->totalSlots,
             ],
             'assigned_coordinators' => 'required',
-            'temporaryBatchesList' => 'required',
+
         ];
     }
 
@@ -91,7 +91,7 @@ class AssignBatchesModal extends Component
             'batch_num.required' => 'The :attribute should not be empty.',
             'barangay_name.required' => 'The :attribute should not be empty.',
             'slots_allocated.required' => 'Invalid :attribute amount.',
-            'assigned_coordinators' => 'There should be at least 1 :attribute.',
+            'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
             'temporaryBatchesList.required' => 'There should be at least 1 :attribute before finishing.',
 
             'batch_num.unique' => 'This :attribute already exists.',
@@ -120,7 +120,7 @@ class AssignBatchesModal extends Component
     # a livewire action executes after clicking the `Finish` button
     public function saveBatches()
     {
-        $this->validateOnly('temporaryBatchesList');
+        $this->validate(['temporaryBatchesList' => 'required']);
 
         foreach ($this->temporaryBatchesList as $keyBatch => $batch) {
             $batch = Batch::create([
@@ -172,10 +172,11 @@ class AssignBatchesModal extends Component
     # to the temporary batch list table for saving later.
     public function addBatchRow()
     {
-        $this->validateOnly('batch_num');
-        $this->validateOnly('barangay_name');
-        $this->validateOnly('slots_allocated');
-        $this->validateOnly('assigned_coordinators');
+        $this->validate();
+        // $this->validateOnly('batch_num');
+        // $this->validateOnly('barangay_name');
+        // $this->validateOnly('slots_allocated');
+        // $this->validateOnly('assigned_coordinators');
 
         $this->temporaryBatchesList[] = [
             'batch_num' => $this->batch_num,

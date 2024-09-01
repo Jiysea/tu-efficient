@@ -79,7 +79,7 @@
                         <label for="project_num" class="block mb-1  font-medium text-indigo-1100 ">Project
                             Number</label>
                         <input type="text" id="project_num" autocomplete="off" wire:model.blur="project_num"
-                            class="text-xs {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100 rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
+                            class="text-xs duration-200 {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
                             placeholder="Type project number">
                         @error('project_num')
                             <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
@@ -89,7 +89,7 @@
                         <label for="project_title" class="block mb-1  font-medium text-indigo-1100 ">Project
                             Title</label>
                         <input type="text" id="project_title" autocomplete="off" wire:model.blur="project_title"
-                            class="text-xs {{ $errors->has('project_title') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5      "
+                            class="text-xs duration-200 {{ $errors->has('project_title') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5       "
                             placeholder="Type project title">
                         @error('project_title')
                             <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
@@ -99,7 +99,7 @@
                         <label for="budget_amount" class="block mb-1  font-medium text-indigo-1100 ">Budget</label>
                         <div {{-- x-effect="console.log(unmaskedBudget)" --}} class="relative">
                             <div
-                                class="text-sm {{ $errors->has('budget_amount') ? ' bg-red-400 text-red-900 border border-red-500' : '' }} absolute inset-y-0 px-3 rounded-l bg-indigo-600 text-indigo-50 flex items-center justify-center text-center pointer-events-none">
+                                class="text-sm {{ $errors->has('budget_amount') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-indigo-600 text-indigo-50' }} absolute inset-y-0 px-3 rounded-l flex items-center justify-center text-center pointer-events-none">
                                 <p class="flex text-center w-full relative items-center justify-center font-semibold">₱
                                 </p>
                             </div>
@@ -108,7 +108,7 @@
                                 @input="demaskValue($el.value);
                                 $wire.set('budget_amount', unmaskedBudget);
                                 $wire.toggleTry();"
-                                class="text-xs {{ $errors->has('budget_amount') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} ps-11 bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full pe-2.5 py-2.5"
+                                class="text-xs duration-200 {{ $errors->has('budget_amount') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} ps-11 border rounded block w-full pe-2.5 py-2.5"
                                 placeholder="Type total budget">
                         </div>
                         @error('budget_amount')
@@ -150,7 +150,7 @@
                             Work</label>
                         <input type="number" min="0" max="15" id="days_of_work"
                             wire:model.live="days_of_work" @input="$wire.toggleTry()"
-                            class="text-xs {{ $errors->has('days_of_work') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5      "
+                            class="text-xs duration-200 {{ $errors->has('days_of_work') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
                             placeholder="Type days of work">
                         @error('days_of_work')
                             <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}
@@ -160,7 +160,7 @@
                     <div class="relative col-span-2 mb-4">
                         <label for="district" class="block mb-1  font-medium text-indigo-1100 ">District</label>
                         <input type="text" id="district" autocomplete="off" wire:model.blur="district"
-                            class="text-xs {{ $errors->has('district') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5      "
+                            class="text-xs duration-200 {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
                             placeholder="Type district">
                         @error('district')
                             <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
@@ -169,7 +169,7 @@
                     <div class="relative col-span-3 mb-4">
                         <label for="province" class="block mb-1  font-medium text-indigo-1100 ">Province</label>
                         <input type="text" id="province" autocomplete="off" wire:model.blur="province"
-                            class="text-xs {{ $errors->has('province') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5      "
+                            class="text-xs duration-200 {{ $errors->has('province') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
                             placeholder="Type province">
                         @error('province')
                             <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
@@ -180,7 +180,7 @@
                             class="block mb-1  font-medium text-indigo-1100 ">City/Municipality</label>
                         <input type="text" id="city_municipality" autocomplete="off"
                             wire:model.blur="city_municipality"
-                            class="text-xs {{ $errors->has('city_municipality') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5      "
+                            class="text-xs duration-200 {{ $errors->has('city_municipality') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
                             placeholder="Type city/municipality">
                         @error('city_municipality')
                             <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
@@ -190,7 +190,7 @@
                         <label for="purpose" class="block mb-1  font-medium text-indigo-1100 ">Purpose of
                             Project</label>
                         <select id="purpose" autocomplete="off" wire:model.blur="purpose"
-                            class="text-xs {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 autofill:bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5      ">
+                            class="text-xs duration-200 {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                             <option value="">Select a purpose...</option>
                             <option>DUE TO DISADVANTAGE/DISPLACEMENT</option>
                         </select>
