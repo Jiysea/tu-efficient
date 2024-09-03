@@ -59,6 +59,7 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
         $batches = Batch::all();
         foreach ($batches as $batch) {
             $amount = rand(1, 6);
