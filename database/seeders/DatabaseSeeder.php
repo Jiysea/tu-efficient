@@ -41,9 +41,8 @@ class DatabaseSeeder extends Seeder
         ]);
         User::factory(10)->create();
 
-        $randImpAmount = 100;
+        $randImpAmount = 150;
         Implementation::factory($randImpAmount)->create();
-        $batches = null;
 
         for ($i = 1; $i <= $randImpAmount; $i++) {
             $total_slots = Implementation::where('id', $i)->value('total_slots');
@@ -61,6 +60,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
+        $batches = Batch::all();
         foreach ($batches as $batch) {
             $amount = rand(1, 6);
             $previousUser = 0;

@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Login;
 
+use App\Models\User;
+use Carbon\Carbon;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Validate;
@@ -24,9 +26,15 @@ class FocalCoordinatorForm extends Component
             if (strtolower(Auth::user()->user_type) === 'focal') {
                 session()->regenerate();
 
+                # Logs the login date of the user
+                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
+
                 return redirect()->route('focal.dashboard');
             } else if (strtolower(Auth::user()->user_type) === 'coordinator') {
                 session()->regenerate();
+
+                # Logs the login date of the user
+                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
 
                 return redirect()->route('coordinator.home');
             }

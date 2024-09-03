@@ -149,7 +149,7 @@ class CreateProjectModal extends Component
             # Also logically, real-life money has only 2 digits below a ph peso
             # So it doesn't matter how many decimal digits it has, it will
             # always be formatted to 2 simple digits (rounded off)
-            $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval(config('wage.minimum_wage')), 2)));
+            $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval(config('settings.minimum_wage')), 2)));
 
             ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 1 : $this->days_of_work;
             // dd($this->days_of_work);

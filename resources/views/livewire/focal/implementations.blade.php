@@ -69,8 +69,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 <div class="relative lg:col-span-3 h-full w-full rounded bg-white shadow">
 
                     {{-- Upper/Header --}}
-                    <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
-                        <div class="inline-flex items-center col-span-1 text-indigo-900">
+                    <div class="relative max-h-12 flex items-center justify-between">
+                        <div class="inline-flex items-center text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                 viewBox="0, 0, 400,400">
@@ -84,17 +84,30 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
-                        <div class="col-span-1 mx-2 flex items-center justify-end">
+                        <div class="mx-2 flex items-center justify-end">
+                            {{-- Loading State --}}
+                            {{-- <div class="items-center justify-end z-50 text-indigo-900" wire:loading
+                                wire:target="searchProjects">
+                                <svg class="size-4 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4">
+                                    </circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                            </div> --}}
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="w-3 h-3 text-indigo-500" aria-hidden="true"
+                                    <svg class="size-3 text-indigo-500" aria-hidden="true"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="project-search" maxlength="100"
-                                    class="ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded-lg w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
+                                <input type="text" id="project-search" maxlength="100" {{-- wire:model.live="searchProjects" --}}
+                                    class="duration-200 ease-in-out ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Search for project titles">
                             </div>
                             <button data-modal-target="create-modal" data-modal-toggle="create-modal"
@@ -231,7 +244,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <div class="relative bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-gray-300"
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -241,7 +255,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                                 <p>No projects found.</p>
-                                <p>Try creating a <span class="text-indigo-900">new project</span>.</p>
+                                <p>Try creating a <span class="animate-pulse text-indigo-900">new project</span>.</p>
                             </div>
                         </div>
                     @endif
@@ -253,7 +267,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- Batch Assignments --}}
                 <div class="relative lg:col-span-2 h-full w-full rounded bg-white shadow">
                     <div class="relative flex justify-between max-h-12 items-center">
-                        <div class="inline-flex items-center text-blue-900">
+                        <div class="inline-flex items-center text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                 viewBox="0, 0, 400,400">
@@ -270,12 +284,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             @if ($remainingBatchSlots || $remainingBatchSlots === 0)
                                 <p class="text-xs text-indigo-1100 capitalize font-light me-1">remaining slots:</p>
                                 <div
-                                    class="{{ $remainingBatchSlots > 0 ? 'bg-blue-300 text-blue-1000' : 'bg-red-300 text-red-900' }} rounded-md py-1 px-2 text-xs me-2">
+                                    class="{{ $remainingBatchSlots > 0 ? 'bg-indigo-300 text-indigo-1000' : 'bg-red-300 text-red-900' }} rounded-md py-1 px-2 text-xs me-2">
                                     {{ $remainingBatchSlots }}</div>
                             @endif
                             <button @if (!$remainingBatchSlots || $remainingBatchSlots === null || $remainingBatchSlots === 0) disabled @endif
                                 @if ($implementations) data-modal-target="assign-batches-modal" data-modal-toggle="assign-batches-modal" @endif
-                                class="flex items-center rounded-md px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $remainingBatchSlots > 0 ? 'bg-blue-900 hover:bg-blue-800 text-blue-50 hover:text-blue-100 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500' : 'bg-blue-300 text-blue-50' }}">
+                                class="flex items-center rounded-md px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $remainingBatchSlots > 0 ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }}">
                                 ASSIGN
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0, 0, 400,400">
@@ -292,10 +306,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     @if ($batches)
                         {{-- Table --}}
                         <div id="batches-table"
-                            class="relative min-h-60 max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
+                            class="relative min-h-60 max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
 
-                            <table class="relative w-full text-sm text-left text-blue-1100">
-                                <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
+                            <table class="relative w-full text-sm text-left text-indigo-1100">
+                                <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
                                         <th scope="col" class="ps-4 py-2">
                                             barangay
@@ -319,9 +333,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <tr @if ($beneficiaries) @click="scrollToTop()" @endif
                                             wire:click='selectBatchRow({{ $key }}, "{{ $batchEncryptedId }}")'
                                             wire:key='batch-{{ $key }}'
-                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-blue-100 hover:bg-blue-200' : 'bg-white hover:bg-blue-50' }} whitespace-nowrap duration-200 ease-in-out">
+                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-indigo-100 hover:bg-indigo-200' : 'bg-white hover:bg-indigo-50' }} whitespace-nowrap duration-200 ease-in-out">
                                             <th scope="row"
-                                                class="z-0 ps-4 py-2 font-medium text-blue-1100 whitespace-nowrap">
+                                                class="z-0 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap">
                                                 {{ $batch['barangay_name'] }}
                                             </th>
                                             <td class="px-2 py-2 text-center">
@@ -338,7 +352,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     id="batchRowButton-{{ $key }}"
                                                     data-dropdown-placement="left"
                                                     data-dropdown-toggle="batchRowDropdown-{{ $key }}"
-                                                    class="z-0 mx-1 p-1 font-medium rounded text-blue-1100 hover:text-blue-1000 active:text-blue-900 bg-transparent hover:bg-blue-200 duration-200 ease-in-out">
+                                                    class="z-0 mx-1 p-1 font-medium rounded text-indigo-1100 hover:text-indigo-1000 active:text-indigo-900 bg-transparent hover:bg-indigo-200 duration-200 ease-in-out">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor"
                                                         :class="{
@@ -363,11 +377,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <div wire:key="batchRowDropdown-{{ $key }}"
                                 id="batchRowDropdown-{{ $key }}"
                                 class="absolute z-50 hidden bg-white border rounded-md shadow">
-                                <ul class="text-sm text-blue-1100"
+                                <ul class="text-sm text-indigo-1100"
                                     aria-labelledby="batchRowButton-{{ $key }}">
                                     <li>
                                         <a aria-label="{{ __('View Batch') }}"
-                                            class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
+                                            class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
@@ -383,7 +397,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </li>
                                     <li>
                                         <a aria-label="{{ __('Modify Batch') }}"
-                                            class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
+                                            class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
@@ -404,7 +418,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <div class="relative bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-gray-300"
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -415,9 +430,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </svg>
                                 <p>No assignments found.</p>
                                 @if ($implementations)
-                                    <p>Try assigning a <span class="text-blue-900">new batch</span>.</p>
+                                    <p>Try assigning a <span class="animate-pulse text-indigo-900">new batch</span>.
+                                    </p>
                                 @else
-                                    <p>Try creating a <span class="text-blue-900">new project</span>.</p>
+                                    <p>Try creating a <span class="animate-pulse text-indigo-900">new project</span>.
+                                    </p>
                                 @endif
 
                             </div>
@@ -433,7 +450,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 <div class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
-                        <div class="inline-flex items-center col-span-1 text-green-900">
+                        <div class="inline-flex items-center col-span-1 text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="384.37499999999994"
                                 viewBox="0, 0, 400,384.37499999999994">
@@ -446,29 +463,42 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <h1 class="font-bold m-2">List of Beneficiaries</h1>
                             @if ($batches)
                                 <span
-                                    class="bg-green-100 text-green-700 rounded px-2 py-1 text-xs font-semibold">{{ $beneficiarySlots['num_of_beneficiaries'] }}
+                                    class="bg-indigo-100 text-indigo-700 rounded px-2 py-1 text-xs font-semibold">{{ $beneficiarySlots['num_of_beneficiaries'] }}
                                     / {{ $beneficiarySlots['batch_slots_allocated'] }}</span>
                             @endif
 
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="col-span-1 mx-2 flex items-center justify-end">
+                            {{-- Loading State --}}
+                            {{-- <div class="items-center justify-end z-50 text-indigo-900" wire:loading
+                                wire:target="searchBeneficiaries">
+                                <svg class="size-4 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4">
+                                    </circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                            </div> --}}
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="w-3 h-3 text-green-800" aria-hidden="true"
+                                    <svg class="size-3 text-indigo-800" aria-hidden="true"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="beneficiary-search" maxlength="100"
-                                    class="ps-7 py-1 text-xs text-green-1100 placeholder-green-800 border border-green-500 rounded-lg w-full bg-green-50 focus:ring-green-500 focus:border-green-500"
+                                <input type="text" id="beneficiary-search" maxlength="100" {{-- wire:model.live="searchBeneficiaries" --}}
+                                    class="duration-200 ease-in-out ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Search for beneficiaries">
                             </div>
 
                             <button
                                 @if ($batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) data-modal-target="add-beneficiaries-modal" data-modal-toggle="add-beneficiaries-modal" @else disabled @endif
-                                class="flex items-center {{ $batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 focus:ring-green-500 focus:border-green-500 focus:outline-green-500' : 'bg-green-300 text-green-50' }} rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
+                                class="flex items-center {{ $batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }} rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
                                 ADD
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -487,10 +517,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                         {{-- Beneficiaries Table --}}
                         <div id="beneficiary-table"
-                            class="relative max-h-60 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-green-50 scrollbar-thumb-green-700">
-                            <table class="relative w-full text-sm text-left text-green-1100">
+                            class="relative max-h-60 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                            <table class="relative w-full text-sm text-left text-indigo-1100">
                                 <thead
-                                    class="text-xs z-20 text-green-50 uppercase bg-green-600 sticky top-0 whitespace-nowrap">
+                                    class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0 whitespace-nowrap">
                                     <tr>
                                         <th scope="col" class="pe-2 ps-4 py-2">
                                             #
@@ -573,9 +603,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         @endphp
                                         <tr wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ $encryptedId }}')"
                                             wire:key="beneficiary-{{ $key }}"
-                                            class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-green-100 hover:bg-green-200' : 'bg-white hover:bg-green-50' }} border-b whitespace-nowrap">
+                                            class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-indigo-100 hover:bg-indigo-200' : 'bg-white hover:bg-indigo-50' }} border-b whitespace-nowrap">
                                             <th scope="row"
-                                                class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium text-green-1100 whitespace-nowrap ">
+                                                class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap ">
                                                 {{ $key + 1 }}
                                             </th>
                                             <td class="px-2 border-r border-gray-200">
@@ -653,7 +683,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     id="beneficiaryRowButton-{{ $key }}"
                                                     data-dropdown-placement="left"
                                                     data-dropdown-toggle="beneficiaryRowDropdown-{{ $key }}"
-                                                    class="z-0 mx-1 p-1 font-medium rounded text-green-1100 hover:text-green-1000 focus:outline-none active:text-green-900 bg-transparent hover:bg-green-200 duration-200 ease-in-out">
+                                                    class="z-0 mx-1 p-1 font-medium rounded text-indigo-1100 hover:text-indigo-1000 focus:outline-none active:text-indigo-900 bg-transparent hover:bg-indigo-200 duration-200 ease-in-out">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor"
                                                         :class="{
@@ -681,11 +711,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <div wire:key="beneficiaryRowDropdown-{{ $key }}"
                                 id="beneficiaryRowDropdown-{{ $key }}"
                                 class="absolute z-50 hidden bg-white border rounded-md shadow">
-                                <ul class="whitespace-nowrap text-sm text-green-1100"
+                                <ul class="whitespace-nowrap text-sm text-indigo-1100"
                                     aria-labelledby="beneficiaryRowButton-{{ $key }}">
                                     <li>
                                         <a aria-label="{{ __('View Beneficiary') }}"
-                                            class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-green-900 hover:bg-green-100 duration-200 ease-in-out cursor-pointer">
+                                            class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
@@ -701,7 +731,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </li>
                                     <li>
                                         <a aria-label="{{ __('Modify Beneficiary') }}"
-                                            class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-green-900 hover:bg-green-100 duration-200 ease-in-out cursor-pointer">
+                                            class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
@@ -722,7 +752,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <div class="relative bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-gray-300"
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -733,11 +764,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </svg>
                                 <p>No beneficiaries found.</p>
                                 @if (!$implementations)
-                                    <p>Try creating a <span class="text-green-900">new project</span>.</p>
+                                    <p>Try creating a <span class="animate-pulse text-indigo-900">new project</span>.
+                                    </p>
                                 @elseif (!$batches)
-                                    <p>Try assigning a <span class="text-green-900">new batch</span>.</p>
+                                    <p>Try assigning a <span class="animate-pulse text-indigo-900">new batch</span>.
+                                    </p>
                                 @else
-                                    <p>Try adding a <span class="text-green-900">new beneficiary</span>.</p>
+                                    <p>Try adding a <span class="animate-pulse text-indigo-900">new beneficiary</span>.
+                                    </p>
                                 @endif
 
                             </div>
@@ -766,7 +800,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
         x-transition:leave="origin-left transition ease-in-out duration-500"
         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90"
-        class="fixed left-6 bottom-6 z-50 flex items-center bg-blue-200 text-blue-1000 border border-blue-500 rounded-lg text-sm sm:text-md font-bold px-4 py-3 select-none"
+        class="fixed left-6 bottom-6 z-50 flex items-center bg-indigo-200 text-indigo-1000 border border-indigo-500 rounded-lg text-sm sm:text-md font-bold px-4 py-3 select-none"
         role="alert">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current w-4 h-4 mr-2">
             <path fill-rule="evenodd"

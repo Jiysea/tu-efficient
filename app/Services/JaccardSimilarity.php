@@ -19,13 +19,15 @@ class JaccardSimilarity
      */
     public function preprocessString($string)
     {
-        // Split the string into words (tokens)
+        # Split the string into words (tokens)
         $tokens = explode(' ', $string);
 
-        // Sort the tokens to neutralize order differences
+        unset($tokens[sizeOf($tokens) - 1]);
+
+        # Sort the tokens to neutralize order differences
         sort($tokens);
 
-        // Join the tokens back into a single string
+        # Join the tokens back into a single string
         return implode(' ', $tokens);
     }
 
@@ -57,12 +59,12 @@ class JaccardSimilarity
     public function calculateSimilarity($beneficiaryFromDatabase, $inputtedBeneficiary)
     {
         # Preprocess the strings
-        $beneficiaryFromDatabase = $this->preprocessString($beneficiaryFromDatabase);
-        $inputtedBeneficiary = $this->preprocessString($inputtedBeneficiary);
+        $name1 = $this->preprocessString($beneficiaryFromDatabase);
+        $name2 = $this->preprocessString($inputtedBeneficiary);
 
         # Generate n-grams
-        $ngrams1 = array_unique($this->generateNGrams($beneficiaryFromDatabase));
-        $ngrams2 = array_unique($this->generateNGrams($inputtedBeneficiary));
+        $ngrams1 = array_unique($this->generateNGrams($name1));
+        $ngrams2 = array_unique($this->generateNGrams($name2));
 
         # Calculate intersection and union
         $intersection = array_intersect($ngrams1, $ngrams2);
@@ -71,6 +73,6 @@ class JaccardSimilarity
         $jaccard = count($intersection) / count($union);
 
         // Returns the Jaccard Similarity as float
-        return $jaccard;
+        return floatval(number_format($jaccard, 4));
     }
 }

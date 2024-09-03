@@ -50,7 +50,7 @@
                     '-translate-x-32 opacity-0': open === false,
                     '-translate-x-32 opacity-0 xl:translate-x-0 xl:opacity-100': open === true,
                 }"
-                    class="-translate-x-32 opacity-0 xl:translate-x-0 xl:opacity-100 origin-right text-center text-indigo-50 text-2xl font-bold whitespace-nowrap mt-1 select-none ease-in-out duration-500">
+                    class="-translate-x-32 opacity-0 xl:translate-x-0 xl:opacity-100 origin-left text-center text-indigo-50 text-2xl font-bold whitespace-nowrap mt-1 select-none ease-in-out duration-500">
                     TU-EFFICIENT</div>
 
                 <div class="w-full border-t border-indigo-500 my-4"></div>
@@ -72,10 +72,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 opacity-0': open === false,
-                                '-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100': open === true,
+                                '-translate-x-10 scale-0 opacity-0': open === false,
+                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                    true,
                             }"
-                                class="-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100 origin-right ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
                                 Dashboard
                             </div>
                         </a>
@@ -104,10 +105,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 opacity-0': open === false,
-                                '-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100': open === true,
+                                '-translate-x-10 scale-0 opacity-0': open === false,
+                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                    true,
                             }"
-                                class="-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100 origin-right ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
                                 Implementations
                             </div>
                         </a>
@@ -123,7 +125,7 @@
                         </div>
                     </li>
                     <li class="relative">
-                        <a href="{{-- route('focal.user-management') --}}" wire:loading.attr="disabled"
+                        <a href="{{ route('focal.user-management') }}" wire:loading.attr="disabled"
                             @mouseover="umanagementHover = true" @mouseleave="umanagementHover = false"
                             class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
 
@@ -137,10 +139,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 opacity-0': open === false,
-                                '-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100': open === true,
+                                '-translate-x-10 scale-0 opacity-0': open === false,
+                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                    true,
                             }"
-                                class="-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100 origin-right ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
                                 User
                                 Management
                             </div>
@@ -170,10 +173,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 opacity-0': open === false,
-                                '-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100': open === true,
+                                '-translate-x-10 scale-0 opacity-0': open === false,
+                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                    true,
                             }"
-                                class="-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100 origin-right ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
                                 Activity
                                 Logs
                             </div>
@@ -208,10 +212,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 opacity-0': open === false,
-                                '-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100': open === true,
+                                '-translate-x-10 scale-0 opacity-0': open === false,
+                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                    true,
                             }"
-                                class="-translate-x-10 opacity-0 xl:translate-x-0 xl:opacity-100 origin-right ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
                                 {{ Auth::user()->first_name . ' ' . Auth::user()->last_name }}
                             </div>
                         </button>

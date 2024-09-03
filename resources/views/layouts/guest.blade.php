@@ -20,6 +20,8 @@
     @endisset
 
     <!-- Scripts -->
+    <tallstackui:script />
+    @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -29,7 +31,7 @@
             {{ $slot }}
         </main>
     </div>
-
+    @livewireScripts
 </body>
 
 </html>

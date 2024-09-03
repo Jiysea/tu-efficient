@@ -15,12 +15,12 @@
         }" class="relative bg-white rounded-md shadow">
             <!-- Modal header -->
             <div class="flex items-center justify-between py-2 px-4 rounded-t ">
-                <h1 class="text-lg font-semibold text-blue-1100">
+                <h1 class="text-lg font-semibold text-indigo-1100">
                     Assign and Create New Batches
                 </h1>
                 <div class="flex items-center justify-center">
                     {{-- Loading State for Changes --}}
-                    <div class="z-50 text-blue-900" wire:loading
+                    <div class="z-50 text-indigo-900" wire:loading
                         wire:target="addBatchRow, editBatchRow, removeBatchRow, addToastCoordinator, addToastCoordinatorInBatchList, removeToastCoordinatorFromBatchList, removeToastCoordinator, getAllCoordinatorsForBatchList, updateCurrentCoordinator, liveUpdateRemainingSlots">
                         <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">
@@ -33,7 +33,7 @@
                         </svg>
                     </div>
                     <button type="button" data-modal-toggle="assign-batches-modal"
-                        class="text-blue-400 bg-transparent hover:bg-blue-200 hover:text-blue-900 rounded  w-8 h-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-300 ease-in-out">
+                        class="text-indigo-400 bg-transparent hover:bg-indigo-200 hover:text-indigo-900 rounded  w-8 h-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-300 ease-in-out">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -45,22 +45,23 @@
             </div>
             <!-- Modal body -->
             <div
-                class="bg-blue-50 mx-4 px-4 py-3 shadow-sm rounded-md flex items-center justify-between text-blue-1100 text-sm font-medium">
+                class="bg-indigo-50 mx-4 px-4 py-3 shadow-sm rounded-md flex items-center justify-between text-indigo-1100 text-sm font-medium">
                 <div class="flex flex-col space-y-2 sm:space-y-0 sm:space-x-2 sm:flex-row justify-center items-center">
                     <p class="">Project Number:
-                    <p class="text-blue-1000 bg-blue-200 rounded-md py-1 px-2">{{ $implementation->project_num }}</p>
+                    <p class="text-indigo-1000 bg-indigo-200 rounded-md py-1 px-2">{{ $implementation->project_num }}
+                    </p>
                     </p>
                 </div>
                 <div class="flex flex-col space-y-2 sm:space-y-0 sm:space-x-2 sm:flex-row justify-center items-center">
                     <p class="">District:
-                    <p class="text-blue-1000 bg-blue-200 rounded-md py-1 px-2">{{ $implementation->district }}</p>
+                    <p class="text-indigo-1000 bg-indigo-200 rounded-md py-1 px-2">{{ $implementation->district }}</p>
                     </p>
                 </div>
                 <div
                     class="flex flex-col space-y-2 sm:space-y-0 sm:space-x-2 sm:flex-row justify-center items-center duration-200 ease-in-out">
                     <p class="">Remaining Slots:
                     <p
-                        class="{{ $remainingSlots === 0 ? 'text-red-1000 bg-red-200' : 'text-blue-1000 bg-blue-200' }} rounded-md py-1 px-2">
+                        class="{{ $remainingSlots === 0 ? 'text-red-1000 bg-red-200' : 'text-indigo-1000 bg-indigo-200' }} rounded-md py-1 px-2">
                         {{ $remainingSlots }}</p>
                     </p>
                 </div>
@@ -70,10 +71,10 @@
                 <div class="grid gap-4 mb-4 grid-cols-5 text-xs">
                     {{-- Batch Number --}}
                     <div class="relative col-span-5 sm:col-span-2 mb-4">
-                        <label for="batch_num" class="block mb-1  font-medium text-blue-1100 ">Batch
+                        <label for="batch_num" class="block mb-1  font-medium text-indigo-1100 ">Batch
                             Number</label>
                         <input type="text" id="batch_num" wire:model.live="batch_num" autocomplete="off"
-                            class="text-xs {{ $errors->has('batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-blue-50 border border-blue-300 text-blue-1100 rounded focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
+                            class="text-xs {{ $errors->has('batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 border border-indigo-300 text-indigo-1100 rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
                             placeholder="Type batch number">
                         @error('batch_num')
                             <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
@@ -81,10 +82,10 @@
                     </div>
                     {{-- Barangay Name --}}
                     <div class="relative col-span-3 sm:col-span-2 mb-4">
-                        <label for="barangay_name" class="block mb-1  font-medium text-blue-1100 ">Barangay
+                        <label for="barangay_name" class="block mb-1  font-medium text-indigo-1100 ">Barangay
                         </label>
                         <input type="text" id="barangay_name" wire:model.live="barangay_name" autocomplete="off"
-                            class="text-xs {{ $errors->has('barangay_name') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-blue-50 border border-blue-300 text-blue-1100  rounded focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5      "
+                            class="text-xs {{ $errors->has('barangay_name') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5      "
                             placeholder="Type barangay name">
                         @error('barangay_name')
                             <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
@@ -92,12 +93,12 @@
                     </div>
                     {{-- Slots --}}
                     <div class="relative col-span-2 sm:col-span-1 mb-4">
-                        <label for="slots_allocated" class="block mb-1 font-medium text-blue-1100 ">Slots</label>
+                        <label for="slots_allocated" class="block mb-1 font-medium text-indigo-1100 ">Slots</label>
                         <div class="relative">
                             <input type="number" inputmode="numeric" min="0" id="slots_allocated"
                                 autocomplete="off" wire:model.live="slots_allocated"
                                 @input="$wire.liveUpdateRemainingSlots();"
-                                class="text-xs {{ $errors->has('slots_allocated') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-blue-50 border border-blue-300 text-blue-1100 rounded focus:ring-blue-600 focus:border-blue-600 block w-full py-2.5"
+                                class="text-xs {{ $errors->has('slots_allocated') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 border border-indigo-300 text-indigo-1100 rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full py-2.5"
                                 placeholder="Type slots allocation">
                         </div>
                         @error('slots_allocated')
@@ -107,11 +108,11 @@
                     </div>
                     {{-- Add Coordinators dropdown --}}
                     <div class="relative flex flex-col col-span-5 sm:col-span-2 mb-4">
-                        <p class="block mb-1 font-medium text-blue-1100 ">Add Coordinator</p>
+                        <p class="block mb-1 font-medium text-indigo-1100 ">Add Coordinator</p>
                         <div class="relative z-50 h-full">
                             <div id="coordinator_name"
                                 @if ($coordinators) @click="show = !show ; rotation += 180" @endif
-                                class="w-full h-full border {{ $coordinators ? 'bg-blue-50 border-blue-300 text-blue-1100 cursor-pointer' : 'bg-gray-50 border-gray-300 text-gray-500' }} text-sm px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out">
+                                class="w-full h-full border {{ $coordinators ? 'bg-indigo-50 border-indigo-300 text-indigo-1100 cursor-pointer' : 'bg-gray-50 border-gray-300 text-gray-500' }} text-sm px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out">
                                 <p> {{ $currentCoordinator }}</p>
                                 <svg @if ($coordinators) :class="{
                                     'rotate-0': rotation % 360 === 0,
@@ -130,28 +131,28 @@
                                         'block': show === true,
                                         'hidden': show === false,
                                     }"
-                                    class="hidden end-0 absolute text-blue-1100 bg-blue-50 shadow-lg border border-blue-300 rounded p-3 mt-2">
+                                    class="hidden end-0 absolute text-indigo-1100 bg-indigo-50 shadow-lg border border-indigo-300 rounded p-3 mt-2">
                                     <div class="relative flex items-center justify-center py-1 group">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                             fill="currentColor"
-                                            class="absolute start-0 ps-2 w-6 group-hover:text-blue-500 group-focus:text-blue-900 duration-200 ease-in-out pointer-events-none">
+                                            class="absolute start-0 ps-2 w-6 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none">
                                             <path fill-rule="evenodd"
                                                 d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
                                                 clip-rule="evenodd" />
                                         </svg>
                                         <input id="searchCoordinator" wire:model.live="searchCoordinator"
                                             type="text"
-                                            class="rounded w-full ps-8 text-xs text-blue-1100 border-blue-200 hover:placeholder-blue-500 hover:border-blue-500 focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none duration-200 ease-in-out"
+                                            class="rounded w-full ps-8 text-xs text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
                                             placeholder="Search coordinator">
                                     </div>
                                     <ul
-                                        class="mt-2 text-xs overflow-y-auto max-h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-900">
+                                        class="mt-2 text-xs overflow-y-auto max-h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-900">
                                         @foreach ($coordinators as $key => $coordinator)
                                             <li wire:key={{ $key }}>
                                                 <button wire:click="updateCurrentCoordinator({{ $key }})"
                                                     type="button" @click="show= !show ; rotation += 180"
                                                     wire:loading.attr="disabled" aria-label="{{ __('Coordinator') }}"
-                                                    class="w-full flex items-center justify-start px-4 py-2 text-blue-1100 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out">
+                                                    class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
                                                     @php
                                                         $fullName = '';
                                                         $first = $this->coordinators[$key]['first_name'];
@@ -159,11 +160,11 @@
                                                         $last = $this->coordinators[$key]['last_name'];
                                                         $ext = $this->coordinators[$key]['extension_name'];
 
-                                                        if ($ext === '-' && $middle === '-') {
+                                                        if ($ext === null && $middle === null) {
                                                             $fullName = $first . ' ' . $last;
-                                                        } elseif ($middle === '-' && $ext !== '-') {
+                                                        } elseif ($middle === null && $ext !== null) {
                                                             $fullName = $first . ' ' . $last . ' ' . $ext;
-                                                        } elseif ($middle !== '-' && $ext === '-') {
+                                                        } elseif ($middle !== null && $ext === null) {
                                                             $fullName = $first . ' ' . $middle . ' ' . $last;
                                                         } else {
                                                             $fullName =
@@ -183,7 +184,7 @@
                     {{-- Assigned Coordinators toast box --}}
                     <div class="relative grid grid-cols-5 flex-grow col-span-5 sm:col-span-3 mb-4">
                         <div class="relative col-span-5">
-                            <p class="block mb-1 ms-16 font-medium text-blue-1100 ">Assigned Coordinators</p>
+                            <p class="block mb-1 ms-16 font-medium text-indigo-1100 ">Assigned Coordinators</p>
                             <input type="hidden" id="assigned_coordinators" wire:model.live="assigned_coordinators">
                             <div class="relative flex">
                                 {{-- Arrow button --}}
@@ -191,7 +192,7 @@
                                     @if ($coordinators) wire:click="addToastCoordinator" @else disabled @endif
                                     class="me-4 px-2 flex items-center justify-center rounded border-2 focus:outline-none duration-200 ease-in-out
                                         {{ $coordinators
-                                            ? 'text-blue-700 hover:text-blue-50 active:text-blue-300 border-blue-700 hover:border-transparent hover:bg-blue-800 active:bg-blue-900'
+                                            ? 'text-indigo-700 hover:text-indigo-50 active:text-indigo-300 border-indigo-700 hover:border-transparent hover:bg-indigo-800 active:bg-indigo-900'
                                             : 'text-gray-300 border-gray-300' }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -208,15 +209,15 @@
                                     
                                     @if ($errors->has('assigned_coordinators')) border-red-500 bg-red-200 placeholder-red-600 scrollbar-thumb-red-600 scrollbar-track-red-200
                                     @else
-                                    {{ $assigned_coordinators ? 'bg-blue-50 border-blue-300 scrollbar-thumb-blue-700 scrollbar-track-blue-50' : 'bg-gray-100 border-gray-400 scrollbar-thumb-gray-700 scrollbar-track-gray-100' }} @endif">
+                                    {{ $assigned_coordinators ? 'bg-indigo-50 border-indigo-300 scrollbar-thumb-indigo-700 scrollbar-track-indigo-50' : 'bg-gray-100 border-gray-400 scrollbar-thumb-gray-700 scrollbar-track-gray-100' }} @endif">
                                     @forelse ($assigned_coordinators as $key => $coordinator)
                                         <span
-                                            class="p-1 me-2 rounded duration-200 ease-in-out bg-blue-300 text-blue-1000">
+                                            class="p-1 me-2 rounded duration-200 ease-in-out bg-indigo-300 text-indigo-1000">
                                             {{ $coordinator['last_name'] }}
                                             {{-- X button --}}
                                             <button type="button"
                                                 wire:click="removeToastCoordinator({{ $key }})"
-                                                class="ms-1 text-blue-1100 hover:text-blue-900 active:text-blue-1000 duration-200 ease-in-out">
+                                                class="ms-1 text-indigo-1100 hover:text-indigo-900 active:text-indigo-1000 duration-200 ease-in-out">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-2"
                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                     height="400" viewBox="0, 0, 400,400">
@@ -242,7 +243,7 @@
                                 @enderror
                                 {{-- Adding Batch button --}}
                                 <button type="button" wire:click="addBatchRow"
-                                    class="flex items-center justify-center space-x-2 text-sm py-2 px-3 whitespace-nowrap rounded ms-4 font-bold uppercase bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:outline-none duration-200 ease-in-out">
+                                    class="flex items-center justify-center space-x-2 text-sm py-2 px-3 whitespace-nowrap rounded ms-4 font-bold uppercase bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 focus:outline-none duration-200 ease-in-out">
                                     <p>create batch</p>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -299,16 +300,16 @@
                                         class="z-50 fixed" :style="dropdownStyles" x-show="openBatchDropdown"
                                         @click.outside="openBatchDropdown = false">
                                         <div x-ref="dropdownContent{{ $keyBatch }}"
-                                            class="relative z-50 text-blue-1100 bg-blue-50 shadow-lg border border-blue-300 rounded p-3">
+                                            class="relative z-50 text-indigo-1100 bg-indigo-50 shadow-lg border border-indigo-300 rounded p-3">
                                             <ul
-                                                class="text-xs overflow-y-auto min-h-44 max-h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-700">
+                                                class="text-xs overflow-y-auto min-h-44 max-h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-700">
                                                 @foreach ($batchListCoordinators as $keyCoordinator => $coordinator)
                                                     <li wire:key={{ $keyCoordinator }}>
                                                         <button
                                                             wire:click="selectCurrentCoordinator({{ $keyCoordinator }})"
                                                             type="button" wire:loading.attr="disabled"
                                                             aria-label="{{ __('Coordinator') }}"
-                                                            class="w-full flex items-center justify-start px-4 py-2 {{ $selectedCoordinatorKeyInBatchListDropdown === $keyCoordinator ? 'text-blue-50 hover:text-blue-100 bg-blue-900 hover:bg-blue-800' : 'text-blue-1100 hover:text-blue-900 hover:bg-blue-100' }} duration-200 ease-in-out">
+                                                            class="w-full flex items-center justify-start px-4 py-2 {{ $selectedCoordinatorKeyInBatchListDropdown === $keyCoordinator ? 'text-indigo-50 hover:text-indigo-100 bg-indigo-900 hover:bg-indigo-800' : 'text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100' }} duration-200 ease-in-out">
                                                             @php
                                                                 $fullName = '';
                                                                 $first =
@@ -353,7 +354,7 @@
                                             </ul>
                                             <div class="relative flex items-center justify-center w-full">
                                                 <button wire:click="addToastCoordinatorInBatchList"
-                                                    class="text-sm font-semibold w-full p-2 mt-2 rounded border-2 duration-200 ease-in-out hover:bg-blue-800 active:bg-blue-900 text-blue-700 hover:text-blue-50 active:text-blue-100 border-blue-700 hover:border-transparent focus:outline-none"
+                                                    class="text-sm font-semibold w-full p-2 mt-2 rounded border-2 duration-200 ease-in-out hover:bg-indigo-800 active:bg-indigo-900 text-indigo-700 hover:text-indigo-50 active:text-indigo-100 border-indigo-700 hover:border-transparent focus:outline-none"
                                                     type="button">
                                                     ADD
                                                 </button>
@@ -364,15 +365,15 @@
                             @endif
                         @endforeach
                         {{-- Label --}}
-                        <div class="relative col-span-5 font-semibold text-base text-blue-1100 ms-2">
+                        <div class="relative col-span-5 font-semibold text-base text-indigo-1100 ms-2">
                             Batch List
                         </div>
                         {{-- Batch List Table --}}
                         <div
-                            class="relative col-span-5 min-h-[12.375rem] max-h-[12.375rem] overflow-y-auto bg-blue-50 border border-blue-300 rounded-md whitespace-nowrap scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-700">
+                            class="relative col-span-5 min-h-[12.375rem] max-h-[12.375rem] overflow-y-auto bg-indigo-50 border border-indigo-300 rounded-md whitespace-nowrap scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-700">
 
-                            <table class="relative w-full text-sm text-left text-blue-1100 rounded-md">
-                                <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0 ">
+                            <table class="relative w-full text-sm text-left text-indigo-1100 rounded-md">
+                                <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0 ">
                                     <tr>
                                         <th scope="col" class="ps-4 py-2">
                                             batch number
@@ -394,9 +395,9 @@
                                 <tbody class="text-xs relative">
                                     @foreach ($temporaryBatchesList as $keyBatch => $batch)
                                         <tr wire:key='batch-{{ $keyBatch }}'
-                                            class="relative border-b {{ $selectedBatchRow === $keyBatch ? 'bg-blue-100' : 'bg-blue-50' }} whitespace-nowrap duration-200 ease-in-out">
+                                            class="relative border-b {{ $selectedBatchRow === $keyBatch ? 'bg-indigo-100' : 'bg-indigo-50' }} whitespace-nowrap duration-200 ease-in-out">
                                             <th scope="row"
-                                                class="z-0 ps-4 py-2 font-medium text-blue-1100 whitespace-nowrap">
+                                                class="z-0 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap">
                                                 {{ $batch['batch_num'] }}
                                             </th>
                                             <td class="px-2 py-2">
@@ -405,7 +406,7 @@
                                             <td class="grid-flow-row">
                                                 @foreach ($batch['assigned_coordinators'] as $keyCoordinator => $coordinator)
                                                     <span
-                                                        class="p-1 mx-1 rounded duration-200 ease-in-out {{ $selectedBatchRow === $keyBatch ? 'bg-green-300 text-green-1000' : 'bg-blue-300 text-blue-1000' }}">
+                                                        class="p-1 mx-1 rounded duration-200 ease-in-out {{ $selectedBatchRow === $keyBatch ? 'bg-green-300 text-green-1000' : 'bg-indigo-300 text-indigo-1000' }}">
                                                         {{ $coordinator['last_name'] }}
                                                         @if ($selectedBatchRow === $keyBatch && count($batch['assigned_coordinators']) !== 1)
                                                             {{-- x button near coordinator names --}}
@@ -472,7 +473,7 @@
                                                 {{-- Edit/Pen Button --}}
                                                 <button type="button"
                                                     @click.stop="$wire.editBatchRow({{ $keyBatch }});"
-                                                    class="p-1 mx-1 rounded-md duration-200 ease-in-out {{ $selectedBatchRow === $keyBatch ? 'bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 active:text-green-200' : 'bg-transparent text-blue-1100 hover:text-blue-900 active:text-blue-1000 hover:bg-blue-300' }}">
+                                                    class="p-1 mx-1 rounded-md duration-200 ease-in-out {{ $selectedBatchRow === $keyBatch ? 'bg-green-900 hover:bg-green-800 text-green-50 hover:text-green-100 active:text-green-200' : 'bg-transparent text-indigo-1100 hover:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
                                                         class="size-4" xmlns:xlink="http://www.w3.org/1999/xlink"
                                                         width="400" height="400" viewBox="0, 0, 400,400">
@@ -489,7 +490,7 @@
                                                 {{-- X button (table list) --}}
                                                 <button type="button"
                                                     wire:click="removeBatchRow({{ $keyBatch }})"
-                                                    class="p-1 me-3 rounded-md text-blue-1100 hover:text-blue-900 active:text-blue-1000 bg-transparent hover:bg-blue-300 duration-200 ease-in-out">
+                                                    class="p-1 me-3 rounded-md text-indigo-1100 hover:text-indigo-900 active:text-indigo-1000 bg-transparent hover:bg-indigo-300 duration-200 ease-in-out">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">
@@ -526,7 +527,7 @@
                                 </svg>
                                 <p>No batches found.</p>
                                 <p>Try creating a <span
-                                        class="duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-red-700' : 'text-blue-900' }} ">new
+                                        class="duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-red-700' : 'text-indigo-900' }} ">new
                                         batch</span>.</p>
                             </div>
                             @error('temporaryBatchesList')
@@ -543,7 +544,7 @@
                 {{-- Modal footer --}}
                 <div class="w-full flex relative items-center justify-end">
                     {{-- Loading State for Changes --}}
-                    <div class="z-50 text-blue-900" wire:loading wire:target="saveBatches">
+                    <div class="z-50 text-indigo-900" wire:loading wire:target="saveBatches">
                         <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -555,7 +556,7 @@
                         </svg>
                     </div>
                     <button type="submit" wire:loading.attr="disabled" wire:target="saveBatches"
-                        class="space-x-2 text-sm rounded-md py-2 px-4 text-center text-white font-bold flex items-center duration-200 ease-in-out bg-blue-700 disabled:opacity-75 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                        class="space-x-2 text-sm rounded-md py-2 px-4 text-center text-white font-bold flex items-center duration-200 ease-in-out bg-indigo-700 disabled:opacity-75 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300">
                         <p>FINISH</p>
                         <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5"
                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"

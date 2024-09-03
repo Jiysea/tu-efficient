@@ -32,6 +32,8 @@ class Implementations extends Component
     # ------------------------------------------
 
     public $temporaryCount = 0; # debugging purposes
+    public $searchProjects;
+    public $searchBeneficiaries;
     public $showAlert = false;
     public $alertMessage = '';
     public $beneficiaries_on_page = 15;
@@ -287,6 +289,7 @@ class Implementations extends Component
         $this->showAlert = true;
         $this->alertMessage = 'Batches successfully assigned!';
         $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
     }
 
 

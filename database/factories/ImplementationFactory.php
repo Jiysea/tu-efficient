@@ -61,7 +61,7 @@ class ImplementationFactory extends Factory
 
     protected function calculateTotalSlots(int $budgetAmount, int $daysOfWork): int
     {
-        $this->currentMinimumWage = intval(str_replace([',', '.'], '', number_format(floatval(config('wage.minimum_wage')), 2)));
+        $this->currentMinimumWage = intval(str_replace([',', '.'], '', number_format(floatval(config('settings.minimum_wage')), 2)));
         return intdiv($budgetAmount, $this->currentMinimumWage * $daysOfWork);
     }
 }

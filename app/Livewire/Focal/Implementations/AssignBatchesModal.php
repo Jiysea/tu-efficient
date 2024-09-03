@@ -369,11 +369,11 @@ class AssignBatchesModal extends Component
         $last = $this->coordinators[$key]['last_name'];
         $ext = $this->coordinators[$key]['extension_name'];
 
-        if ($ext === '-' && $middle === '-') {
+        if ($ext === null && $middle === null) {
             $this->coordinatorFullName = $first . " " . $last;
-        } else if ($middle === '-' && $ext !== '-') {
+        } else if ($middle === null && $ext !== null) {
             $this->coordinatorFullName = $first . " " . $last . " " . $ext;
-        } else if ($middle !== '-' && $ext === '-') {
+        } else if ($middle !== null && $ext === null) {
             $this->coordinatorFullName = $first . " " . $middle . " " . $last;
         } else {
             $this->coordinatorFullName = $first . " " . $middle . " " . $last . " " . $ext;
