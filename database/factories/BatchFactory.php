@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Batch;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,7 +20,7 @@ class BatchFactory extends Factory
 
         return [
             'implementations_id' => rand(1, 3),
-            'batch_num' => fake()->bothify('DCFO-BN-######'),
+            'batch_num' => $this->batchNumberGenerator(),
             'barangay_name' => '',
             'slots_allocated' => 0,
             'submission_status' => 'unopened', // submitted unopened revalidate encoding
@@ -27,5 +28,20 @@ class BatchFactory extends Factory
             'created_at' => now(),
             'updated_at' => now(),
         ];
+    }
+
+    public function batchNumberGenerator()
+    {
+        $number = fake()->bothify('DCFO-BN-######');
+        $existingNumber = Batch::where('batch_num', $number);
+
+        while ($existingNumber) {
+            if ($existingNumber) {
+                $number = fake()->bothify('DCFO-BN-######');
+                $existingNumber = $number;
+            }
+        }
+
+        return $number;
     }
 }
