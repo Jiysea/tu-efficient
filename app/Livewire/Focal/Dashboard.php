@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Focal;
 
+use App\Livewire\Coordinator\Assignments;
 use App\Models\Batch;
 use App\Models\Implementation;
 use Carbon\Carbon;
@@ -160,6 +161,10 @@ class Dashboard extends Component
 
     public function mount()
     {
+        if (Auth::user()->user_type === 'coordinator') {
+            $this->redirect(Assignments::class);
+        }
+
         /*
          *  Setting default dates in the datepicker
          */
@@ -223,11 +228,6 @@ class Dashboard extends Component
 
         $this->batchesCount = $batches->total();
 
-        if (Auth::user()->user_type === 'focal')
-            return view('livewire.focal.dashboard', ['batches' => $batches]);
-        else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.assignments');
-        else
-            return redirect()->back();
+        return view('livewire.focal.dashboard', ['batches' => $batches]);
     }
 }

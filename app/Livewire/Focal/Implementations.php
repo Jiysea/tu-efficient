@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Focal;
 
+use App\Livewire\Coordinator\Assignments;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Implementation;
@@ -294,6 +295,10 @@ class Implementations extends Component
 
     public function mount()
     {
+        if (Auth::user()->user_type === 'coordinator') {
+            $this->redirect(Assignments::class);
+        }
+
         /*
          *  Setting default dates in the datepicker
          */
@@ -328,11 +333,6 @@ class Implementations extends Component
         $this->checkBatchRemainingSlots();
         $this->checkBeneficiarySlots();
 
-        if (Auth::user()->user_type === 'focal')
-            return view('livewire.focal.implementations');
-        else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.assignments');
-        else
-            return redirect()->back();
+        return view('livewire.focal.implementations');
     }
 }

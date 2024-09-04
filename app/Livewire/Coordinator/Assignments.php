@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Coordinator;
 
+use App\Livewire\Focal\Dashboard;
 use App\Models\Batch;
 use App\Models\User;
 use Auth;
@@ -16,7 +17,6 @@ use Livewire\Component;
 #[Title('Assignments | TU-Efficient')]
 class Assignments extends Component
 {
-    public $selectedRow = 0;
     #[Locked]
     public $batchId;
     #[Locked]
@@ -175,17 +175,16 @@ class Assignments extends Component
 
     public function mount()
     {
+        if (Auth::user()->user_type === 'focal') {
+            $this->redirect(Dashboard::class);
+        }
+
         $this->setBatchAssignments();
         $this->setBeneficiaryList();
     }
 
     public function render()
     {
-        if (Auth::user()->user_type === 'focal')
-            return redirect()->route('focal.dashboard');
-        else if (Auth::user()->user_type === 'coordinator')
-            return view('livewire.coordinator.assignments');
-        else
-            return redirect()->back();
+        return view('livewire.coordinator.assignments');
     }
 }

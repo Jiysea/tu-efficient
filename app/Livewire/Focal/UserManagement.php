@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Focal;
 
+use App\Livewire\Coordinator\Assignments;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -124,16 +125,16 @@ class UserManagement extends Component
         $this->dispatch('init-reload')->self();
     }
 
-
+    public function mount()
+    {
+        if (Auth::user()->user_type === 'coordinator') {
+            $this->redirect(Assignments::class);
+        }
+    }
     public function render()
     {
         $this->loadCoordinators();
 
-        if (Auth::user()->user_type === 'focal')
-            return view('livewire.focal.user-management');
-        else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.assignments');
-        else
-            return redirect()->back();
+        return view('livewire.focal.user-management');
     }
 }

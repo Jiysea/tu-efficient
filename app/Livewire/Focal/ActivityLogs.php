@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Focal;
 
+use App\Livewire\Coordinator\Assignments;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -11,14 +12,15 @@ use Livewire\Component;
 #[Title('Activity Logs | TU-Efficient')]
 class ActivityLogs extends Component
 {
+
+    public function mount()
+    {
+        if (Auth::user()->user_type === 'coordinator') {
+            $this->redirect(Assignments::class);
+        }
+    }
     public function render()
     {
-
-        if (Auth::user()->user_type === 'focal')
-            return view('livewire.focal.activity-logs');
-        else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.assignments');
-        else
-            return redirect()->back();
+        return view('livewire.focal.activity-logs');
     }
 }
