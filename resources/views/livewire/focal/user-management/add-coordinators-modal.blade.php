@@ -103,7 +103,7 @@
                     {{-- Email --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                         <label for="email" class="block mb-1  font-medium text-indigo-1100 ">Email</label>
-                        <div {{-- x-effect="console.log(unmaskedBudget)" --}} class="relative">
+                        <div class="relative">
                             <div
                                 class="text-xs outline-none absolute inset-y-0 px-2 rounded-l flex items-center justify-center text-center duration-200 ease-in-out pointer-events-none {{ $errors->has('email') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-indigo-700 text-indigo-50' }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" width="24" height="24"
