@@ -129,6 +129,11 @@ class UserManagement extends Component
     {
         $this->loadCoordinators();
 
-        return view('livewire.focal.user-management');
+        if (Auth::user()->user_type === 'focal')
+            return view('livewire.focal.user-management');
+        else if (Auth::user()->user_type === 'coordinator')
+            return redirect()->route('coordinator.assignments');
+        else
+            return redirect()->back();
     }
 }

@@ -17,6 +17,8 @@ class ActivityLogs extends Component
         if (Auth::user()->user_type === 'focal')
             return view('livewire.focal.activity-logs');
         else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.home');
+            return redirect()->route('coordinator.assignments');
+        else
+            return redirect()->back();
     }
 }

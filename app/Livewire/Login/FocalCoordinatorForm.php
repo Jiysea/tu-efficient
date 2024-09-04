@@ -36,7 +36,7 @@ class FocalCoordinatorForm extends Component
                 # Logs the login date of the user
                 User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
 
-                return redirect()->route('coordinator.home');
+                return redirect()->route('coordinator.assignments');
             }
         }
 

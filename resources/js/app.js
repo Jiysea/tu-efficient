@@ -1,5 +1,5 @@
-import "./bootstrap";
 import "flowbite";
+import "./bootstrap";
 
 import ApexCharts from "apexcharts";
 window.ApexCharts = ApexCharts;

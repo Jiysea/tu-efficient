@@ -179,7 +179,6 @@ class Implementations extends Component
             ->toArray();
 
         $this->beneficiaryId = $this->beneficiaries[0]['id'] ?? null;
-
     }
 
     public function checkBatchRemainingSlots()
@@ -332,6 +331,8 @@ class Implementations extends Component
         if (Auth::user()->user_type === 'focal')
             return view('livewire.focal.implementations');
         else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.home');
+            return redirect()->route('coordinator.assignments');
+        else
+            return redirect()->back();
     }
 }

@@ -9,6 +9,9 @@ use App\Http\Controllers\FocalController;
 use App\Http\Controllers\FocalIndexController;
 use App\Http\Controllers\FocalSMSVerificationController;
 use App\Http\Controllers\ProfileController;
+use App\Livewire\Coordinator\Assignments;
+use App\Livewire\Coordinator\Forms;
+use App\Livewire\Coordinator\Submissions\Submissions;
 use App\Livewire\Focal\ActivityLogs;
 use App\Livewire\Focal\Dashboard;
 use App\Livewire\Focal\Implementations;
@@ -22,7 +25,7 @@ Route::get('/', function () {
         if (Auth::user()->user_type === 'focal')
             return redirect()->route('focal.dashboard');
         else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.home');
+            return redirect()->route('coordinator.assignments');
     } else
         return view('landing.focal');
 
@@ -33,7 +36,7 @@ Route::get('/barangay', function () {
         if (Auth::user()->user_type === 'focal')
             return redirect()->route('focal.dashboard');
         else if (Auth::user()->user_type === 'coordinator')
-            return redirect()->route('coordinator.home');
+            return redirect()->route('coordinator.assignments');
     } else
         return view('landing.barangay');
 })->name('barangay');
@@ -53,7 +56,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/focal/user-management', UserManagement::class)->name('focal.user-management');
     Route::get('/focal/activity-logs', ActivityLogs::class)->name('focal.activity-logs');
 
-    // Route::get('/coordinator/home', CoordinatorIndexController::class)->name('coordinator.home');
+    Route::get('/coordinator/assignments', Assignments::class)->name('coordinator.assignments');
+    Route::get('/coordinator/submissions', Submissions::class)->name('coordinator.submissions');
+    Route::get('/coordinator/forms', Forms::class)->name('coordinator.forms');
 
 });
 

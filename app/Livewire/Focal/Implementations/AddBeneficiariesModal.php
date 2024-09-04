@@ -307,32 +307,39 @@ class AddBeneficiariesModal extends Component
 
                         # algorithm bullshet
                         $jaccard = [];
+                        $threshold = config('settings.duplication_threshold') / 100;
                         $this->jaccardSimilarity = new JaccardSimilarity();
                         foreach ($filteredBeneficariesFromDatabase as $key => $beneficiaryFromDatabase) {
                             $coEfficient = $this->jaccardSimilarity->calculateSimilarity($beneficiaryFromDatabase, $filteredInputString);
-                            $jaccard[] = $coEfficient;
-                        }
-                        $end = microtime(true);
+                            if ($coEfficient > $threshold) {
+                                $jaccard[] = [
+                                    'id' => $beneficiaryFromDatabase['id'],
+                                    'coEfficient' => $coEfficient,
 
-                        # test purposes
-                        $count = 0;
-                        $threshold = config('settings.duplication_threshold') / 100;
-                        foreach ($jaccard as $output) {
-                            if ($output > $threshold) {
-                                $count++;
+                                ];
                             }
                         }
 
-                        $jaccardResult = $count . ' / ' . sizeof($jaccard) . ' are possible duplicates, ' . $threshold * 100 . '% threshold';
-                        $results = [
-                            'user input' => $filteredInputString,
-                            'beneficiaries indexed' => sizeof($beneficiariesFromDatabase),
-                            'names being compared' => $filteredBeneficariesFromDatabase,
-                            'jaccard' => $jaccardResult,
-                            'time processed' => strval(number_format($end - $start, 4)) . 's',
-                            'results' => $jaccard
-                        ];
-                        dump($results);
+                        $end = microtime(true);
+
+                        # test purposes
+                        // $count = 0;
+                        // foreach ($jaccard as $output) {
+                        //     if ($output > $threshold) {
+                        //         $count++;
+                        //     }
+                        // }
+
+                        // $jaccardResult = $count . ' / ' . sizeof($jaccard) . ' are possible duplicates, ' . $threshold * 100 . '% threshold';
+                        // $results = [
+                        //     'user input' => $filteredInputString,
+                        //     'beneficiaries indexed' => sizeof($beneficiariesFromDatabase),
+                        //     'names being compared' => $filteredBeneficariesFromDatabase,
+                        //     'jaccard' => $jaccardResult,
+                        //     'time processed' => strval(number_format($end - $start, 4)) . 's',
+                        //     'results' => $jaccard
+                        // ];
+                        // dump($results);
                         # end of test
                     }
                 }
@@ -362,15 +369,6 @@ class AddBeneficiariesModal extends Component
             $arrayNames[] = $filteredInputString;
         }
         return $arrayNames;
-    }
-
-    public function mount()
-    {
-        // dd($this->jaccardSimilarity
-        //     ->calculateSimilarity(
-        //         'Rizal y Mercado Protacio Realonda Alonso José 1990-01-01',
-        //         'José Protacio Rizal Mercado y Alonso Realonda 2001-07-28',
-        //     ));
     }
 
     public function render()
