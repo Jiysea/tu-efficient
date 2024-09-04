@@ -332,7 +332,7 @@ class AddBeneficiariesModal extends Component
                             'time processed' => strval(number_format($end - $start, 4)) . 's',
                             'results' => $jaccard
                         ];
-                        // dump($results);
+                        dump($results);
                         # end of test
                     }
                 }
