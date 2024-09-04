@@ -875,13 +875,13 @@
                 </div>
                 {{-- Modal footer --}}
                 <div class="w-full flex relative items-center justify-between">
-                    {{-- <div
+                    <div
                         class="flex items-center border border-amber-300 bg-amber-50 text-amber-900 rounded text-sm p-2">
                         <p class="inline mx-2">Seems like this beneficiary has already been listed in the database this
                             year.
                             <button type="button" class="underline font-bold">Any reason why?</button>
                         </p>
-                    </div> --}}
+                    </div>
                     {{-- <div
                         class="flex items-center border border-amber-300 bg-amber-50 text-amber-900 rounded text-sm p-2">
                         <p class="inline mx-2">
