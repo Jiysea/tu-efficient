@@ -125,16 +125,21 @@ class UserManagement extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    public function searchForUsers()
+    {
+        $this->loadCoordinators();
+    }
+
     public function mount()
     {
         if (Auth::user()->user_type === 'coordinator') {
             $this->redirect(Assignments::class);
         }
+        $this->loadCoordinators();
     }
+
     public function render()
     {
-        $this->loadCoordinators();
-
         return view('livewire.focal.user-management');
     }
 }

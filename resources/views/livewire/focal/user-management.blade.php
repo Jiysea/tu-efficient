@@ -77,7 +77,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="user-search" maxlength="100" wire:model.live="searchUsers"
+                                <input type="text" id="user-search" maxlength="100"
+                                    @input.debounce.300ms="$wire.searchUsers = $el.value; $wire.searchForUsers();"
                                     class="ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Search for coordinators">
                             </div>

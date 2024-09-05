@@ -9,7 +9,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
     <livewire:sidebar.focal-bar wire:key="{{ str()->random(50) }}" />
 
-    <div x-data="{ scrollToTop() { document.getElementById('beneficiary-table').scrollTo({ top: 0, behavior: 'smooth' }); } }" :class="{
+    <div x-data="{ scrollToTop() { document.getElementById('beneficiaries-table').scrollTo({ top: 0, behavior: 'smooth' }); } }" :class="{
         'xl:ml-20': open === false,
         'xl:ml-64': open === true,
     }"
@@ -192,6 +192,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 </button>
                                             </td>
                                         </tr>
+                                        @if ($loop->last)
+                                            <tr x-data x-intersect.full="$wire.loadMoreImplementations();">
+                                            </tr>
+                                        @endif
                                     @endforeach
                                 </tbody>
                             </table>
@@ -516,7 +520,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     @if ($beneficiaries)
 
                         {{-- Beneficiaries Table --}}
-                        <div id="beneficiary-table"
+                        <div id="beneficiaries-table"
                             class="relative max-h-60 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                             <table class="relative w-full text-sm text-left text-indigo-1100">
                                 <thead
@@ -817,12 +821,48 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         const datepickerEnd = document.getElementById('end-date');
 
         datepickerStart.addEventListener('changeDate', function(event) {
+            document.getElementById('implementations-table').scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            const beneficiariesTable = document.getElementById('beneficiaries-table');
+            if (beneficiariesTable) {
+                beneficiariesTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+            const batchesTable = document.getElementById('batches-table');
+            if (batchesTable) {
+                batchesTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
             $wire.dispatchSelf('start-change', {
                 value: datepickerStart.value
             });
         });
 
         datepickerEnd.addEventListener('changeDate', function(event) {
+            document.getElementById('implementations-table').scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            const beneficiariesTable = document.getElementById('beneficiaries-table');
+            if (beneficiariesTable) {
+                beneficiariesTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+            const batchesTable = document.getElementById('batches-table');
+            if (batchesTable) {
+                batchesTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
             $wire.dispatchSelf('end-change', {
                 value: datepickerEnd.value
             });

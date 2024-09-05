@@ -37,6 +37,7 @@ class Implementations extends Component
     public $searchBeneficiaries;
     public $showAlert = false;
     public $alertMessage = '';
+    public $implementations_on_page = 15;
     public $beneficiaries_on_page = 15;
     public $selectedImplementationRow = 0;
     public $selectedBatchRow = 0;
@@ -60,6 +61,7 @@ class Implementations extends Component
         $currentTime = date('H:i:s', strtotime(now()));
 
         $this->start = $choosenDate . ' ' . $currentTime;
+        $this->implementations_on_page = 15;
         $this->beneficiaries_on_page = 15;
 
         $this->setListOfImplementations();
@@ -80,6 +82,7 @@ class Implementations extends Component
         $currentTime = date('H:i:s', strtotime(now()));
 
         $this->end = $choosenDate . ' ' . $currentTime;
+        $this->implementations_on_page = 15;
         $this->beneficiaries_on_page = 15;
 
         $this->setListOfImplementations();
@@ -133,6 +136,8 @@ class Implementations extends Component
 
         $this->implementations = Implementation::where('users_id', $focalUserId)
             ->whereBetween('created_at', [$this->start, $this->end])
+            ->latest()
+            ->take($this->implementations_on_page)
             ->get()
             ->toArray();
 
@@ -156,6 +161,7 @@ class Implementations extends Component
                 DB::raw('batches.approval_status AS approval_status')
             )
             ->groupBy('batches.id', 'barangay_name', 'slots_allocated', 'approval_status')
+            ->latest('batches.created_at')
             ->get()
             ->toArray();
 
@@ -234,6 +240,21 @@ class Implementations extends Component
 
     }
 
+    public function loadMoreImplementations()
+    {
+        $focalUserId = auth()->id();
+        $this->implementations_on_page += 15;
+
+        $this->implementations = Implementation::where('users_id', $focalUserId)
+            ->whereBetween('created_at', [$this->start, $this->end])
+            ->latest()
+            ->take($this->implementations_on_page)
+            ->get()
+            ->toArray();
+
+        $this->dispatch('init-reload')->self();
+    }
+
     public function loadMoreBeneficiaries()
     {
         $focalUserId = auth()->id();
@@ -291,7 +312,6 @@ class Implementations extends Component
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
     }
-
 
     public function mount()
     {

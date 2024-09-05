@@ -92,7 +92,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         class="ml-20 xl:ml-64 duration-500 ease-in-out">
         <div class="p-2 min-h-screen select-none">
 
-            {{-- Nav Title and Time Dropdown --}}
+            {{-- Nav Title and Date Range --}}
             <div class="relative flex items-center my-2">
                 <h1 class="text-xl font-bold me-4 ms-3">Dashboard</h1>
 
@@ -219,10 +219,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     <div class="flex items-center sm:h-10 justify-between my-2 w-full">
                         <h1 class="text-xl font-bold ms-3">Summary of Beneficiaries
                         </h1>
+
+
                         <div class="relative w-52 z-20">
+                            {{-- Dropdown Button --}}
                             <div @click="show = !show ; rotation += 180;"
-                                class="w-full text-indigo-50 {{ $implementationsId ? 'bg-indigo-900 hover:bg-indigo-800 active:bg-indigo-900 cursor-pointer duration-200 ease-in-out' : 'bg-indigo-300' }} focus:outline-none text-sm font-semibold px-4 py-2 rounded flex items-center justify-between">
-                                {!! $currentImplementation !!}
+                                class="w-full text-indigo-50 {{ $implementationsId ? 'bg-indigo-900 hover:bg-indigo-800 active:bg-indigo-900 cursor-pointer duration-200 ease-in-out' : 'bg-indigo-300' }} outline-none text-sm font-semibold px-4 py-2 rounded flex items-center justify-between">
+                                {{ $currentImplementation }}
 
                                 <svg @if ($implementationsId) :class="{
                                     'rotate-0': rotation % 360 === 0,
@@ -235,6 +238,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         clip-rule="evenodd" />
                                 </svg>
                             </div>
+                            {{-- Dropdown Content --}}
                             @if ($implementationsId)
                                 <div x-show="show" @click.away="show = !show; rotation += 180"
                                     :class="{

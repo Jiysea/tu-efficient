@@ -57,7 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/focal/activity-logs', ActivityLogs::class)->name('focal.activity-logs');
 
     Route::get('/coordinator/assignments', Assignments::class)->name('coordinator.assignments');
-    Route::get('/coordinator/submissions', Submissions::class)->name('coordinator.submissions');
+    Route::get('/coordinator/submissions/{batchId?}', Submissions::class)->name('coordinator.submissions');
     Route::get('/coordinator/forms', Forms::class)->name('coordinator.forms');
 
 });

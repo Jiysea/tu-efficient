@@ -17,8 +17,36 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         <div class="p-2 min-h-screen select-none">
 
             {{-- Title --}}
-            <div class="relative flex items-center justify-between my-2">
+            <div class="relative flex items-center my-2">
                 <h1 class="text-xl font-bold me-4 ms-3">Assignments</h1>
+                <div id="implementations-date-range" date-rangepicker datepicker-autohide class="flex items-center">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-blue-900 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                            </svg>
+                        </div>
+                        <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
+                            class="bg-white border border-blue-300 text-blue-1100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10"
+                            placeholder="Select date start">
+                    </div>
+                    <span class="mx-4 text-blue-1100">to</span>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-blue-900 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                            </svg>
+                        </div>
+                        <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
+                            class="bg-white border border-blue-300 text-blue-1100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10"
+                            placeholder="Select date end">
+                    </div>
+                </div>
+
                 {{-- Loading State --}}
                 <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-blue-900"
                     wire:loading.flex>
@@ -34,11 +62,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 </div>
             </div>
 
+            {{-- Content / Body --}}
             <div class="relative grid grid-cols-1 w-full h-full gap-4 lg:grid-cols-5">
 
                 {{-- List of Batches --}}
                 <div class="relative lg:col-span-3 h-full w-full rounded bg-white shadow">
-
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 flex items-center justify-between">
                         <div class="inline-flex items-center text-blue-900">
@@ -52,7 +80,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </g>
                             </svg>
                             <h1 class="font-bold m-2">List of Batches</h1>
-
+                            <span
+                                class="font-medium text-xs px-2 py-1 rounded bg-blue-300 text-blue-1000">{{ $batchesCount ?? 0 }}</span>
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">
@@ -66,11 +95,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </div>
                                 <input type="text" id="batch-search" maxlength="100" autocomplete="off"
                                     @input.debounce.500ms="$wire.searchBatches = $el.value; $wire.setBatchAssignments();"
-                                    class="duration-200 ease-in-out ps-7 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
+                                    class="duration-200 outline-none ease-in-out ps-7 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Search for batch numbers">
                             </div>
                             <button
-                                class="flex items-center bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-4 py-1 text-sm font-bold duration-200 ease-in-out">
+                                class="flex items-center bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-3 py-1 text-sm font-bold duration-200 ease-in-out">
                                 FILTER
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ml-2"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -86,13 +115,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     </div>
 
                     @if ($batches)
-                        {{-- List of Projects Table --}}
+                        {{-- Batches Table --}}
                         <div id="batches-table"
-                            class="relative min-h-[84vh] max-h-[84vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
+                            class="relative min-h-[82.5vh] max-h-[82.5vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
                             <table class="relative w-full text-sm text-left text-blue-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
                                     <tr>
-                                        <th scope="col" class="pe-2 ps-4 py-2">
+                                        <th scope="col" class="pr-2 ps-4 py-2">
                                             batch #
                                         </th>
                                         <th scope="col" class="pr-2 py-2">
@@ -102,12 +131,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             slots
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
-                                            approval status
+                                            a. status
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
-                                            submission status
+                                            s. status
                                         </th>
-
                                         <th scope="col" class="px-2 py-2 text-center">
 
                                         </th>
@@ -120,7 +148,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         @endphp
                                         <tr wire:key="batch-{{ $key }}"
                                             wire:click.prevent='selectBatchRow({{ $key }}, "{{ $encryptedId }}")'
-                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out">
+                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out cursor-pointer">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
                                                 {{ $batch['batch_num'] }}
                                             </th>
@@ -204,7 +232,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M101.397 46.276 C 101.173 92.311,101.162 92.594,99.468 95.313 C 95.650 101.440,98.231 101.144,46.280 101.396 L -0.017 101.621 0.187 238.115 L 0.391 374.609 3.063 380.078 C 6.559 387.234,12.766 393.441,19.922 396.937 L 25.391 399.609 150.629 399.814 C 290.080 400.042,279.856 400.425,288.803 394.633 C 296.183 389.855,300.883 383.544,303.595 374.770 L 304.995 370.244 289.411 354.609 C 275.047 340.197,273.645 339.001,271.484 339.321 C 270.195 339.511,265.449 340.426,260.938 341.353 C 235.047 346.675,205.887 340.299,183.868 324.501 L 178.094 320.358 116.976 320.140 C 57.447 319.928,55.792 319.881,53.266 318.359 C 45.856 313.894,45.666 303.603,52.911 299.099 L 55.859 297.266 106.435 297.043 L 157.010 296.821 153.561 290.403 C 151.664 286.873,149.176 281.625,148.032 278.741 L 145.951 273.497 100.905 273.272 C 56.162 273.048,55.841 273.035,53.125 271.343 C 45.806 266.782,45.693 256.712,52.911 252.224 L 55.859 250.391 98.572 250.164 L 141.284 249.937 141.317 240.948 C 141.334 236.004,141.574 230.759,141.849 229.292 L 142.350 226.625 99.105 226.399 C 41.076 226.094,47.266 231.205,47.266 183.594 C 47.266 145.513,47.137 146.438,52.911 142.849 L 55.859 141.016 153.906 141.016 C 244.733 141.016,252.486 141.118,259.186 142.408 C 273.372 145.139,285.766 150.121,297.266 157.716 C 300.273 159.703,303.181 161.613,303.728 161.962 C 304.529 162.474,304.680 149.339,304.509 93.993 L 304.297 25.391 301.625 19.922 C 298.129 12.766,291.921 6.559,284.766 3.063 L 279.297 0.391 190.459 0.182 L 101.621 -0.026 101.397 46.276 M41.797 42.188 L 5.866 78.125 41.995 78.125 L 78.125 78.125 78.125 42.188 C 78.125 22.422,78.036 6.250,77.927 6.250 C 77.817 6.250,61.559 22.422,41.797 42.188 M251.421 48.828 C 258.913 53.343,258.913 63.845,251.421 68.359 C 248.891 69.884,247.443 69.922,191.406 69.922 C 135.370 69.922,133.922 69.884,131.391 68.359 C 122.382 62.930,124.454 50.112,134.749 47.588 C 141.019 46.052,248.713 47.196,251.421 48.828 M251.421 95.703 C 258.913 100.218,258.913 110.720,251.421 115.234 C 248.891 116.759,247.443 116.797,191.406 116.797 C 135.370 116.797,133.922 116.759,131.391 115.234 C 122.316 109.766,124.386 97.023,134.766 94.463 C 140.996 92.926,248.713 94.071,251.421 95.703 M70.313 183.594 L 70.313 203.125 109.598 203.125 L 148.883 203.125 151.469 197.852 C 155.839 188.941,162.490 179.651,170.206 171.680 L 177.580 164.063 123.946 164.063 L 70.313 164.063 70.313 183.594 M226.563 165.184 C 176.220 175.719,149.210 230.954,171.889 276.987 C 200.399 334.854,283.976 334.854,312.486 276.987 C 334.140 233.035,309.949 179.063,262.891 166.340 C 254.916 164.184,234.453 163.532,226.563 165.184 M324.499 300.586 C 319.053 308.219,309.999 317.409,302.148 323.275 C 298.389 326.084,295.313 328.594,295.313 328.852 C 295.313 330.809,362.570 396.223,366.406 397.997 C 386.489 407.286,407.286 386.489,397.997 366.406 C 396.189 362.496,330.790 295.313,328.792 295.313 C 328.500 295.313,326.569 297.686,324.499 300.586 "
+                                                        d="M60.938 83.730 C 45.814 88.028,46.103 112.166,61.328 116.325 C 65.742 117.531,334.258 117.531,338.672 116.325 C 354.152 112.097,354.152 87.903,338.672 83.675 C 334.514 82.539,64.940 82.593,60.938 83.730 M234.766 167.662 C 156.261 181.679,140.899 289.719,212.395 324.999 C 237.348 337.313,270.981 336.146,293.071 322.201 L 296.300 320.163 319.048 342.824 C 342.668 366.353,343.717 367.179,350.000 367.179 C 358.743 367.179,367.179 358.743,367.179 350.000 C 367.179 343.717,366.353 342.668,342.824 319.048 L 320.163 296.300 322.201 293.071 C 333.786 274.719,336.850 245.659,329.540 223.444 C 316.488 183.772,276.467 160.217,234.766 167.662 M60.938 183.730 C 45.814 188.028,46.103 212.166,61.328 216.325 C 65.625 217.499,134.375 217.499,138.672 216.325 C 154.152 212.097,154.152 187.903,138.672 183.675 C 134.630 182.571,64.843 182.621,60.938 183.730 M262.403 202.039 C 298.694 210.121,311.890 258.368,285.129 285.129 C 258.320 311.938,210.580 298.894,201.980 262.411 C 193.184 225.094,224.669 193.636,262.403 202.039 M60.938 283.730 C 45.814 288.028,46.103 312.166,61.328 316.325 C 65.625 317.499,134.375 317.499,138.672 316.325 C 154.152 312.097,154.152 287.903,138.672 283.675 C 134.630 282.571,64.843 282.621,60.938 283.730 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -215,13 +243,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <li>
                                         <a aria-label="{{ __('Access Code') }}"
                                             class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
-
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M303.516 1.151 C 303.086 1.286,300.186 1.817,297.070 2.332 L 291.406 3.267 291.406 13.161 L 291.406 23.055 286.776 24.850 C 284.230 25.837,279.286 28.560,275.789 30.901 C 268.179 35.995,269.993 36.042,260.547 30.499 L 252.734 25.914 250.479 27.996 C 242.118 35.714,226.598 64.358,229.308 67.068 C 229.581 67.341,233.185 69.506,237.318 71.880 L 244.832 76.195 244.890 89.111 L 244.948 102.027 236.943 106.605 C 227.905 111.774,228.276 110.842,231.644 119.932 C 235.614 130.648,241.667 140.650,248.649 148.031 L 252.734 152.350 260.813 147.659 C 270.417 142.083,268.427 142.249,274.532 146.517 C 277.323 148.468,282.262 151.291,285.507 152.790 L 291.406 155.516 291.406 165.151 L 291.406 174.786 298.242 176.146 C 307.129 177.914,321.538 177.925,331.055 176.170 L 338.281 174.838 338.281 164.954 L 338.281 155.070 342.911 153.275 C 345.457 152.288,350.414 149.556,353.927 147.205 L 360.313 142.931 368.633 147.708 L 376.953 152.485 380.342 148.748 C 387.935 140.373,394.881 128.579,398.409 118.072 C 400.664 111.353,400.684 111.388,391.797 106.226 C 385.964 102.839,384.034 101.327,384.179 100.259 C 384.615 97.052,384.467 80.715,383.984 78.792 C 383.493 76.838,383.902 76.476,391.414 72.223 C 395.785 69.748,399.536 67.269,399.749 66.716 C 401.432 62.330,389.916 40.052,380.692 29.849 L 376.953 25.713 368.827 30.435 C 359.151 36.057,361.132 35.919,354.408 31.438 C 351.339 29.393,346.473 26.669,343.594 25.384 L 338.361 23.047 338.126 13.281 L 337.891 3.516 331.641 2.214 C 326.163 1.074,306.162 0.317,303.516 1.151 M327.682 60.017 C 359.999 75.140,347.796 123.308,312.265 120.873 C 286.986 119.140,273.851 88.930,289.784 69.170 C 298.991 57.753,314.723 53.953,327.682 60.017 M161.866 114.621 C 161.471 115.388,159.505 120.410,157.497 125.781 L 153.846 135.547 141.572 135.581 C 134.821 135.600,128.418 135.844,127.344 136.122 C 125.476 136.607,125.187 136.166,120.750 126.046 C 118.198 120.225,115.679 115.297,115.152 115.095 C 109.188 112.806,60.133 134.492,55.945 141.268 C 55.748 141.587,57.686 146.585,60.251 152.376 L 64.915 162.905 57.202 170.710 C 52.960 175.003,48.598 179.697,47.509 181.141 L 45.528 183.767 35.067 179.774 C 22.138 174.840,23.441 174.701,19.224 181.466 C 11.509 193.844,4.697 210.957,1.583 225.781 C -0.921 237.703,-1.558 236.557,9.961 240.858 C 15.439 242.904,20.322 244.831,20.811 245.140 C 21.404 245.516,21.797 250.423,21.990 259.864 L 22.281 274.025 11.870 278.577 C 6.144 281.081,1.305 283.379,1.116 283.684 C -1.798 288.398,20.533 339.150,27.384 343.385 C 27.717 343.590,32.748 341.603,38.564 338.969 L 49.139 334.180 55.624 340.769 C 59.191 344.393,63.904 348.766,66.097 350.486 L 70.084 353.615 65.902 364.497 C 63.601 370.483,61.719 375.613,61.719 375.898 C 61.719 376.674,72.958 383.252,80.078 386.643 C 92.123 392.380,109.257 397.767,119.160 398.931 L 123.202 399.406 126.333 391.305 C 128.055 386.849,129.936 381.885,130.514 380.273 L 131.564 377.344 143.516 377.192 C 150.090 377.108,156.542 377.020,157.854 376.997 C 160.173 376.954,160.370 377.246,164.915 387.464 C 167.486 393.245,169.680 398.065,169.790 398.175 C 170.984 399.370,193.632 391.863,204.636 386.625 C 214.000 382.168,229.688 372.474,229.688 371.145 C 229.688 370.790,227.609 365.826,225.068 360.113 L 220.448 349.726 226.178 344.374 C 229.330 341.431,233.721 336.789,235.936 334.059 L 239.963 329.096 250.905 333.305 C 263.545 338.167,262.147 338.401,266.681 330.664 C 275.931 314.880,288.526 278.890,285.765 276.130 C 285.624 275.989,280.655 274.007,274.723 271.726 L 263.937 267.578 263.692 254.688 C 263.557 247.598,263.217 241.237,262.937 240.552 C 262.530 239.559,264.647 238.313,273.401 234.391 C 285.846 228.817,285.165 229.918,282.441 219.748 C 278.212 203.962,271.838 189.792,262.780 176.037 C 257.678 168.290,258.883 168.430,246.401 174.134 L 236.328 178.738 228.802 171.172 C 224.662 167.012,220.007 162.743,218.456 161.686 C 214.999 159.332,214.887 160.714,219.531 148.437 C 224.443 135.454,224.854 137.012,215.039 131.413 C 201.929 123.933,189.239 118.936,175.391 115.802 C 163.555 113.122,162.678 113.045,161.866 114.621 M158.594 193.865 C 207.759 206.194,223.725 268.978,186.493 303.574 C 153.132 334.572,99.094 322.263,82.653 279.922 C 63.723 231.170,107.867 181.145,158.594 193.865 "
+                                                        d="M247.559 1.564 C 165.364 16.307,120.087 103.855,155.105 180.332 L 158.083 186.836 82.194 262.754 C 28.622 316.345,5.951 339.526,5.105 341.576 C 1.996 349.110,3.341 351.295,23.637 371.666 C 48.980 397.102,49.168 397.132,67.779 378.680 L 78.934 367.620 94.350 382.946 C 111.224 399.721,111.590 400.000,116.695 400.000 C 122.546 400.000,123.922 398.973,141.622 381.402 C 168.809 354.411,168.685 356.088,145.223 332.400 L 129.725 316.754 169.372 277.112 L 209.019 237.471 214.827 240.332 C 283.781 274.302,369.459 235.883,390.997 161.337 C 416.829 71.931,338.941 -14.827,247.559 1.564 M285.156 66.046 C 349.039 85.419,345.621 174.012,280.483 187.159 C 231.814 196.981,191.537 143.903,213.671 99.113 C 226.697 72.754,258.606 57.994,285.156 66.046 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -233,11 +260,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                         @endforeach
                     @else
-                        <div class="relative bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
+                        <div
+                            class="relative bg-white px-4 pb-4 pt-2 h-[82.5vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                 <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
+                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-400"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -247,7 +275,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                                 <p>No batches found.</p>
-                                <p>Try creating a <span class="animate-pulse text-blue-900">new batch</span>.</p>
+                                <p>Ask your focal to assign a <span class="animate-pulse text-blue-900">new
+                                        batch</span>.</p>
                             </div>
                         </div>
                     @endif
@@ -259,8 +288,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- List Overview --}}
                 <div class="relative w-full col-span-2">
                     {{-- Title --}}
-
-                    <div class="relative flex-col flex bg-white p-2 rounded text-blue-1100 text-xs font-semibold">
+                    <div
+                        class="relative flex-col h-[18.5vh] flex bg-white p-2 rounded text-blue-1100 text-xs font-semibold">
                         @if ($location)
                             <div class="flex items-center text-blue-900 pb-2 ms-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
@@ -282,17 +311,39 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </p>
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
-                                Access Code: <p class="ps-2 font-normal"> {{ $accessCode['access_code'] }}</p>
+                                Access Code: <p class="ps-2 font-normal">
+                                    @if ($accessCode)
+                                        <span
+                                            class="bg-blue-300 text-blue-1000 rounded py-1 px-2">{{ $accessCode['access_code'] }}</span>
+                                    @else
+                                        <span
+                                            class="font-semibold bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase">not
+                                            accessible</span>
+                                    @endif
+                                </p>
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
-                                Resubmissions: <p class="font-normal ps-2">0</p>
+                                Submissions: <p class="font-normal ps-2">{{ $submissions[0]['submissions'] ?? 0 }}</p>
+                            </div>
+                        @else
+                            <div class="relative bg-white p-2 h-[18.5vh] min-w-full flex items-center justify-center">
+                                <div
+                                    class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
+
+                                    <p>Try <span class="underline underline-offset-2">clicking a row</span> from the
+                                        <span class="text-blue-900">list of
+                                        </span>
+                                    </p>
+                                    <p><span class="text-blue-900">batches</span> to show an overview.</p>
+                                </div>
                             </div>
                         @endif
                     </div>
-                    <div class="flex items-center justify-end my-2 w-full text-sm">
+
+                    <div class="flex items-center justify-end h-[1.5rem] my-2 w-full text-sm">
                         {{-- Found 3 special cases! --}}
-                        <button
-                            class="flex items-center bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-3 py-1 text-sm font-bold">
+                        <button type="button" wire:click="viewList" @if (!$batchId) disabled @endif
+                            class="flex items-center justify-center rounded px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $batchId ? 'bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500' : 'bg-blue-300 text-blue-50' }}">
                             <p class="p-0 m-0">
                                 VIEW LIST
                             </p>
@@ -305,11 +356,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </button>
                     </div>
 
-
                     @if ($beneficiaries)
                         {{-- Table --}}
                         <div
-                            class="relative min-h-[65vh] max-h-[65vh] overflow-y-auto rounded whitespace-nowrap bg-white scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
+                            class="relative h-[64vh] overflow-y-auto rounded whitespace-nowrap bg-white scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
                             <table class="w-full text-sm text-left text-blue-1100">
                                 <thead class="text-xs text-blue-50 uppercase bg-blue-600 sticky top-0">
                                     <tr>
@@ -351,6 +401,43 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </tbody>
                             </table>
                         </div>
+                    @else
+                        <div class="relative bg-white p-4 h-[64vh] min-w-full flex items-center justify-center">
+                            <div
+                                class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
+                                @if ($selectedBatchRow === -1)
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M157.812 1.758 C 152.898 5.112,152.344 7.271,152.344 23.047 C 152.344 35.256,152.537 37.497,153.790 39.856 C 158.280 48.306,170.943 48.289,175.194 39.828 C 177.357 35.523,177.211 9.277,175.004 5.657 C 171.565 0.017,163.157 -1.890,157.812 1.758 M92.282 29.461 C 81.984 34.534,84.058 43.360,98.976 57.947 C 111.125 69.826,115.033 71.230,122.082 66.248 C 130.544 60.266,128.547 52.987,114.703 39.342 C 102.476 27.292,99.419 25.945,92.282 29.461 M224.609 29.608 C 220.914 31.937,204.074 49.371,203.164 51.809 C 199.528 61.556,208.074 71.025,217.862 68.093 C 222.301 66.763,241.856 46.745,242.596 42.773 C 244.587 32.094,233.519 23.992,224.609 29.608 M155.754 71.945 C 151.609 73.146,145.829 77.545,143.171 81.523 C 138.040 89.200,138.281 84.305,138.281 180.886 L 138.281 268.519 136.523 271.102 C 131.545 278.417,122.904 278.656,117.660 271.624 C 116.063 269.483,116.004 268.442,115.625 235.830 L 115.234 202.240 109.681 206.141 C 92.677 218.084,88.279 229.416,88.286 261.258 C 88.297 310.416,101.114 335.739,136.914 357.334 C 138.733 358.431,139.063 359.154,139.063 362.045 C 139.063 377.272,152.803 393.856,169.478 398.754 C 175.500 400.522,274.549 400.621,281.147 398.865 C 300.011 393.844,312.500 376.696,312.500 355.816 L 312.500 350.200 317.647 344.827 C 338.941 322.596,341.616 310.926,341.256 241.797 L 341.016 195.703 338.828 191.248 C 329.203 171.647,301.256 172.127,292.338 192.045 L 290.848 195.375 290.433 190.802 C 288.082 164.875,250.064 160.325,241.054 184.892 L 239.954 187.891 239.903 183.594 C 239.599 158.139,203.249 149.968,191.873 172.797 L 189.906 176.743 189.680 133.489 L 189.453 90.234 187.359 85.765 C 181.948 74.222,168.375 68.287,155.754 71.945 M64.062 96.289 C 56.929 101.158,56.929 111.342,64.062 116.211 C 68.049 118.932,96.783 118.920,100.861 116.195 C 108.088 111.368,107.944 100.571,100.593 96.090 C 96.473 93.578,67.805 93.734,64.062 96.289 M228.125 96.289 C 224.932 98.468,222.656 102.614,222.656 106.250 C 222.656 109.886,224.932 114.032,228.125 116.211 C 232.111 118.932,260.845 118.920,264.924 116.195 C 272.150 111.368,272.006 100.571,264.656 96.090 C 260.536 93.578,231.867 93.734,228.125 96.289 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No beneficiaries found.</p>
+                                    <p>Try <span class="underline underline-offset-2">clicking a row</span> from the
+                                        <span class="text-blue-900">list of
+                                            batches</span>.
+                                    </p>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-gray-300"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No beneficiaries found.</p>
+                                    <p>Try creating a <span class="text-blue-900">new batch</span>.</p>
+                                @endif
+
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -360,6 +447,21 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
 @script
     <script>
+        const datepickerStart = document.getElementById('start-date');
+        const datepickerEnd = document.getElementById('end-date');
+
+        datepickerStart.addEventListener('changeDate', function(event) {
+            $wire.dispatchSelf('start-change', {
+                value: datepickerStart.value
+            });
+        });
+
+        datepickerEnd.addEventListener('changeDate', function(event) {
+            $wire.dispatchSelf('end-change', {
+                value: datepickerEnd.value
+            });
+        });
+
         $wire.on('init-reload', () => {
             setTimeout(() => {
                 initFlowbite();

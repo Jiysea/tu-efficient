@@ -21,9 +21,8 @@ class Assignments extends Component
     #[Locked]
     public $batchId;
     #[Locked]
-    public $projectId;
-    #[Locked]
     public $batches;
+    public $batchesCount;
     public $default_on_page = 15;
     public $batches_on_page = 15;
     public $selectedBatchRow = -1;
@@ -39,8 +38,11 @@ class Assignments extends Component
     public $location;
     #[Locked]
     public $accessCode;
+    #[Locked]
+    public $submissions;
 
     # ------------------------------------------
+
     public $start;
     public $end;
     public $defaultStart;
@@ -102,6 +104,7 @@ class Assignments extends Component
             ->join('assignments', 'users.id', '=', 'assignments.users_id')
             ->join('batches', 'batches.id', '=', 'assignments.batches_id')
             ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->where('batches.batch_num', 'LIKE', $batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
                 [
@@ -113,7 +116,7 @@ class Assignments extends Component
                     'batches.submission_status',
                     'batches.created_at',
                     'batches.updated_at',
-                    DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots')
+                    DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots'),
                 ]
             )
             ->groupBy(
@@ -130,8 +133,16 @@ class Assignments extends Component
             ->take($this->batches_on_page)
             ->get()
             ->toArray();
+    }
 
-        // $this->batchId = $this->batches[0]['id'] ?? null;
+    public function setBatchesCount()
+    {
+        $coordinatorUserId = Auth::user()->id;
+        $this->batchesCount = User::where('users_id', $coordinatorUserId)
+            ->join('assignments', 'users.id', '=', 'assignments.users_id')
+            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
+            ->whereBetween('batches.created_at', [$this->start, $this->end])
+            ->count();
     }
 
     public function setBeneficiaryList()
@@ -167,13 +178,32 @@ class Assignments extends Component
                 ->first()
                 ->toArray();
 
-            $this->accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
+            $accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
                 ->where('batches.id', $this->batchId)
+                ->where('codes.accessible', 'yes')
                 ->select(
-                    ['codes.access_code'],
+                    [
+                        'codes.access_code'
+                    ],
                 )
-                ->first()
-                ->toArray();
+                ->groupBy('codes.access_code')
+                ->first();
+
+            $this->accessCode = $accessCode ? $accessCode->toArray() : [];
+
+            $submissions = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
+                ->where('batches.id', $this->batchId)
+                ->where('codes.accessible', 'no')
+                ->select(
+                    [
+                        DB::raw('COUNT(DISTINCT codes.id) AS submissions')
+                    ],
+                )
+                ->groupBy('codes.access_code')
+                ->first();
+
+            $this->submissions = $submissions ? $submissions->toArray() : [];
+
         } else {
             $this->beneficiaries = null;
             $this->location = null;
@@ -213,13 +243,30 @@ class Assignments extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    public function viewList()
+    {
+        if ($this->batchId) {
+            $this->redirectRoute('coordinator.submissions', ['batchId' => $this->batchId]);
+        }
+    }
+
     public function mount()
     {
         if (Auth::user()->user_type === 'focal') {
             $this->redirect(Dashboard::class);
         }
 
+        /*
+         *  Setting default dates in the datepicker
+         */
+        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
+        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+
+        $this->defaultStart = date('m/d/Y', strtotime($this->start));
+        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+
         $this->setBatchAssignments();
+        $this->setBatchesCount();
         $this->setBeneficiaryList();
     }
 
