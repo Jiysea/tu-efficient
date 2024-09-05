@@ -64,9 +64,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="project-search" maxlength="100"
+                                <input type="text" id="batch-search" maxlength="100" autocomplete="off"
+                                    @input.debounce.500ms="$wire.searchBatches = $el.value; $wire.setBatchAssignments();"
                                     class="duration-200 ease-in-out ps-7 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Search for project titles">
+                                    placeholder="Search for batch numbers">
                             </div>
                             <button
                                 class="flex items-center bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-4 py-1 text-sm font-bold duration-200 ease-in-out">
@@ -76,7 +77,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     viewBox="0, 0, 400,400">
                                     <g>
                                         <path
-                                            d="M87.232 51.235 C 70.529 55.279,55.160 70.785,51.199 87.589 C 49.429 95.097,49.415 238.777,51.184 245.734 C 55.266 261.794,68.035 275.503,84.375 281.371 L 89.453 283.195 164.063 283.423 C 247.935 283.680,244.564 283.880,256.471 277.921 C 265.327 273.488,273.488 265.327,277.921 256.471 C 283.880 244.564,283.680 247.935,283.423 164.063 L 283.195 89.453 281.371 84.375 C 275.503 68.035,261.794 55.266,245.734 51.184 C 239.024 49.478,94.296 49.525,87.232 51.235 M326.172 101.100 C 323.101 102.461,320.032 105.395,318.240 108.682 C 316.870 111.194,316.777 115.490,316.406 193.359 L 316.016 275.391 313.810 281.633 C 308.217 297.460,296.571 308.968,280.859 314.193 L 275.391 316.012 193.359 316.404 L 111.328 316.797 108.019 318.693 C 97.677 324.616,97.060 340.415,106.903 347.255 L 110.291 349.609 195.575 349.609 L 280.859 349.609 287.500 347.798 C 317.300 339.669,339.049 318.056,347.783 287.891 L 349.592 281.641 349.816 196.680 C 350.060 104.007,350.312 109.764,345.807 104.807 C 341.717 100.306,332.072 98.485,326.172 101.100 M172.486 118.401 C 180.422 121.716,182.772 126.649,182.795 140.039 L 182.813 150.000 190.518 150.000 C 209.679 150.000,219.220 157.863,215.628 170.693 C 213.075 179.810,207.578 182.771,193.164 182.795 L 182.813 182.813 182.795 193.164 C 182.771 207.578,179.810 213.075,170.693 215.628 C 157.863 219.220,150.000 209.679,150.000 190.518 L 150.000 182.813 140.039 182.795 C 123.635 182.767,116.211 176.839,117.378 164.698 C 118.318 154.920,125.026 150.593,139.970 150.128 L 150.000 149.815 150.000 142.592 C 150.000 122.755,159.204 112.853,172.486 118.401 "
+                                            d="M55.859 51.091 C 37.210 57.030,26.929 76.899,32.690 95.866 C 35.051 103.642,34.376 102.847,97.852 172.610 L 156.250 236.794 156.253 298.670 C 156.256 359.035,156.294 360.609,157.808 363.093 C 161.323 368.857,170.292 370.737,175.953 366.895 C 184.355 361.193,241.520 314.546,242.553 312.549 C 243.578 310.566,243.750 304.971,243.750 273.514 L 243.750 236.794 302.148 172.610 C 365.624 102.847,364.949 103.642,367.310 95.866 C 372.533 78.673,364.634 60.468,348.673 52.908 L 343.359 50.391 201.172 50.243 C 87.833 50.126,58.350 50.298,55.859 51.091 "
                                             stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                     </g>
                                 </svg>
@@ -87,14 +88,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     @if ($batches)
                         {{-- List of Projects Table --}}
                         <div id="batches-table"
-                            class="relative min-h-[84vh] max-h-[84vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
+                            class="relative min-h-[84vh] max-h-[84vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
                             <table class="relative w-full text-sm text-left text-blue-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
                                     <tr>
                                         <th scope="col" class="pe-2 ps-4 py-2">
                                             batch #
                                         </th>
-                                        <th scope="col" class="pr-6 py-2">
+                                        <th scope="col" class="pr-2 py-2">
                                             barangay
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
@@ -119,11 +120,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         @endphp
                                         <tr wire:key="batch-{{ $key }}"
                                             wire:click.prevent='selectBatchRow({{ $key }}, "{{ $encryptedId }}")'
-                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-blue-100 hover:bg-blue-200 text-blue-900' : 'hover:bg-blue-50' }} whitespace-nowrap duration-200 ease-in-out">
+                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
                                                 {{ $batch['batch_num'] }}
                                             </th>
-                                            <td class="pr-6 py-2">
+                                            <td class="pr-2 py-2">
                                                 {{ $batch['barangay_name'] }}
                                             </td>
                                             <td class="pr-2 py-2 text-center">
@@ -163,9 +164,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     data-dropdown-placement="left"
                                                     data-dropdown-toggle="batchRowDropdown-{{ $key }}"
                                                     class="z-0 mx-1 p-1 outline-none font-medium rounded 
-                                                    {{ $selectedBatchRow === $key
-                                                        ? 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-blue-50'
-                                                        : 'text-blue-1100 hover:text-blue-1000 active:text-blue-900 hover:bg-blue-200' }}  duration-200 ease-in-out">
+                                                    text-gray-900 hover:text-gray-800 active:text-gray-950 hover:bg-gray-300  duration-200 ease-in-out">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor"
                                                         :class="{
@@ -262,20 +261,33 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     {{-- Title --}}
 
                     <div class="relative flex-col flex bg-white p-2 rounded text-blue-1100 text-xs font-semibold">
-                        <p class="inline-flex text-lg ms-1 font-bold text-blue-900 pb-2">
-                            List Overview
-                        </p>
-                        <div class="flex items-center justify-start ms-2 my-1">
-                            Location: <p class="font-normal ps-2 truncate">Brgy.
-                                {{ $location['barangay_name'] . ', ' . $location['district'] . ', ' . $location['city_municipality'] }}
-                            </p>
-                        </div>
-                        <div class="flex items-center justify-start ms-2 my-1">
-                            Access Code: <p class="ps-2 font-normal"> {{ $accessCode['access_code'] }}</p>
-                        </div>
-                        <div class="flex items-center justify-start ms-2 my-1">
-                            Resubmissions: <p class="font-normal ps-2">0</p>
-                        </div>
+                        @if ($location)
+                            <div class="flex items-center text-blue-900 pb-2 ms-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                    viewBox="0, 0, 400,400">
+                                    <g>
+                                        <path
+                                            d="M66.406 33.352 C 52.411 35.695,40.203 45.981,34.982 59.829 C 32.634 66.058,31.781 146.480,33.963 155.890 C 37.164 169.690,47.591 181.098,60.707 185.149 C 67.256 187.172,150.189 187.586,157.525 185.633 C 170.642 182.140,182.140 170.642,185.633 157.525 C 187.586 150.189,187.172 67.256,185.149 60.707 C 181.135 47.712,169.738 37.212,156.177 34.015 C 151.429 32.896,72.609 32.314,66.406 33.352 M243.464 34.034 C 230.101 37.322,218.726 47.980,214.805 60.887 C 213.279 65.912,213.229 67.781,213.447 111.823 L 213.672 157.542 216.940 164.123 C 222.283 174.882,231.611 182.740,242.475 185.633 C 249.811 187.586,332.744 187.172,339.293 185.149 C 352.342 181.119,362.853 169.619,366.037 155.890 C 368.206 146.536,367.367 66.059,365.036 59.882 C 360.638 48.226,351.786 39.362,340.171 34.982 C 334.189 32.725,252.053 31.920,243.464 34.034 M149.574 67.673 C 152.997 68.986,153.125 70.529,153.125 110.568 L 153.125 148.558 150.841 150.841 L 148.558 153.125 110.568 153.125 C 70.529 153.125,68.986 152.997,67.673 149.574 C 67.406 148.879,67.188 130.920,67.188 109.666 L 67.188 71.023 69.105 69.105 L 71.023 67.188 109.666 67.188 C 130.920 67.188,148.879 67.406,149.574 67.673 M330.895 69.105 L 332.813 71.023 332.813 109.666 C 332.813 130.920,332.594 148.879,332.327 149.574 C 331.014 152.997,329.471 153.125,289.432 153.125 L 251.442 153.125 249.159 150.841 L 246.875 148.558 246.875 110.568 C 246.875 71.051,247.035 68.975,250.179 67.710 C 250.725 67.491,268.678 67.283,290.075 67.249 L 328.977 67.188 330.895 69.105 M59.978 215.113 C 46.935 219.558,37.120 230.499,33.963 244.110 C 31.794 253.464,32.633 333.941,34.964 340.118 C 39.363 351.774,48.216 360.640,59.829 365.018 C 66.058 367.366,146.480 368.219,155.890 366.037 C 169.690 362.836,181.098 352.409,185.149 339.293 C 187.172 332.744,187.586 249.811,185.633 242.475 C 182.140 229.358,170.642 217.860,157.525 214.367 C 149.564 212.247,66.523 212.882,59.978 215.113 M242.119 214.410 C 231.545 217.326,222.191 225.302,216.940 235.877 L 213.672 242.458 213.447 288.177 C 213.229 332.219,213.279 334.088,214.805 339.113 C 218.800 352.266,230.305 362.835,244.110 366.037 C 253.520 368.219,333.942 367.366,340.171 365.018 C 351.784 360.640,360.637 351.774,365.036 340.118 C 367.367 333.941,368.206 253.464,366.037 244.110 C 362.836 230.310,352.409 218.902,339.293 214.851 C 332.975 212.900,248.976 212.518,242.119 214.410 M150.841 249.159 L 153.125 251.442 153.125 289.432 C 153.125 329.471,152.997 331.014,149.574 332.327 C 148.879 332.594,130.920 332.813,109.666 332.813 L 71.023 332.813 69.105 330.895 L 67.188 328.977 67.188 290.029 C 67.188 249.051,67.131 249.731,70.703 247.777 C 71.772 247.192,84.313 246.915,110.412 246.899 L 148.558 246.875 150.841 249.159 M329.632 248.018 C 332.892 249.704,332.813 248.641,332.813 290.334 L 332.813 328.977 330.895 330.895 L 328.977 332.813 290.334 332.813 C 269.080 332.813,251.121 332.594,250.426 332.327 C 247.003 331.014,246.875 329.471,246.875 289.432 L 246.875 251.442 249.159 249.159 L 251.442 246.875 289.432 246.875 C 321.245 246.875,327.781 247.061,329.632 248.018 "
+                                            stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                    </g>
+                                </svg>
+                                <p class="inline-flex text-base font-bold">
+                                    List Overview
+                                </p>
+                            </div>
+                            <div class="flex items-center justify-start ms-2 my-1">
+                                Location: <p class="font-normal ps-2 truncate">Brgy.
+                                    {{ $location['barangay_name'] . ', ' . $location['district'] . ', ' . $location['city_municipality'] }}
+                                </p>
+                            </div>
+                            <div class="flex items-center justify-start ms-2 my-1">
+                                Access Code: <p class="ps-2 font-normal"> {{ $accessCode['access_code'] }}</p>
+                            </div>
+                            <div class="flex items-center justify-start ms-2 my-1">
+                                Resubmissions: <p class="font-normal ps-2">0</p>
+                            </div>
+                        @endif
                     </div>
                     <div class="flex items-center justify-end my-2 w-full text-sm">
                         {{-- Found 3 special cases! --}}
@@ -294,67 +306,52 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     </div>
 
 
-                    {{-- Table --}}
-                    <div class="relative min-h-[64vh] max-h-[64vh] overflow-y-auto rounded whitespace-nowrap bg-white">
-
-                        <table class="w-full text-sm text-left text-blue-1100">
-                            <thead class="text-xs text-blue-50 uppercase bg-blue-600 sticky top-0">
-                                <tr>
-                                    <th scope="col" class="px-2 py-2">
-                                        #
-                                    </th>
-                                    <th scope="col" class="px-2 py-2">
-                                        full name
-                                    </th>
-                                    <th scope="col" class="px-2 py-2 text-center">
-                                        birthdate
-                                    </th>
-                                    <th scope="col" class="px-2 py-2 text-center">
-                                        contact #
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-xs">
-                                @foreach ($beneficiaries as $key => $beneficiary)
-                                    @php
-                                        $encryptedId = encrypt($beneficiary['id']);
-                                    @endphp
-                                    <tr class=" border-b hover:bg-blue-100 whitespace-nowrap">
-                                        <th scope="row"
-                                            class="px-2 py-2 font-semibold text-blue-1100 whitespace-nowrap">
-                                            {{ $key + 1 }}
+                    @if ($beneficiaries)
+                        {{-- Table --}}
+                        <div
+                            class="relative min-h-[65vh] max-h-[65vh] overflow-y-auto rounded whitespace-nowrap bg-white scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
+                            <table class="w-full text-sm text-left text-blue-1100">
+                                <thead class="text-xs text-blue-50 uppercase bg-blue-600 sticky top-0">
+                                    <tr>
+                                        <th scope="col" class="ps-3 py-2">
+                                            #
                                         </th>
-                                        <td class="px-2 py-2">
-                                            @php
-                                                $first = $beneficiary['first_name'];
-                                                $middle = $beneficiary['middle_name'];
-                                                $last = $beneficiary['last_name'];
-                                                $ext = $beneficiary['extension_name'];
-
-                                                if ($ext === '-' && $middle === '-') {
-                                                    $full_name = $first . ' ' . $last;
-                                                } elseif ($middle === '-' && $ext !== '-') {
-                                                    $full_name = $first . ' ' . $last . ' ' . $ext;
-                                                } elseif ($middle !== '-' && $ext === '-') {
-                                                    $full_name = $first . ' ' . $middle . ' ' . $last;
-                                                } else {
-                                                    $full_name = $first . ' ' . $middle . ' ' . $last . ' ' . $ext;
-                                                }
-                                            @endphp
-                                            {{ $full_name }}
-                                        </td>
-                                        <td class="px-2 py-2 text-center">
-                                            {{ $beneficiary['birthdate'] }}
-                                        </td>
-                                        <td class="px-2 py-2 text-center">
-                                            {{ $beneficiary['contact_num'] }}
-                                        </td>
+                                        <th scope="col" class="px-2 py-2">
+                                            full name
+                                        </th>
+                                        <th scope="col" class="py-2 text-center">
+                                            birthdate
+                                        </th>
+                                        <th scope="col" class="py-2 text-center">
+                                            contact #
+                                        </th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
+                                </thead>
+                                <tbody class="text-xs">
+                                    @foreach ($beneficiaries as $key => $beneficiary)
+                                        @php
+                                            $encryptedId = encrypt($beneficiary['id']);
+                                        @endphp
+                                        <tr class="border-b hover:bg-gray-50 whitespace-nowrap">
+                                            <th scope="row"
+                                                class="ps-3 py-2 font-semibold text-blue-1100 whitespace-nowrap">
+                                                {{ $key + 1 }}
+                                            </th>
+                                            <td class="px-2 py-2">
+                                                {{ $this->getFullName($key) }}
+                                            </td>
+                                            <td class="px-2 py-2 text-center">
+                                                {{ $beneficiary['birthdate'] }}
+                                            </td>
+                                            <td class="px-2 py-2 text-center">
+                                                {{ $beneficiary['contact_num'] }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

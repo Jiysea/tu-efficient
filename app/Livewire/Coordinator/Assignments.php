@@ -7,6 +7,7 @@ use App\Models\Batch;
 use App\Models\User;
 use Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -23,9 +24,12 @@ class Assignments extends Component
     public $projectId;
     #[Locked]
     public $batches;
-    public $default_on_page = 30;
-    public $batches_on_page = 30;
-    public $selectedBatchRow = 0;
+    public $default_on_page = 15;
+    public $batches_on_page = 15;
+    public $selectedBatchRow = -1;
+    public $searchBatches;
+
+    # -------------------------------
 
     #[Locked]
     public $beneficiaries;
@@ -54,7 +58,7 @@ class Assignments extends Component
 
         $this->setBatchAssignments();
 
-        $this->selectedBatchRow = 0;
+        $this->selectedBatchRow = -1;
 
         $this->dispatch('init-reload')->self();
     }
@@ -77,24 +81,30 @@ class Assignments extends Component
 
     public function selectBatchRow($key, $encryptedId)
     {
-        $this->selectedBatchRow = $key;
-        $this->batchId = decrypt($encryptedId);
-        $this->batches_on_page = $this->default_on_page;
+        if ($this->selectedBatchRow === $key) {
+            $this->selectedBatchRow = -1;
+            $this->batchId = null;
+        } else {
+            $this->selectedBatchRow = $key;
+            $this->batchId = decrypt($encryptedId);
+        }
 
         $this->setBeneficiaryList();
-        $this->selectedBeneficiaryRow = 0;
-
         $this->dispatch('init-reload')->self();
     }
 
     public function setBatchAssignments()
     {
         $coordinatorUserId = Auth::user()->id;
+        $batchNumPrefix = config('settings.batch_number_prefix', 'DCFO-BN-');
+
+        // dump($batchNumPrefix . $this->searchBatches);
 
         $this->batches = User::where('users_id', $coordinatorUserId)
             ->join('assignments', 'users.id', '=', 'assignments.users_id')
             ->join('batches', 'batches.id', '=', 'assignments.batches_id')
             ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('batches.batch_num', 'LIKE', $batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
                 DB::raw('batches.id'),
                 DB::raw('batches.batch_num'),
@@ -121,48 +131,78 @@ class Assignments extends Component
             ->get()
             ->toArray();
 
-        $this->batchId = $this->batches[0]['id'] ?? null;
+        // $this->batchId = $this->batches[0]['id'] ?? null;
     }
 
     public function setBeneficiaryList()
     {
         $coordinatorUserId = Auth::user()->id;
 
-        $this->beneficiaries = User::where('users_id', $coordinatorUserId)
-            ->join('assignments', 'users.id', '=', 'assignments.users_id')
-            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
-            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('batches.id', $this->batchId)
-            ->select(
-                DB::raw('beneficiaries.id AS id'),
-                DB::raw('beneficiaries.first_name AS first_name'),
-                DB::raw('beneficiaries.middle_name AS middle_name'),
-                DB::raw('beneficiaries.last_name AS last_name'),
-                DB::raw('beneficiaries.extension_name AS extension_name'),
-                DB::raw('beneficiaries.birthdate AS birthdate'),
-                DB::raw('beneficiaries.contact_num AS contact_num')
-            )
-            ->get()
-            ->toArray();
+        if ($this->batchId) {
+            $this->beneficiaries = User::where('users_id', $coordinatorUserId)
+                ->join('assignments', 'users.id', '=', 'assignments.users_id')
+                ->join('batches', 'batches.id', '=', 'assignments.batches_id')
+                ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+                ->where('batches.id', $this->batchId)
+                ->select([
+                    'beneficiaries.id',
+                    'beneficiaries.first_name',
+                    'beneficiaries.middle_name',
+                    'beneficiaries.last_name',
+                    'beneficiaries.extension_name AS extension_name',
+                    'beneficiaries.birthdate AS birthdate',
+                    'beneficiaries.contact_num AS contact_num'
+                ])
+                ->get()
+                ->toArray();
 
-        $this->location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-            ->where('batches.id', $this->batchId)
-            ->select(
-                DB::raw('implementations.district'),
-                DB::raw('implementations.city_municipality'),
-                DB::raw('implementations.province'),
-                DB::raw('batches.barangay_name'),
-            )
-            ->first()
-            ->toArray();
+            $this->location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->where('batches.id', $this->batchId)
+                ->select([
+                    'implementations.district',
+                    'implementations.city_municipality',
+                    'implementations.province',
+                    'batches.barangay_name',
+                ])
+                ->first()
+                ->toArray();
 
-        $this->accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
-            ->where('batches.id', $this->batchId)
-            ->select(
-                DB::raw('codes.access_code'),
-            )
-            ->first()
-            ->toArray();
+            $this->accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
+                ->where('batches.id', $this->batchId)
+                ->select(
+                    ['codes.access_code'],
+                )
+                ->first()
+                ->toArray();
+        } else {
+            $this->beneficiaries = null;
+            $this->location = null;
+            $this->accessCode = null;
+        }
+    }
+
+    #[Computed]
+    public function getFullName($key)
+    {
+        $full_name = null;
+
+        $first = $this->beneficiaries[$key]['first_name'];
+        $middle = $this->beneficiaries[$key]['middle_name'];
+        $last = $this->beneficiaries[$key]['last_name'];
+        $ext = $this->beneficiaries[$key]['extension_name'];
+
+        $full_name = $first;
+        if ($middle) {
+            $full_name .= ' ' . $middle;
+        }
+
+        $full_name .= ' ' . $last;
+
+        if ($ext) {
+            $full_name .= ' ' . $ext;
+        }
+
+        return $full_name;
     }
 
     public function loadMoreBatches()
