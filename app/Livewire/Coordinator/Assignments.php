@@ -98,23 +98,23 @@ class Assignments extends Component
         $coordinatorUserId = Auth::user()->id;
         $batchNumPrefix = config('settings.batch_number_prefix', 'DCFO-BN-');
 
-        // dump($batchNumPrefix . $this->searchBatches);
-
         $this->batches = User::where('users_id', $coordinatorUserId)
             ->join('assignments', 'users.id', '=', 'assignments.users_id')
             ->join('batches', 'batches.id', '=', 'assignments.batches_id')
             ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
             ->where('batches.batch_num', 'LIKE', $batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
-                DB::raw('batches.id'),
-                DB::raw('batches.batch_num'),
-                DB::raw('batches.barangay_name'),
-                DB::raw('batches.slots_allocated'),
-                DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots'),
-                DB::raw('batches.approval_status'),
-                DB::raw('batches.submission_status'),
-                DB::raw('batches.created_at'),
-                DB::raw('batches.updated_at'),
+                [
+                    'batches.id',
+                    'batches.batch_num',
+                    'batches.barangay_name',
+                    'batches.slots_allocated',
+                    'batches.approval_status',
+                    'batches.submission_status',
+                    'batches.created_at',
+                    'batches.updated_at',
+                    DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots')
+                ]
             )
             ->groupBy(
                 'batches.id',
