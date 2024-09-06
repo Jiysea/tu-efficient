@@ -21,26 +21,42 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             <div class="relative flex items-center my-2">
                 <h1 class="text-xl font-bold me-4 ms-3">Implementations</h1>
 
+                {{-- Date Range picker --}}
                 <div id="implementations-date-range" date-rangepicker datepicker-autohide class="flex items-center">
+
+                    {{-- Start --}}
                     <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <svg class="w-4 h-4 text-indigo-900 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                        <div
+                            class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
                             </svg>
                         </div>
                         <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
                             class="bg-white border border-indigo-300 text-indigo-1100 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full ps-10"
                             placeholder="Select date start">
                     </div>
+
                     <span class="mx-4 text-indigo-1100">to</span>
+
+                    {{-- End --}}
                     <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <svg class="w-4 h-4 text-indigo-900 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                        <div
+                            class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
                             </svg>
                         </div>
                         <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
@@ -51,7 +67,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 {{-- Loading State --}}
                 <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
-                    wire:loading.flex>
+                    wire:loading.flex
+                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, updateImplementations, updateBatches">
                     <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -70,7 +87,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 flex items-center justify-between">
-                        <div class="inline-flex items-center text-indigo-900">
+                        <div class="inline-flex my-2 items-center text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                 viewBox="0, 0, 400,400">
@@ -80,13 +97,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="font-bold m-2">List of Projects</h1>
-
+                            <h1 class="hidden sm:inline-block ms-2 font-bold">List of Projects</h1>
+                            <h1 class="max-[460px]:hidden ms-2 font-bold text-sm sm:hidden">Projects</h1>
+                            <span
+                                class="{{ $totalImplementations ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700 ' }}rounded ms-2 px-2 py-1 font-medium text-xs">{{ $totalImplementations ?? 0 }}</span>
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">
                             {{-- Loading State --}}
-                            {{-- <div class="items-center justify-end z-50 text-indigo-900" wire:loading
+                            <div class="items-center justify-end z-50 text-indigo-900" wire:loading
                                 wire:target="searchProjects">
                                 <svg class="size-4 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                     fill="none" viewBox="0 0 24 24">
@@ -97,18 +116,23 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                     </path>
                                 </svg>
-                            </div> --}}
+                            </div>
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="size-3 text-indigo-500" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                    <svg class="size-3 {{ $this->implementations->isNotEmpty() ? 'text-indigo-800' : 'text-zinc-400' }}"
+                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="project-search" maxlength="100" {{-- wire:model.live="searchProjects" --}}
-                                    class="duration-200 ease-in-out ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="Search for project titles">
+                                <input type="text" id="project-search" maxlength="100" autocomplete="off"
+                                    @if ($this->implementations->isEmpty()) disabled @endif
+                                    @input.debounce.300ms="$wire.searchProjects = $el.value; $wire.$refresh();"
+                                    class="{{ $this->implementations->isNotEmpty()
+                                        ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full"
+                                    placeholder="Search for project numbers">
                             </div>
                             <button data-modal-target="create-modal" data-modal-toggle="create-modal"
                                 class="flex items-center bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 rounded-md px-4 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 duration-200 ease-in-out">
@@ -126,10 +150,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     </div>
 
-                    @if ($implementations)
+                    @if (!$this->implementations->isEmpty())
                         {{-- List of Projects Table --}}
                         <div id="implementations-table"
-                            class="relative min-h-60 max-h-60 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                            class="relative h-[36vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                             <table class="relative w-full text-sm text-left text-indigo-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
@@ -151,25 +175,25 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </tr>
                                 </thead>
                                 <tbody class="relative text-xs">
-                                    @foreach ($implementations as $key => $implementation)
+                                    @foreach ($this->implementations as $key => $implementation)
                                         @php
-                                            $encryptedId = Crypt::encrypt($implementation['id']);
+                                            $encryptedId = Crypt::encrypt($implementation->id);
                                         @endphp
-                                        <tr @if ($beneficiaries) @click="scrollToTop()" @endif
+                                        <tr @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
                                             wire:key="implementation-{{ $key }}"
                                             wire:click.prevent='selectImplementationRow({{ $key }}, "{{ $encryptedId }}")'
-                                            class="relative border-b {{ $selectedImplementationRow === $key ? 'bg-indigo-100 hover:bg-indigo-200' : 'bg-white hover:bg-indigo-50' }}  whitespace-nowrap duration-200 ease-in-out">
-                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium text-indigo-1100">
-                                                {{ $implementation['project_num'] }}
+                                            class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }}  whitespace-nowrap cursor-pointer">
+                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium">
+                                                {{ $implementation->project_num }}
                                             </th>
                                             <td class="pr-6 py-2">
-                                                {{ $implementation['project_title'] }}
+                                                {{ $implementation->project_title }}
                                             </td>
                                             <td class="pr-2 py-2 text-center">
-                                                {{ $implementation['total_slots'] }}
+                                                {{ $implementation->total_slots }}
                                             </td>
                                             <td class="pr-2 py-2 text-center">
-                                                {{ $implementation['days_of_work'] }}
+                                                {{ $implementation->days_of_work }}
                                             </td>
                                             {{-- Implementation Dropdown --}}
                                             <td x-data="iDropdownRotation({{ $key }})" class="py-2 flex">
@@ -177,14 +201,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     id="implementationRowButton-{{ $key }}"
                                                     data-dropdown-placement="left"
                                                     data-dropdown-toggle="implementationRowDropdown-{{ $key }}"
-                                                    class="z-0 mx-1 p-1 font-medium rounded text-indigo-1100 hover:text-indigo-1000 active:text-indigo-900 bg-transparent hover:bg-indigo-200 duration-200 ease-in-out">
+                                                    class="z-0 mx-1 p-1 outline-none rounded duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor"
                                                         :class="{
                                                             'rotate-0': !isVisible(),
                                                             'rotate-90': isVisible(),
                                                         }"
-                                                        class="w-4 duration-300 ease-in-out">
+                                                        class="size-4 transition-transform duration-200 ease-in-out">
                                                         <path fill-rule="evenodd"
                                                             d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
                                                             clip-rule="evenodd" />
@@ -192,8 +216,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 </button>
                                             </td>
                                         </tr>
-                                        @if ($loop->last)
+                                        @if ($this->implementations->count() > 5 && $loop->last)
                                             <tr x-data x-intersect.full="$wire.loadMoreImplementations();">
+
                                             </tr>
                                         @endif
                                     @endforeach
@@ -202,7 +227,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
 
                         {{-- Implementation Dropdown Content --}}
-                        @foreach ($implementations as $key => $implementation)
+                        @foreach ($this->implementations as $key => $implementation)
                             <div wire:key="implementationRowDropdown-{{ $key }}"
                                 id="implementationRowDropdown-{{ $key }}"
                                 class="absolute z-50 hidden bg-white border rounded-md shadow">
@@ -210,13 +235,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     aria-labelledby="implementationRowButton-{{ $key }}">
                                     <li>
                                         <a aria-label="{{ __('View Project') }}"
-                                            class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
+                                            class="rounded-t-md flex items-center outline-none ring-0 justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M101.397 46.276 C 101.173 92.311,101.162 92.594,99.468 95.313 C 95.650 101.440,98.231 101.144,46.280 101.396 L -0.017 101.621 0.187 238.115 L 0.391 374.609 3.063 380.078 C 6.559 387.234,12.766 393.441,19.922 396.937 L 25.391 399.609 150.629 399.814 C 290.080 400.042,279.856 400.425,288.803 394.633 C 296.183 389.855,300.883 383.544,303.595 374.770 L 304.995 370.244 289.411 354.609 C 275.047 340.197,273.645 339.001,271.484 339.321 C 270.195 339.511,265.449 340.426,260.938 341.353 C 235.047 346.675,205.887 340.299,183.868 324.501 L 178.094 320.358 116.976 320.140 C 57.447 319.928,55.792 319.881,53.266 318.359 C 45.856 313.894,45.666 303.603,52.911 299.099 L 55.859 297.266 106.435 297.043 L 157.010 296.821 153.561 290.403 C 151.664 286.873,149.176 281.625,148.032 278.741 L 145.951 273.497 100.905 273.272 C 56.162 273.048,55.841 273.035,53.125 271.343 C 45.806 266.782,45.693 256.712,52.911 252.224 L 55.859 250.391 98.572 250.164 L 141.284 249.937 141.317 240.948 C 141.334 236.004,141.574 230.759,141.849 229.292 L 142.350 226.625 99.105 226.399 C 41.076 226.094,47.266 231.205,47.266 183.594 C 47.266 145.513,47.137 146.438,52.911 142.849 L 55.859 141.016 153.906 141.016 C 244.733 141.016,252.486 141.118,259.186 142.408 C 273.372 145.139,285.766 150.121,297.266 157.716 C 300.273 159.703,303.181 161.613,303.728 161.962 C 304.529 162.474,304.680 149.339,304.509 93.993 L 304.297 25.391 301.625 19.922 C 298.129 12.766,291.921 6.559,284.766 3.063 L 279.297 0.391 190.459 0.182 L 101.621 -0.026 101.397 46.276 M41.797 42.188 L 5.866 78.125 41.995 78.125 L 78.125 78.125 78.125 42.188 C 78.125 22.422,78.036 6.250,77.927 6.250 C 77.817 6.250,61.559 22.422,41.797 42.188 M251.421 48.828 C 258.913 53.343,258.913 63.845,251.421 68.359 C 248.891 69.884,247.443 69.922,191.406 69.922 C 135.370 69.922,133.922 69.884,131.391 68.359 C 122.382 62.930,124.454 50.112,134.749 47.588 C 141.019 46.052,248.713 47.196,251.421 48.828 M251.421 95.703 C 258.913 100.218,258.913 110.720,251.421 115.234 C 248.891 116.759,247.443 116.797,191.406 116.797 C 135.370 116.797,133.922 116.759,131.391 115.234 C 122.316 109.766,124.386 97.023,134.766 94.463 C 140.996 92.926,248.713 94.071,251.421 95.703 M70.313 183.594 L 70.313 203.125 109.598 203.125 L 148.883 203.125 151.469 197.852 C 155.839 188.941,162.490 179.651,170.206 171.680 L 177.580 164.063 123.946 164.063 L 70.313 164.063 70.313 183.594 M226.563 165.184 C 176.220 175.719,149.210 230.954,171.889 276.987 C 200.399 334.854,283.976 334.854,312.486 276.987 C 334.140 233.035,309.949 179.063,262.891 166.340 C 254.916 164.184,234.453 163.532,226.563 165.184 M324.499 300.586 C 319.053 308.219,309.999 317.409,302.148 323.275 C 298.389 326.084,295.313 328.594,295.313 328.852 C 295.313 330.809,362.570 396.223,366.406 397.997 C 386.489 407.286,407.286 386.489,397.997 366.406 C 396.189 362.496,330.790 295.313,328.792 295.313 C 328.500 295.313,326.569 297.686,324.499 300.586 "
+                                                        d="M196.484 30.192 C 193.112 30.921,90.341 91.036,88.733 93.221 C 87.153 95.366,87.099 96.484,86.719 134.490 L 86.328 173.554 75.781 177.394 C -33.739 217.272,-22.890 302.011,95.768 333.518 L 98.958 334.365 96.759 344.331 C 92.647 362.961,95.217 369.852,106.250 369.785 C 109.346 369.766,162.422 349.406,171.174 344.880 C 176.624 342.062,178.462 332.569,174.580 327.300 C 171.295 322.843,127.874 279.583,125.926 278.827 C 115.728 274.870,110.733 279.883,106.915 297.906 L 104.297 310.265 101.953 309.811 C 89.267 307.353,63.261 296.301,50.195 287.815 C 7.311 259.963,19.068 225.316,79.297 202.054 L 86.328 199.339 86.719 210.412 C 86.956 217.124,87.493 222.155,88.084 223.188 C 90.857 228.032,194.289 287.103,200.000 287.103 C 203.857 287.104,294.205 236.696,308.801 226.401 C 312.664 223.676,313.281 221.391,313.281 209.815 L 313.281 199.241 317.773 200.904 C 419.850 238.702,380.629 302.630,244.766 319.905 C 229.129 321.893,227.054 322.693,224.706 327.642 C 221.919 333.513,223.930 340.377,229.378 343.594 C 237.632 348.466,295.155 337.825,328.450 325.266 C 426.552 288.262,424.383 213.945,324.134 177.371 L 313.672 173.554 313.281 134.490 C 312.840 90.412,313.185 92.724,306.590 89.523 C 304.899 88.702,282.070 75.661,255.859 60.541 C 197.763 27.030,201.731 29.058,196.484 30.192 M237.634 78.266 C 258.615 90.375,275.773 100.482,275.763 100.727 C 275.732 101.488,201.314 144.085,200.016 144.085 C 196.374 144.085,123.224 100.464,124.947 99.320 C 127.149 97.858,198.718 56.371,199.158 56.302 C 199.339 56.273,216.653 66.157,237.634 78.266 M149.688 143.951 L 187.891 166.027 188.092 209.967 C 188.203 234.134,188.063 253.906,187.780 253.906 C 187.497 253.906,170.092 243.986,149.102 231.860 L 110.938 209.814 110.938 165.845 C 110.938 141.661,111.061 121.875,111.211 121.875 C 111.362 121.875,128.676 131.809,149.688 143.951 M289.063 165.858 L 289.063 209.842 250.888 231.874 C 229.893 243.992,212.487 253.906,212.210 253.906 C 211.933 253.906,211.797 234.134,211.908 209.967 L 212.109 166.028 250.353 143.952 C 271.387 131.810,288.701 121.875,288.829 121.875 C 288.958 121.875,289.063 141.668,289.063 165.858 M142.969 329.731 C 142.969 330.434,124.202 337.744,123.696 337.238 C 123.329 336.871,126.469 320.979,127.870 316.114 C 128.254 314.783,142.969 328.053,142.969 329.731 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -226,14 +251,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </li>
                                     <li>
                                         <a aria-label="{{ __('Modify Project') }}"
-                                            class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
+                                            class="rounded-b-md flex items-center outline-none ring-0 justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M303.516 1.151 C 303.086 1.286,300.186 1.817,297.070 2.332 L 291.406 3.267 291.406 13.161 L 291.406 23.055 286.776 24.850 C 284.230 25.837,279.286 28.560,275.789 30.901 C 268.179 35.995,269.993 36.042,260.547 30.499 L 252.734 25.914 250.479 27.996 C 242.118 35.714,226.598 64.358,229.308 67.068 C 229.581 67.341,233.185 69.506,237.318 71.880 L 244.832 76.195 244.890 89.111 L 244.948 102.027 236.943 106.605 C 227.905 111.774,228.276 110.842,231.644 119.932 C 235.614 130.648,241.667 140.650,248.649 148.031 L 252.734 152.350 260.813 147.659 C 270.417 142.083,268.427 142.249,274.532 146.517 C 277.323 148.468,282.262 151.291,285.507 152.790 L 291.406 155.516 291.406 165.151 L 291.406 174.786 298.242 176.146 C 307.129 177.914,321.538 177.925,331.055 176.170 L 338.281 174.838 338.281 164.954 L 338.281 155.070 342.911 153.275 C 345.457 152.288,350.414 149.556,353.927 147.205 L 360.313 142.931 368.633 147.708 L 376.953 152.485 380.342 148.748 C 387.935 140.373,394.881 128.579,398.409 118.072 C 400.664 111.353,400.684 111.388,391.797 106.226 C 385.964 102.839,384.034 101.327,384.179 100.259 C 384.615 97.052,384.467 80.715,383.984 78.792 C 383.493 76.838,383.902 76.476,391.414 72.223 C 395.785 69.748,399.536 67.269,399.749 66.716 C 401.432 62.330,389.916 40.052,380.692 29.849 L 376.953 25.713 368.827 30.435 C 359.151 36.057,361.132 35.919,354.408 31.438 C 351.339 29.393,346.473 26.669,343.594 25.384 L 338.361 23.047 338.126 13.281 L 337.891 3.516 331.641 2.214 C 326.163 1.074,306.162 0.317,303.516 1.151 M327.682 60.017 C 359.999 75.140,347.796 123.308,312.265 120.873 C 286.986 119.140,273.851 88.930,289.784 69.170 C 298.991 57.753,314.723 53.953,327.682 60.017 M161.866 114.621 C 161.471 115.388,159.505 120.410,157.497 125.781 L 153.846 135.547 141.572 135.581 C 134.821 135.600,128.418 135.844,127.344 136.122 C 125.476 136.607,125.187 136.166,120.750 126.046 C 118.198 120.225,115.679 115.297,115.152 115.095 C 109.188 112.806,60.133 134.492,55.945 141.268 C 55.748 141.587,57.686 146.585,60.251 152.376 L 64.915 162.905 57.202 170.710 C 52.960 175.003,48.598 179.697,47.509 181.141 L 45.528 183.767 35.067 179.774 C 22.138 174.840,23.441 174.701,19.224 181.466 C 11.509 193.844,4.697 210.957,1.583 225.781 C -0.921 237.703,-1.558 236.557,9.961 240.858 C 15.439 242.904,20.322 244.831,20.811 245.140 C 21.404 245.516,21.797 250.423,21.990 259.864 L 22.281 274.025 11.870 278.577 C 6.144 281.081,1.305 283.379,1.116 283.684 C -1.798 288.398,20.533 339.150,27.384 343.385 C 27.717 343.590,32.748 341.603,38.564 338.969 L 49.139 334.180 55.624 340.769 C 59.191 344.393,63.904 348.766,66.097 350.486 L 70.084 353.615 65.902 364.497 C 63.601 370.483,61.719 375.613,61.719 375.898 C 61.719 376.674,72.958 383.252,80.078 386.643 C 92.123 392.380,109.257 397.767,119.160 398.931 L 123.202 399.406 126.333 391.305 C 128.055 386.849,129.936 381.885,130.514 380.273 L 131.564 377.344 143.516 377.192 C 150.090 377.108,156.542 377.020,157.854 376.997 C 160.173 376.954,160.370 377.246,164.915 387.464 C 167.486 393.245,169.680 398.065,169.790 398.175 C 170.984 399.370,193.632 391.863,204.636 386.625 C 214.000 382.168,229.688 372.474,229.688 371.145 C 229.688 370.790,227.609 365.826,225.068 360.113 L 220.448 349.726 226.178 344.374 C 229.330 341.431,233.721 336.789,235.936 334.059 L 239.963 329.096 250.905 333.305 C 263.545 338.167,262.147 338.401,266.681 330.664 C 275.931 314.880,288.526 278.890,285.765 276.130 C 285.624 275.989,280.655 274.007,274.723 271.726 L 263.937 267.578 263.692 254.688 C 263.557 247.598,263.217 241.237,262.937 240.552 C 262.530 239.559,264.647 238.313,273.401 234.391 C 285.846 228.817,285.165 229.918,282.441 219.748 C 278.212 203.962,271.838 189.792,262.780 176.037 C 257.678 168.290,258.883 168.430,246.401 174.134 L 236.328 178.738 228.802 171.172 C 224.662 167.012,220.007 162.743,218.456 161.686 C 214.999 159.332,214.887 160.714,219.531 148.437 C 224.443 135.454,224.854 137.012,215.039 131.413 C 201.929 123.933,189.239 118.936,175.391 115.802 C 163.555 113.122,162.678 113.045,161.866 114.621 M158.594 193.865 C 207.759 206.194,223.725 268.978,186.493 303.574 C 153.132 334.572,99.094 322.263,82.653 279.922 C 63.723 231.170,107.867 181.145,158.594 193.865 "
+                                                        d="M73.654 21.493 C 57.244 25.059,43.944 37.290,38.832 53.516 L 37.109 58.984 37.109 200.000 L 37.109 341.016 38.832 346.484 C 44.001 362.890,57.287 374.996,74.011 378.540 C 78.301 379.449,89.313 379.663,132.452 379.674 L 185.606 379.687 189.089 377.930 C 197.816 373.525,198.464 361.986,190.325 355.908 C 188.207 354.326,187.188 354.290,133.342 353.906 C 71.185 353.463,74.722 353.845,68.479 346.914 C 62.361 340.123,62.891 354.043,62.891 200.000 L 62.891 62.109 64.687 58.462 C 65.675 56.456,68.015 53.403,69.887 51.678 C 76.184 45.873,72.988 46.094,150.881 46.094 L 220.229 46.094 220.466 76.777 L 220.703 107.459 223.261 112.653 C 230.648 127.651,235.336 129.222,273.633 129.529 L 303.906 129.772 303.906 158.334 C 303.906 185.979,303.959 186.991,305.561 189.841 C 310.258 198.199,323.311 198.051,327.941 189.587 C 329.656 186.454,330.450 126.522,328.885 118.359 C 327.048 108.771,326.294 107.889,283.368 65.114 C 241.714 23.606,241.100 23.073,232.650 21.124 C 227.078 19.839,79.693 20.181,73.654 21.493 M267.077 103.726 C 243.712 103.997,246.094 106.362,246.094 82.893 L 246.094 64.465 265.632 83.990 L 285.170 103.516 267.077 103.726 M96.971 103.891 C 86.128 106.520,83.634 120.880,92.931 127.146 L 95.544 128.906 137.434 128.906 L 179.325 128.906 182.129 127.001 C 189.779 121.802,189.297 109.849,181.247 105.120 C 178.324 103.403,103.484 102.312,96.971 103.891 M92.931 164.260 C 85.267 169.425,85.267 180.575,92.931 185.740 L 95.544 187.500 174.920 187.497 C 252.748 187.494,254.347 187.464,256.843 185.942 C 264.551 181.242,264.551 168.758,256.843 164.058 C 254.347 162.536,252.748 162.506,174.920 162.503 L 95.544 162.500 92.931 164.260 M264.844 204.939 C 256.120 206.628,254.875 207.872,249.987 219.775 C 245.390 230.969,243.780 231.875,231.016 230.453 C 216.581 228.844,213.893 230.325,204.750 244.928 C 193.227 263.331,192.908 269.027,202.697 281.565 C 209.871 290.751,209.841 292.493,202.353 302.168 C 192.905 314.377,193.082 318.102,204.018 337.215 C 212.564 352.152,217.046 354.770,230.895 352.910 L 239.989 351.689 243.389 353.742 C 246.413 355.569,247.106 356.574,249.673 362.859 C 255.097 376.137,256.621 377.371,269.563 378.962 C 292.950 381.838,302.199 378.265,308.140 364.063 C 311.296 356.520,311.854 355.692,315.086 353.778 L 318.601 351.696 326.683 352.852 C 342.157 355.064,348.387 350.573,358.197 330.132 C 364.864 316.242,364.674 313.537,356.268 302.585 C 348.565 292.550,348.587 290.936,356.569 280.362 C 365.509 268.520,364.633 261.091,352.126 242.653 C 343.300 229.642,340.951 228.575,325.618 230.617 C 315.060 232.023,312.874 230.627,308.393 219.621 C 304.614 210.342,301.807 206.940,296.772 205.535 C 291.765 204.138,270.986 203.750,264.844 204.939 M94.141 221.871 C 85.580 226.138,84.599 238.340,92.371 243.884 L 94.922 245.703 129.044 245.703 C 162.289 245.703,163.222 245.662,165.324 244.092 C 173.464 238.015,172.816 226.475,164.089 222.070 C 158.952 219.477,99.285 219.307,94.141 221.871 M287.291 236.719 C 290.896 245.459,292.223 247.189,297.090 249.497 C 299.335 250.562,302.500 252.337,304.123 253.442 C 311.171 258.239,313.421 258.547,326.953 256.566 C 330.062 256.110,330.091 256.130,332.733 260.509 L 335.387 264.910 332.946 268.197 C 331.604 270.005,329.236 273.290,327.684 275.497 L 324.862 279.511 324.805 290.732 C 324.738 304.126,324.764 304.223,330.624 311.922 L 335.239 317.985 332.716 322.720 C 330.609 326.672,329.925 327.379,328.573 327.004 C 327.682 326.756,323.262 326.337,318.750 326.073 L 310.547 325.593 306.589 328.335 C 304.413 329.843,300.722 332.034,298.386 333.203 C 292.195 336.302,291.065 337.646,287.461 346.186 L 284.203 353.906 279.168 353.906 L 274.132 353.906 272.441 349.805 C 267.996 339.021,266.240 336.445,261.719 334.082 C 259.355 332.846,255.208 330.421,252.502 328.693 L 247.583 325.550 239.612 326.039 C 235.228 326.307,230.892 326.741,229.978 327.002 C 228.590 327.398,227.913 326.772,225.876 323.213 C 222.786 317.811,222.686 318.423,227.718 311.946 C 233.417 304.611,233.594 303.984,233.591 291.160 C 233.588 278.746,233.645 278.923,226.665 270.030 L 223.070 265.451 225.476 261.046 C 227.717 256.944,228.066 256.651,230.543 256.788 C 246.958 257.696,247.881 257.603,252.459 254.573 C 254.826 253.007,258.535 250.827,260.701 249.729 C 265.917 247.086,267.839 244.636,271.101 236.470 L 273.828 229.645 279.190 229.862 L 284.551 230.078 287.291 236.719 M271.892 271.841 C 258.218 276.561,253.528 294.319,263.025 305.414 C 270.970 314.695,287.426 314.994,295.024 305.994 C 309.248 289.146,292.669 264.669,271.892 271.841 M93.913 280.196 C 84.324 284.971,85.045 299.439,95.080 303.632 C 100.082 305.722,159.760 305.115,164.089 302.930 C 172.816 298.525,173.464 286.986,165.325 280.908 C 162.300 278.648,98.303 278.010,93.913 280.196 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -245,11 +269,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                         @endforeach
                     @else
-                        <div class="relative bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
+                        <div
+                            class="relative bg-white px-4 pb-4 pt-2 h-[36vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
+                                <svg xmlns="http://www.w3.org/2000/svg" class=" size-12 sm:size-20 mb-4 text-gray-300"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -259,7 +283,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                                 <p>No projects found.</p>
-                                <p>Try creating a <span class="animate-pulse text-indigo-900">new project</span>.</p>
+                                <p>Try creating a <span class=" text-indigo-900">new project</span>.</p>
                             </div>
                         </div>
                     @endif
@@ -271,7 +295,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- Batch Assignments --}}
                 <div class="relative lg:col-span-2 h-full w-full rounded bg-white shadow">
                     <div class="relative flex justify-between max-h-12 items-center">
-                        <div class="inline-flex items-center text-indigo-900">
+                        <div class="inline-flex items-center my-2 text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                 viewBox="0, 0, 400,400">
@@ -281,18 +305,18 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="font-bold m-2">Batches</h1>
+                            <h1 class="max-[460px]:hidden ms-2 font-bold text-sm sm:text-base">Batches</h1>
                         </div>
                         {{-- Assign Button --}}
                         <div class="mx-2 flex items-center">
                             @if ($remainingBatchSlots || $remainingBatchSlots === 0)
                                 <p class="text-xs text-indigo-1100 capitalize font-light me-1">remaining slots:</p>
                                 <div
-                                    class="{{ $remainingBatchSlots > 0 ? 'bg-indigo-300 text-indigo-1000' : 'bg-red-300 text-red-900' }} rounded-md py-1 px-2 text-xs me-2">
+                                    class="{{ $remainingBatchSlots > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700' }} rounded-md py-1 px-2 text-xs me-2">
                                     {{ $remainingBatchSlots }}</div>
                             @endif
                             <button @if (!$remainingBatchSlots || $remainingBatchSlots === null || $remainingBatchSlots === 0) disabled @endif
-                                @if ($implementations) data-modal-target="assign-batches-modal" data-modal-toggle="assign-batches-modal" @endif
+                                @if (!$this->implementations->isEmpty()) data-modal-target="assign-batches-modal" data-modal-toggle="assign-batches-modal" @endif
                                 class="flex items-center rounded-md px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $remainingBatchSlots > 0 ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }}">
                                 ASSIGN
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
@@ -307,10 +331,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     </div>
 
-                    @if ($batches)
+                    @if ($this->batches->isNotEmpty())
                         {{-- Table --}}
                         <div id="batches-table"
-                            class="relative min-h-60 max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                            class="relative h-[36vh] overflow-y-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
 
                             <table class="relative w-full text-sm text-left text-indigo-1100">
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
@@ -330,25 +354,24 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </tr>
                                 </thead>
                                 <tbody class="text-xs relative">
-                                    @foreach ($batches as $key => $batch)
+                                    @foreach ($this->batches as $key => $batch)
                                         @php
-                                            $batchEncryptedId = encrypt($batch['batches_id']);
+                                            $encryptedId = encrypt($batch->id);
                                         @endphp
-                                        <tr @if ($beneficiaries) @click="scrollToTop()" @endif
-                                            wire:click='selectBatchRow({{ $key }}, "{{ $batchEncryptedId }}")'
+                                        <tr @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
+                                            wire:click='selectBatchRow({{ $key }}, "{{ $encryptedId }}")'
                                             wire:key='batch-{{ $key }}'
-                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-indigo-100 hover:bg-indigo-200' : 'bg-white hover:bg-indigo-50' }} whitespace-nowrap duration-200 ease-in-out">
-                                            <th scope="row"
-                                                class="z-0 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap">
-                                                {{ $batch['barangay_name'] }}
+                                            class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-200' : ' hover:bg-gray-50' }}">
+                                            <th scope="row" class="z-0 ps-4 py-2 font-medium">
+                                                {{ $batch->barangay_name }}
                                             </th>
                                             <td class="px-2 py-2 text-center">
-                                                {{ $batch['current_slots'] . ' / ' . $batch['slots_allocated'] }}
+                                                {{ $batch->current_slots . ' / ' . $batch->slots_allocated }}
                                             </td>
                                             <td class="py-2">
                                                 <p
-                                                    class="px-1 py-1 text-xs rounded font-semibold uppercase {{ $batch['approval_status'] === 'approved' ? 'bg-green-300 text-green-1000' : 'bg-gray-500 text-gray-50' }}  text-center">
-                                                    {{ $batch['approval_status'] }}
+                                                    class="px-1 py-1 text-xs rounded font-semibold uppercase {{ $batch->approval_status === 'approved' ? 'bg-green-300 text-green-950' : 'bg-amber-300 text-amber-950' }}  text-center">
+                                                    {{ $batch->approval_status }}
                                                 </p>
                                             </td>
                                             <td x-data="bDropdownRotation({{ $key }})" class="py-2 flex">
@@ -356,14 +379,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     id="batchRowButton-{{ $key }}"
                                                     data-dropdown-placement="left"
                                                     data-dropdown-toggle="batchRowDropdown-{{ $key }}"
-                                                    class="z-0 mx-1 p-1 font-medium rounded text-indigo-1100 hover:text-indigo-1000 active:text-indigo-900 bg-transparent hover:bg-indigo-200 duration-200 ease-in-out">
+                                                    class="z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor"
                                                         :class="{
                                                             'rotate-0': !isVisible(),
                                                             'rotate-90': isVisible(),
                                                         }"
-                                                        class="w-4 duration-300 ease-in-out">
+                                                        class="size-4 transition-transform duration-200 ease-in-out">
                                                         <path fill-rule="evenodd"
                                                             d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
                                                             clip-rule="evenodd" />
@@ -377,7 +400,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
 
                         {{-- Batch Assignment Dropdown Content --}}
-                        @foreach ($batches as $key => $batch)
+                        @foreach ($this->batches as $key => $batch)
                             <div wire:key="batchRowDropdown-{{ $key }}"
                                 id="batchRowDropdown-{{ $key }}"
                                 class="absolute z-50 hidden bg-white border rounded-md shadow">
@@ -386,12 +409,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <li>
                                         <a aria-label="{{ __('View Batch') }}"
                                             class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M74.625 33.647 C 56.792 36.627,41.748 49.646,35.409 67.586 L 33.203 73.828 33.203 184.766 C 33.203 308.132,32.802 299.063,38.814 311.624 C 62.789 361.720,136.742 346.764,142.089 290.738 C 142.998 281.216,145.733 277.386,152.795 275.748 C 154.514 275.349,187.491 275.029,227.930 275.019 L 300.000 275.000 300.000 175.164 C 300.000 88.745,299.842 74.703,298.821 70.672 C 294.245 52.593,278.449 37.678,259.994 34.009 C 253.260 32.671,82.462 32.337,74.625 33.647 M186.328 105.856 C 215.777 112.001,235.400 144.491,226.672 172.656 C 216.615 205.110,181.515 221.086,151.953 206.664 L 146.484 203.996 134.766 215.569 C 120.189 229.965,116.053 231.672,109.370 226.048 C 100.922 218.939,102.562 213.704,118.196 197.882 L 129.166 186.780 126.747 181.476 C 108.102 140.585,142.646 96.741,186.328 105.856 M166.797 129.956 C 134.752 140.584,140.324 186.077,173.828 187.362 C 205.968 188.594,216.609 145.430,187.535 131.761 C 181.633 128.986,172.198 128.165,166.797 129.956 M174.928 301.815 C 170.075 304.372,166.358 309.670,163.735 317.766 C 154.784 345.393,134.830 361.993,105.469 366.236 C 102.127 366.719,135.285 367.007,202.437 367.079 C 312.875 367.196,311.266 367.251,322.958 363.007 C 342.029 356.085,357.742 339.730,363.780 320.518 C 366.711 311.192,365.064 305.682,358.180 301.783 L 355.078 300.026 266.724 300.013 L 178.371 300.000 174.928 301.815 "
+                                                        d="M71.617 21.558 C 51.223 25.243,33.333 39.869,25.137 59.558 C 20.097 71.665,20.245 67.317,20.491 195.786 L 20.714 312.109 22.857 319.922 C 30.573 348.061,51.916 369.406,80.078 377.149 L 87.891 379.297 200.000 379.297 L 312.109 379.297 319.922 377.149 C 347.610 369.536,370.049 347.384,376.651 321.146 C 380.109 307.402,375.034 296.156,362.625 290.062 L 358.203 287.891 335.352 287.652 L 312.500 287.413 312.495 181.011 C 312.489 78.631,312.432 74.373,310.983 68.359 C 304.999 43.526,284.308 24.729,258.984 21.122 C 249.697 19.800,79.154 20.196,71.617 21.558 M262.109 48.353 C 276.330 54.023,285.054 65.152,286.734 79.771 C 287.180 83.651,287.491 127.384,287.494 186.894 L 287.500 287.460 231.055 287.675 L 174.609 287.891 170.112 290.170 C 161.307 294.631,155.585 302.296,151.400 315.234 C 134.637 367.059,63.663 365.987,47.940 313.672 C 46.209 307.911,45.235 87.071,46.898 77.344 C 49.379 62.839,60.755 50.750,75.272 47.193 C 78.410 46.424,98.911 46.238,168.359 46.346 L 257.422 46.484 262.109 48.353 M162.109 105.373 C 127.997 113.804,110.480 151.846,126.319 183.103 L 128.267 186.948 116.952 198.357 C 102.863 212.562,101.566 215.259,105.275 222.641 C 110.919 233.874,119.603 232.151,135.206 216.701 L 146.584 205.435 151.823 207.810 C 177.370 219.394,209.084 209.427,222.248 185.677 C 245.561 143.617,208.360 93.942,162.109 105.373 M186.888 132.332 C 199.280 138.248,206.059 152.104,202.795 164.846 C 195.322 194.018,154.678 194.018,147.205 164.846 C 141.415 142.246,165.802 122.265,186.888 132.332 M350.728 313.232 C 352.139 314.125,351.052 318.154,347.660 324.602 C 340.723 337.790,328.575 347.600,313.672 352.051 C 309.110 353.413,159.375 354.864,159.375 353.546 C 159.375 353.319,161.045 351.060,163.086 348.527 C 168.055 342.360,172.861 333.154,175.786 324.203 C 178.237 316.704,179.647 314.374,182.422 313.239 C 184.593 312.350,349.324 312.343,350.728 313.232 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -402,12 +425,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <li>
                                         <a aria-label="{{ __('Modify Batch') }}"
                                             class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M188.246 15.408 C 180.440 36.740,180.294 36.947,171.098 39.805 C 166.872 41.117,159.905 43.948,155.616 46.096 C 145.999 50.910,146.595 50.921,134.375 45.703 C 121.889 40.371,123.039 40.277,115.773 47.220 C 106.717 55.872,106.899 54.747,112.459 67.746 C 118.094 80.920,117.971 79.031,113.717 86.921 C 111.808 90.462,108.836 97.543,107.114 102.657 C 103.312 113.945,104.791 112.513,91.286 117.991 L 80.078 122.537 80.078 133.339 L 80.078 144.141 90.870 148.509 C 103.680 153.694,103.958 153.944,106.564 162.615 C 107.681 166.330,110.547 173.287,112.934 178.074 C 116.090 184.405,117.126 187.250,116.730 188.507 C 116.431 189.457,114.303 194.609,112.000 199.956 C 106.820 211.983,106.491 210.043,115.176 218.691 L 122.539 226.024 133.730 221.210 C 147.152 215.436,145.622 215.498,155.137 220.343 C 159.390 222.508,166.285 225.362,170.460 226.685 C 179.748 229.630,179.554 229.418,184.713 242.276 L 188.910 252.734 191.916 253.275 C 195.778 253.970,204.222 253.970,208.084 253.275 L 211.090 252.734 215.315 242.205 C 220.421 229.480,220.166 229.742,230.859 226.203 C 235.586 224.638,242.350 221.794,245.891 219.882 C 253.930 215.542,253.091 215.491,266.016 221.094 C 271.963 223.672,276.992 225.781,277.192 225.781 C 278.041 225.781,292.188 211.344,292.188 210.477 C 292.188 209.952,290.078 204.592,287.500 198.565 C 281.899 185.470,281.953 188.330,287.109 177.988 C 289.472 173.248,292.319 166.330,293.436 162.615 C 296.042 153.944,296.320 153.694,309.130 148.509 L 319.922 144.141 319.922 133.253 L 319.922 122.365 308.634 117.825 C 295.069 112.368,296.677 113.908,292.918 102.778 C 291.214 97.731,288.189 90.463,286.196 86.628 L 282.573 79.655 287.469 67.981 L 292.365 56.308 289.936 53.242 C 286.567 48.987,278.260 41.406,276.968 41.406 C 276.381 41.406,271.308 43.340,265.694 45.703 C 253.306 50.919,253.993 50.906,244.384 46.096 C 240.095 43.948,233.097 41.108,228.834 39.783 C 219.954 37.024,220.936 38.172,215.171 23.828 L 211.090 13.672 200.065 13.455 L 189.040 13.238 188.246 15.408 M211.722 48.004 C 270.040 56.795,302.909 118.304,277.349 170.814 C 243.761 239.817,144.582 233.803,118.492 161.181 C 97.259 102.077,149.526 38.627,211.722 48.004 M191.308 60.137 C 138.528 66.796,109.522 125.507,136.572 170.925 C 166.540 221.241,240.891 218.041,266.402 165.336 C 291.473 113.539,248.227 52.955,191.308 60.137 M204.492 89.526 C 208.879 94.435,205.486 98.897,196.520 100.011 C 181.959 101.820,171.036 111.192,167.545 124.872 C 166.078 130.620,166.333 131.254,169.205 128.995 C 173.855 125.337,180.641 129.132,179.264 134.620 C 178.700 136.867,163.567 151.986,161.172 152.696 C 157.250 153.858,140.625 138.401,140.625 133.593 C 140.625 128.020,146.972 125.554,151.503 129.366 L 153.906 131.389 153.906 129.612 C 153.906 122.215,159.740 109.258,166.221 102.257 C 177.503 90.071,198.684 83.025,204.492 89.526 M251.022 122.539 C 259.704 131.351,260.847 133.565,258.374 136.786 C 255.770 140.178,252.013 140.367,248.636 137.277 C 246.475 135.299,246.642 135.057,245.091 142.424 C 241.242 160.705,227.249 174.631,208.802 178.540 C 200.790 180.238,198.680 180.050,196.034 177.404 C 190.933 172.304,193.721 168.222,203.266 166.812 C 218.550 164.555,228.843 155.617,232.472 141.452 C 233.887 135.928,233.568 134.985,231.052 137.250 C 227.436 140.505,222.652 139.646,221.059 135.455 C 219.775 132.078,220.973 130.103,229.247 121.961 C 240.124 111.258,239.898 111.252,251.022 122.539 M56.250 190.681 C 13.876 207.932,13.281 208.245,13.281 213.281 C 13.281 218.328,14.187 218.836,46.875 232.120 C 63.848 239.017,104.910 255.706,138.124 269.205 C 171.338 282.705,199.199 293.750,200.037 293.750 C 201.176 293.750,327.705 242.741,378.720 221.716 C 386.520 218.501,389.175 213.284,385.352 208.685 C 384.150 207.240,303.352 173.682,302.736 174.373 C 302.620 174.503,301.088 177.482,299.331 180.994 L 296.138 187.378 300.413 197.500 C 306.736 212.472,306.283 214.483,293.758 227.044 C 280.987 239.851,278.874 240.317,263.758 233.651 L 254.470 229.554 246.961 233.046 C 242.832 234.966,237.520 237.152,235.156 237.903 C 229.414 239.729,229.471 239.666,226.564 247.475 C 220.087 264.871,218.447 266.016,200.000 266.015 C 181.658 266.015,180.600 265.325,174.228 249.219 C 170.362 239.447,170.747 239.857,162.891 237.137 C 159.453 235.946,154.219 233.754,151.260 232.266 L 145.879 229.560 136.025 233.721 C 120.690 240.196,118.962 239.812,106.327 227.113 C 93.508 214.229,93.162 212.715,99.567 197.548 L 103.822 187.474 100.642 180.847 C 98.893 177.201,97.242 174.237,96.973 174.260 C 96.704 174.282,78.379 181.672,56.250 190.681 M28.146 248.769 C 13.380 254.885,9.824 259.082,14.648 264.700 C 16.634 267.012,198.824 340.893,201.119 340.317 C 206.724 338.911,384.182 266.087,385.352 264.714 C 387.392 262.317,387.177 256.932,384.961 254.951 C 382.486 252.739,359.492 243.538,357.499 243.962 C 356.597 244.154,321.934 258.158,280.469 275.081 C 207.827 304.728,204.893 305.850,200.000 305.844 C 195.116 305.839,192.033 304.659,119.531 275.054 C 78.066 258.122,43.262 244.155,42.188 244.015 C 41.072 243.871,35.049 245.910,28.146 248.769 M29.279 295.052 C 14.811 300.941,13.281 302.049,13.281 306.641 C 13.281 311.688,13.976 312.051,57.433 329.720 C 79.771 338.802,120.455 355.343,147.842 366.476 C 175.735 377.815,198.698 386.719,200.048 386.719 C 203.183 386.719,382.529 313.820,384.920 311.574 C 387.440 309.206,387.425 304.061,384.891 301.680 C 383.885 300.736,377.506 297.735,370.713 295.011 L 358.363 290.059 352.033 292.618 C 348.552 294.025,314.063 308.077,275.391 323.845 C 211.402 349.936,204.657 352.523,200.391 352.610 C 196.194 352.695,112.381 319.637,44.513 291.127 C 41.810 289.992,41.538 290.062,29.279 295.052 "
+                                                        d="M176.172 0.866 C 39.197 17.293,-40.484 164.748,20.497 288.953 C 29.087 306.450,36.003 310.571,44.614 303.326 C 50.749 298.164,50.555 294.541,43.372 280.107 C 9.509 212.062,20.775 133.717,72.283 79.059 C 129.590 18.247,226.155 6.192,294.257 51.347 L 298.705 54.297 286.266 54.688 C 274.832 55.047,273.622 55.225,271.277 56.898 C 264.072 62.037,264.854 73.610,272.672 77.538 C 275.121 78.768,278.406 78.904,305.753 78.905 C 348.827 78.907,345.313 82.418,345.313 39.372 C 345.313 2.944,344.407 -0.003,333.215 0.001 C 323.356 0.005,321.573 3.447,321.094 23.404 L 320.703 39.668 311.097 33.250 C 272.687 7.585,221.862 -4.614,176.172 0.866 M358.203 94.853 C 353.887 96.771,350.781 101.466,350.781 106.070 C 350.781 107.205,353.576 113.774,356.992 120.668 C 394.427 196.219,374.965 285.427,309.680 337.540 C 251.787 383.752,167.820 388.701,107.031 349.483 L 101.172 345.703 113.672 345.313 C 125.171 344.953,126.376 344.776,128.723 343.102 C 135.928 337.963,135.146 326.390,127.328 322.462 C 124.879 321.232,121.594 321.096,94.247 321.095 C 51.173 321.093,54.688 317.582,54.688 360.628 C 54.688 397.056,55.593 400.003,66.785 399.999 C 76.648 399.995,78.427 396.556,78.906 376.572 L 79.297 360.284 89.755 367.271 C 152.885 409.449,238.727 411.239,303.483 371.727 C 391.984 317.728,425.313 205.636,380.445 112.891 C 371.637 94.684,367.016 90.936,358.203 94.853 M170.032 96.014 C 165.534 98.980,164.855 101.011,164.849 111.512 L 164.844 121.071 160.352 123.352 C 157.881 124.607,154.503 126.561,152.845 127.695 L 149.830 129.756 142.025 125.337 C 126.701 116.660,125.282 117.574,108.173 147.141 L 95.135 169.672 95.469 174.290 C 95.889 180.096,97.719 182.169,107.227 187.611 L 114.063 191.524 114.063 199.986 L 114.063 208.449 106.445 212.873 C 97.369 218.145,95.890 219.889,95.461 225.826 L 95.141 230.239 107.706 252.063 C 125.206 282.458,126.617 283.387,142.025 274.663 L 149.830 270.244 152.845 272.305 C 154.503 273.439,157.881 275.393,160.352 276.648 L 164.844 278.929 164.849 288.488 C 164.858 305.753,164.248 305.458,200.000 305.458 C 235.752 305.458,235.142 305.753,235.151 288.488 L 235.156 278.929 239.648 276.648 C 242.119 275.393,245.497 273.439,247.155 272.305 L 250.170 270.244 257.975 274.663 C 273.373 283.381,274.750 282.476,292.274 252.122 L 304.864 230.314 304.531 225.703 C 304.111 219.905,302.278 217.829,292.773 212.389 L 285.938 208.476 285.938 200.000 L 285.938 191.524 292.773 187.611 C 302.281 182.169,304.111 180.096,304.531 174.290 L 304.865 169.672 291.827 147.141 C 274.718 117.574,273.299 116.660,257.975 125.337 L 250.170 129.756 247.155 127.695 C 245.497 126.561,242.119 124.607,239.648 123.352 L 235.156 121.071 235.151 111.512 C 235.145 101.011,234.466 98.980,229.968 96.014 C 226.530 93.748,173.470 93.748,170.032 96.014 M211.719 126.170 L 211.719 134.370 214.544 137.498 C 216.098 139.218,217.727 140.625,218.165 140.625 C 220.291 140.625,233.858 147.960,238.934 151.854 C 246.536 157.686,250.435 157.936,258.780 153.125 C 261.761 151.406,264.439 150.000,264.732 150.000 C 265.290 150.000,275.781 167.696,275.781 168.638 C 275.781 168.937,273.128 170.755,269.885 172.677 C 261.029 177.926,261.396 176.775,261.290 199.609 C 261.182 222.745,260.970 222.060,269.871 227.323 C 273.122 229.245,275.781 231.063,275.781 231.362 C 275.781 232.304,265.290 250.000,264.732 250.000 C 264.439 250.000,261.761 248.594,258.780 246.875 C 250.435 242.064,246.536 242.314,238.934 248.146 C 234.038 251.902,220.418 259.320,218.269 259.401 C 217.271 259.439,214.620 261.801,213.062 264.041 C 212.004 265.562,211.719 267.680,211.719 274.002 L 211.719 282.031 200.000 282.031 L 188.281 282.031 188.281 273.830 L 188.281 265.630 185.456 262.502 C 183.902 260.782,182.273 259.375,181.835 259.375 C 179.709 259.375,166.142 252.040,161.066 248.146 C 153.464 242.314,149.565 242.064,141.220 246.875 C 138.239 248.594,135.551 250.000,135.247 250.000 C 134.722 250.000,124.845 233.288,124.397 231.641 C 124.280 231.211,126.844 229.294,130.096 227.380 C 139.022 222.125,138.818 222.784,138.710 199.609 C 138.604 176.748,138.951 177.833,130.063 172.601 C 126.830 170.698,124.280 168.789,124.397 168.359 C 124.845 166.712,134.722 150.000,135.247 150.000 C 135.551 150.000,138.239 151.406,141.220 153.125 C 149.565 157.936,153.464 157.686,161.066 151.854 C 166.142 147.960,179.709 140.625,181.835 140.625 C 182.273 140.625,183.902 139.218,185.456 137.498 L 188.281 134.370 188.281 126.170 L 188.281 117.969 200.000 117.969 L 211.719 117.969 211.719 126.170 M186.674 158.818 C 140.355 174.609,150.935 242.824,199.722 242.949 C 249.787 243.076,259.825 172.556,211.772 158.291 C 205.287 156.366,193.118 156.621,186.674 158.818 M208.039 182.901 C 225.967 191.898,220.095 218.750,200.199 218.750 C 179.935 218.750,173.728 192.293,191.797 182.937 C 196.134 180.691,203.603 180.675,208.039 182.901 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -419,32 +442,59 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                         @endforeach
                     @else
-                        <div class="relative bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
+                        <div
+                            class="relative bg-white px-4 pb-4 pt-2 h-[36vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                    viewBox="0, 0, 400,400">
-                                    <g>
-                                        <path
-                                            d="M178.125 0.827 C 46.919 16.924,-34.240 151.582,13.829 273.425 C 21.588 293.092,24.722 296.112,36.372 295.146 C 48.440 294.145,53.020 282.130,46.568 268.403 C 8.827 188.106,45.277 89.951,128.125 48.784 C 171.553 27.204,219.595 26.272,266.422 46.100 C 283.456 53.313,294.531 48.539,294.531 33.984 C 294.531 23.508,289.319 19.545,264.116 10.854 C 238.096 1.882,202.941 -2.217,178.125 0.827 M377.734 1.457 C 373.212 3.643,2.843 374.308,1.198 378.295 C -4.345 391.732,9.729 404.747,23.047 398.500 C 28.125 396.117,397.977 25.550,399.226 21.592 C 403.452 8.209,389.945 -4.444,377.734 1.457 M359.759 106.926 C 348.924 111.848,347.965 119.228,355.735 137.891 C 411.741 272.411,270.763 412.875,136.719 356.108 C 120.384 349.190,113.734 349.722,107.773 358.421 C 101.377 367.755,106.256 378.058,119.952 384.138 C 163.227 403.352,222.466 405.273,267.578 388.925 C 375.289 349.893,429.528 225.303,383.956 121.597 C 377.434 106.757,370.023 102.263,359.759 106.926 "
-                                            stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                    </g>
-                                </svg>
-                                <p>No assignments found.</p>
-                                @if ($implementations)
-                                    <p>Try assigning a <span class="animate-pulse text-indigo-900">new batch</span>.
+                                @if (!$implementationId)
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class=" size-12 sm:size-20 mb-4 text-gray-300"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M178.125 0.827 C 46.919 16.924,-34.240 151.582,13.829 273.425 C 21.588 293.092,24.722 296.112,36.372 295.146 C 48.440 294.145,53.020 282.130,46.568 268.403 C 8.827 188.106,45.277 89.951,128.125 48.784 C 171.553 27.204,219.595 26.272,266.422 46.100 C 283.456 53.313,294.531 48.539,294.531 33.984 C 294.531 23.508,289.319 19.545,264.116 10.854 C 238.096 1.882,202.941 -2.217,178.125 0.827 M377.734 1.457 C 373.212 3.643,2.843 374.308,1.198 378.295 C -4.345 391.732,9.729 404.747,23.047 398.500 C 28.125 396.117,397.977 25.550,399.226 21.592 C 403.452 8.209,389.945 -4.444,377.734 1.457 M359.759 106.926 C 348.924 111.848,347.965 119.228,355.735 137.891 C 411.741 272.411,270.763 412.875,136.719 356.108 C 120.384 349.190,113.734 349.722,107.773 358.421 C 101.377 367.755,106.256 378.058,119.952 384.138 C 163.227 403.352,222.466 405.273,267.578 388.925 C 375.289 349.893,429.528 225.303,383.956 121.597 C 377.434 106.757,370.023 102.263,359.759 106.926 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No assignments found.</p>
+                                    <p>Try creating a <span class=" text-indigo-900">new project</span>.
+                                    </p>
+                                @elseif (!$batchId)
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M157.812 1.758 C 152.898 5.112,152.344 7.271,152.344 23.047 C 152.344 35.256,152.537 37.497,153.790 39.856 C 158.280 48.306,170.943 48.289,175.194 39.828 C 177.357 35.523,177.211 9.277,175.004 5.657 C 171.565 0.017,163.157 -1.890,157.812 1.758 M92.282 29.461 C 81.984 34.534,84.058 43.360,98.976 57.947 C 111.125 69.826,115.033 71.230,122.082 66.248 C 130.544 60.266,128.547 52.987,114.703 39.342 C 102.476 27.292,99.419 25.945,92.282 29.461 M224.609 29.608 C 220.914 31.937,204.074 49.371,203.164 51.809 C 199.528 61.556,208.074 71.025,217.862 68.093 C 222.301 66.763,241.856 46.745,242.596 42.773 C 244.587 32.094,233.519 23.992,224.609 29.608 M155.754 71.945 C 151.609 73.146,145.829 77.545,143.171 81.523 C 138.040 89.200,138.281 84.305,138.281 180.886 L 138.281 268.519 136.523 271.102 C 131.545 278.417,122.904 278.656,117.660 271.624 C 116.063 269.483,116.004 268.442,115.625 235.830 L 115.234 202.240 109.681 206.141 C 92.677 218.084,88.279 229.416,88.286 261.258 C 88.297 310.416,101.114 335.739,136.914 357.334 C 138.733 358.431,139.063 359.154,139.063 362.045 C 139.063 377.272,152.803 393.856,169.478 398.754 C 175.500 400.522,274.549 400.621,281.147 398.865 C 300.011 393.844,312.500 376.696,312.500 355.816 L 312.500 350.200 317.647 344.827 C 338.941 322.596,341.616 310.926,341.256 241.797 L 341.016 195.703 338.828 191.248 C 329.203 171.647,301.256 172.127,292.338 192.045 L 290.848 195.375 290.433 190.802 C 288.082 164.875,250.064 160.325,241.054 184.892 L 239.954 187.891 239.903 183.594 C 239.599 158.139,203.249 149.968,191.873 172.797 L 189.906 176.743 189.680 133.489 L 189.453 90.234 187.359 85.765 C 181.948 74.222,168.375 68.287,155.754 71.945 M64.062 96.289 C 56.929 101.158,56.929 111.342,64.062 116.211 C 68.049 118.932,96.783 118.920,100.861 116.195 C 108.088 111.368,107.944 100.571,100.593 96.090 C 96.473 93.578,67.805 93.734,64.062 96.289 M228.125 96.289 C 224.932 98.468,222.656 102.614,222.656 106.250 C 222.656 109.886,224.932 114.032,228.125 116.211 C 232.111 118.932,260.845 118.920,264.924 116.195 C 272.150 111.368,272.006 100.571,264.656 96.090 C 260.536 93.578,231.867 93.734,228.125 96.289 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No assignments found.</p>
+                                    <p>Try <span class="underline underline-offset-2">clicking a row</span> from the
+                                        <span class=" text-indigo-900">list of projects</span>.
                                     </p>
                                 @else
-                                    <p>Try creating a <span class="animate-pulse text-indigo-900">new project</span>.
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class=" size-12 sm:size-20 mb-4 text-gray-300"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No assignments found.</p>
+                                    <p>Try assigning a <span class=" text-indigo-900">new batch</span>.
                                     </p>
                                 @endif
 
                             </div>
                         </div>
                     @endif
-                    @if ($implementations)
+                    @if ($implementationId)
                         {{-- Assign Button | Main Modal --}}
                         <livewire:focal.implementations.assign-batches-modal :$implementationId />
                     @endif
@@ -454,7 +504,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 <div class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
-                        <div class="inline-flex items-center col-span-1 text-indigo-900">
+                        <div class="inline-flex items-center my-2 col-span-1 text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="384.37499999999994"
                                 viewBox="0, 0, 400,384.37499999999994">
@@ -464,18 +514,17 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="font-bold m-2">List of Beneficiaries</h1>
-                            @if ($batches)
-                                <span
-                                    class="bg-indigo-100 text-indigo-700 rounded px-2 py-1 text-xs font-semibold">{{ $beneficiarySlots['num_of_beneficiaries'] }}
-                                    / {{ $beneficiarySlots['batch_slots_allocated'] }}</span>
-                            @endif
+                            <h1 class="hidden sm:inline-block ms-2 font-bold">List of Beneficiaries</h1>
+                            <h1 class="max-[500px]:hidden ms-2 font-bold text-sm sm:hidden">Beneficiaries</h1>
 
+                            <span
+                                class="{{ $this->batchId ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700' }} rounded px-2 py-1 ms-2 text-xs font-medium">
+                                {{ $this->batchId ? ($beneficiarySlots['num_of_beneficiaries'] ?? 0) . ' / ' . $beneficiarySlots['batch_slots_allocated'] : 'N / A' }}</span>
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="col-span-1 mx-2 flex items-center justify-end">
                             {{-- Loading State --}}
-                            {{-- <div class="items-center justify-end z-50 text-indigo-900" wire:loading
+                            <div class="items-center justify-end z-50 text-indigo-900" wire:loading
                                 wire:target="searchBeneficiaries">
                                 <svg class="size-4 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                     fill="none" viewBox="0 0 24 24">
@@ -486,23 +535,28 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                     </path>
                                 </svg>
-                            </div> --}}
+                            </div>
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="size-3 text-indigo-800" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                    <svg class="size-3 {{ $beneficiarySlots['num_of_beneficiaries'] ? 'text-indigo-800' : 'text-zinc-400' }}"
+                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="beneficiary-search" maxlength="100" {{-- wire:model.live="searchBeneficiaries" --}}
-                                    class="duration-200 ease-in-out ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
+                                <input type="text" id="beneficiary-search" maxlength="100" autocomplete="off"
+                                    @if (!$beneficiarySlots['num_of_beneficiaries']) disabled @endif
+                                    @input.debounce.300ms="$wire.searchBeneficiaries = $el.value; $wire.$refresh();"
+                                    class="{{ $beneficiarySlots['num_of_beneficiaries']
+                                        ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full "
                                     placeholder="Search for beneficiaries">
                             </div>
 
                             <button
-                                @if ($batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) data-modal-target="add-beneficiaries-modal" data-modal-toggle="add-beneficiaries-modal" @else disabled @endif
-                                class="flex items-center {{ $batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }} rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
+                                @if ($this->batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) data-modal-target="add-beneficiaries-modal" data-modal-toggle="add-beneficiaries-modal" @else disabled @endif
+                                class="flex items-center {{ $this->batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }} rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
                                 ADD
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -517,11 +571,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     </div>
 
-                    @if ($beneficiaries)
-
+                    @if (!$this->beneficiaries->isEmpty())
                         {{-- Beneficiaries Table --}}
                         <div id="beneficiaries-table"
-                            class="relative max-h-60 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                            class="relative h-[38.5vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                             <table class="relative w-full text-sm text-left text-indigo-1100">
                                 <thead
                                     class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0 whitespace-nowrap">
@@ -601,100 +654,100 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </tr>
                                 </thead>
                                 <tbody class="text-xs">
-                                    @foreach ($beneficiaries as $key => $beneficiary)
+                                    @foreach ($this->beneficiaries as $key => $beneficiary)
                                         @php
-                                            $encryptedId = Crypt::encrypt($beneficiary['id']);
+                                            $encryptedId = Crypt::encrypt($beneficiary->id);
                                         @endphp
                                         <tr wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ $encryptedId }}')"
                                             wire:key="beneficiary-{{ $key }}"
-                                            class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-indigo-100 hover:bg-indigo-200' : 'bg-white hover:bg-indigo-50' }} border-b whitespace-nowrap">
+                                            class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} border-b whitespace-nowrap">
                                             <th scope="row"
                                                 class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap ">
                                                 {{ $key + 1 }}
                                             </th>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['first_name'] }}
+                                                {{ $beneficiary->first_name }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['middle_name'] ?? '-' }}
+                                                {{ $beneficiary->middle_name ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['last_name'] }}
+                                                {{ $beneficiary->last_name }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['extension_name'] ?? '-' }}
+                                                {{ $beneficiary->extension_name ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['birthdate'] }}
+                                                {{ $beneficiary->birthdate }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['contact_num'] }}
+                                                {{ $beneficiary->contact_num }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary['sex'] }}
+                                                {{ $beneficiary->sex }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary['civil_status'] }}
+                                                {{ $beneficiary->civil_status }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['age'] }}
+                                                {{ $beneficiary->age }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary['is_senior_citizen'] }}
+                                                {{ $beneficiary->is_senior_citizen }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary['is_pwd'] }}
+                                                {{ $beneficiary->is_pwd }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['occupation'] ?? '-' }}
+                                                {{ $beneficiary->occupation ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                @if ($beneficiary['avg_monthly_income'] === null || $beneficiary['avg_monthly_income'] === 0)
+                                                @if ($beneficiary->avg_monthly_income === null || $beneficiary->avg_monthly_income === 0)
                                                     -
                                                 @else
-                                                    {{ number_format($beneficiary['avg_monthly_income'] / 100, 2) }}
+                                                    {{ number_format($beneficiary->avg_monthly_income / 100, 2) }}
                                                 @endif
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['e_payment_acc_num'] ?? '-' }}
+                                                {{ $beneficiary->e_payment_acc_num ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary['beneficiary_type'] }}
+                                                {{ $beneficiary->beneficiary_type }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['dependent'] ?? '-' }}
+                                                {{ $beneficiary->dependent ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary['self_employment'] }}
+                                                {{ $beneficiary->self_employment }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary['skills_training'] }}
+                                                {{ $beneficiary->skills_training }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['spouse_first_name'] ?? '-' }}
+                                                {{ $beneficiary->spouse_first_name ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['spouse_middle_name'] ?? '-' }}
+                                                {{ $beneficiary->spouse_middle_name ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary['spouse_last_name'] ?? '-' }}
+                                                {{ $beneficiary->spouse_last_name ?? '-' }}
                                             </td>
                                             <td class="px-2">
-                                                {{ $beneficiary['spouse_extension_name'] ?? '-' }}
+                                                {{ $beneficiary->spouse_extension_name ?? '-' }}
                                             </td>
                                             <td x-data="bfDropdownRotation({{ $key }})" class="py-2 flex">
                                                 <button @click.stop="handleClick()"
                                                     id="beneficiaryRowButton-{{ $key }}"
                                                     data-dropdown-placement="left"
                                                     data-dropdown-toggle="beneficiaryRowDropdown-{{ $key }}"
-                                                    class="z-0 mx-1 p-1 font-medium rounded text-indigo-1100 hover:text-indigo-1000 focus:outline-none active:text-indigo-900 bg-transparent hover:bg-indigo-200 duration-200 ease-in-out">
+                                                    class="z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out {{ $selectedBeneficiaryRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor"
                                                         :class="{
                                                             'rotate-0': !isVisible(),
                                                             'rotate-90': isVisible(),
                                                         }"
-                                                        class="w-4 duration-300 ease-in-out">
+                                                        class="size-4 transition-transform duration-200 ease-in-">
                                                         <path fill-rule="evenodd"
                                                             d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
                                                             clip-rule="evenodd" />
@@ -711,7 +764,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </table>
                         </div>
                         {{-- Beneficiary Dropdown Content --}}
-                        @foreach ($beneficiaries as $key => $beneficiary)
+                        @foreach ($this->beneficiaries as $key => $beneficiary)
                             <div wire:key="beneficiaryRowDropdown-{{ $key }}"
                                 id="beneficiaryRowDropdown-{{ $key }}"
                                 class="absolute z-50 hidden bg-white border rounded-md shadow">
@@ -725,7 +778,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M159.766 26.143 C 82.778 40.246,53.502 136.520,109.774 190.543 C 171.402 249.708,273.405 206.387,273.434 121.036 C 273.455 61.032,218.725 15.342,159.766 26.143 M108.984 225.222 C 65.748 242.792,41.518 281.658,42.324 332.151 C 42.784 360.914,45.442 362.881,92.880 369.550 C 127.305 374.389,176.207 376.326,211.328 374.241 C 230.586 373.098,229.521 373.534,224.178 368.982 C 194.528 343.724,194.626 329.021,224.609 304.019 C 247.482 284.947,269.785 275.947,292.354 276.681 L 300.712 276.953 297.944 271.920 C 286.474 251.060,264.398 232.068,242.534 224.249 L 237.803 222.557 231.988 225.690 C 198.778 243.580,159.098 244.035,124.604 226.922 C 114.469 221.894,116.603 222.126,108.984 225.222 M282.963 298.494 C 265.515 300.759,245.158 312.416,228.629 329.605 C 221.808 336.698,221.881 337.153,231.288 346.288 C 270.890 384.742,311.622 384.568,351.031 345.776 C 360.204 336.746,360.201 336.279,350.900 327.303 C 333.660 310.665,315.824 300.917,298.186 298.495 C 291.421 297.567,290.109 297.566,282.963 298.494 M296.712 327.256 C 297.601 327.732,299.013 329.089,299.849 330.272 C 306.643 339.885,295.356 352.202,285.344 346.098 C 272.693 338.384,283.630 320.255,296.712 327.256 "
+                                                        d="M183.594 67.232 C 118.911 75.230,67.777 118.661,56.355 175.303 L 54.919 182.422 46.014 182.863 C 31.007 183.605,25.000 188.504,25.000 200.000 C 25.000 213.667,31.401 217.188,56.250 217.188 C 83.154 217.188,86.648 214.744,88.259 194.809 C 95.262 108.120,212.967 69.071,283.150 130.154 C 340.998 180.501,319.330 267.240,242.487 292.932 C 191.481 309.986,136.258 293.537,104.910 251.953 C 94.653 238.347,80.945 237.395,73.685 249.784 C 68.091 259.329,73.250 270.777,91.359 288.999 C 147.671 345.664,245.068 348.740,305.660 295.766 C 361.204 247.206,365.234 166.304,314.765 112.976 C 283.195 79.619,230.903 61.382,183.594 67.232 M190.234 133.625 C 145.523 140.584,120.191 188.111,139.487 228.837 C 163.192 278.870,235.364 279.615,259.825 230.078 C 283.800 181.524,243.285 125.369,190.234 133.625 M211.719 169.417 C 236.030 178.842,240.075 211.874,218.743 226.777 C 200.407 239.587,175.174 230.700,168.620 209.123 C 160.882 183.649,186.812 159.760,211.719 169.417 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -741,7 +794,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
-                                                        d="M163.672 26.574 C 94.656 40.726,63.265 121.980,104.983 178.487 C 150.726 240.448,247.697 226.328,273.791 153.906 C 299.100 83.664,236.766 11.585,163.672 26.574 M113.672 225.690 C 71.479 243.619,48.083 280.840,48.056 330.078 C 48.039 360.498,51.244 363.005,98.438 369.501 C 126.542 373.369,150.288 375.000,178.491 375.000 L 199.827 375.000 199.445 368.555 C 198.887 359.140,203.831 330.583,207.182 323.863 C 209.181 319.854,215.072 313.590,246.190 282.388 L 282.844 245.635 280.680 243.598 C 274.109 237.413,258.394 228.023,248.284 224.240 L 243.862 222.586 235.876 226.594 C 201.893 243.647,163.009 243.640,129.787 226.575 C 120.732 221.924,122.327 222.012,113.672 225.690 M319.922 244.437 C 313.971 246.009,298.438 258.182,298.438 261.275 C 298.438 262.408,333.750 297.656,334.886 297.656 C 336.527 297.656,347.527 285.186,349.538 281.047 C 359.039 261.487,340.789 238.927,319.922 244.437 M254.087 304.908 C 238.519 320.497,225.781 333.596,225.781 334.015 C 225.781 334.435,224.547 341.904,223.038 350.614 C 218.582 376.335,219.803 377.431,247.532 372.593 C 264.796 369.580,261.002 372.280,292.964 340.271 L 319.911 313.283 301.563 294.923 C 291.472 284.825,283.031 276.563,282.804 276.563 C 282.578 276.563,269.655 289.318,254.087 304.908 "
+                                                        d="M182.813 38.986 C 123.304 52.116,100.219 125.489,141.415 170.564 C 183.488 216.599,261.606 197.040,276.896 136.644 C 291.450 79.156,240.491 26.261,182.813 38.986 M212.500 64.552 C 245.234 71.790,263.087 109.776,248.069 140.234 C 230.774 175.309,182.319 180.675,158.180 150.189 C 126.590 110.293,162.602 53.520,212.500 64.552 M278.141 204.778 C 272.904 206.868,270.880 210.858,270.342 220.156 L 269.922 227.420 264.768 229.218 C 261.934 230.206,258.146 231.841,256.351 232.849 L 253.088 234.684 248.224 229.884 C 241.216 222.970,235.198 221.459,229.626 225.214 C 221.063 230.985,221.157 239.379,229.884 248.224 L 234.684 253.088 232.849 256.351 C 231.841 258.146,230.206 261.934,229.218 264.768 L 227.420 269.922 220.156 270.313 C 208.989 270.915,204.670 274.219,204.083 282.607 C 203.466 291.419,208.211 295.523,219.675 296.094 L 227.526 296.484 228.868 300.781 C 229.606 303.145,231.177 306.971,232.359 309.285 L 234.508 313.492 230.227 317.879 C 223.225 325.054,221.747 330.343,224.976 336.671 C 229.458 345.458,239.052 345.437,248.076 336.622 L 252.794 332.014 258.233 334.683 C 261.224 336.151,265.133 337.742,266.919 338.218 L 270.167 339.083 270.435 346.830 C 270.818 357.905,274.660 362.505,283.514 362.495 C 292.220 362.485,296.084 357.523,296.090 346.344 L 296.094 339.173 300.586 337.882 C 303.057 337.171,306.997 335.559,309.341 334.298 L 313.605 332.006 318.326 336.618 C 324.171 342.328,325.413 342.969,330.613 342.966 C 344.185 342.956,347.496 329.464,336.652 318.359 L 332.075 313.672 334.421 309.022 C 335.711 306.464,337.308 302.509,337.970 300.233 L 339.173 296.094 346.276 296.094 C 357.566 296.094,362.500 292.114,362.500 283.005 C 362.500 274.700,357.650 270.809,346.830 270.435 L 339.083 270.167 338.218 266.919 C 337.742 265.133,336.151 261.224,334.683 258.233 L 332.014 252.794 336.622 248.076 C 345.259 239.234,345.423 230.021,337.028 225.208 C 330.778 221.625,325.473 222.915,318.356 229.749 L 313.432 234.478 309.255 232.344 C 306.958 231.170,303.145 229.606,300.781 228.868 L 296.484 227.526 296.094 219.675 C 295.460 206.941,288.076 200.814,278.141 204.778 M140.625 220.855 C 91.471 226.119,53.930 267.194,53.909 315.732 C 53.900 337.690,67.576 355.837,88.281 361.339 C 91.824 362.281,100.892 362.483,139.924 362.491 L 187.269 362.500 189.881 360.740 C 197.235 355.784,197.489 344.842,190.374 339.535 C 188.205 337.918,187.409 337.884,141.936 337.500 C 90.142 337.062,92.090 337.282,86.005 331.198 C 69.936 315.128,85.943 272.866,114.453 256.087 C 128.176 248.012,138.284 246.094,167.128 246.094 C 186.784 246.094,187.332 246.051,189.905 244.317 C 198.662 238.416,198.212 226.754,189.047 222.070 C 185.750 220.386,152.743 219.558,140.625 220.855 M288.370 252.348 C 311.468 256.659,322.203 282.761,308.657 301.677 C 292.473 324.278,257.359 315.737,252.282 287.964 C 248.611 267.884,268.172 248.578,288.370 252.348 "
                                                         stroke="none" fill="currentColor" fill-rule="evenodd">
                                                     </path>
                                                 </g>
@@ -753,11 +806,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                         @endforeach
                     @else
-                        <div class="relative bg-white px-4 pb-4 pt-2 h-60 min-w-full flex items-center justify-center">
+                        <div
+                            class="relative bg-white px-4 pb-4 pt-2 h-[38.5vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
+                                <svg xmlns="http://www.w3.org/2000/svg" class=" size-12 sm:size-20 mb-4 text-gray-300"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -767,21 +820,25 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                                 <p>No beneficiaries found.</p>
-                                @if (!$implementations)
-                                    <p>Try creating a <span class="animate-pulse text-indigo-900">new project</span>.
+                                @if ($this->implementations->isEmpty())
+                                    <p>Try creating a <span class=" text-indigo-900">new project</span>.
                                     </p>
-                                @elseif (!$batches)
-                                    <p>Try assigning a <span class="animate-pulse text-indigo-900">new batch</span>.
+                                @elseif ($this->batches->isEmpty())
+                                    <p>Try assigning a <span class=" text-indigo-900">new batch</span>.
+                                    </p>
+                                @elseif (!$this->batchId)
+                                    <p>Try <span class="underline underline-offset-2">clicking</span> one of the <span
+                                            class=" text-indigo-900">batches</span> row.
                                     </p>
                                 @else
-                                    <p>Try adding a <span class="animate-pulse text-indigo-900">new beneficiary</span>.
+                                    <p>Try adding a <span class=" text-indigo-900">new beneficiary</span>.
                                     </p>
                                 @endif
 
                             </div>
                         </div>
                     @endif
-                    @if ($batches && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'])
+                    @if ($this->batchId)
                         {{-- Add Button | Add Beneficiaries Modal --}}
                         <livewire:focal.implementations.add-beneficiaries-modal :$batchId />
                     @endif
@@ -821,10 +878,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         const datepickerEnd = document.getElementById('end-date');
 
         datepickerStart.addEventListener('changeDate', function(event) {
-            document.getElementById('implementations-table').scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            const implementationsTable = document.getElementById('implementations-table');
+            if (implementationsTable) {
+                implementationsTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
             const beneficiariesTable = document.getElementById('beneficiaries-table');
             if (beneficiariesTable) {
                 beneficiariesTable.scrollTo({
@@ -845,10 +905,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         });
 
         datepickerEnd.addEventListener('changeDate', function(event) {
-            document.getElementById('implementations-table').scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            const implementationsTable = document.getElementById('implementations-table');
+            if (implementationsTable) {
+                implementationsTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
             const beneficiariesTable = document.getElementById('beneficiaries-table');
             if (beneficiariesTable) {
                 beneficiariesTable.scrollTo({

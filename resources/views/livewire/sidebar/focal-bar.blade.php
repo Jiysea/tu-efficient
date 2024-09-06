@@ -1,7 +1,7 @@
 <nav>
     <!-- Show drawer on certain screen size -->
     {{-- <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button"
-        class="xl:hidden absolute inline-flex items-center p-2 mt-2 ms-3 text-sm text-indigo-500 rounded-lg hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+        class="xl:hidden absolute inline-flex items-center p-2 mt-2 ms-3 text-sm text-indigo-500 rounded-lg hover:bg-indigo-100 outline-none focus:ring-2 focus:ring-indigo-200">
         <span class="sr-only">Open sidebar</span>
         <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <path clip-rule="evenodd" fill-rule="evenodd"
@@ -61,7 +61,7 @@
                     <li class="relative">
                         <a href="{{ route('focal.dashboard') }}" wire:loading.attr="disabled"
                             @mouseover="dashboardHover = true" @mouseleave="dashboardHover = false"
-                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
+                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300 group-focus:text-indigo-300"
                                 viewBox="0, 0, 400,400">
@@ -72,11 +72,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 scale-0 opacity-0': open === false,
-                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                '-translate-x-10 scale-0': open === false,
+                                '-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100': open ===
                                     true,
                             }"
-                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100 origin-left ms-3 transition-transform duration-300 ease-in-out whitespace-nowrap select-none">
                                 Dashboard
                             </div>
                         </a>
@@ -94,7 +94,7 @@
                     <li class="relative">
                         <a href="{{ route('focal.implementations') }}" wire:loading.attr="disabled"
                             @mouseover="implementationsHover = true" @mouseleave="implementationsHover = false"
-                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
+                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300 group-focus:text-indigo-300"
                                 viewBox="0, 0, 400,400">
@@ -105,11 +105,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 scale-0 opacity-0': open === false,
-                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                '-translate-x-10 scale-0': open === false,
+                                '-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100': open ===
                                     true,
                             }"
-                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100 origin-left ms-3 transition-transform duration-300 ease-in-out whitespace-nowrap select-none">
                                 Implementations
                             </div>
                         </a>
@@ -127,23 +127,23 @@
                     <li class="relative">
                         <a href="{{ route('focal.user-management') }}" wire:loading.attr="disabled"
                             @mouseover="umanagementHover = true" @mouseleave="umanagementHover = false"
-                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
-
-                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
+                            <svg xmlns="http://www.w3.org/2000/svg"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300  group-focus:text-indigo-300"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                 viewBox="0, 0, 400,400">
                                 <g>
                                     <path
-                                        d="M179.297 21.169 C 104.101 31.859,73.033 123.800,126.530 177.329 C 179.392 230.224,269.545 201.449,282.429 127.570 C 292.969 67.125,240.054 12.533,179.297 21.169 M276.172 205.112 C 218.214 215.924,187.133 278.009,213.222 330.859 C 245.879 397.017,342.184 394.911,371.981 327.388 C 400.252 263.323,344.634 192.342,276.172 205.112 M169.434 218.751 C 99.783 223.928,44.377 249.569,26.728 284.793 C 21.264 295.699,20.703 299.077,20.703 321.094 L 20.703 341.016 23.168 346.218 C 27.442 355.239,34.901 360.883,44.639 362.463 C 49.816 363.303,215.625 363.677,215.625 362.849 C 215.625 362.611,213.734 360.062,211.422 357.185 C 179.719 317.717,180.502 261.313,213.269 224.087 C 215.518 221.532,217.185 219.268,216.973 219.056 C 216.239 218.322,178.472 218.080,169.434 218.751 M300.880 241.001 C 309.269 246.514,310.030 258.978,302.400 265.872 C 291.856 275.398,275.781 268.311,275.781 254.135 C 275.781 241.042,289.789 233.712,300.880 241.001 M296.873 280.859 C 298.119 281.503,300.123 283.321,301.327 284.899 L 303.516 287.769 303.516 312.577 C 303.516 340.299,303.673 339.465,297.664 343.555 C 292.503 347.067,284.623 344.897,281.342 339.059 C 278.788 334.515,278.782 290.496,281.335 285.954 C 284.392 280.514,291.622 278.143,296.873 280.859 "
+                                        d="M182.813 38.986 C 123.313 52.113,100.226 125.496,141.415 170.564 C 183.488 216.599,261.606 197.040,276.896 136.644 C 291.453 79.146,240.501 26.259,182.813 38.986 M278.141 204.778 C 272.904 206.868,270.880 210.858,270.342 220.156 L 269.922 227.420 264.768 229.218 C 261.934 230.206,258.146 231.841,256.351 232.849 L 253.088 234.684 248.224 229.884 C 241.216 222.970,235.198 221.459,229.626 225.214 C 221.063 230.985,221.157 239.379,229.884 248.224 L 234.684 253.088 232.849 256.351 C 231.841 258.146,230.206 261.934,229.218 264.768 L 227.420 269.922 220.156 270.313 C 208.989 270.915,204.670 274.219,204.083 282.607 C 203.466 291.419,208.211 295.523,219.675 296.094 L 227.526 296.484 228.868 300.781 C 229.606 303.145,231.177 306.971,232.359 309.285 L 234.508 313.492 230.227 317.879 C 223.225 325.054,221.747 330.343,224.976 336.671 C 229.458 345.458,239.052 345.437,248.076 336.622 L 252.794 332.014 258.233 334.683 C 261.224 336.151,265.133 337.742,266.919 338.218 L 270.167 339.083 270.435 346.830 C 270.818 357.905,274.660 362.505,283.514 362.495 C 292.220 362.485,296.084 357.523,296.090 346.344 L 296.094 339.173 300.586 337.882 C 303.057 337.171,306.997 335.559,309.341 334.298 L 313.605 332.006 318.326 336.618 C 324.171 342.328,325.413 342.969,330.613 342.966 C 344.185 342.956,347.496 329.464,336.652 318.359 L 332.075 313.672 334.421 309.022 C 335.711 306.464,337.308 302.509,337.970 300.233 L 339.173 296.094 346.276 296.094 C 357.566 296.094,362.500 292.114,362.500 283.005 C 362.500 274.700,357.650 270.809,346.830 270.435 L 339.083 270.167 338.218 266.919 C 337.742 265.133,336.151 261.224,334.683 258.233 L 332.014 252.794 336.622 248.076 C 345.259 239.234,345.423 230.021,337.028 225.208 C 330.778 221.625,325.473 222.915,318.356 229.749 L 313.432 234.478 309.255 232.344 C 306.958 231.170,303.145 229.606,300.781 228.868 L 296.484 227.526 296.094 219.675 C 295.460 206.941,288.076 200.814,278.141 204.778 M140.625 220.855 C 91.525 226.114,53.906 267.246,53.906 315.674 C 53.906 333.608,63.031 349.447,77.831 357.207 C 88.240 362.664,85.847 362.500,155.113 362.500 L 217.422 362.500 214.329 360.259 C 202.518 351.704,196.602 335.289,200.309 321.365 L 201.381 317.339 196.198 313.914 C 172.048 297.955,174.729 264.426,201.338 249.629 C 201.430 249.578,200.995 247.619,200.371 245.276 C 198.499 238.241,199.126 229.043,201.981 221.680 C 202.483 220.383,151.436 219.698,140.625 220.855 M290.207 252.760 C 316.765 259.678,323.392 292.263,301.575 308.656 C 283.142 322.507,256.557 311.347,252.282 287.964 C 248.462 267.069,269.646 247.405,290.207 252.760 "
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 scale-0 opacity-0': open === false,
-                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                '-translate-x-10 scale-0': open === false,
+                                '-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100': open ===
                                     true,
                             }"
-                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100 origin-left ms-3 transition-transform duration-300 ease-in-out whitespace-nowrap select-none">
                                 User
                                 Management
                             </div>
@@ -162,7 +162,7 @@
                     <li class="relative">
                         <a href="{{-- route('focal.activity-logs') --}}" wire:loading.attr="disabled" @mouseover="alogsHover = true"
                             @mouseleave="alogsHover = false"
-                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
+                            class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300  group-focus:text-indigo-300"
                                 viewBox="0, 0, 400,400">
@@ -173,11 +173,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 scale-0 opacity-0': open === false,
-                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                '-translate-x-10 scale-0': open === false,
+                                '-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100': open ===
                                     true,
                             }"
-                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100 origin-left ms-3 transition-transform duration-300 ease-in-out whitespace-nowrap select-none">
                                 Activity
                                 Logs
                             </div>
@@ -200,7 +200,7 @@
                 <ul class="font-medium text-sm">
                     <li class="relative">
                         <button @click="profileShow = !profileShow"
-                            class="flex items-center w-full px-3 py-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:outline-none group duration-300 ease-in-out cursor-pointer">
+                            class="flex items-center w-full px-3 py-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none group duration-300 ease-in-out cursor-pointer">
 
                             <svg class="text-center flex-shrink-0 size-8 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300 group-focus:text-indigo-300"
                                 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -231,11 +231,14 @@
                                 <li>
                                     <a aria-label="{{ __('Profile') }}"
                                         class="flex items-center text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                            fill="currentColor" class="size-5 me-2">
-                                            <path fill-rule="evenodd"
-                                                d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
-                                                clip-rule="evenodd" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M182.813 38.986 C 133.336 49.902,106.480 104.390,127.973 150.254 C 159.471 217.470,258.751 208.316,276.928 136.519 C 291.440 79.197,240.383 26.285,182.813 38.986 M210.547 64.172 C 234.701 68.412,253.447 91.229,253.463 116.406 C 253.494 166.508,190.733 189.409,158.901 150.910 C 126.713 111.982,160.420 55.372,210.547 64.172 M140.625 220.835 C 91.174 226.492,53.906 267.234,53.906 315.639 C 53.906 337.642,67.630 356.006,88.003 361.262 C 95.299 363.144,304.701 363.144,311.997 361.262 C 370.247 346.234,349.547 250.430,282.813 226.190 C 267.722 220.709,269.266 220.816,203.125 220.662 C 170.254 220.585,142.129 220.663,140.625 220.835 M265.524 247.911 C 296.763 256.284,318.236 281.590,320.063 312.187 C 320.759 323.829,316.827 331.310,307.821 335.478 C 302.259 338.053,97.741 338.053,92.179 335.478 C 83.173 331.310,79.241 323.829,79.937 312.187 C 81.894 279.407,107.358 251.869,140.265 246.944 C 149.590 245.549,259.886 246.400,265.524 247.911 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
                                         </svg>
                                         Profile
                                     </a>
@@ -243,11 +246,14 @@
                                 <li>
                                     <a aria-label="{{ __('Settings') }}"
                                         class=" flex items-center text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                            fill="currentColor" class="size-5 me-2">
-                                            <path fill-rule="evenodd"
-                                                d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
-                                                clip-rule="evenodd" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M169.791 37.446 C 159.521 39.983,154.916 46.610,153.195 61.328 C 150.103 87.782,125.260 100.798,100.400 88.990 C 91.098 84.572,80.525 85.974,74.417 92.435 C 70.069 97.034,44.631 142.228,43.737 146.944 C 42.004 156.081,45.632 163.680,54.680 169.862 C 77.393 185.381,77.344 214.250,54.578 230.202 C 45.367 236.657,41.780 244.278,43.712 253.288 C 44.649 257.658,70.219 303.075,74.120 307.299 C 80.791 314.522,90.687 315.567,102.157 310.258 C 125.808 299.312,150.314 313.137,153.235 339.075 C 154.645 351.585,157.204 356.279,164.957 360.573 L 169.141 362.891 199.219 362.891 C 232.900 362.891,233.102 362.863,238.867 357.549 C 243.779 353.022,245.331 349.485,246.135 340.994 C 248.786 312.968,273.031 299.027,298.783 310.719 C 309.247 315.469,318.520 314.365,325.055 307.590 C 328.255 304.273,354.462 259.086,355.622 254.885 C 358.247 245.380,353.793 235.386,344.448 229.816 C 323.182 217.139,323.182 182.861,344.448 170.184 C 353.844 164.583,358.675 153.393,355.558 144.450 C 353.932 139.788,327.785 95.103,325.070 92.349 C 318.448 85.630,309.202 84.551,298.783 89.281 C 273.031 100.973,248.786 87.032,246.135 59.006 C 245.143 48.529,241.051 42.044,233.203 38.515 C 229.822 36.994,175.338 36.076,169.791 37.446 M221.282 67.578 C 225.968 105.145,269.552 130.323,304.144 115.448 C 308.801 113.445,307.517 112.022,319.091 132.008 L 328.694 148.591 320.715 156.522 C 307.590 169.569,302.760 181.266,302.760 200.000 C 302.760 218.734,307.590 230.431,320.715 243.478 L 328.694 251.409 319.091 267.992 C 307.562 287.900,308.960 286.367,304.091 284.448 C 268.225 270.311,225.979 294.785,221.282 332.422 L 220.697 337.109 200.000 337.109 L 179.303 337.109 178.718 332.422 C 174.019 294.773,131.787 270.306,95.909 284.448 C 91.040 286.367,92.438 287.900,80.909 267.992 L 71.306 251.409 79.249 243.478 C 104.134 218.632,104.134 181.368,79.249 156.522 L 71.306 148.591 80.909 132.008 C 92.483 112.022,91.199 113.445,95.856 115.448 C 119.007 125.403,150.569 116.772,166.510 96.127 C 173.107 87.583,178.906 73.442,178.906 65.901 C 178.906 62.389,178.443 62.459,200.335 62.683 L 220.697 62.891 221.282 67.578 M184.375 139.096 C 128.823 153.410,120.319 230.465,171.484 255.896 C 213.899 276.977,262.500 247.129,262.500 200.000 C 262.500 158.887,224.012 128.883,184.375 139.096 M211.338 164.847 C 237.172 173.735,245.247 205.362,226.736 225.152 C 204.024 249.432,163.281 233.283,163.281 200.000 C 163.281 175.176,188.258 156.906,211.338 164.847 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
                                         </svg>
                                         Settings
                                     </a>
@@ -258,11 +264,15 @@
 
                                         <button type="submit" aria-label="{{ __('Logout') }}"
                                             class="flex items-center w-full text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                fill="currentColor" class="size-5 me-2">
-                                                <path fill-rule="evenodd"
-                                                    d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm5.03 4.72a.75.75 0 0 1 0 1.06l-1.72 1.72h10.94a.75.75 0 0 1 0 1.5H10.81l1.72 1.72a.75.75 0 1 1-1.06 1.06l-3-3a.75.75 0 0 1 0-1.06l3-3a.75.75 0 0 1 1.06 0Z"
-                                                    clip-rule="evenodd" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M88.906 55.116 C 72.737 59.037,58.917 72.987,55.080 89.262 C 53.353 96.583,53.353 303.417,55.080 310.738 C 58.953 327.164,72.833 341.047,89.255 344.919 C 98.487 347.095,152.689 346.586,156.488 344.287 C 164.643 339.350,164.791 328.277,156.780 322.337 C 154.656 320.763,153.476 320.689,124.358 320.313 C 96.837 319.957,93.897 319.792,91.406 318.467 C 87.589 316.437,83.759 312.668,81.767 308.984 L 80.078 305.859 79.862 201.172 C 79.621 84.445,79.239 92.939,85.018 86.542 C 90.911 80.020,90.290 80.128,124.358 79.688 C 153.476 79.311,154.656 79.237,156.780 77.663 C 164.791 71.723,164.643 60.650,156.488 55.713 C 152.798 53.480,97.664 52.993,88.906 55.116 M277.734 138.410 C 272.384 141.362,269.763 146.682,270.731 152.627 C 271.205 155.538,272.821 157.434,286.971 171.680 L 302.684 187.500 224.194 187.503 C 147.250 187.506,145.653 187.536,143.157 189.058 C 135.449 193.758,135.449 206.242,143.157 210.942 C 145.653 212.464,147.250 212.494,224.194 212.497 L 302.684 212.500 286.971 228.320 C 269.762 245.646,269.137 246.639,271.027 253.660 C 272.989 260.945,283.751 265.266,289.865 261.223 C 293.732 258.665,343.117 208.903,344.584 206.086 C 346.508 202.392,346.510 197.614,344.589 193.914 C 342.648 190.177,291.719 139.416,288.816 138.326 C 285.972 137.258,279.737 137.305,277.734 138.410 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
                                             </svg>
                                             Logout
                                         </button>

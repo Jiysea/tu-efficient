@@ -458,7 +458,6 @@ class AssignBatchesModal extends Component
     public function render()
     {
         $focalUserId = auth()->id();
-
         $this->implementation = Implementation::where('users_id', $focalUserId)
             ->where('id', $this->implementationId)
             ->first();

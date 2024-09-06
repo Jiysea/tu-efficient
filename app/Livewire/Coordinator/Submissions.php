@@ -193,8 +193,6 @@ class Submissions extends Component
         return $full_name;
     }
 
-
-
     public function mount($batchId = null)
     {
         if (Auth::user()->user_type === 'focal') {
