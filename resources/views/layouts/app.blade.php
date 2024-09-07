@@ -16,7 +16,7 @@
 
     {{-- Favicon --}}
     @isset($favicons)
-    {{ $favicons ?? '' }}
+        {{ $favicons ?? '' }}
     @endisset
 
     <!-- Scripts -->
@@ -28,16 +28,16 @@
     <div class="min-h-screen bg-[#E6E8EC]">
         {{-- @include('layouts.navigation') --}}
         @isset($sidebar)
-        {{ $sidebar }}
+            {{ $sidebar }}
         @endisset
 
         <!-- Page Heading -->
         @isset($header)
-        <header class="">
-            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                {{ $header }}
-            </div>
-        </header>
+            <header class="">
+                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    {{ $header }}
+                </div>
+            </header>
         @endisset
 
         <!-- Page Content -->

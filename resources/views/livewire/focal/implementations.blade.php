@@ -100,7 +100,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <h1 class="hidden sm:inline-block ms-2 font-bold">List of Projects</h1>
                             <h1 class="max-[460px]:hidden ms-2 font-bold text-sm sm:hidden">Projects</h1>
                             <span
-                                class="{{ $totalImplementations ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700 ' }}rounded ms-2 px-2 py-1 font-medium text-xs">{{ $totalImplementations ?? 0 }}</span>
+                                class="{{ $totalImplementations ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700 ' }} rounded ms-2 px-2 py-1 font-medium text-xs">{{ $totalImplementations ?? 0 }}</span>
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">

@@ -26,9 +26,6 @@ class Implementations extends Component
     public $batchId;
     #[Locked]
     public $beneficiaryId;
-    // public $implementations;
-    // public $batches;
-    // public $beneficiaries;
 
     # ------------------------------------------
 
@@ -212,8 +209,6 @@ class Implementations extends Component
             ->take($this->beneficiaries_on_page)
             ->get();
 
-        // $this->beneficiaryId = $this->beneficiaries[0]->id ?? null;
-
         return $beneficiaries;
     }
 
@@ -378,30 +373,12 @@ class Implementations extends Component
 
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
-
-        /*
-         *  Setting the list of implementation projects
-         */
-
-        // $this->setImplementationId();
-
-        /*
-         *  Setting the list of implementation projects
-         */
-
-        // $this->setBatchId();
-
-        /*
-         *  Setting the list of implementation projects
-         */
-        // $this->beneficiaries();
-
     }
 
     public function render()
     {
         /*
-         *   Check Full Slots
+         *   Check Slots
          */
         $this->checkImplementationTotalSlots();
         $this->checkBatchRemainingSlots();

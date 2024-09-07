@@ -3,7 +3,9 @@
 namespace App\Livewire\Coordinator;
 
 use App\Livewire\Focal\Dashboard;
+use App\Models\Assignment;
 use App\Models\Batch;
+use App\Models\Beneficiary;
 use App\Models\User;
 use Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,26 +22,13 @@ class Assignments extends Component
 {
     #[Locked]
     public $batchId;
-    #[Locked]
-    public $batches;
     public $batchesCount;
-    public $default_on_page = 15;
+    public $defaultBatches_on_page = 15;
+    public $defaultBeneficiaries_on_page = 30;
     public $batches_on_page = 15;
+    public $beneficiaries_on_page = 30;
     public $selectedBatchRow = -1;
     public $searchBatches;
-
-    # -------------------------------
-
-    #[Locked]
-    public $beneficiaries;
-    #[Locked]
-    public $full_name;
-    #[Locked]
-    public $location;
-    #[Locked]
-    public $accessCode;
-    #[Locked]
-    public $submissions;
 
     # ------------------------------------------
 
@@ -56,9 +45,10 @@ class Assignments extends Component
         $currentTime = date('H:i:s', strtotime(now()));
 
         $this->start = $choosenDate . ' ' . $currentTime;
-        $this->batches_on_page = $this->default_on_page;
+        $this->batches_on_page = $this->defaultBatches_on_page;
+        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
-        $this->setBatchAssignments();
+        $this->batchId = null;
 
         $this->selectedBatchRow = -1;
 
@@ -72,11 +62,12 @@ class Assignments extends Component
         $currentTime = date('H:i:s', strtotime(now()));
 
         $this->end = $choosenDate . ' ' . $currentTime;
-        $this->batches_on_page = $this->default_on_page;
+        $this->batches_on_page = $this->defaultBatches_on_page;
+        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
-        $this->setBatchAssignments();
+        $this->batchId = null;
 
-        $this->selectedBatchRow = 0;
+        $this->selectedBatchRow = -1;
 
         $this->dispatch('init-reload')->self();
     }
@@ -89,21 +80,20 @@ class Assignments extends Component
         } else {
             $this->selectedBatchRow = $key;
             $this->batchId = decrypt($encryptedId);
+            $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
         }
 
-        $this->setBeneficiaryList();
         $this->dispatch('init-reload')->self();
     }
 
-    public function setBatchAssignments()
+    #[Computed]
+    public function batches()
     {
         $coordinatorUserId = Auth::user()->id;
         $batchNumPrefix = config('settings.batch_number_prefix', 'DCFO-BN-');
 
-        $this->batches = User::where('users_id', $coordinatorUserId)
-            ->join('assignments', 'users.id', '=', 'assignments.users_id')
-            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
-            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+        $batches = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+            ->where('assignments.users_id', $coordinatorUserId)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->where('batches.batch_num', 'LIKE', $batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
@@ -114,46 +104,51 @@ class Assignments extends Component
                     'batches.slots_allocated',
                     'batches.approval_status',
                     'batches.submission_status',
-                    'batches.created_at',
-                    'batches.updated_at',
-                    DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots'),
                 ]
             )
-            ->groupBy(
-                'batches.id',
-                'batches.batch_num',
-                'batches.barangay_name',
-                'batches.slots_allocated',
-                'batches.approval_status',
-                'batches.submission_status',
-                'batches.created_at',
-                'batches.updated_at'
-            )
-            ->latest()
+            ->orderBy('batches.id')
             ->take($this->batches_on_page)
-            ->get()
-            ->toArray();
+            ->get();
+
+        return $batches;
+    }
+
+    #[Computed]
+    public function beneficiarySlots()
+    {
+        $beneficiarySlots = collect();
+
+        foreach ($this->batches as $batch) {
+
+            $totalCount = Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
+                ->where('batches.id', $batch->id)
+                ->count();
+
+            $beneficiarySlots->push(
+                $totalCount,
+            );
+        }
+        return $beneficiarySlots;
     }
 
     public function setBatchesCount()
     {
         $coordinatorUserId = Auth::user()->id;
-        $this->batchesCount = User::where('users_id', $coordinatorUserId)
+
+        $this->batchesCount = User::where('users.id', $coordinatorUserId)
             ->join('assignments', 'users.id', '=', 'assignments.users_id')
             ->join('batches', 'batches.id', '=', 'assignments.batches_id')
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->count();
     }
 
-    public function setBeneficiaryList()
+    #[Computed]
+    public function beneficiaries()
     {
         $coordinatorUserId = Auth::user()->id;
 
         if ($this->batchId) {
-            $this->beneficiaries = User::where('users_id', $coordinatorUserId)
-                ->join('assignments', 'users.id', '=', 'assignments.users_id')
-                ->join('batches', 'batches.id', '=', 'assignments.batches_id')
-                ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            $beneficiaries = Batch::join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
                 ->where('batches.id', $this->batchId)
                 ->select([
                     'beneficiaries.id',
@@ -164,10 +159,23 @@ class Assignments extends Component
                     'beneficiaries.birthdate AS birthdate',
                     'beneficiaries.contact_num AS contact_num'
                 ])
-                ->get()
-                ->toArray();
+                ->orderBy('beneficiaries.id')
+                ->take($this->beneficiaries_on_page)
+                ->get();
 
-            $this->location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            return $beneficiaries;
+
+        } else {
+            $this->beneficiaries = null;
+        }
+    }
+
+    #[Computed]
+    public function location()
+    {
+        if ($this->batchId) {
+
+            $location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
                 ->where('batches.id', $this->batchId)
                 ->select([
                     'implementations.district',
@@ -175,39 +183,54 @@ class Assignments extends Component
                     'implementations.province',
                     'batches.barangay_name',
                 ])
-                ->first()
-                ->toArray();
+                ->first();
 
+            return $location;
+
+        } else {
+            return null;
+        }
+    }
+
+    #[Computed]
+    public function accessCode()
+    {
+        if ($this->batchId) {
             $accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
                 ->where('batches.id', $this->batchId)
                 ->where('codes.accessible', 'yes')
-                ->select(
-                    [
-                        'codes.access_code'
-                    ],
-                )
-                ->groupBy('codes.access_code')
+                ->select(['codes.access_code'])
+                ->groupBy([
+                    'codes.access_code',
+                ])
                 ->first();
 
-            $this->accessCode = $accessCode ? $accessCode->toArray() : [];
+            return $accessCode;
 
+        } else {
+            $this->accessCode = null;
+        }
+    }
+
+    #[Computed]
+    public function submissions()
+    {
+        if ($this->batchId) {
             $submissions = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
                 ->where('batches.id', $this->batchId)
                 ->where('codes.accessible', 'no')
                 ->select(
                     [
-                        DB::raw('COUNT(DISTINCT codes.id) AS submissions')
+                        DB::raw('COUNT(DISTINCT codes.id) AS total_count')
                     ],
                 )
                 ->groupBy('codes.access_code')
                 ->first();
 
-            $this->submissions = $submissions ? $submissions->toArray() : [];
+            return $submissions;
 
         } else {
-            $this->beneficiaries = null;
-            $this->location = null;
-            $this->accessCode = null;
+            return null;
         }
     }
 
@@ -237,9 +260,13 @@ class Assignments extends Component
 
     public function loadMoreBatches()
     {
-        $this->batches_on_page += $this->default_on_page;
+        $this->batches_on_page += $this->defaultBatches_on_page;
+        $this->dispatch('init-reload')->self();
+    }
 
-        $this->setBatchAssignments();
+    public function loadMoreBeneficiaries()
+    {
+        $this->beneficiaries_on_page += $this->defaultBeneficiaries_on_page;
         $this->dispatch('init-reload')->self();
     }
 
@@ -264,14 +291,11 @@ class Assignments extends Component
 
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
-
-        $this->setBatchAssignments();
-        $this->setBatchesCount();
-        $this->setBeneficiaryList();
     }
 
     public function render()
     {
+        $this->setBatchesCount();
         return view('livewire.coordinator.assignments');
     }
 }

@@ -3,41 +3,39 @@
 namespace App\Livewire\Coordinator;
 
 use App\Livewire\Focal\Dashboard;
+use App\Models\Assignment;
 use App\Models\Batch;
+use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
+#[Title('Submissions | TU-Efficient')]
 class Submissions extends Component
 {
     #[Locked]
     public $beneficiaryId;
     #[Locked]
-    public $beneficiaries;
-    public $default_on_page = 30;
+    public $batchId;
+    public $defaultBatches_on_page = 15;
+    public $defaultBeneficiaries_on_page = 30;
+    public $batches_on_page = 15;
     public $beneficiaries_on_page = 30;
     public $selectedBeneficiaryRow = -1;
-    public $searchBeneficiaries;
-
-    # -------------------------------
-
-    #[Locked]
-    public $batchId;
-    #[Locked]
-    public $batches;
-    public $currentBatch;
     public $selectedBatchRow = -1;
+    public $searchBeneficiaries;
     public $searchBatches;
 
     # ------------------------------------------
 
-    #[Locked]
-    public $full_name;
     public $start;
     public $end;
     public $defaultStart;
@@ -50,11 +48,12 @@ class Submissions extends Component
         $currentTime = date('H:i:s', strtotime(now()));
 
         $this->start = $choosenDate . ' ' . $currentTime;
-        $this->beneficiaries_on_page = $this->default_on_page;
+        $this->batches_on_page = $this->defaultBatches_on_page;
+        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
-        $this->setBatchAssignments();
-        $this->setBeneficiaryList();
+        $this->batchId = null;
 
+        $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
 
         $this->dispatch('init-reload')->self();
@@ -68,11 +67,12 @@ class Submissions extends Component
         $currentTime = date('H:i:s', strtotime(now()));
 
         $this->end = $choosenDate . ' ' . $currentTime;
-        $this->beneficiaries_on_page = $this->default_on_page;
+        $this->batches_on_page = $this->defaultBatches_on_page;
+        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
-        $this->setBatchAssignments();
-        $this->setBeneficiaryList();
+        $this->batchId = null;
 
+        $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
 
         $this->dispatch('init-reload')->self();
@@ -83,10 +83,7 @@ class Submissions extends Component
     {
         $this->selectedBatchRow = $key;
         $this->batchId = decrypt($encryptedId);
-        $this->beneficiaries_on_page = $this->default_on_page;
-        $this->currentBatch = $this->batches[$key]['batch_num'];
-
-        $this->setBeneficiaryList();
+        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
         $this->dispatch('init-reload')->self();
         $this->dispatch('scroll-to-top')->self();
@@ -105,14 +102,15 @@ class Submissions extends Component
         $this->dispatch('init-reload')->self();
     }
 
-    public function setBatchAssignments($batchId = null)
+
+    #[Computed]
+    public function batches()
     {
         $coordinatorUserId = Auth::user()->id;
         $batchNumPrefix = config('settings.batch_number_prefix', 'DCFO-BN-');
 
-        $this->batches = User::where('users.id', $coordinatorUserId)
-            ->join('assignments', 'users.id', '=', 'assignments.users_id')
-            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
+        $batches = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+            ->where('assignments.users_id', $coordinatorUserId)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->where('batches.batch_num', 'LIKE', $batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
@@ -127,45 +125,83 @@ class Submissions extends Component
                 'batches.batch_num',
                 'batches.barangay_name',
             ])
-            ->get()
-            ->toArray();
+            ->orderBy('batches.id', 'desc')
+            ->get();
 
-        if ($batchId) {
-            $currentBatch = Batch::where('id', $this->batchId)
-                ->select('batch_num')
-                ->first()
-                ->toArray();
-
-            $this->currentBatch = $currentBatch['batch_num'];
-        } else {
-            $this->batchId = $this->batches[0]['id'] ?? null;
-            $this->currentBatch = $this->batches[0]['batch_num'] ?? 'None';
-        }
+        return $batches;
     }
 
-    public function setBeneficiaryList()
+    #[Computed]
+    public function batchesCount()
     {
         $coordinatorUserId = Auth::user()->id;
 
-        $this->beneficiaries = User::where('users.id', $coordinatorUserId)
-            ->join('assignments', 'users.id', '=', 'assignments.users_id')
-            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
+        $batchesCount = Assignment::join('batches', 'batches.id', '=', 'assignments.batches_id')
+            ->where('assignments.users_id', $coordinatorUserId)
+            ->whereBetween('batches.created_at', [$this->start, $this->end])
+            ->count();
+
+        return $batchesCount;
+    }
+
+    #[Computed]
+    public function beneficiarySlots()
+    {
+        $beneficiarySlots = 0;
+
+        if ($this->batches->isNotEmpty()) {
+
+            $totalCount = Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
+                ->where('batches.id', $this->batchId)
+                ->count();
+
+            $beneficiarySlots = $totalCount;
+
+        }
+
+        return $beneficiarySlots;
+    }
+
+    #[Computed]
+    public function currentBatch()
+    {
+        $currentBatch = null;
+
+        if ($this->batchId) {
+            $currentBatch = Batch::where('id', $this->batchId)
+                ->first()->batch_num;
+        } else if ($this->batches->isNotEmpty()) {
+            $currentBatch = Batch::where('id', $this->batches[0]->id)
+                ->first()->batch_num;
+        } else {
+            $currentBatch = 'None';
+        }
+
+
+
+        return $currentBatch;
+    }
+    #[Computed]
+    public function beneficiaries()
+    {
+        $coordinatorUserId = Auth::user()->id;
+
+        $beneficiaries = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
             ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('assignments.users_id', $coordinatorUserId)
             ->where('batches.id', $this->batchId)
             ->select([
                 'beneficiaries.*',
             ])
             ->take($this->beneficiaries_on_page)
-            ->get()
-            ->toArray();
+            ->get();
 
+        return $beneficiaries;
     }
 
     public function loadMoreBatches()
     {
-        $this->beneficiaries_on_page += $this->default_on_page;
-
-        $this->setBeneficiaryList();
+        $this->beneficiaries_on_page += $this->defaultBatches_on_page;
         $this->dispatch('init-reload')->self();
     }
 
@@ -193,14 +229,23 @@ class Submissions extends Component
         return $full_name;
     }
 
+    public function checkIfBatchIdExists()
+    {
+        if (!$this->batchId) {
+            $this->batchId = $this->batches[0]->id;
+        }
+        // if ($this->batches->isNotEmpty())
+
+    }
+
     public function mount($batchId = null)
     {
         if (Auth::user()->user_type === 'focal') {
             $this->redirect(Dashboard::class);
         }
 
-        # sets the batchID, regardless if it has value or not
         $this->batchId = $batchId;
+
 
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
         $this->end = date('Y-m-d H:i:s', strtotime(now()));
@@ -208,8 +253,7 @@ class Submissions extends Component
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
 
-        $this->setBatchAssignments($batchId);
-        $this->setBeneficiaryList();
+        $this->checkIfBatchIdExists();
     }
     public function render()
     {

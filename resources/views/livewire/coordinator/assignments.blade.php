@@ -1,6 +1,7 @@
 <x-slot:favicons>
-    <x-f-favicons />
+    <x-c-favicons />
 </x-slot>
+
 
 <div x-cloak x-data="{ open: true, show: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
@@ -19,26 +20,43 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             {{-- Title --}}
             <div class="relative flex items-center my-2">
                 <h1 class="text-xl font-bold me-4 ms-3">Assignments</h1>
+
+                {{-- Date range picker --}}
                 <div id="implementations-date-range" date-rangepicker datepicker-autohide class="flex items-center">
+
+                    {{-- Start --}}
                     <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <svg class="w-4 h-4 text-blue-900 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                        <div
+                            class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
                             </svg>
                         </div>
                         <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
                             class="bg-white border border-blue-300 text-blue-1100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10"
                             placeholder="Select date start">
                     </div>
+
                     <span class="mx-4 text-blue-1100">to</span>
+
+                    {{-- End --}}
                     <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <svg class="w-4 h-4 text-blue-900 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                        <div
+                            class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
                             </svg>
                         </div>
                         <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
@@ -81,7 +99,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </svg>
                             <h1 class="font-bold m-2">List of Batches</h1>
                             <span
-                                class="font-medium text-xs px-2 py-1 rounded bg-blue-300 text-blue-1000">{{ $batchesCount ?? 0 }}</span>
+                                class="font-medium text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">{{ $batchesCount ?? 0 }}</span>
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">
@@ -94,7 +112,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </div>
                                 <input type="text" id="batch-search" maxlength="100" autocomplete="off"
-                                    @input.debounce.500ms="$wire.searchBatches = $el.value; $wire.setBatchAssignments();"
+                                    @input.debounce.500ms="$wire.searchBatches = $el.value; $wire.$refresh();"
                                     class="duration-200 outline-none ease-in-out ps-7 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Search for batch numbers">
                             </div>
@@ -114,14 +132,17 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     </div>
 
-                    @if ($batches)
+                    @if ($this->batches->isNotEmpty())
                         {{-- Batches Table --}}
                         <div id="batches-table"
                             class="relative min-h-[82.5vh] max-h-[82.5vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
                             <table class="relative w-full text-sm text-left text-blue-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
                                     <tr>
-                                        <th scope="col" class="pr-2 ps-4 py-2">
+                                        <th scope="col" class="px-2 py-2">
+
+                                        </th>
+                                        <th scope="col" class="pr-2 py-2">
                                             batch #
                                         </th>
                                         <th scope="col" class="pr-2 py-2">
@@ -142,46 +163,49 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </tr>
                                 </thead>
                                 <tbody class="relative text-xs">
-                                    @foreach ($batches as $key => $batch)
+                                    @foreach ($this->batches as $key => $batch)
                                         @php
-                                            $encryptedId = Crypt::encrypt($batch['id']);
+                                            $encryptedId = Crypt::encrypt($batch->id);
                                         @endphp
                                         <tr wire:key="batch-{{ $key }}"
                                             wire:click.prevent='selectBatchRow({{ $key }}, "{{ $encryptedId }}")'
                                             class="relative border-b {{ $selectedBatchRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out cursor-pointer">
-                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium">
-                                                {{ $batch['batch_num'] }}
+                                            <th scope="row" class="px-2 py-2 font-medium">
+                                                {{ $key + 1 }}
                                             </th>
                                             <td class="pr-2 py-2">
-                                                {{ $batch['barangay_name'] }}
+                                                {{ $batch->batch_num }}
+                                            </td>
+                                            <td class="pr-2 py-2">
+                                                {{ $batch->barangay_name }}
                                             </td>
                                             <td class="pr-2 py-2 text-center">
-                                                {{ $batch['current_slots'] }}
+                                                {{ $this->beneficiarySlots[$key] }}
                                                 /
-                                                {{ $batch['slots_allocated'] }}
+                                                {{ $batch->slots_allocated }}
                                             </td>
                                             <td class="pr-2 py-2 text-center">
-                                                @if ($batch['approval_status'] === 'approved')
+                                                @if ($batch->approval_status === 'approved')
                                                     <span
-                                                        class="bg-green-300 text-green-1100 rounded py-1 px-2 uppercase font-medium">{{ $batch['approval_status'] }}</span>
+                                                        class="bg-green-300 text-green-1100 rounded py-1 px-2 uppercase font-medium">{{ $batch->approval_status }}</span>
                                                 @else
                                                     <span
-                                                        class="bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase font-medium">{{ $batch['approval_status'] }}</span>
+                                                        class="bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->approval_status }}</span>
                                                 @endif
                                             </td>
                                             <td class="pr-2 py-2 text-center">
-                                                @if ($batch['submission_status'] === 'unopened')
+                                                @if ($batch->submission_status === 'unopened')
                                                     <span
-                                                        class="bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase font-medium">{{ $batch['submission_status'] }}</span>
-                                                @elseif($batch['submission_status'] === 'encoding')
+                                                        class="bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
+                                                @elseif($batch->submission_status === 'encoding')
                                                     <span
-                                                        class="bg-sky-300 text-sky-950 rounded py-1 px-2 uppercase font-medium">{{ $batch['submission_status'] }}</span>
-                                                @elseif($batch['submission_status'] === 'submitted')
+                                                        class="bg-sky-300 text-sky-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
+                                                @elseif($batch->submission_status === 'submitted')
                                                     <span
-                                                        class="bg-green-300 text-green-1100 rounded py-1 px-2 uppercase font-medium">{{ $batch['submission_status'] }}</span>
-                                                @elseif($batch['submission_status'] === 'revalidate')
+                                                        class="bg-green-300 text-green-1100 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
+                                                @elseif($batch->submission_status === 'revalidate')
                                                     <span
-                                                        class="bg-red-300 text-red-950 rounded py-1 px-2 uppercase font-medium">{{ $batch['submission_status'] }}</span>
+                                                        class="bg-red-300 text-red-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
                                                 @endif
                                             </td>
 
@@ -218,7 +242,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
 
                         {{-- Batch Dropdown Content --}}
-                        @foreach ($batches as $key => $batch)
+                        @foreach ($this->batches as $key => $batch)
                             <div wire:key="batchRowDropdown-{{ $key }}"
                                 id="batchRowDropdown-{{ $key }}"
                                 class="absolute z-50 hidden bg-white border rounded-md shadow">
@@ -290,7 +314,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     {{-- Title --}}
                     <div
                         class="relative flex-col h-[18.5vh] flex bg-white p-2 rounded text-blue-1100 text-xs font-semibold">
-                        @if ($location)
+                        @if ($this->location)
                             <div class="flex items-center text-blue-900 pb-2 ms-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -307,14 +331,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
                                 Location: <p class="font-normal ps-2 truncate">Brgy.
-                                    {{ $location['barangay_name'] . ', ' . $location['district'] . ', ' . $location['city_municipality'] }}
+                                    {{ $this->location->barangay_name . ', ' . $this->location->district . ', ' . $this->location->city_municipality }}
                                 </p>
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
                                 Access Code: <p class="ps-2 font-normal">
-                                    @if ($accessCode)
+                                    @if ($this->accessCode)
                                         <span
-                                            class="bg-blue-300 text-blue-1000 rounded py-1 px-2">{{ $accessCode['access_code'] }}</span>
+                                            class="bg-blue-300 text-blue-1000 rounded py-1 px-2">{{ $this->accessCode->access_code }}</span>
                                     @else
                                         <span
                                             class="font-semibold bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase">not
@@ -323,7 +347,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </p>
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
-                                Submissions: <p class="font-normal ps-2">{{ $submissions[0]['submissions'] ?? 0 }}</p>
+                                Submissions: <p class="font-normal ps-2">
+                                    {{ $this->submissions->total_count ?? 0 }}</p>
                             </div>
                         @else
                             <div class="relative bg-white p-2 h-[18.5vh] min-w-full flex items-center justify-center">
@@ -356,7 +381,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </button>
                     </div>
 
-                    @if ($beneficiaries)
+                    @if ($this->beneficiaries)
                         {{-- Table --}}
                         <div
                             class="relative h-[64vh] overflow-y-auto rounded whitespace-nowrap bg-white scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
@@ -378,9 +403,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </tr>
                                 </thead>
                                 <tbody class="text-xs">
-                                    @foreach ($beneficiaries as $key => $beneficiary)
+                                    @foreach ($this->beneficiaries as $key => $beneficiary)
                                         @php
-                                            $encryptedId = encrypt($beneficiary['id']);
+                                            $encryptedId = encrypt($beneficiary->id);
                                         @endphp
                                         <tr class="border-b hover:bg-gray-50 whitespace-nowrap">
                                             <th scope="row"
@@ -391,10 +416,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $this->getFullName($key) }}
                                             </td>
                                             <td class="px-2 py-2 text-center">
-                                                {{ $beneficiary['birthdate'] }}
+                                                {{ $beneficiary->birthdate }}
                                             </td>
                                             <td class="px-2 py-2 text-center">
-                                                {{ $beneficiary['contact_num'] }}
+                                                {{ $beneficiary->contact_num }}
                                             </td>
                                         </tr>
                                     @endforeach
@@ -417,9 +442,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>No beneficiaries found.</p>
-                                    <p>Try <span class="underline underline-offset-2">clicking a row</span> from the
-                                        <span class="text-blue-900">list of
-                                            batches</span>.
+                                    <p>Try <span class="underline underline-offset-2">clicking</span> one of the <span
+                                            class="text-blue-900">batches</span> row.
                                     </p>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg"
