@@ -15,6 +15,14 @@ use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
+    protected $implementationAmount = 100;
+    protected $coordinatorsAmount = 10;
+    protected $assignmentAmountMin = 2;
+    protected $assignmentAmountMax = 6;
+    protected $batchAmountMin = 2;
+    protected $batchAmountMax = 6;
+
+
     /**
      * Seed the application's database.
      */
@@ -36,24 +44,23 @@ class DatabaseSeeder extends Seeder
             'field_office' => null,
             'user_type' => 'r_focal',
         ]);
-        User::factory()->create([
+        $focalUser = User::factory()->create([
             'user_type' => 'focal',
         ]);
-        User::factory(10)->create();
+        $users = User::factory($this->coordinatorsAmount)->create();
 
-        $randImpAmount = 150;
-        Implementation::factory($randImpAmount)->create();
+        $implementations = Implementation::factory($this->implementationAmount)->create();
         $batches = [];
 
-        for ($i = 1; $i <= $randImpAmount; $i++) {
-            $total_slots = Implementation::where('id', $i)->value('total_slots');
-            $currentDate = Implementation::where('id', $i)->value('created_at');
+        foreach ($implementations as $implementation) {
+            $total_slots = Implementation::where('id', $implementation->id)->value('total_slots');
+            $currentDate = Implementation::where('id', $implementation->id)->value('created_at');
 
             $alloted_slots = $this->generateRandomArray($total_slots);
             foreach ($alloted_slots as $slots) {
                 $batches[] = Batch::factory()->create([
-                    'implementations_id' => $i,
-                    'barangay_name' => $this->getBarangayName($i),
+                    'implementations_id' => $implementation->id,
+                    'barangay_name' => $this->getBarangayName($implementation->id),
                     'slots_allocated' => $slots,
                     'created_at' => $currentDate,
                     'updated_at' => $currentDate,
@@ -62,12 +69,12 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach ($batches as $batch) {
-            $amount = rand(1, 6);
+            $amount = rand($this->assignmentAmountMin, $this->assignmentAmountMax);
             $previousUser = 0;
             $currentDate = $batch->created_at;
 
             for ($j = 1; $j <= $amount; $j++) {
-                $user = rand(3, 12);
+                $user = $users[rand(0, $this->coordinatorsAmount - 1)]->id;
                 if ($user != $previousUser) {
                     $previousUser = $user;
                     Assignment::factory()->create([
@@ -80,7 +87,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        $focalUserId = 3; // example focal user id
+        $focalUserId = $focalUser->id; // example focal user id
         $batches = Batch::whereHas('implementation', function ($query) use ($focalUserId) {
             $query->where('users_id', $focalUserId);
         })
@@ -115,7 +122,7 @@ class DatabaseSeeder extends Seeder
     function generateRandomArray($totalValue, $minThresholdPercentage = 15)
     {
         // Determine the number of values (3 to 6)
-        $numValues = rand(2, 7);
+        $numValues = rand($this->batchAmountMin, $this->batchAmountMax);
 
         // Minimum threshold for each value
         $minThreshold = $totalValue * ($minThresholdPercentage / 100);

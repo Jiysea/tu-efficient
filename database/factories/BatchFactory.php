@@ -33,12 +33,14 @@ class BatchFactory extends Factory
     public function batchNumberGenerator()
     {
         $number = fake()->bothify('DCFO-BN-######');
-        $existingNumber = Batch::where('batch_num', $number);
+        $existingNumber = Batch::where('batch_num', $number)->first();
 
         while ($existingNumber) {
-            if ($existingNumber) {
+            if ($existingNumber->batch_num === $number) {
                 $number = fake()->bothify('DCFO-BN-######');
                 $existingNumber = $number;
+            } else {
+                break;
             }
         }
 
