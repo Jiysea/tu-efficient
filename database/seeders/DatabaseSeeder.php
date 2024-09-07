@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
     protected $batchAmountMin = 2;
     protected $batchAmountMax = 6;
 
-
     /**
      * Seed the application's database.
      */
@@ -74,15 +73,21 @@ class DatabaseSeeder extends Seeder
             $currentDate = $batch->created_at;
 
             for ($j = 1; $j <= $amount; $j++) {
-                $user = $users[rand(0, $this->coordinatorsAmount - 1)]->id;
-                if ($user != $previousUser) {
-                    $previousUser = $user;
-                    Assignment::factory()->create([
-                        'batches_id' => $batch->id,
-                        'users_id' => $user,
-                        'created_at' => $currentDate,
-                        'updated_at' => $currentDate,
-                    ]);
+
+                while (true) {
+                    $randomId = rand(0, $this->coordinatorsAmount - 1);
+                    $user = $users[$randomId]->id;
+
+                    if ($user !== $previousUser) {
+                        $previousUser = $user;
+                        Assignment::factory()->create([
+                            'batches_id' => $batch->id,
+                            'users_id' => $user,
+                            'created_at' => $currentDate,
+                            'updated_at' => $currentDate,
+                        ]);
+                        break;
+                    }
                 }
             }
         }
