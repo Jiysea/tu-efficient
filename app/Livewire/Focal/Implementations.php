@@ -67,8 +67,6 @@ class Implementations extends Component
 
         $this->implementationId = null;
         $this->batchId = null;
-        // $this->setImplementationId();
-        // $this->setBatchId();
 
         $this->selectedImplementationRow = -1;
         $this->selectedBatchRow = -1;
@@ -177,7 +175,6 @@ class Implementations extends Component
             ->orderBy('batches.id', 'desc')
             ->get();
 
-        // $this->batchId = $this->batches[0]->id ?? null;
         return $batches;
     }
 
@@ -330,6 +327,13 @@ class Implementations extends Component
         unset($this->implementations);
         $this->implementations();
 
+        $this->implementationId = null;
+        $this->batchId = null;
+
+        $this->selectedImplementationRow = -1;
+        $this->selectedBatchRow = -1;
+        $this->selectedBeneficiaryRow = -1;
+
         $this->showAlert = true;
         $this->alertMessage = 'Project implementation successfully created!';
         $this->dispatch('show-alert');
@@ -348,6 +352,11 @@ class Implementations extends Component
 
         unset($this->batches);
         $this->batches();
+
+        $this->batchId = null;
+
+        $this->selectedBatchRow = -1;
+        $this->selectedBeneficiaryRow = -1;
 
         $this->showAlert = true;
         $this->alertMessage = 'Batches successfully assigned!';
