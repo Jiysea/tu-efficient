@@ -161,8 +161,8 @@ class Dashboard extends Component
 
     public function mount()
     {
-        if (Auth::user()->user_type === 'coordinator') {
-            $this->redirect(Assignments::class);
+        if (Auth::user()->user_type !== 'focal') {
+            $this->redirectIntended();
         }
 
         /*

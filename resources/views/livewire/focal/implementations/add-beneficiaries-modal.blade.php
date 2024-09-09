@@ -18,7 +18,7 @@
                 <div class="flex items-center justify-center">
                     <button type="button"
                         class="text-indigo-400 bg-transparent focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 outline-none rounded size-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-200 ease-in-out"
-                        data-modal-toggle="add-beneficiaries-modal">
+                        data-modal-toggle="add-beneficiaries-modal" @click="trapAdd = false">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

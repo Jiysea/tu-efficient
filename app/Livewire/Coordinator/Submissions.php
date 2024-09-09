@@ -8,6 +8,7 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -29,8 +30,8 @@ class Submissions extends Component
     public $defaultBeneficiaries_on_page = 30;
     public $batches_on_page = 15;
     public $beneficiaries_on_page = 30;
-    public $selectedBeneficiaryRow = -1;
     public $selectedBatchRow = -1;
+    public $selectedBeneficiaryRow = -1;
     public $searchBeneficiaries;
     public $searchBatches;
 
@@ -132,6 +133,49 @@ class Submissions extends Component
     }
 
     #[Computed]
+    public function beneficiaries()
+    {
+        $coordinatorUserId = Auth::user()->id;
+
+        $beneficiaries = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('assignments.users_id', $coordinatorUserId)
+            ->where('batches.id', $this->batchId)
+            ->select([
+                'beneficiaries.*',
+            ])
+            ->take($this->beneficiaries_on_page)
+            ->get();
+
+        return $beneficiaries;
+    }
+
+    #[Computed]
+    public function getIdType()
+    {
+        $type_of_id = null;
+
+        if ($this->beneficiaryId) {
+
+            if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'PWD')) {
+                $type_of_id = 'PWD ID';
+            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'COMELEC')) {
+                $type_of_id = 'Voter\'s ID';
+            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'PhilID')) {
+                $type_of_id = 'PhilID';
+            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, '4Ps')) {
+                $type_of_id = '4Ps ID';
+            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'IBP')) {
+                $type_of_id = 'IBP ID';
+            } else {
+                $type_of_id = $this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id;
+            }
+
+        }
+
+        return $type_of_id;
+    }
+    #[Computed]
     public function batchesCount()
     {
         $coordinatorUserId = Auth::user()->id;
@@ -181,27 +225,11 @@ class Submissions extends Component
 
         return $currentBatch;
     }
-    #[Computed]
-    public function beneficiaries()
+
+
+    public function loadMoreBeneficiaries()
     {
-        $coordinatorUserId = Auth::user()->id;
-
-        $beneficiaries = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
-            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('assignments.users_id', $coordinatorUserId)
-            ->where('batches.id', $this->batchId)
-            ->select([
-                'beneficiaries.*',
-            ])
-            ->take($this->beneficiaries_on_page)
-            ->get();
-
-        return $beneficiaries;
-    }
-
-    public function loadMoreBatches()
-    {
-        $this->beneficiaries_on_page += $this->defaultBatches_on_page;
+        $this->beneficiaries_on_page += $this->defaultBeneficiaries_on_page;
         $this->dispatch('init-reload')->self();
     }
 
@@ -238,14 +266,23 @@ class Submissions extends Component
 
     }
 
-    public function mount($batchId = null)
+    public function mount($batchId = null, $coordinatorId = null)
     {
-        if (Auth::user()->user_type === 'focal') {
-            $this->redirect(Dashboard::class);
+        if (Auth::user()->user_type !== 'coordinator') {
+            $this->redirectIntended();
         }
 
-        $this->batchId = $batchId;
+        if ($coordinatorId !== null) {
+            if ($coordinatorId && Auth::user()->id === $coordinatorId) {
+                $this->redirectIntended();
+            }
+        }
 
+        if ($batchId !== null) {
+            $this->batchId = decrypt($batchId);
+        } else {
+            $this->batchId = $batchId;
+        }
 
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
         $this->end = date('Y-m-d H:i:s', strtotime(now()));

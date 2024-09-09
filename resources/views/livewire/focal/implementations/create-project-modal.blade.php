@@ -1,6 +1,6 @@
 <div wire:ignore.self id="create-modal" tabindex="-1" aria-hidden="true"
     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div x-data="{
+    <div x-trap="trapCreate" x-data="{
         budgetToFloat: null,
         budgetToInt: null,
         unmaskedBudget: null,
@@ -58,7 +58,7 @@
                             </path>
                         </svg>
                     </div>
-                    <button type="button"
+                    <button type="button" @click="trapCreate=false"
                         class="text-indigo-400 bg-transparent hover:bg-indigo-200 hover:text-indigo-900 rounded  w-8 h-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-300 ease-in-out"
                         data-modal-toggle="create-modal">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"

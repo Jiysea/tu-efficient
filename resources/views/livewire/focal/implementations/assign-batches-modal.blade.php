@@ -32,7 +32,7 @@
                             </path>
                         </svg>
                     </div>
-                    <button type="button" data-modal-toggle="assign-batches-modal"
+                    <button type="button" data-modal-toggle="assign-batches-modal" @click="trapAssign = false"
                         class="text-indigo-400 bg-transparent hover:bg-indigo-200 hover:text-indigo-900 rounded  w-8 h-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-300 ease-in-out">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 14 14">

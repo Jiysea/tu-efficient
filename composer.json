@@ -10,6 +10,7 @@
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.5",
         "log1x/laravel-webfonts": "^1.0",
+        "phpoffice/phpspreadsheet": "^2.2",
         "vonage/client": "^4.0"
     },
     "require-dev": {

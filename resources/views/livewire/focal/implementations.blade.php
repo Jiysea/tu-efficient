@@ -2,7 +2,7 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, show: false, profileShow: false, rotation: 0, caretRotate: 0, dashboardHover: false, implementationsHover: false, umanagementHover: false, alogsHover: false, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, show: false, trapCreate: false, trapAssign: false, trapAdd: false, profileShow: false, rotation: 0, caretRotate: 0, dashboardHover: false, implementationsHover: false, umanagementHover: false, alogsHover: false, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
@@ -135,6 +135,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     placeholder="Search for project numbers">
                             </div>
                             <button data-modal-target="create-modal" data-modal-toggle="create-modal"
+                                @click="trapCreate=true"
                                 class="flex items-center bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 rounded-md px-4 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 duration-200 ease-in-out">
                                 CREATE
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ml-2"
@@ -273,7 +274,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             class="relative bg-white px-4 pb-4 pt-2 h-[36vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-gray-400"
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -316,7 +318,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     {{ $remainingBatchSlots }}</div>
                             @endif
                             <button @if (!$remainingBatchSlots || $remainingBatchSlots === null || $remainingBatchSlots === 0) disabled @endif
-                                @if ($implementationId) data-modal-target="assign-batches-modal" data-modal-toggle="assign-batches-modal" @endif
+                                @if ($implementationId) data-modal-target="assign-batches-modal" data-modal-toggle="assign-batches-modal" @click="trapAssign = true" @endif
                                 class="flex items-center rounded-md px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $remainingBatchSlots > 0 ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }}">
                                 ASSIGN
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
@@ -448,7 +450,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                 @if ($this->implementations->isEmpty())
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -461,7 +463,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </p>
                                 @elseif (!$implementationId)
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -475,7 +477,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </p>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-12 sm:size-20 mb-4 text-gray-400"
+                                        class=" size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -553,7 +555,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
 
                             <button
-                                @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) data-modal-target="add-beneficiaries-modal" data-modal-toggle="add-beneficiaries-modal" @else disabled @endif
+                                @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) data-modal-target="add-beneficiaries-modal" data-modal-toggle="add-beneficiaries-modal" @click="trapAdd = true" @else disabled @endif
                                 class="flex items-center {{ $batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }} rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
                                 ADD
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
@@ -703,7 +705,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 @if ($beneficiary->avg_monthly_income === null || $beneficiary->avg_monthly_income === 0)
                                                     -
                                                 @else
-                                                    {{ number_format($beneficiary->avg_monthly_income / 100, 2) }}
+                                                    ₱{{ number_format($beneficiary->avg_monthly_income / 100, 2) }}
                                                 @endif
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
@@ -810,7 +812,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                 @if ($this->implementations->isEmpty())
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -823,7 +825,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </p>
                                 @elseif (!$implementationId)
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -837,7 +839,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </p>
                                 @elseif ($this->batches->isEmpty())
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-12 sm:size-20 mb-4 text-gray-400"
+                                        class=" size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -850,7 +852,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </p>
                                 @elseif (!$batchId)
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -864,7 +866,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </p>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-gray-400"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>

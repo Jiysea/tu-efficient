@@ -273,14 +273,20 @@ class Assignments extends Component
     public function viewList()
     {
         if ($this->batchId) {
-            $this->redirectRoute('coordinator.submissions', ['batchId' => $this->batchId]);
+            $this->redirectRoute(
+                'coordinator.submissions',
+                [
+                    'batchId' => encrypt($this->batchId),
+                    'coordinatorId' => encrypt(Auth::user()->id)
+                ]
+            );
         }
     }
 
     public function mount()
     {
-        if (Auth::user()->user_type === 'focal') {
-            $this->redirect(Dashboard::class);
+        if (Auth::user()->user_type !== 'coordinator') {
+            $this->redirectIntended();
         }
 
         /*
