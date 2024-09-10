@@ -1,4 +1,4 @@
-<div wire:ignore.self id="download-options-alert" tabindex="-1" aria-hidden="true"
+<div wire:ignore.self id="download-options-alert" data-modal-backdrop="static" tabindex="-1" aria-hidden="true"
     class="hidden backdrop-brightness-50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div x-data="{
         init() {

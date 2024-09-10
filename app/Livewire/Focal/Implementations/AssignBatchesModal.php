@@ -8,6 +8,7 @@ use App\Models\Batch;
 use App\Models\Implementation;
 use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Reactive;
@@ -53,7 +54,24 @@ class AssignBatchesModal extends Component
         return [
             'batch_num' => [
                 'required',
-                'unique:batches',
+
+                # Checks uniqueness from the `Database`
+                function ($attribute, $value, $fail) {
+                    // Fetch the project number with the prefix
+                    $prefixedBatchNum = config('settings.batch_number_prefix') . $value;
+
+                    // Check for uniqueness of the prefixed value in the database
+                    $exists = DB::table('batches')
+                        ->where('batch_num', $prefixedBatchNum)
+                        ->exists();
+
+                    if ($exists) {
+                        // Fail the validation if the project number with the prefix already exists
+                        $fail('This :attribute already exists.');
+                    }
+                },
+
+                # Checks uniqueness from the Temporary Batch List
                 function ($attribute, $value, $fail) {
                     foreach ($this->temporaryBatchesList as $batch) {
                         if ($batch['batch_num'] === $value) {
@@ -94,7 +112,7 @@ class AssignBatchesModal extends Component
             'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
             'temporaryBatchesList.required' => 'There should be at least 1 :attribute before finishing.',
 
-            'batch_num.unique' => 'This :attribute already exists.',
+            'batch_num.integer' => 'The :attribute should be a valid number.',
 
             'slots_allocated.integer' => ':attribute should be a valid number.',
             'slots_allocated.min' => ':attribute should be > 0.',

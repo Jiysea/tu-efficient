@@ -39,6 +39,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </svg>
                         </div>
                         <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
+                            datepicker-max-date="{{ $defaultStart }}"
                             class="bg-white border border-indigo-300 text-indigo-1100 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full ps-10"
                             placeholder="Select date start">
                     </div>
@@ -60,6 +61,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </svg>
                         </div>
                         <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
+                            datepicker-min-date="{{ $defaultEnd }}"
                             class="bg-white border border-indigo-300 text-indigo-1100 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full ps-10"
                             placeholder="Select date end">
                     </div>
@@ -119,7 +121,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="size-3 {{ $this->implementations->isNotEmpty() ? 'text-indigo-800' : 'text-zinc-400' }}"
+                                    <svg class="size-3 {{ $this->implementations->isNotEmpty() || $searchProjects ? 'text-indigo-800' : 'text-zinc-400' }}"
                                         aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -127,9 +129,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </div>
                                 <input type="text" id="project-search" maxlength="100" autocomplete="off"
-                                    @if ($this->implementations->isEmpty()) disabled @endif
+                                    @if ($this->implementations->isEmpty() && !$searchProjects) disabled @endif
                                     @input.debounce.300ms="$wire.searchProjects = $el.value; $wire.$refresh();"
-                                    class="{{ $this->implementations->isNotEmpty()
+                                    class="{{ $this->implementations->isNotEmpty() || $searchProjects
                                         ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
                                         : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full"
                                     placeholder="Search for project numbers">

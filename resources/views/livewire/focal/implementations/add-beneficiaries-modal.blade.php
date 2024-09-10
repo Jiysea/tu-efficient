@@ -36,7 +36,8 @@
 
                     {{-- First Name --}}
                     <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
-                        <label for="first_name" class="block mb-1 font-medium text-indigo-1100 ">First Name</label>
+                        <label for="first_name" class="block mb-1 font-medium text-indigo-1100 ">First Name <span
+                                class="text-red-700 font-normal text-sm">*</span></label>
                         <input type="text" id="first_name" autocomplete="off"
                             @blur="$wire.set('first_name', $el.value); $wire.nameCheck();"
                             class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
@@ -55,7 +56,8 @@
                     </div>
                     {{-- Last Name --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                        <label for="last_name" class="block mb-1  font-medium text-indigo-1100 ">Last Name</label>
+                        <label for="last_name" class="block mb-1  font-medium text-indigo-1100 ">Last Name <span
+                                class="text-red-700 font-normal text-sm">*</span></label>
                         <input type="text" id="last_name" autocomplete="off"
                             @blur="$wire.set('last_name', $el.value); $wire.nameCheck();"
                             class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
@@ -74,7 +76,8 @@
                     </div>
                     {{-- Birthdate --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                        <label for="birthdate" class="block mb-1  font-medium text-indigo-1100 ">Birthdate</label>
+                        <label for="birthdate" class="block mb-1  font-medium text-indigo-1100 ">Birthdate <span
+                                class="text-red-700 font-normal text-sm">*</span></label>
                         <div class="absolute start-0 bottom-3.5 flex items-center ps-3 pointer-events-none">
                             <svg class="size-4 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'text-red-700' : 'text-indigo-900' }}"
                                 aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -95,7 +98,7 @@
                     {{-- Contact Number --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                         <label for="contact_num" class="block mb-1 font-medium text-indigo-1100 ">Contact
-                            Number</label>
+                            Number <span class="text-red-700 font-normal text-sm">*</span></label>
                         <div {{-- x-effect="console.log(unmaskedBudget)" --}} class="relative">
                             <div
                                 class="text-xs outline-none absolute inset-y-0 px-2 rounded-l flex items-center justify-center text-center duration-200 ease-in-out pointer-events-none {{ $errors->has('contact_num') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-indigo-700 text-indigo-50' }}">
@@ -827,7 +830,8 @@
                         {{-- ID Number --}}
                         <div class="relative col-span-full sm:col-span-4 sm:row-span-1 mb-4 pb-1">
 
-                            <label for="id_number" class="block mb-1 font-medium text-indigo-1100 ">ID Number</label>
+                            <label for="id_number" class="block mb-1 font-medium text-indigo-1100 ">ID Number <span
+                                    class="text-red-700 font-normal text-sm">*</span></label>
                             <input type="text" id="id_number" autocomplete="off" wire:model.blur="id_number"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('id_number') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="Type ID number">
@@ -839,10 +843,11 @@
                         {{-- Spouse First Name --}}
                         <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
                             <label for="spouse_first_name"
-                                class="block mb-1 font-medium {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
-
-
-                                First Name</label>
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
+                                First Name @if ($civil_status === 'Married')
+                                    <span class="text-red-700 font-normal text-sm ms-0.5">*</span>
+                                @endif
+                            </label>
                             <input type="text" id="spouse_first_name" autocomplete="off"
                                 wire:model.blur="spouse_first_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out @if ($civil_status === 'Married') {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}
@@ -856,8 +861,8 @@
                         {{-- Spouse Middle Name --}}
                         <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                             <label for="spouse_middle_name"
-                                class="block mb-1 font-medium {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
-                                Middle Name</label>
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
+                                Middle Name </label>
                             <input type="text" id="spouse_middle_name" autocomplete="off"
                                 wire:model.blur="spouse_middle_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
@@ -869,8 +874,11 @@
                         {{-- Spouse Last Name --}}
                         <div class="relative flex flex-col col-span-full sm:col-span-2 mb-4 pb-1">
                             <label for="spouse_last_name"
-                                class="block mb-1 font-medium {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
-                                Last Name</label>
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
+                                Last Name @if ($civil_status === 'Married')
+                                    <span class="text-red-700 font-normal text-sm ms-0.5">*</span>
+                                @endif
+                            </label>
                             <input type="text" id="spouse_last_name" autocomplete="off"
                                 wire:model.blur="spouse_last_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
@@ -886,7 +894,7 @@
                         {{-- Spouse Extension Name --}}
                         <div class="relative col-span-full sm:col-span-1 mb-4 pb-1">
                             <label for="spouse_extension_name"
-                                class="block mb-1 font-medium {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
                                 Ext. Name</label>
                             <input type="text" id="spouse_extension_name" autocomplete="off"
                                 wire:model.blur="spouse_extension_name"

@@ -15,39 +15,39 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
-    {
-        return view('landing.focal');
-    }
+    // public function create(): View
+    // {
+    //     return view('landing.focal');
+    // }
 
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
-    {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+    // public function store(LoginRequest $request): RedirectResponse
+    // {
+    //     $credentials = $request->validate([
+    //         'email' => ['required', 'email'],
+    //         'password' => ['required'],
+    //     ]);
 
-        if (Auth::attempt($credentials)) {
-            if (Auth::user()->user_type === 'Focal') {
-                $request->session()->regenerate();
+    //     if (Auth::attempt($credentials)) {
+    //         if (Auth::user()->user_type === 'Focal') {
+    //             $request->session()->regenerate();
 
-                return redirect()->route('focal.dashboard');
-            } else if (Auth::user()->user_type === 'Coordinator') {
-                $request->session()->regenerate();
+    //             return redirect()->route('focal.dashboard');
+    //         } else if (Auth::user()->user_type === 'Coordinator') {
+    //             $request->session()->regenerate();
 
-                return redirect()->route('coordinator.home');
-            }
-        }
+    //             return redirect()->route('coordinator.home');
+    //         }
+    //     }
 
-        Auth::logout();
+    //     Auth::logout();
 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
-    }
+    //     return back()->withErrors([
+    //         'email' => 'The provided credentials do not match our records.',
+    //     ])->onlyInput('email');
+    // }
 
 
     /**

@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Validate;
+use Livewire\Component;
+
+#[Layout('layouts.guest')]
+#[Title('TU-Efficient | Efficiently manage your workspace')]
+class Login extends Component
+{
+
+    #[Validate]
+    public $email;
+
+    #[Validate]
+    public $password;
+
+    #[Validate]
+    public $access_code;
+
+    # ----------------------------
+
+    public function rules()
+    {
+        return [
+            'email' => 'required|email|exists:users',
+            'password' => 'required',
+            'access_code' =>
+                [
+                    'required',
+                    'max:8',
+                    Rule::exists('codes', 'access_code')->where('accessible', 'Yes'),
+                ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'email.required' => 'This field is required.',
+            'email.email' => 'Invalid email address.',
+            'email.exists' => 'This email does not exist.',
+
+            'password.required' => 'This field is required.',
+
+            'access_code.required' => 'This field is required.',
+            'access_code.exists' => 'This code is either non-existent or inaccessible.',
+            'access_code.max' => 'A valid code only contains 8 characters.',
+        ];
+    }
+
+    public function login()
+    {
+        $this->validateOnly('email');
+        $this->validateOnly('password');
+
+        if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
+
+            if (strtolower(Auth::user()->user_type) === 'focal') {
+                session()->regenerate();
+
+                # Logs the login date of the user
+                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
+
+                $this->redirectRoute('focal.dashboard');
+
+            } else if (strtolower(Auth::user()->user_type) === 'coordinator') {
+                session()->regenerate();
+
+                # Logs the login date of the user
+                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
+
+                $this->redirectRoute('coordinator.assignments');
+            }
+
+        } else {
+            Auth::logout();
+
+            $this->addError('password', 'The password is incorrect.');
+        }
+    }
+
+    public function access()
+    {
+        $this->validateOnly('access_code');
+
+        // if (Code::where('access_code', $this->accessCode)->value('accessible') === 'Yes') {
+        //     session()->regenerate();
+
+        //     return redirect()->route('barangay.index', ['accessCode' => $this->accessCode]);
+        // }
+
+        // session()->flash('access-code', 'Access code do not match our records.');
+        // session()->flash('access-code', 'Temporarily blocked access. Please try again later.');
+    }
+
+    public function mount()
+    {
+        if (Auth::check()) {
+            if (Auth::user()->user_type === 'focal')
+                return redirect()->route('focal.dashboard');
+            else if (Auth::user()->user_type === 'coordinator')
+                return redirect()->route('coordinator.assignments');
+        }
+    }
+    public function render()
+    {
+        return view('livewire.login');
+    }
+}

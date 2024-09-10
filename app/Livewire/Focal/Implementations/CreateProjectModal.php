@@ -4,6 +4,8 @@ namespace App\Livewire\Focal\Implementations;
 
 use App\Models\Implementation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Js;
 use Livewire\Attributes\Locked;
@@ -40,26 +42,29 @@ class CreateProjectModal extends Component
     # Runs real-time depending on wire:model suffix
     public function rules()
     {
-        // if (!empty($value)) {
-        //     $this->budgetToFloat = str_replace([','], '', $value);
-
-        //     # Doesn't matter if the budget amount has a decimal or not
-        //     # it will always be an integer
-        //     # so that it can adapt dynamically based on the minimum wage if it has decimal too or not
-        //     if (strpos($this->budgetToFloat, '.') !== false) {
-        //         $this->budgetToInt = intval(str_replace(['.'], '', number_format(floatval($this->budgetToFloat), 2)));
-        //     } else {
-        //         $this->budgetToInt = intval(strval($this->budgetToFloat) . '00');
-        //     }
-
-        // } else {
-        //     $this->budgetToInt = null;
-        // }
-        // $this->toggleTry();
+        // Pre-set the project number to its set prefix.
+        // $this->project_num = config('settings.project_number_prefix') . $this->project_num;
 
         return [
-            'project_num' => 'required|unique:implementations',
-            'project_title' => 'required',
+            'project_num' => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    // Fetch the project number with the prefix
+                    $prefixedProjectNum = config('settings.project_number_prefix') . $value;
+
+                    // Check for uniqueness of the prefixed value in the database
+                    $exists = DB::table('implementations')
+                        ->where('project_num', $prefixedProjectNum)
+                        ->exists();
+
+                    if ($exists) {
+                        // Fail the validation if the project number with the prefix already exists
+                        $fail('This :attribute already exists.');
+                    }
+                },
+            ],
+            'project_title' => 'nullable',
             'purpose' => 'required',
             'district' => 'required',
             'province' => 'required',
@@ -75,7 +80,6 @@ class CreateProjectModal extends Component
     {
         return [
             'project_num.required' => 'The :attribute should not be empty.',
-            'project_title.required' => 'The :attribute should not be empty.',
             'purpose.required' => 'Please select a :attribute .',
             'district.required' => 'The :attribute should not be empty.',
             'province.required' => 'The :attribute should not be empty.',
@@ -85,6 +89,7 @@ class CreateProjectModal extends Component
             'days_of_work.required' => 'Invalid :attribute.',
 
             'project_num.unique' => 'This :attribute already exists.',
+            'project_num.integer' => 'The :attribute should be a valid number.',
 
             'budget_amount.integer' => 'The :attribute should be a valid amount.',
             'budget_amount.min' => 'The :attribute value should be more than 1.',
@@ -104,7 +109,6 @@ class CreateProjectModal extends Component
     {
         return [
             'project_num' => 'project number',
-            'project_title' => 'project title',
             'purpose' => 'purpose',
             'district' => 'district',
             'province' => 'province',
@@ -120,6 +124,7 @@ class CreateProjectModal extends Component
     {
         $this->validate();
 
+        // $this->project_num = config('settings.project_number_prefix') . $this->project_num;
         Implementation::create([
             'users_id' => Auth()->id(),
             'project_num' => $this->project_num,
@@ -162,8 +167,120 @@ class CreateProjectModal extends Component
         }
     }
 
+    #[Computed]
+    public function getProvince()
+    {
+        $province = null;
+        if (Auth::user()->regional_office === 'Region XI') {
+            $province = [
+                'Davao del Sur',
+                'Davao de Oro',
+                'Davao del Norte',
+                'Davao Oriental',
+                'Davao Occidental',
+            ];
+        }
+        $this->province = $province[0];
+        return $province;
+    }
+
+    #[Computed]
+    public function getCityMunicipality()
+    {
+        $city_municipality = null;
+        if ($this->province === 'Davao del Sur') {
+            $city_municipality = [
+                'Davao City',
+                'Bansalan',
+                'Digos City',
+                'Hagonoy',
+                'Kiblawan',
+                'Magsaysay',
+                'Malalag',
+                'Matanao',
+                'Padada',
+                'Santa Cruz',
+            ];
+        } else if ($this->province === 'Davao del Norte') {
+            $city_municipality = [
+                'Asuncion',
+                'Braulio E. Dujali',
+                'Carmen',
+                'Kapalong',
+                'New Corella',
+                'Panabo',
+                'Samal',
+                'San Isidro',
+                'Santo Tomas',
+                'Tagum',
+                'Talaingod'
+            ];
+        } else if ($this->province === 'Davao de Oro') {
+            $city_municipality = [
+                'Compostela',
+                'Laak',
+                'Mabini',
+                'Maco',
+                'Maragusan',
+                'Mawab',
+                'Monkayo',
+                'Montevista',
+                'Nabunturan',
+                'New Bataan',
+                'Pantukan'
+            ];
+        } else if ($this->province === 'Davao Occidental') {
+            $city_municipality = [
+                'Don Marcelino',
+                'Jose Abad Santos',
+                'Malita',
+                'Santa Maria',
+                'Sarangani'
+            ];
+        } else if ($this->province === 'Davao Oriental') {
+            $city_municipality = [
+                'Baganga',
+                'Banaybanay',
+                'Boston',
+                'Caraga',
+                'Cateel',
+                'Governor Generoso',
+                'Lupon',
+                'Manay',
+                'Mati',
+                'San Isidro',
+                'Tarragona'
+            ];
+        }
+
+        $this->city_municipality = $city_municipality[0];
+        return $city_municipality;
+    }
+
+    #[Computed]
+    public function getDistrict()
+    {
+        $district = null;
+        if ($this->city_municipality === 'Davao City') {
+            $district = [
+                '1st District',
+                '2nd District',
+                '3rd District',
+            ];
+        } else {
+            $district = [
+                'To be continued...',
+            ];
+        }
+
+        $this->district = $district[0];
+        return $district;
+    }
+
+
     public function render()
     {
+
         return view('livewire.focal.implementations.create-project-modal');
     }
 }

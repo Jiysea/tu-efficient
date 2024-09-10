@@ -1,4 +1,4 @@
-<div wire:ignore.self id="assign-batches-modal" tabindex="-1" aria-hidden="true"
+<div wire:ignore.self id="assign-batches-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true"
     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div x-data="{
         init() {
@@ -72,8 +72,10 @@
                     {{-- Batch Number --}}
                     <div class="relative col-span-5 sm:col-span-2 mb-4">
                         <label for="batch_num" class="block mb-1  font-medium text-indigo-1100 ">Batch
-                            Number</label>
-                        <input type="text" id="batch_num" wire:model.live="batch_num" autocomplete="off"
+                            Number <span class="text-red-700 font-normal text-sm">*</span><span
+                                class="text-gray-500 ms-2">prefix:
+                                {{ substr(config('settings.batch_number_prefix'), 0, strlen(config('settings.batch_number_prefix')) - 1) }}</span></label>
+                        <input type="number" id="batch_num" wire:model.live="batch_num" autocomplete="off"
                             class="text-xs {{ $errors->has('batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 border border-indigo-300 text-indigo-1100 rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
                             placeholder="Type batch number">
                         @error('batch_num')
@@ -82,7 +84,8 @@
                     </div>
                     {{-- Barangay Name --}}
                     <div class="relative col-span-3 sm:col-span-2 mb-4">
-                        <label for="barangay_name" class="block mb-1  font-medium text-indigo-1100 ">Barangay
+                        <label for="barangay_name" class="block mb-1  font-medium text-indigo-1100 ">Barangay <span
+                                class="text-red-700 font-normal text-sm">*</span>
                         </label>
                         <input type="text" id="barangay_name" wire:model.live="barangay_name" autocomplete="off"
                             class="text-xs {{ $errors->has('barangay_name') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} bg-indigo-50 border border-indigo-300 text-indigo-1100  rounded focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5      "
@@ -93,7 +96,8 @@
                     </div>
                     {{-- Slots --}}
                     <div class="relative col-span-2 sm:col-span-1 mb-4">
-                        <label for="slots_allocated" class="block mb-1 font-medium text-indigo-1100 ">Slots</label>
+                        <label for="slots_allocated" class="block mb-1 font-medium text-indigo-1100 ">Slots <span
+                                class="text-red-700 font-normal text-sm">*</span></label>
                         <div class="relative">
                             <input type="number" inputmode="numeric" min="0" id="slots_allocated"
                                 autocomplete="off" wire:model.live="slots_allocated"
@@ -108,7 +112,8 @@
                     </div>
                     {{-- Add Coordinators dropdown --}}
                     <div class="relative flex flex-col col-span-5 sm:col-span-2 mb-4">
-                        <p class="block mb-1 font-medium text-indigo-1100 ">Add Coordinator</p>
+                        <p class="block mb-1 font-medium text-indigo-1100 ">Add Coordinator <span
+                                class="text-red-700 font-normal text-sm">*</span></p>
                         <div class="relative z-50 h-full">
                             <div id="coordinator_name"
                                 @if ($coordinators) @click="show = !show ; rotation += 180" @endif

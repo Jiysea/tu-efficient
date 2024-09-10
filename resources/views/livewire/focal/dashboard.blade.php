@@ -114,6 +114,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </svg>
                         </div>
                         <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
+                            datepicker-max-date="{{ $defaultStart }}"
                             class="bg-white border border-indigo-300 text-indigo-1100 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full ps-10"
                             placeholder="Select date start">
                     </div>
@@ -135,6 +136,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </svg>
                         </div>
                         <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
+                            datepicker-min-date="{{ $defaultEnd }}"
                             class="bg-white border border-indigo-300 text-indigo-1100 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full ps-10"
                             placeholder="Select date end">
                     </div>
@@ -211,7 +213,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <div class="flex items-center">
                             <div class="p-3 text-blue-900">
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-                                    class="w-5 sm:w-8 h-5 sm:h-8" width="400" height="400" viewBox="0, 0, 400,400">
+                                    class="w-5 sm:w-8 h-5 sm:h-8" width="400" height="400"
+                                    viewBox="0, 0, 400,400">
                                     <g>
                                         <path
                                             d="M48.047 9.108 C 37.410 14.706,34.908 27.246,42.806 35.375 C 46.964 39.654,51.056 40.625,64.929 40.625 L 76.450 40.625 76.965 45.117 C 83.052 98.258,114.362 151.879,164.610 195.220 L 170.236 200.073 166.954 202.948 C 117.086 246.636,86.224 299.067,78.900 352.539 L 77.964 359.375 66.077 359.375 C 51.908 359.375,47.422 360.391,43.906 364.395 C 36.929 372.341,39.030 386.260,47.851 390.530 L 51.275 392.188 199.219 392.188 L 347.163 392.187 350.586 390.530 C 360.144 385.903,361.596 369.550,353.023 363.078 C 349.029 360.063,345.230 359.384,332.316 359.379 L 320.492 359.375 319.556 352.930 C 313.469 311.001,295.040 272.173,264.397 236.712 C 256.964 228.110,235.652 207.130,230.279 203.125 C 225.758 199.755,225.556 200.497,232.514 194.922 C 277.754 158.669,311.734 100.950,319.556 47.070 L 320.492 40.625 331.979 40.625 C 339.820 40.625,344.696 40.260,347.340 39.475 C 361.460 35.281,362.431 15.591,348.828 9.294 C 344.345 7.218,51.981 7.038,48.047 9.108 M288.635 43.555 C 286.560 55.768,279.736 78.425,274.341 91.016 L 271.997 96.484 200.000 96.484 L 128.003 96.484 125.659 91.016 C 120.264 78.425,113.440 55.768,111.365 43.555 L 110.867 40.625 200.000 40.625 L 289.133 40.625 288.635 43.555 M207.931 227.450 C 221.130 237.526,253.125 271.913,253.125 276.023 C 253.125 276.320,228.855 276.563,199.191 276.563 C 148.059 276.563,145.297 276.491,146.013 275.195 C 152.155 264.075,194.882 221.875,200.000 221.875 C 200.345 221.875,203.914 224.384,207.931 227.450 "
