@@ -2,7 +2,7 @@
     <x-c-favicons />
 </x-slot>
 
-<div x-cloak x-data="{ open: true, show: false, trapImport: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-cloak x-data="{ open: true, show: false, trapImport: false, trapDownload: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
@@ -11,6 +11,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
     @if ($batchId)
         <livewire:coordinator.submissions.import-file-modal :$batchId />
+        <livewire:coordinator.submissions.download-options-alert />
     @endif
 
     <div x-data="{ scrollToTop() { document.getElementById('batches-table').scrollTo({ top: 0, behavior: 'smooth' }); } }" :class="{

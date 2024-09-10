@@ -7,7 +7,8 @@
                 modal.hide();
             });
         },
-    }" class="relative p-4 w-full max-w-5xl max-h-full">
+    }" x-on:download-options-confirmed.window="$wire.export($event.detail.slots_allocated);"
+        class="relative p-4 w-full max-w-5xl max-h-full">
         <!-- Modal content -->
         <div x-trap="trapImport" class="relative bg-white rounded-md shadow">
             <!-- Modal header -->
@@ -15,19 +16,21 @@
                 <h1 class="text-lg font-semibold text-blue-1100 ">
                     Import File
                 </h1>
-                {{-- Loading State --}}
-                <div class="flex items-center justify-start z-50 text-blue-900" wire:loading wire:target="export">
-                    <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                            stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
-                </div>
+
                 <div class="flex items-center justify-center">
+                    {{-- Loading State --}}
+                    <div class="flex items-center justify-center me-4 z-50 text-blue-900" wire:loading
+                        wire:target="export">
+                        <svg class="size-8 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </div>
                     <button type="button" @click="trapImport=false"
                         class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out"
                         data-modal-toggle="import-modal">
@@ -137,8 +140,8 @@
                             </div>
                             <svg class="ms-2 size-5 text-blue-900 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4">
                                 </circle>
                                 <path class="opacity-75" fill="currentColor"
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
@@ -151,7 +154,7 @@
                                 {{ $errors->has('file_path')
                                     ? 'bg-red-50 text-red-500 border-red-300'
                                     : 'text-gray-500 hover:text-blue-500 bg-gray-50 hover:bg-blue-50
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-gray-300 hover:border-blue-300' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-gray-300 hover:border-blue-300' }}
                                 duration-500 ease-in-out cursor-pointer">
 
                             <div class="relative flex flex-col items-center justify-center py-6">
@@ -185,11 +188,11 @@
                     {{-- Download Desc --}}
                     <p class="text-center whitespace-nowrap w-full text-gray-500 z-10 h-6 mt-4 text-sm">
                         Please use the
-                        <button type="button"
+                        <button type="button" @click="trapDownload=true" data-modal-target="download-options-alert"
+                            data-modal-toggle="download-options-alert"
                             class="text-blue-700 hover:text-blue-800 active:text-blue-1000 
                             font-medium underline underline-offset-2 decoration-transparent hover:decoration-blue-800 
-                            active:decoration-blue-1000 duration-200 ease-in-out"
-                            wire:click="export">
+                            active:decoration-blue-1000 duration-200 ease-in-out">
                             sample format
                         </button>
                         for uploading files to avoid unnecessary errors.

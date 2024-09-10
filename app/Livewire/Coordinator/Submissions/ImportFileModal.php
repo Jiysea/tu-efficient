@@ -3,6 +3,7 @@
 namespace App\Livewire\Coordinator\Submissions;
 
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -447,14 +448,16 @@ class ImportFileModal extends Component
         $this->reset('file_path');
     }
 
-    public function export()
+    public function export($slots_allocated)
     {
         $spreadsheet = new Spreadsheet();
+
+        $this->number_of_rows = $slots_allocated;
 
         $spreadsheet = $this->annexD($spreadsheet);
 
         $writer = new Xlsx($spreadsheet);
-        $fileName = 'Annex D - Profie (Sample Format).xlsx';
+        $fileName = 'Annex D - Profile (Sample Format).xlsx';
         $filePath = storage_path($fileName);
 
         $writer->save($filePath);
