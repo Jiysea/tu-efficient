@@ -75,6 +75,7 @@
                         </div>
                     </div>
                     <form wire:submit.prevent="access">
+                        @csrf
                         <div class="grid grid-cols-9 w-full place-items-stretch space-x-2">
                             <div class="relative col-span-7 flex w-full">
                                 <span
