@@ -10,6 +10,7 @@ use App\Livewire\Focal\Implementations;
 use App\Livewire\Focal\UserManagement;
 use App\Livewire\Login;
 use App\Livewire\Login\FocalCoordinatorForm;
+use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Login::class)->name('login');
@@ -33,6 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/coordinator/assignments', Assignments::class)->name('coordinator.assignments');
     Route::get('/coordinator/submissions/{batchId?}', Submissions::class)->name('coordinator.submissions');
     Route::get('/coordinator/forms', Forms::class)->name('coordinator.forms');
+
+    Route::get('/settings', Settings::class)->name('settings');
 
 });
 

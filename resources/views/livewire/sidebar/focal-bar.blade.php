@@ -244,7 +244,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a aria-label="{{ __('Settings') }}"
+                                    <a href="{{ route('settings') }}" aria-label="{{ __('Settings') }}"
                                         class=" flex items-center text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"

@@ -61,7 +61,7 @@ class AuthenticatedSessionController extends Controller
 
         session()->flush();
 
-        $request->session()->regenerateToken();
+        $request->session()->regenerate();
 
         return redirect('/');
     }

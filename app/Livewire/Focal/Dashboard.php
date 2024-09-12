@@ -5,6 +5,7 @@ namespace App\Livewire\Focal;
 use App\Livewire\Coordinator\Assignments;
 use App\Models\Batch;
 use App\Models\Implementation;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -164,6 +165,15 @@ class Dashboard extends Component
         if (Auth::user()->user_type !== 'focal') {
             $this->redirectIntended();
         }
+
+        // if (Auth::user()->last_login) {
+        //     # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
+        //     session()->flash('heads-up', Auth::user()->last_login);
+
+        //     # Logs the login date of the user
+        //     User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
+        // }
+
 
         /*
          *  Setting default dates in the datepicker

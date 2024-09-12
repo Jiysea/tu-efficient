@@ -96,7 +96,7 @@
                             </span>
                         </button>
 
-                        <button type="button"
+                        <a href="{{ route('focal.implementations') }}" type="button"
                             class="flex-1 m-0 flex items-center justify-start px-2 py-2 border outline-none group bg-white hover:bg-indigo-50 focus:bg-indigo-50 border-gray-300 hover:border-indigo-900 focus:border-indigo-900 duration-200 ease-in-out rounded">
                             <span
                                 class="grid place-items-center size-10 text-indigo-700 bg-indigo-100 duration-200 ease-in-out group-hover:bg-indigo-700 group-focus:bg-indigo-700 group-hover:text-indigo-50 group-focus:text-indigo-50 rounded">
@@ -115,9 +115,9 @@
                                 <p class="text-sm font-semibold">Create Projects</p>
                                 <p class="text-xs text-gray-500">Implementations</p>
                             </span>
-                        </button>
+                        </a>
 
-                        <button type="button"
+                        <a href="{{ route('focal.user-management') }}" type="button"
                             class="flex-1 m-0 flex items-center justify-start px-2 py-2 border outline-none group bg-white hover:bg-indigo-50 focus:bg-indigo-50 border-gray-300 hover:border-indigo-900 focus:border-indigo-900 duration-200 ease-in-out rounded">
                             <span
                                 class="grid place-items-center size-10 text-indigo-700 bg-indigo-100 duration-200 ease-in-out group-hover:bg-indigo-700 group-focus:bg-indigo-700 group-hover:text-indigo-50 group-focus:text-indigo-50 rounded">
@@ -136,9 +136,9 @@
                                 <p class="text-sm font-semibold">Manage Users</p>
                                 <p class="text-xs text-gray-500">User Management</p>
                             </span>
-                        </button>
+                        </a>
 
-                        <button type="button"
+                        <a href="{{ route('focal.activity-logs') }}" type="button"
                             class="flex-1 m-0 flex items-center justify-start px-2 py-2 border outline-none group bg-white hover:bg-indigo-50 focus:bg-indigo-50 border-gray-300 hover:border-indigo-900 focus:border-indigo-900 duration-200 ease-in-out rounded">
                             <span
                                 class="grid place-items-center size-10 text-indigo-700 bg-indigo-100 duration-200 ease-in-out group-hover:bg-indigo-700 group-focus:bg-indigo-700 group-hover:text-indigo-50 group-focus:text-indigo-50 rounded">
@@ -157,7 +157,7 @@
                                 <p class="text-sm font-semibold">Audit Activities</p>
                                 <p class="text-xs text-gray-500">Activity Logs</p>
                             </span>
-                        </button>
+                        </a>
                     </div>
 
                     {{-- Counters --}}
