@@ -26,7 +26,6 @@
 
                 <div class="mt-6 space-y-2">
                     <form wire:submit.prevent="login" class="space-y-2">
-                        @csrf
                         <div class="relative pt-4">
                             @error('email')
                                 <p class="text-red-500 absolute top-0 right-1 z-10 text-xs">{{ $message }}</p>

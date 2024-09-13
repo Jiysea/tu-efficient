@@ -73,7 +73,6 @@
             <hr class="mx-4">
             <!-- Modal body -->
             <form wire:submit.prevent="saveProject" class="p-4 md:p-5">
-                @csrf
                 <div class="grid gap-4 mb-4 grid-cols-5 text-xs">
 
                     {{-- Project Number --}}
@@ -172,8 +171,7 @@
 
                     {{-- Province --}}
                     <div class="relative col-span-2 mb-4">
-                        <label for="province" class="block mb-1  font-medium text-indigo-1100 ">Province <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
+                        <label for="province" class="block mb-1  font-medium text-indigo-1100 ">Province</label>
                         <select id="province" autocomplete="off" wire:model.live="province"
                             class="text-xs duration-200 {{ $errors->has('province') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                             @foreach ($this->getProvince as $province)
@@ -188,7 +186,7 @@
                     {{-- City/Municipality --}}
                     <div class="relative col-span-3 mb-4">
                         <label for="city_municipality" class="block mb-1  font-medium text-indigo-1100 ">
-                            City/Municipality <span class="text-red-700 font-normal text-sm">*</span></label>
+                            City/Municipality</label>
                         <select id="city_municipality" autocomplete="off" wire:model.live="city_municipality"
                             wire:key="{{ $province }}"
                             class="text-xs duration-200 {{ $errors->has('city_municipality') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
@@ -203,8 +201,7 @@
 
                     {{-- District --}}
                     <div class="relative col-span-2 mb-4">
-                        <label for="district" class="block mb-1  font-medium text-indigo-1100 ">District <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
+                        <label for="district" class="block mb-1  font-medium text-indigo-1100 ">District</label>
                         <select id="district" autocomplete="off" wire:model.live="district"
                             wire:key="{{ $district }}"
                             class="text-xs duration-200 {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">

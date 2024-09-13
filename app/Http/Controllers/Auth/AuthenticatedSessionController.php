@@ -15,10 +15,10 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    // public function create(): View
-    // {
-    //     return view('landing.focal');
-    // }
+    public function create(): View
+    {
+        return view('livewire.login');
+    }
 
     /**
      * Handle an incoming authentication request.
@@ -61,7 +61,7 @@ class AuthenticatedSessionController extends Controller
 
         session()->flush();
 
-        $request->session()->regenerate();
+        $request->session()->regenerateToken();
 
         return redirect('/');
     }

@@ -3,6 +3,7 @@
 namespace App\Livewire\Focal\Implementations;
 
 use App\Models\Implementation;
+use App\Models\UserSetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -16,10 +17,7 @@ class CreateProjectModal extends Component
 {
     public $isAutoComputeEnabled = false;
     public $minimumWage;
-    public $previousTotalSlots;
-    public $previousDaysOfWork;
-    public $budgetToFloat;
-    public $budgetToInt;
+    public $projectNumPrefix;
     #[Validate]
     public $project_num;
     #[Validate]
@@ -50,12 +48,9 @@ class CreateProjectModal extends Component
                 'required',
                 'integer',
                 function ($attribute, $value, $fail) {
-                    // Fetch the project number with the prefix
-                    $prefixedProjectNum = config('settings.project_number_prefix') . $value;
-
                     // Check for uniqueness of the prefixed value in the database
                     $exists = DB::table('implementations')
-                        ->where('project_num', $prefixedProjectNum)
+                        ->where('project_num', $this->projectNumPrefix . $value)
                         ->exists();
 
                     if ($exists) {
@@ -154,7 +149,7 @@ class CreateProjectModal extends Component
             # Also logically, real-life money has only 2 digits below a ph peso
             # So it doesn't matter how many decimal digits it has, it will
             # always be formatted to 2 simple digits (rounded off)
-            $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval(config('settings.minimum_wage')), 2)));
+
 
             ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 1 : $this->days_of_work;
             // dd($this->days_of_work);
@@ -275,6 +270,16 @@ class CreateProjectModal extends Component
 
         $this->district = $district[0];
         return $district;
+    }
+
+    public function mount()
+    {
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+
+        $minimumWage = $settings->get('minimum_wage', config('settings.minimum_wage'));
+        $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval($minimumWage), 2)));
+        $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
     }
 
 

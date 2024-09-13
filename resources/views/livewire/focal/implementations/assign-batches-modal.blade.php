@@ -67,7 +67,6 @@
                 </div>
             </div>
             <form wire:submit.prevent="saveBatches" class="p-4 md:pt-3 md:px-4 md:pb-4">
-                @csrf
                 <div class="grid gap-4 mb-4 grid-cols-5 text-xs">
                     {{-- Batch Number --}}
                     <div class="relative col-span-5 sm:col-span-2 mb-4">
