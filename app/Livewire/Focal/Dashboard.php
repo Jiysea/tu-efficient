@@ -25,26 +25,11 @@ class Dashboard extends Component
     use WithPagination, WithoutUrlPagination;
 
     #[Locked]
-    public $batchesCount;
-    #[Locked]
-    public $implementationCount;
-    #[Locked]
+    public $implementationId;
     public $currentImplementation;
-    #[Locked]
-    public $implementations;
-    #[Locked]
-    public $implementationsId;
-    #[Locked]
-    public $projectCounters;
-    #[Locked]
-    public $beneficiaryCounters;
-    #[Locked]
     public $start;
-    #[Locked]
     public $end;
-    #[Locked]
     public $defaultStart;
-    #[Locked]
     public $defaultEnd;
     public $searchProject;
 
@@ -52,31 +37,36 @@ class Dashboard extends Component
     #[On('start-change')]
     public function setStartDate($value)
     {
-        $this->searchProject = null;
+        $this->reset('searchProject');
         $choosenDate = date('Y-m-d', strtotime($value));
         $currentTime = date('H:i:s', strtotime(now()));
+        $this->implementationId = $this->implementations[0]->id;
+        $this->currentImplementation = $this->implementations[0]->project_num ?? 'N/A';
+        $this->resetPage();
+        $this->setCharts();
 
         $this->start = $choosenDate . ' ' . $currentTime;
-        $this->setProjectCounters();
-        $this->setListOfImplementations();
     }
 
     #[On('end-change')]
     public function setEndDate($value)
     {
-        $this->searchProject = null;
+        $this->reset('searchProject');
         $choosenDate = date('Y-m-d', strtotime($value));
         $currentTime = date('H:i:s', strtotime(now()));
+        $this->implementationId = $this->implementations[0]->id;
+        $this->currentImplementation = $this->implementations[0]->project_num ?? 'N/A';
+        $this->resetPage();
+        $this->setCharts();
 
         $this->end = $choosenDate . ' ' . $currentTime;
-        $this->setProjectCounters();
-        $this->setListOfImplementations();
     }
 
-    public function setProjectCounters()
+    #[Computed]
+    public function projectCounters()
     {
         $focalUserId = auth()->id();
-        $this->projectCounters = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
+        $projectCounters = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
             ->where('implementations.users_id', $focalUserId)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->select([
@@ -84,33 +74,28 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN batches.approval_status = "approved" THEN 1 ELSE 0 END) AS total_approved_assignments'),
                 DB::raw('SUM(CASE WHEN batches.approval_status = "pending" THEN 1 ELSE 0 END) AS total_pending_assignments'),
             ])
-            ->first()
-            ->toArray();
+            ->first();
+
+        return $projectCounters;
     }
 
-    public function setListOfImplementations()
+    #[Computed]
+    public function implementations()
     {
         $focalUserId = auth()->id();
-        $this->implementations = Implementation::where('users_id', $focalUserId)
+        $implementations = Implementation::where('users_id', $focalUserId)
             ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
             ->whereBetween('created_at', [$this->start, $this->end])
             ->select('id', 'project_num')
-            ->get()
-            ->toArray();
+            ->get();
 
-        $this->currentImplementation = $this->implementations[0]['project_num'] ?? 'None';
-        $this->implementationsId = $this->implementations[0]['id'] ?? null;
-
-        $this->resetPage();
-        $this->setCharts();
-        $this->setBeneficiaryCounters();
+        return $implementations;
     }
 
-    public function setCharts()
+    #[Computed]
+    public function implementationCount()
     {
-        $focalUserId = auth()->id();
-
-        $this->implementationCount = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
+        $implementationCount = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
             ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
             ->select([
                 DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
@@ -120,44 +105,47 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
             ])
-            ->where('implementations.users_id', $focalUserId)
-            ->where('implementations.id', $this->implementationsId)
+            ->where('implementations.users_id', Auth::id())
+            ->where('implementations.id', $this->implementationId)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
-            ->first()
-            ->toArray();
+            ->first();
 
-        $overallValues = [$this->implementationCount['total_male'], $this->implementationCount['total_female']];
-        $pwdValues = [$this->implementationCount['total_pwd_male'], $this->implementationCount['total_pwd_female']];
-        $seniorValues = [$this->implementationCount['total_senior_male'], $this->implementationCount['total_senior_female']];
+        return $implementationCount;
+    }
+    public function setCharts()
+    {
+        $overallValues = [$this->implementationCount->total_male, $this->implementationCount->total_female];
+        $pwdValues = [$this->implementationCount->total_pwd_male, $this->implementationCount->total_pwd_female];
+        $seniorValues = [$this->implementationCount->total_senior_male, $this->implementationCount->total_senior_female];
 
         $this->dispatch('series-change', overallValues: $overallValues, pwdValues: $pwdValues, seniorValues: $seniorValues)->self();
     }
 
-    public function setBeneficiaryCounters()
-    {
-        $focalUserId = auth()->id();
 
-        $this->beneficiaryCounters = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
+    #[Computed]
+    public function beneficiaryCounters()
+    {
+        $beneficiaryCounters = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
             ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('implementations.users_id', '=', $focalUserId)
+            ->where('implementations.users_id', '=', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->select([
                 DB::raw('COUNT(DISTINCT beneficiaries.id) AS total_beneficiaries'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" THEN 1 ELSE 0 END) AS total_pwd_beneficiaries'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" THEN 1 ELSE 0 END) AS total_senior_citizen_beneficiaries'),
             ])
-            ->first()
-            ->toArray();
+            ->first();
+
+        return $beneficiaryCounters;
     }
 
     public function updateCurrentImplementation($key)
     {
         $this->resetPage();
-        $this->currentImplementation = $this->implementations[$key]['project_num'];
-        $this->implementationsId = $this->implementations[$key]['id'];
+        $this->currentImplementation = $this->implementations[$key]->project_num;
+        $this->implementationId = $this->implementations[$key]->id;
 
         $this->setCharts();
-        $this->setBeneficiaryCounters();
     }
 
     public function mount()
@@ -165,15 +153,6 @@ class Dashboard extends Component
         if (Auth::user()->user_type !== 'focal') {
             $this->redirectIntended();
         }
-
-        // if (Auth::user()->last_login) {
-        //     # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
-        //     session()->flash('heads-up', Auth::user()->last_login);
-
-        //     # Logs the login date of the user
-        //     User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
-        // }
-
 
         /*
          *  Setting default dates in the datepicker
@@ -184,40 +163,25 @@ class Dashboard extends Component
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
 
-        /*
-         *  Setting project counters (Total Implementations, Approved Assignments, Pending Assignments)
-         */
-        $this->setProjectCounters();
-
-        /*
-         *  Summary of Implementations
-         */
-        $this->setListOfImplementations();
-
+        $this->currentImplementation = $this->implementations[0]->project_num;
+        $this->implementationId = $this->implementations[0]->id;
         /*
          *  Charts
          */
         $this->setCharts();
-
-        /*
-         *   Setting the total counters of the beneficiaries
-         */
-        $this->setBeneficiaryCounters();
     }
 
-    public function render()
+    #[Computed]
+    public function batchesCount()
     {
-        $focalUserId = auth()->id();
+        $batchesCount = $this->batches->total();
 
-        $this->implementations = Implementation::where('users_id', $focalUserId)
-            ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
-            ->whereBetween('created_at', [$this->start, $this->end])
-            ->select('id', 'project_num')
-            ->get()
-            ->toArray();
+        return $batchesCount;
+    }
 
-        // $this->updateCurrentImplementation();
-
+    #[Computed]
+    public function batches()
+    {
         $batches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
             ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
             ->select([
@@ -230,14 +194,17 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
             ])
-            ->where('implementations.users_id', $focalUserId)
-            ->where('implementations.id', $this->implementationsId)
+            ->where('implementations.users_id', Auth::id())
+            ->where('implementations.id', $this->implementationId)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->groupBy(['batches.id', 'batches.barangay_name'])
             ->paginate(3);
 
-        $this->batchesCount = $batches->total();
+        return $batches;
+    }
 
-        return view('livewire.focal.dashboard', ['batches' => $batches]);
+    public function render()
+    {
+        return view('livewire.focal.dashboard');
     }
 }
