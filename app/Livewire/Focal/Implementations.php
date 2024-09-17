@@ -29,6 +29,14 @@ class Implementations extends Component
 
     # ------------------------------------------
 
+    #[Locked]
+    public $passedId;
+    public $openProjectModal = false;
+    public $openBatchModal = false;
+    public $assignBatchesModal = false;
+
+    # ------------------------------------------
+
     public $temporaryCount = 0; # debugging purposes
     public $searchProjects;
     public $searchBeneficiaries;
@@ -62,6 +70,7 @@ class Implementations extends Component
         $this->implementations_on_page = 15;
         $this->beneficiaries_on_page = 15;
 
+        $this->passedId = null;
         $this->implementationId = null;
         $this->batchId = null;
 
@@ -82,6 +91,7 @@ class Implementations extends Component
         $this->implementations_on_page = 15;
         $this->beneficiaries_on_page = 15;
 
+        $this->passedId = null;
         $this->implementationId = null;
         $this->batchId = null;
 
@@ -92,16 +102,35 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    public function viewProject(string $implementationId)
+    {
+        $this->passedId = $implementationId;
+        $this->openProjectModal = true;
+    }
+
+    public function viewBatch(string $batchId)
+    {
+        $this->passedId = $batchId;
+        $this->openBatchModal = true;
+    }
+
+    public function assignBatch()
+    {
+        $this->assignBatchesModal = true;
+    }
+
     public function selectImplementationRow($key, $encryptedId)
     {
+
         if ($key === $this->selectedImplementationRow) {
             $this->selectedImplementationRow = -1;
             $this->implementationId = null;
         } else {
             $this->selectedImplementationRow = $key;
             $this->implementationId = Crypt::decrypt($encryptedId);
-
         }
+
+        $this->passedId = null;
 
         $this->beneficiaries_on_page = 15;
         $this->batchId = null;
@@ -121,6 +150,8 @@ class Implementations extends Component
             $this->batchId = Crypt::decrypt($encryptedId);
         }
 
+        $this->passedId = null;
+
         $this->beneficiaries_on_page = 15;
         $this->beneficiaryId = null;
         $this->selectedBeneficiaryRow = -1;
@@ -130,6 +161,8 @@ class Implementations extends Component
 
     public function selectBeneficiaryRow($key, $encryptedId)
     {
+        $this->passedId = null;
+
         $this->selectedBeneficiaryRow = $key;
         $this->beneficiaryId = Crypt::decrypt($encryptedId);
     }
@@ -145,7 +178,7 @@ class Implementations extends Component
         $implementations = Implementation::where('users_id', $focalUserId)
             ->whereBetween('created_at', [$this->start, $this->end])
             ->where('project_num', 'LIKE', $projectNumPrefix . '%' . $this->searchProjects . '%')
-            ->latest()
+            ->latest('updated_at')
             ->take($this->implementations_on_page)
             ->get();
 
@@ -319,9 +352,6 @@ class Implementations extends Component
         $currentTime = date('H:i:s', strtotime(now()));
         $this->end = $choosenDate . ' ' . $currentTime;
 
-        unset($this->implementations);
-        $this->implementations();
-
         $this->implementationId = null;
         $this->batchId = null;
 
@@ -335,6 +365,47 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    #[On('edit-implementations')]
+    public function editImplementation()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        unset($this->implementation);
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Saved changes!';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[On('delete-implementations')]
+    public function deleteImplementation()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->implementationId = null;
+        $this->batchId = null;
+
+        $this->selectedImplementationRow = -1;
+        $this->selectedBatchRow = -1;
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Successfully deleted the project!';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
     #[On('assign-create-batches')]
     public function updateBatches()
     {
@@ -344,9 +415,6 @@ class Implementations extends Component
         $choosenDate = date('Y-m-d', strtotime($value));
         $currentTime = date('H:i:s', strtotime(now()));
         $this->end = $choosenDate . ' ' . $currentTime;
-
-        unset($this->batches);
-        $this->batches();
 
         $this->batchId = null;
 

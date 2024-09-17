@@ -36,12 +36,8 @@ class BatchFactory extends Factory
         $existingNumber = Batch::where('batch_num', $number)->first();
 
         while ($existingNumber) {
-            if ($existingNumber->batch_num === $number) {
-                $number = fake()->bothify('DCFO-BN-######');
-                $existingNumber = $number;
-            } else {
-                break;
-            }
+            $number = fake()->bothify('DCFO-BN-######');
+            $existingNumber = Batch::where('batch_num', $number)->first(); // Check if the new number exists
         }
 
         return $number;

@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
+        $admin = User::factory()->create([
             'first_name' => 'TU-Admin',
             'middle_name' => '-',
             'last_name' => '-',
@@ -40,7 +40,7 @@ class DatabaseSeeder extends Seeder
             'field_office' => null,
             'user_type' => 'admin',
         ]);
-        User::factory()->create([
+        $rFocalUser = User::factory()->create([
             'field_office' => null,
             'user_type' => 'r_focal',
         ]);
@@ -69,14 +69,12 @@ class DatabaseSeeder extends Seeder
             'extensive_matching' => config('settings.extensive_matching'),
         ];
 
-        foreach ($focalUser as $user) {
-            foreach ($settingsFocal as $key => $setting) {
-                UserSetting::factory()->create([
-                    'users_id' => $user->id,
-                    'key' => $key,
-                    'value' => $setting,
-                ]);
-            }
+        foreach ($settingsFocal as $key => $setting) {
+            UserSetting::factory()->create([
+                'users_id' => $focalUser->id,
+                'key' => $key,
+                'value' => $setting,
+            ]);
         }
 
         foreach ($coordinatorUsers as $user) {
@@ -88,8 +86,15 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
-
+        $project_title = ucwords('implementation number');
         $implementations = Implementation::factory($this->implementationAmount)->create();
+
+        foreach ($implementations as $key => $implementation) {
+            $implementation->update([
+                'project_title' => $project_title . ' ' . $key,
+            ]);
+        }
+
         $batches = $implementations->flatMap(function ($implementation) {
             $currentDate = $implementation->created_at;
             $allottedSlots = $this->generateRandomArray($implementation->total_slots);
@@ -106,7 +111,7 @@ class DatabaseSeeder extends Seeder
         });
 
         foreach ($batches as $batch) {
-            $amount = rand($this->assignmentAmountMin, $this->assignmentAmountMax);
+            $amount = mt_rand($this->assignmentAmountMin, $this->assignmentAmountMax);
             $coordinators = $coordinatorUsers->random($amount);
             $currentDate = $batch->created_at;
 
@@ -141,8 +146,8 @@ class DatabaseSeeder extends Seeder
 
     function generateRandomArray($totalValue, $minThresholdPercentage = 15)
     {
-        // Determine the number of values (3 to 6)
-        $numValues = rand($this->batchAmountMin, $this->batchAmountMax);
+        // Determine the number of values (2 to 6)
+        $numValues = mt_rand($this->batchAmountMin, $this->batchAmountMax);
 
         // Minimum threshold for each value
         $minThreshold = $totalValue * ($minThresholdPercentage / 100);
@@ -153,7 +158,7 @@ class DatabaseSeeder extends Seeder
         // Generate random values ensuring each is above the minimum threshold
         for ($i = 0; $i < $numValues - 1; $i++) {
             $maxPossible = $totalValue - (($numValues - $i - 1) * $minThreshold);
-            $values[$i] = rand($minThreshold, $maxPossible);
+            $values[$i] = mt_rand($minThreshold, $maxPossible);
             $totalValue -= $values[$i];
         }
 
@@ -178,12 +183,96 @@ class DatabaseSeeder extends Seeder
     function getBarangaysByDistrict(string $district): array
     {
         $barangayList = [
-            'Agdao' => ['Agdao Proper', 'Centro (San Juan)', 'Gov. Paciano Bangoy', 'Gov. Vicente Duterte', 'Kap. Tomas Monteverde, Sr.', 'Lapu-Lapu', 'Leon Garcia', 'Rafael Castillo', 'San Antonio', 'Ubalde', 'Wilfredo Aquino'],
-            'Talomo' => ['Bago Aplaya', 'Bago Gallera', 'Baliok', 'Bucana', 'Catalunan Grande', 'Catalunan Pequeño', 'Dumoy', 'Langub', 'Ma-a', 'Magtuod', 'Matina Aplaya', 'Matina Crossing', 'Matina Pangi', 'Talomo Proper'],
-            'Bunawan' => ['Alejandra Navarro (Lasang)', 'Bunawan Proper', 'Gatungan', 'Ilang', 'Mahayag', 'Mudiang', 'Panacan', 'San Isidro (Licanan)', 'Tibungco'],
-            'Poblacion' => ['1-A', '2-A', '3-A', '4-A', '5-A', '6-A', '7-A', '8-A', '9-A', '10-A', '11-B', '12-B', '13-B', '14-B', '15-B', '16-B', '17-B', '18-B', '19-B', '20-B', '21-C', '22-C', '23-C', '24-C', '25-C', '26-C', '27-C', '28-C', '29-C', '30-C', '31-D', '32-D', '33-D', '34-D', '35-D', '36-D', '37-D', '38-D', '39-D', '40-D'],
-            'Buhangin' => ['Acacia', 'Alfonso Angliongto Sr.', 'Buhangin Proper', 'Cabantian', 'Callawa', 'Communal', 'Indangan', 'Mandug', 'Pampanga', 'Sasa', 'Tigatto', 'Vicente Hizon Sr.', 'Waan'],
-            'Paquibato' => [
+            '1st District' => [
+                '1-A',
+                '2-A',
+                '3-A',
+                '4-A',
+                '5-A',
+                '6-A',
+                '7-A',
+                '8-A',
+                '9-A',
+                '10-A',
+                '11-B',
+                '12-B',
+                '13-B',
+                '14-B',
+                '15-B',
+                '16-B',
+                '17-B',
+                '18-B',
+                '19-B',
+                '20-B',
+                '21-C',
+                '22-C',
+                '23-C',
+                '24-C',
+                '25-C',
+                '26-C',
+                '27-C',
+                '28-C',
+                '29-C',
+                '30-C',
+                '31-D',
+                '32-D',
+                '33-D',
+                '34-D',
+                '35-D',
+                '36-D',
+                '37-D',
+                '38-D',
+                '39-D',
+                '40-D',
+                'Bago Aplaya',
+                'Bago Gallera',
+                'Baliok',
+                'Bucana',
+                'Catalunan Grande',
+                'Catalunan Pequeño',
+                'Dumoy',
+                'Langub',
+                'Ma-a',
+                'Magtuod',
+                'Matina Aplaya',
+                'Matina Crossing',
+                'Matina Pangi',
+                'Talomo Proper',
+            ],
+            '2nd District' => [
+                'Agdao Proper',
+                'Centro (San Juan)',
+                'Gov. Paciano Bangoy',
+                'Gov. Vicente Duterte',
+                'Kap. Tomas Monteverde, Sr.',
+                'Lapu-Lapu',
+                'Leon Garcia',
+                'Rafael Castillo',
+                'San Antonio',
+                'Ubalde',
+                'Wilfredo Aquino',
+                'Acacia',
+                'Alfonso Angliongto Sr.',
+                'Buhangin Proper',
+                'Cabantian',
+                'Callawa',
+                'Communal',
+                'Indangan',
+                'Mandug',
+                'Pampanga',
+                'Sasa',
+                'Tigatto',
+                'Vicente Hizon Sr.',
+                'Waan',
+                'Alejandra Navarro (Lasang)',
+                'Bunawan Proper',
+                'Gatungan',
+                'Ilang',
+                'Mahayag',
+                'Mudiang',
+                'Panacan',
+                'San Isidro (Licanan)',
+                'Tibungco',
                 "Colosas",
                 "Fatima (Benowang)",
                 "Lumiad",
@@ -196,9 +285,9 @@ class DatabaseSeeder extends Seeder
                 "Paradise Embak",
                 "Salapawan",
                 "Sumimao",
-                "Tapak"
+                "Tapak",
             ],
-            'Baguio' => [
+            '3rd District' => [
                 "Baguio Proper",
                 "Cadalian",
                 "Carmen",
@@ -206,9 +295,7 @@ class DatabaseSeeder extends Seeder
                 "Malagos",
                 "Tambobong",
                 "Tawan-Tawan",
-                "Wines"
-            ],
-            'Calinan' => [
+                "Wines",
                 "Biao Joaquin",
                 "Calinan Proper",
                 "Cawayan",
@@ -227,9 +314,7 @@ class DatabaseSeeder extends Seeder
                 "Subasta",
                 "Talomo River",
                 "Tamayong",
-                "Wangan"
-            ],
-            'Marilog' => [
+                "Wangan",
                 "Baganihan",
                 "Bantol",
                 "Buda",
@@ -241,9 +326,7 @@ class DatabaseSeeder extends Seeder
                 "Marilog Proper",
                 "Salaysay",
                 "Suawan (Tuli)",
-                "Tamugan"
-            ],
-            'Toril' => [
+                "Tamugan",
                 "Alambre",
                 "Atan-Awe",
                 "Bangkas Heights",
@@ -268,9 +351,7 @@ class DatabaseSeeder extends Seeder
                 "Tagurano",
                 "Tibuloy",
                 "Toril Proper",
-                "Tungkalan"
-            ],
-            'Tugbok' => [
+                "Tungkalan",
                 "Angalan",
                 "Bago Oshiro",
                 "Balenggaeng",

@@ -15,7 +15,7 @@ class HeadsUpModal extends Component
     #[Computed]
     public function activities()
     {
-        // $last_login = session('heads-up');
+        $last_login = session('heads-up');
         $rows = 10;
         // $activities = SystemsLog::whereBetween('created_at', [$last_login, now()])
         //     ->get();

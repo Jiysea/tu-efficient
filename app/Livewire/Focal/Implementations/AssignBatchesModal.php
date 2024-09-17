@@ -7,10 +7,15 @@ use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Implementation;
 use App\Models\User;
+use App\Models\UserSetting;
+use App\Services\Barangays;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -20,7 +25,8 @@ class AssignBatchesModal extends Component
     #[Locked]
     #[Reactive]
     public $implementationId;
-    public $implementation;
+    public $batchNumPrefix;
+    public $searchBarangay;
     public $temporaryBatchesList = [];
     public $batchesCount;
     public $selectedBatchRow = -1;
@@ -39,6 +45,7 @@ class AssignBatchesModal extends Component
     public $selectedCoordinatorKeyInBatchListDropdown;
 
     # -------------------------------------
+
     #[Validate]
     public $batch_num;
     #[Validate]
@@ -57,12 +64,10 @@ class AssignBatchesModal extends Component
 
                 # Checks uniqueness from the `Database`
                 function ($attribute, $value, $fail) {
-                    // Fetch the project number with the prefix
-                    $prefixedBatchNum = config('settings.batch_number_prefix') . $value;
 
                     // Check for uniqueness of the prefixed value in the database
                     $exists = DB::table('batches')
-                        ->where('batch_num', $prefixedBatchNum)
+                        ->where('batch_num', $this->batchNumPrefix . $value)
                         ->exists();
 
                     if ($exists) {
@@ -74,7 +79,7 @@ class AssignBatchesModal extends Component
                 # Checks uniqueness from the Temporary Batch List
                 function ($attribute, $value, $fail) {
                     foreach ($this->temporaryBatchesList as $batch) {
-                        if ($batch['batch_num'] === $value) {
+                        if ($batch['batch_num'] === $this->batchNumPrefix . $value) {
                             $fail('The :attribute has already been added.');
                         }
                     }
@@ -82,6 +87,8 @@ class AssignBatchesModal extends Component
             ],
             'barangay_name' => [
                 'required',
+
+                # Checks uniqueness from the Temporary Batch List
                 function ($attribute, $value, $fail) {
                     foreach ($this->temporaryBatchesList as $batch) {
                         if ($batch['barangay_name'] === $value) {
@@ -195,6 +202,8 @@ class AssignBatchesModal extends Component
         // $this->validateOnly('barangay_name');
         // $this->validateOnly('slots_allocated');
         // $this->validateOnly('assigned_coordinators');
+
+        $this->batch_num = $this->batchNumPrefix . $this->batch_num;
 
         $this->temporaryBatchesList[] = [
             'batch_num' => $this->batch_num,
@@ -329,7 +338,7 @@ class AssignBatchesModal extends Component
         # and the `slots_alloted` from the batches to give an indicator of how many remaining
         # slots left for the user to input.
         if (!$this->temporaryBatchesList) {
-            $this->totalSlots = $this->implementation['total_slots'];
+            $this->totalSlots = $this->implementation->total_slots;
 
             # retrieves all of the `slots_alloted` values from the batches table
             $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
@@ -370,14 +379,6 @@ class AssignBatchesModal extends Component
                 $this->remainingSlots = 0;
             }
         }
-    }
-
-    # triggers when a user clicks one of the list from the `Add Coordinator` dropdown
-    public function updateCurrentCoordinator($key)
-    {
-        $this->setFullName($key);
-        $this->currentCoordinator = $this->coordinatorFullName;
-        $this->selectedCoordinatorKey = $key;
     }
 
     public function setFullName($key)
@@ -437,21 +438,17 @@ class AssignBatchesModal extends Component
     # mount and call from click (1 time)
     public function getAllCoordinators($ignoredIDs = null)
     {
-        $focalInfo = User::where('id', auth()->id())
-            ->first()
-            ->toArray();
-
         if ($ignoredIDs) {
             $this->coordinators = User::where('user_type', 'Coordinator')
-                ->where('regional_office', $focalInfo['regional_office'])
-                ->where('field_office', $focalInfo['field_office'])
+                ->where('regional_office', Auth::user()->regional_office)
+                ->where('field_office', Auth::user()->field_office)
                 ->whereNotIn('id', $ignoredIDs)
                 ->get()
                 ->toArray();
         } else {
             $this->coordinators = User::where('user_type', 'Coordinator')
-                ->where('regional_office', $focalInfo['regional_office'])
-                ->where('field_office', $focalInfo['field_office'])
+                ->where('regional_office', Auth::user()->regional_office)
+                ->where('field_office', Auth::user()->field_office)
                 ->get()
                 ->toArray();
         }
@@ -467,6 +464,96 @@ class AssignBatchesModal extends Component
 
     }
 
+    #[Computed]
+    public function getFullName($key)
+    {
+        $fullName = null;
+        $first = $this->coordinators[$key]['first_name'];
+        $middle = $this->coordinators[$key]['middle_name'];
+        $last = $this->coordinators[$key]['last_name'];
+        $ext = $this->coordinators[$key]['extension_name'];
+
+        $fullName = $first;
+
+        if ($middle) {
+            $fullName .= ' ' . $middle;
+        }
+
+        $fullName .= ' ' . $last;
+
+        if ($ext) {
+            $fullName .= ' ' . $ext;
+        }
+
+        return $fullName;
+    }
+
+    #[Computed]
+    public function getListFullName($key)
+    {
+        $fullName = null;
+        $first = $this->batchListCoordinators[$key]['first_name'];
+        $middle = $this->batchListCoordinators[$key]['middle_name'];
+        $last = $this->batchListCoordinators[$key]['last_name'];
+        $ext = $this->batchListCoordinators[$key]['extension_name'];
+
+        $fullName = $first;
+
+        if ($middle) {
+            $fullName .= ' ' . $middle;
+        }
+
+        $fullName .= ' ' . $last;
+
+        if ($ext) {
+            $fullName .= ' ' . $ext;
+        }
+
+        return $fullName;
+    }
+
+    #[Computed]
+    public function barangays()
+    {
+        $this->b = new Barangays();
+        # this returns an array
+        $barangays = $this->b->getBarangays($this->implementation->city_municipality, $this->implementation->district);
+
+        # If searchBarangay is set, filter the barangays array
+        if ($this->searchBarangay) {
+            $barangays = array_values(array_filter($barangays, function ($barangay) {
+                return stripos($barangay, $this->searchBarangay) !== false; # Case-insensitive search
+            }));
+        }
+
+        return $barangays;
+    }
+
+    #[Computed]
+    public function implementation()
+    {
+        $implementation = Implementation::find($this->implementationId);
+        return $implementation;
+    }
+
+    public function resetEverything()
+    {
+        $this->reset(
+            'searchBarangay',
+            'temporaryBatchesList',
+            'selectedBatchRow',
+            'previousSelectedBatchRow',
+            'selectedCoordinatorKeyInBatchListDropdown',
+            'batch_num',
+            'barangay_name',
+            'slots_allocated',
+            'assigned_coordinators',
+        );
+        $this->resetValidation();
+        $this->getAllCoordinators();
+        $this->getAllCoordinatorsForBatchList();
+    }
+
     public function mount()
     {
         $this->getAllCoordinators();
@@ -475,10 +562,9 @@ class AssignBatchesModal extends Component
 
     public function render()
     {
-        $focalUserId = auth()->id();
-        $this->implementation = Implementation::where('users_id', $focalUserId)
-            ->where('id', $this->implementationId)
-            ->first();
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+        $this->batchNumPrefix = $settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
 
         $this->liveUpdateRemainingSlots();
 
