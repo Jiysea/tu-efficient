@@ -7,7 +7,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
 
-    <livewire:sidebar.focal-bar wire:key="{{ str()->random(50) }}" />
+    <livewire:sidebar.focal-bar />
 
     <div x-data="{ scrollToTop() { document.getElementById('beneficiaries-table').scrollTo({ top: 0, behavior: 'smooth' }); } }" :class="{
         'xl:ml-20': open === false,
@@ -182,8 +182,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         @php
                                             $encryptedId = Crypt::encrypt($implementation->id);
                                         @endphp
-                                        <tr @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
-                                            wire:key="implementation-{{ $key }}"
+                                        <tr wire:key="implementation-{{ $key }}"
+                                            @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
                                             wire:click.prevent='selectImplementationRow({{ $key }}, "{{ $encryptedId }}")'
                                             class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }}  whitespace-nowrap cursor-pointer">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
@@ -253,7 +253,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     <livewire:focal.implementations.create-project-modal />
 
                     @if ($passedId)
-                        <livewire:focal.implementations.view-project :$passedId />
+                        <livewire:focal.implementations.view-project :$passedId :key="$passedId" />
                     @endif
                 </div>
 
@@ -323,9 +323,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         @php
                                             $encryptedId = encrypt($batch->id);
                                         @endphp
-                                        <tr @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
+                                        <tr wire:key="batch-{{ $key }}"
+                                            @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
                                             wire:click='selectBatchRow({{ $key }}, "{{ $encryptedId }}")'
-                                            wire:key='batch-{{ $key }}'
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-200' : ' hover:bg-gray-50' }}">
                                             <th scope="row" class="z-0 ps-4 py-2 font-medium">
                                                 {{ $batch->barangay_name }}
@@ -414,11 +414,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     @endif
                     @if ($implementationId)
                         {{-- Assign Button | Main Modal --}}
-                        <livewire:focal.implementations.assign-batches-modal :$implementationId />
+                        <livewire:focal.implementations.assign-batches-modal :$implementationId :key="$implementationId" />
                     @endif
 
                     @if ($passedId)
-                        <livewire:focal.implementations.view-batch :$passedId />
+                        <livewire:focal.implementations.view-batch :$passedId :key="$passedId" />
                     @endif
                 </div>
 
@@ -580,8 +580,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         @php
                                             $encryptedId = Crypt::encrypt($beneficiary->id);
                                         @endphp
-                                        <tr wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ $encryptedId }}')"
-                                            wire:key="beneficiary-{{ $key }}"
+                                        <tr wire:key="beneficiary-{{ $key }}"
+                                            wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ $encryptedId }}')"
                                             class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} border-b whitespace-nowrap">
                                             <th scope="row"
                                                 class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap ">
@@ -762,7 +762,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     @endif
                     @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'])
                         {{-- Add Button | Add Beneficiaries Modal --}}
-                        <livewire:focal.implementations.add-beneficiaries-modal :$batchId />
+                        <livewire:focal.implementations.add-beneficiaries-modal :$batchId :key="$batchId" />
                     @endif
 
                 </div>

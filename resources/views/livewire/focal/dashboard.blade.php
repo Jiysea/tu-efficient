@@ -84,10 +84,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     </style>
 
     @if (session('heads-up'))
-        <livewire:focal.dashboard.heads-up-modal wire:key="{{ str()->random(50) }}" />
+        <livewire:focal.dashboard.heads-up-modal />
     @endif
 
-    <livewire:sidebar.focal-bar wire:key="{{ str()->random(50) }}" />
+    <livewire:sidebar.focal-bar />
 
     <div :class="{
         'xl:ml-20': open === false,

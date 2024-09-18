@@ -16,6 +16,22 @@
                     Add New Beneficiaries
                 </h1>
                 <div class="flex items-center justify-center">
+                    {{-- Loading State for Changes --}}
+                    <div class="flex items-center justify-center z-50 text-indigo-900 me-2" wire:loading
+                        wire:target="nameCheck">
+
+                        {{-- Loading Circle --}}
+                        <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </div>
+
                     <button type="button"
                         class="text-indigo-400 bg-transparent focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 outline-none rounded size-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-200 ease-in-out"
                         data-modal-toggle="add-beneficiaries-modal" @click="trapAdd = false">
@@ -28,15 +44,193 @@
                     </button>
                 </div>
             </div>
-            <hr class="mx-4">
+            <hr class="">
             <!-- Modal body -->
             <form wire:submit.prevent="saveBeneficiary" class="p-4 md:p-5">
-                <div class="grid gap-4 mb-4 grid-cols-10 text-xs">
+                <div class="grid gap-4 sm:gap-2 mb-4 grid-cols-10 text-xs">
+
+                    {{-- Similarity Results --}}
+                    <div x-data="{ isResults: $wire.entangle('isResults'), expanded: false, isPerfectDuplicate: $wire.entangle('isPerfectDuplicate') }" class="relative col-span-full mb-2">
+                        <div x-show = "isResults" x-transition
+                            class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
+                            :class="{
+                                'border-red-300 bg-red-50 text-red-900': isPerfectDuplicate,
+                                'border-amber-300 bg-amber-50 text-amber-900': !isPerfectDuplicate,
+                            }">
+
+                            <p x-show="isPerfectDuplicate" class="inline mx-2">Seems like this beneficiary has already
+                                been listed in the
+                                database this
+                                year.
+                                <button type="button" @click="expanded = ! expanded"
+                                    class="underline underline-offset-2 font-bold">Show
+                                    the possible duplicates</button>
+                            </p>
+
+                            <p x-show="!isPerfectDuplicate" class="inline mx-2">There are possible duplicates found
+                                associated with this name.
+                                <button type="button" @click="expanded = ! expanded"
+                                    class="underline underline-offset-2 font-bold">Show
+                                    results</button>
+                            </p>
+
+                            @if ($beneficiary_type === 'Special Case')
+                                <div x-data="{ addReasonModal: $wire.entangle('addReasonModal') }">
+                                    <button x-show="isPerfectDuplicate" type="button"
+                                        @click="addReasonModal = !addReasonModal"
+                                        class="px-2 py-1 rounded font-bold text-xs"
+                                        :class="{
+                                            ' bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50': isPerfectDuplicate,
+                                            ' bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50': !
+                                                isPerfectDuplicate,
+                                        }">ADD
+                                        REASON</button>
+
+                                    <livewire:focal.implementations.add-reason-modal />
+                                </div>
+                            @else
+                                <p x-show="isPerfectDuplicate" class="inline mx-2">Not a mistake? Try changing
+                                    beneficiary type to
+                                    <strong class="underline underline-offset-2">Special Case</strong>
+                                </p>
+                            @endif
+
+
+                        </div>
+                        <div x-show="isResults && expanded"
+                            class="relative min-h-40 max-h-40 rounded text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
+                                {{ $isPerfectDuplicate
+                                    ? 'bg-red-50 text-red-950 scrollbar-track-red-50 scrollbar-thumb-red-700'
+                                    : 'bg-amber-50 text-amber-950 scrollbar-track-amber-50 scrollbar-thumb-amber-700' }} 
+                                ">
+                            <table class="relative w-full text-sm text-left select-auto">
+                                <thead
+                                    class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap
+                                {{ $isPerfectDuplicate ? 'bg-red-300' : 'bg-amber-300' }}">
+                                    <tr>
+                                        <th scope="col" class="ps-4 py-2">
+                                            similarity %
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            project number
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            batch number
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            first name
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            middle name
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            last name
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            ext.
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            birthdate
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            contact #
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            barangay
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            sex
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            age
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            beneficiary type
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            id type
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            id #
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            pwd
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            dependent
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-xs relative">
+                                    @forelse ($similarityResults ?? [] as $key => $result)
+                                        <tr wire:key='batch-{{ $key }}'
+                                            class="relative whitespace-nowrap {{ $isPerfectDuplicate ? 'bg-red-50 hover:bg-red-100' : 'bg-amber-50 hover:bg-amber-100' }} ">
+                                            <td class="ps-4 py-2 font-medium">
+                                                {{ $result['coEfficient'] }}%
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['project_num'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['batch_num'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['first_name'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['middle_name'] ?? '-' }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['last_name'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['extension_name'] ?? '-' }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['birthdate'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['contact_num'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['barangay_name'] }}
+                                            </td>
+                                            <td class="px-2 py-2 capitalize">
+                                                {{ $result['sex'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['age'] }}
+                                            </td>
+                                            <td class="px-2 py-2 capitalize">
+                                                {{ $result['beneficiary_type'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['type_of_id'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['id_number'] }}
+                                            </td>
+                                            <td class="px-2 py-2 capitalize">
+                                                {{ $result['is_pwd'] }}
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                {{ $result['dependent'] ?? '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td>No possible duplicates found.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
                     {{-- First Name --}}
                     <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
                         <label for="first_name" class="block mb-1 font-medium text-indigo-1100 ">First Name <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
+                                class="text-red-700 font-normal text-xs">*</span></label>
                         <input type="text" id="first_name" autocomplete="off"
                             @blur="$wire.set('first_name', $el.value); $wire.nameCheck();"
                             class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
@@ -50,13 +244,16 @@
                         <label for="middle_name" class="block mb-1  font-medium text-indigo-1100 ">Middle Name</label>
                         <input type="text" id="middle_name" autocomplete="off"
                             @blur="$wire.set('middle_name', $el.value); $wire.nameCheck();"
-                            class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600"
+                            class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('middle_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                             placeholder="(optional)">
+                        @error('middle_name')
+                            <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
+                        @enderror
                     </div>
                     {{-- Last Name --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                         <label for="last_name" class="block mb-1  font-medium text-indigo-1100 ">Last Name <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
+                                class="text-red-700 font-normal text-xs">*</span></label>
                         <input type="text" id="last_name" autocomplete="off"
                             @blur="$wire.set('last_name', $el.value); $wire.nameCheck();"
                             class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
@@ -70,13 +267,16 @@
                         <label for="extension_name" class="block mb-1 font-medium text-indigo-1100 ">Ext. Name</label>
                         <input type="text" id="extension_name" autocomplete="off"
                             @blur="$wire.set('extension_name', $el.value); $wire.nameCheck();"
-                            class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600"
+                            class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('extension_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                             placeholder="III, Sr., etc.">
+                        @error('extension_name')
+                            <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
+                        @enderror
                     </div>
                     {{-- Birthdate --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                         <label for="birthdate" class="block mb-1  font-medium text-indigo-1100 ">Birthdate <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
+                                class="text-red-700 font-normal text-xs">*</span></label>
                         <div class="absolute start-0 bottom-3.5 flex items-center ps-3 pointer-events-none">
                             <svg class="size-4 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'text-red-700' : 'text-indigo-900' }}"
                                 aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -97,7 +297,7 @@
                     {{-- Contact Number --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                         <label for="contact_num" class="block mb-1 font-medium text-indigo-1100 ">Contact
-                            Number <span class="text-red-700 font-normal text-sm">*</span></label>
+                            Number <span class="text-red-700 font-normal text-xs">*</span></label>
                         <div {{-- x-effect="console.log(unmaskedBudget)" --}} class="relative">
                             <div
                                 class="text-xs outline-none absolute inset-y-0 px-2 rounded-l flex items-center justify-center text-center duration-200 ease-in-out pointer-events-none {{ $errors->has('contact_num') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-indigo-700 text-indigo-50' }}">
@@ -176,14 +376,14 @@
                                 x-on:click.outside="close($refs.beneficiaryTypeButton)"
                                 :id="$id('beneficiary-type-button')" style="display: none;"
                                 class="absolute left-0 mt-2 w-full z-50 rounded bg-indigo-50 shadow-lg border border-indigo-500">
-                                <button type="button" x-on:click="selectOption('Underemployed')"
+                                <button type="button" x-on:click="selectOption('Underemployed'); $wire.$refresh();"
                                     class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
                                     Underemployed
                                 </button>
 
-                                <button type="button" x-on:click="selectOption('Calamity Victim')"
+                                <button type="button" x-on:click="selectOption('Special Case'); $wire.$refresh();"
                                     class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
-                                    Calamity Victim
+                                    Special Case
                                 </button>
                             </div>
                         </div>
@@ -387,29 +587,9 @@
                             placeholder="Type dependent's name">
                     </div>
                     {{-- Interested in Wage Employment or Self-Employment --}}
-                    <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                        <div class="flex items-center">
-                            <p class="inline mb-1 font-medium text-indigo-1100">I.i.W.E.o.S.E.</p>
-                            <div class="relative flex items-center" id="self-employment-question-mark">
-                                <svg @mouseenter="$store.selfEmploymentPopover.toggle()"
-                                    @mouseleave="$store.selfEmploymentPopover.toggle()"
-                                    class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-indigo-700"
-                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                    viewBox="0 0 20 20">
-                                    <path
-                                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
-                                </svg>
-                                {{-- Popovers --}}
-                                <div id="self-employment-popover" x-transition.origin.bottom
-                                    class="absolute z-50 text-xs whitespace-nowrap text-indigo-50 bg-indigo-900 rounded ms-2 p-2 shadow"
-                                    :style='$store.selfEmploymentPopover.styles'
-                                    x-show="$store.selfEmploymentPopover.on">
-                                    <b>I</b>nterested <b>i</b>n <b>W</b>age <b>E</b>mployment
-                                    <b>o</b>r
-                                    <b>S</b>elf-<b>E</b>mployment?
-                                </div>
-                            </div>
-                        </div>
+                    <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
+                        <p class="mb-1 font-medium text-indigo-1100">Interested in Wage or
+                            Self-Employment</p>
                         <div x-data="{
                             open: false,
                             self_employment: $wire.entangle('self_employment'),
@@ -472,156 +652,13 @@
                     </div>
                     {{-- Skills Training Needed --}}
                     <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                        <p class="mb-1 font-medium text-indigo-1100 ">Skills Training Needed?</p>
-                        <div x-data="{
-                            open: false,
-                            skills_training: $wire.entangle('skills_training'),
-                            toggle() {
-                                if (this.open) {
-                                    return this.close()
-                                }
-                        
-                                this.$refs.button.focus()
-                        
-                                this.open = true
-                            },
-                            close(focusAfter) {
-                                if (!this.open) return
-                        
-                                this.open = false
-                        
-                                focusAfter && focusAfter.focus()
-                            },
-                            selectOption(option) {
-                                this.skills_training = option;
-                                this.close(this.$refs.button); // Close the dropdown after selecting an option
-                            }
-                        }" x-on:keydown.escape.prevent.stop="close($refs.button)"
-                            x-on:focusin.window="! $refs.panel.contains($event.target) && close()" x-id="['button']"
-                            class="relative">
-                            <!-- Button -->
-                            <button x-ref="button" x-on:click="toggle()" :aria-expanded="open"
-                                :aria-controls="$id('button')" type="button"
-                                class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-indigo-50 border-indigo-300 text-indigo-1100 outline-indigo-300 focus:outline-indigo-600 focus:border-indigo-600">
-                                <span x-text="skills_training"></span> <!-- Display selected option -->
-
-                                <!-- Heroicon: chevron-down -->
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="size-4 text-indigo-1100 group-hover:text-indigo-900 group-active:text-indigo-1000 duration-200 ease-in-out"
-                                    viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-
-                            <!-- Panel -->
-                            <div x-ref="panel" x-show="open" x-transition.origin.top.left
-                                x-on:click.outside="close($refs.button)" :id="$id('button')"
-                                style="display: none;"
-                                class="absolute left-0 mt-2 w-full z-50 rounded bg-indigo-50 shadow-lg border border-indigo-500">
-                                <button type="button" x-on:click="selectOption('Yes')"
-                                    class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
-                                    Yes
-                                </button>
-
-                                <button type="button" x-on:click="selectOption('No')"
-                                    class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
-                                    No
-                                </button>
-                            </div>
-                        </div>
+                        <label for="skills_training" class="block mb-1  font-medium text-indigo-1100 ">Skills Training
+                            Needed</label>
+                        <input type="text" id="skills_training" autocomplete="off"
+                            wire:model.blur="skills_training"
+                            class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600"
+                            placeholder="Type skills">
                     </div>
-                    {{-- Is PWD? --}}
-                    <div class="relative col-span-full sm:col-span-1 mb-4 pb-1">
-                        <div class="flex items-center">
-                            <p class="inline mb-1 font-medium text-indigo-1100">Is PWD?</p>
-                            {{-- Popover Thingy --}}
-                            <div class="relative flex items-center" id="is-pwd-question-mark">
-                                <svg @mouseenter="$store.isPWDPopover.toggle()"
-                                    @mouseleave="$store.isPWDPopover.toggle()"
-                                    class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-indigo-700"
-                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                    viewBox="0 0 20 20">
-                                    <path
-                                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
-                                </svg>
-                                {{-- Popover --}}
-                                <div id="is-pwd-popover" x-transition.origin.bottom.right
-                                    class="absolute z-50 text-xs whitespace-nowrap text-indigo-50 bg-indigo-900 rounded p-2 shadow"
-                                    :style='$store.isPWDPopover.styles' x-show="$store.isPWDPopover.on">
-                                    PWD stands for <b>P</b>erson <b>w</b>ith
-                                    <b>D</b>isability
-                                </div>
-                            </div>
-                        </div>
-                        <div x-data="{
-                            open: false,
-                            is_pwd: $wire.entangle('is_pwd'),
-                            toggle() {
-                                if (this.open) {
-                                    return this.close()
-                                }
-                        
-                                this.$refs.isPWDButton.focus()
-                        
-                                this.open = true
-                            },
-                            close(focusAfter) {
-                                if (!this.open) return
-                        
-                                this.open = false
-                        
-                                focusAfter && focusAfter.focus()
-                            },
-                            selectOption(option) {
-                                this.is_pwd = option;
-                                this.close(this.$refs.isPWDButton); // Close the dropdown after selecting an option
-                            }
-                        }" x-on:keydown.escape.prevent.stop="close($refs.isPWDButton)"
-                            x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
-                            x-id="['is-pwd-button']" class="relative">
-                            <!-- Button -->
-                            <button x-ref="isPWDButton" x-on:click="toggle()" :aria-expanded="open"
-                                :aria-controls="$id('is-pwd-button')" type="button"
-                                class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-indigo-50 border-indigo-300 text-indigo-1100 outline-indigo-300 focus:outline-indigo-600 focus:border-indigo-600">
-                                <span x-text="is_pwd"></span> <!-- Display selected option -->
-
-                                <!-- Heroicon: chevron-down -->
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="size-4 text-indigo-1100 group-hover:text-indigo-900 group-active:text-indigo-1000 duration-200 ease-in-out"
-                                    viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-
-                            <!-- Panel -->
-                            <div x-ref="panel" x-show="open" x-transition.origin.top.left
-                                x-on:click.outside="close($refs.isPWDButton)" :id="$id('is-pwd-button')"
-                                style="display: none;"
-                                class="absolute left-0 mt-2 w-full z-50 rounded bg-indigo-50 shadow-lg border border-indigo-500">
-                                <button type="button" x-on:click="selectOption('Yes'); $wire.$refresh();"
-                                    class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
-                                    Yes
-                                </button>
-
-                                <button type="button"
-                                    x-on:click="
-                                selectOption('No'); 
-                                $wire.$refresh();
-                                if ($wire.type_of_id === 'Person\'s With Disability (PWD) ID') {
-                                    $wire.type_of_id = 'e-Card / UMID';
-                                }
-                                "
-                                    class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
-                                    No
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- Bottom Section --}}
                     <div class="relative grid gap-x-4 gap-y-2 grid-cols-10 col-span-full grid-rows-2">
                         {{-- Proof of Identity --}}
@@ -650,14 +687,17 @@
                                     </div>
                                 </div>
 
+                                {{-- Image Area --}}
                                 <label for="image_file_path"
-                                    class="flex flex-col items-center justify-center w-full h-40 border-2 border-indigo-300 border-dashed rounded cursor-pointer bg-indigo-50">
+                                    class="flex flex-col items-center justify-center w-full h-32 border-2 border-indigo-300 border-dashed rounded cursor-pointer bg-indigo-50">
                                     {{-- Loading State for Changes --}}
-                                    <div class="absolute items-center justify-center w-full h-[88%] z-50 text-indigo-900"
+                                    <div class="absolute items-center justify-center w-full h-32 z-50 text-indigo-900"
                                         wire:loading.flex wire:target="image_file_path">
                                         <div class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
                                             {{-- Darkness... --}}
                                         </div>
+
+                                        {{-- Loading Circle --}}
                                         <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -668,9 +708,14 @@
                                             </path>
                                         </svg>
                                     </div>
-                                    <div class="relative flex flex-col items-center justify-center py-6">
+
+                                    {{-- Image Preview --}}
+                                    <div class="relative flex flex-col items-center justify-center">
+                                        {{-- Preview --}}
                                         @if ($image_file_path && !$errors->has('image_file_path'))
                                             <img class="size-28" src="{{ $image_file_path->temporaryUrl() }}">
+
+                                            {{-- Default --}}
                                         @else
                                             <svg class="size-8 mb-4 text-gray-500" aria-hidden="true"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -684,6 +729,8 @@
                                             <p class="text-xs text-gray-500 ">PNG or JPG (MAX. 5MB)</p>
                                         @endif
                                     </div>
+
+                                    {{-- The Image itself --}}
                                     <input id="image_file_path" wire:model="image_file_path" type="file"
                                         accept=".png,.jpg,.jpeg" class="hidden" />
                                 </label>
@@ -726,7 +773,7 @@
                                     </svg>
                                 </button>
 
-                                <!-- Panel -->
+                                <!-- Dropdown Content -->
                                 <div x-ref="panel" x-show="open" x-transition.origin.top :id="$id('button')"
                                     style="display: none;"
                                     class="absolute left-0 mt-2 max-h-[10rem] w-full z-50 rounded bg-indigo-50 shadow-lg border overflow-y-scroll border-indigo-500 scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
@@ -748,6 +795,11 @@
                                     <button type="button" x-on:click="selectOption('e-Card / UMID')"
                                         class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
                                         e-Card / UMID
+                                    </button>
+
+                                    <button type="button" x-on:click="selectOption('Barangay ID')"
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
+                                        Barangay ID
                                     </button>
 
                                     <button type="button" x-on:click="selectOption('Driver\'s License')"
@@ -818,19 +870,14 @@
                                         class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
                                         Solo Parent ID
                                     </button>
-
-                                    <button type="button" x-on:click="selectOption('Barangay ID')"
-                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
-                                        Barangay ID
-                                    </button>
                                 </div>
                             </div>
                         </div>
                         {{-- ID Number --}}
-                        <div class="relative col-span-full sm:col-span-4 sm:row-span-1 mb-4 pb-1">
+                        <div class="relative col-span-full sm:col-span-3 sm:row-span-1 mb-4 pb-1">
 
                             <label for="id_number" class="block mb-1 font-medium text-indigo-1100 ">ID Number <span
-                                    class="text-red-700 font-normal text-sm">*</span></label>
+                                    class="text-red-700 font-normal text-xs">*</span></label>
                             <input type="text" id="id_number" autocomplete="off" wire:model.blur="id_number"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('id_number') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="Type ID number">
@@ -838,13 +885,101 @@
                                 <p class="text-red-500 ms-2 mt-1 z-10 text-xs">{{ $message }}</p>
                             @enderror
                         </div>
+                        {{-- Is PWD? --}}
+                        <div class="relative col-span-full sm:col-span-1 sm:row-span-1 mb-4 pb-1">
+                            <div class="flex items-center">
+                                <p class="inline mb-1 font-medium text-indigo-1100">Is PWD?</p>
+                                {{-- Popover Thingy --}}
+                                <div class="relative flex items-center" id="is-pwd-question-mark">
+                                    <svg @mouseenter="$store.isPWDPopover.toggle()"
+                                        @mouseleave="$store.isPWDPopover.toggle()"
+                                        class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-indigo-700"
+                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                        viewBox="0 0 20 20">
+                                        <path
+                                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
+                                    </svg>
+                                    {{-- Popover --}}
+                                    <div id="is-pwd-popover" x-transition.origin.bottom.right
+                                        class="absolute z-50 text-xs whitespace-nowrap text-indigo-50 bg-indigo-900 rounded p-2 shadow"
+                                        :style='$store.isPWDPopover.styles' x-show="$store.isPWDPopover.on">
+                                        PWD stands for <b>P</b>erson <b>w</b>ith
+                                        <b>D</b>isability
+                                    </div>
+                                </div>
+                            </div>
+                            <div x-data="{
+                                open: false,
+                                is_pwd: $wire.entangle('is_pwd'),
+                                toggle() {
+                                    if (this.open) {
+                                        return this.close()
+                                    }
+                            
+                                    this.$refs.isPWDButton.focus()
+                            
+                                    this.open = true
+                                },
+                                close(focusAfter) {
+                                    if (!this.open) return
+                            
+                                    this.open = false
+                            
+                                    focusAfter && focusAfter.focus()
+                                },
+                                selectOption(option) {
+                                    this.is_pwd = option;
+                                    this.close(this.$refs.isPWDButton); // Close the dropdown after selecting an option
+                                }
+                            }" x-on:keydown.escape.prevent.stop="close($refs.isPWDButton)"
+                                x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+                                x-id="['is-pwd-button']" class="relative">
+                                <!-- Button -->
+                                <button x-ref="isPWDButton" x-on:click="toggle()" :aria-expanded="open"
+                                    :aria-controls="$id('is-pwd-button')" type="button"
+                                    class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-indigo-50 border-indigo-300 text-indigo-1100 outline-indigo-300 focus:outline-indigo-600 focus:border-indigo-600">
+                                    <span x-text="is_pwd"></span> <!-- Display selected option -->
 
+                                    <!-- Heroicon: chevron-down -->
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-4 text-indigo-1100 group-hover:text-indigo-900 group-active:text-indigo-1000 duration-200 ease-in-out"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+
+                                <!-- Panel -->
+                                <div x-ref="panel" x-show="open" x-transition.origin.top.left
+                                    x-on:click.outside="close($refs.isPWDButton)" :id="$id('is-pwd-button')"
+                                    style="display: none;"
+                                    class="absolute left-0 mt-2 w-full z-50 rounded bg-indigo-50 shadow-lg border border-indigo-500">
+                                    <button type="button" x-on:click="selectOption('Yes'); $wire.$refresh();"
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
+                                        Yes
+                                    </button>
+
+                                    <button type="button"
+                                        x-on:click="
+                                selectOption('No'); 
+                                $wire.$refresh();
+                                if ($wire.type_of_id === 'Person\'s With Disability (PWD) ID') {
+                                    $wire.type_of_id = 'e-Card / UMID';
+                                }
+                                "
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
+                                        No
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         {{-- Spouse First Name --}}
                         <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
                             <label for="spouse_first_name"
                                 class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
                                 First Name @if ($civil_status === 'Married')
-                                    <span class="text-red-700 font-normal text-sm ms-0.5">*</span>
+                                    <span class="text-red-700 font-normal text-xs ms-0.5">*</span>
                                 @endif
                             </label>
                             <input type="text" id="spouse_first_name" autocomplete="off"
@@ -875,7 +1010,7 @@
                             <label for="spouse_last_name"
                                 class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
                                 Last Name @if ($civil_status === 'Married')
-                                    <span class="text-red-700 font-normal text-sm ms-0.5">*</span>
+                                    <span class="text-red-700 font-normal text-xs ms-0.5">*</span>
                                 @endif
                             </label>
                             <input type="text" id="spouse_last_name" autocomplete="off"
@@ -908,14 +1043,7 @@
                     </div>
                 </div>
                 {{-- Modal footer --}}
-                <div class="w-full flex relative items-center justify-between">
-                    <div
-                        class="flex items-center border border-amber-300 bg-amber-50 text-amber-900 rounded text-sm p-2">
-                        <p class="inline mx-2">Seems like this beneficiary has already been listed in the database this
-                            year.
-                            <button type="button" class="underline font-bold">Any reason why?</button>
-                        </p>
-                    </div>
+                <div class="w-full flex relative items-center justify-end">
                     <div class="flex items-center justify-end relative">
                         {{-- Loading State for Changes --}}
                         <div class="z-50 text-indigo-900" wire:loading wire:target="saveBeneficiary">
@@ -957,21 +1085,6 @@
             $wire.dispatchSelf('birthdate-change', {
                 value: birthdatePicker.value
             });
-        });
-
-        Alpine.store('selfEmploymentPopover', {
-            on: false,
-            styles: '',
-
-            toggle() {
-                this.on = !this.on
-                const svgIcon = document.getElementById('self-employment-question-mark');
-                const popover = document.getElementById('self-employment-popover');
-                $nextTick(() => {
-                    this.styles =
-                        `bottom: ${svgIcon.offsetHeight + 4}px; right: ${(-popover.offsetWidth + 11.4) / 2}px;`;
-                });
-            }
         });
 
         Alpine.store('isPWDPopover', {
