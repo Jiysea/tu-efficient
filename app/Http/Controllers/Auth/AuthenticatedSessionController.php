@@ -59,11 +59,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->invalidate();
 
+<<<<<<< HEAD
         session()->flush();
 
+=======
+>>>>>>> bd3ec6572da43bdfd044493b897143d52ea9177f
         $request->session()->regenerateToken();
 
         return redirect('/');
-
     }
 }
