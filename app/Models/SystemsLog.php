@@ -19,6 +19,7 @@ class SystemsLog extends Model
         'log_timestamp',
         'description',
     ];
+    protected $table = "system_logs";
 
     public function user()
     {
