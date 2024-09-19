@@ -62,10 +62,6 @@ class Login extends Component
         $this->validateOnly('password');
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
-<<<<<<< HEAD
-            // session()->regenerate();
-            if (strtolower(Auth::user()->user_type) === 'focal') {
-=======
 
             session()->regenerate();
 
@@ -73,7 +69,6 @@ class Login extends Component
 
                 # does some magic with csrf stuffs
                 // $this->dispatch('sessionRegenerated', csrf_token());
->>>>>>> bd3ec6572da43bdfd044493b897143d52ea9177f
 
                 # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
                 session()->flash('heads-up', Auth::user()->last_login);

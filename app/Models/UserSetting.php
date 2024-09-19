@@ -9,7 +9,7 @@ class UserSetting extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'key', 'value'];
+    protected $fillable = ['users_id', 'key', 'value'];
 
     public function user()
     {
