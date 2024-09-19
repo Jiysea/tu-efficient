@@ -395,6 +395,7 @@ class Implementations extends Component
 
         $this->implementationId = null;
         $this->batchId = null;
+        $this->beneficiaryId = null;
 
         $this->selectedImplementationRow = -1;
         $this->selectedBatchRow = -1;
@@ -417,12 +418,33 @@ class Implementations extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
 
         $this->batchId = null;
+        $this->beneficiaryId = null;
 
         $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
 
         $this->showAlert = true;
         $this->alertMessage = 'Batches successfully assigned!';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[On('add-beneficiaries')]
+    public function addBeneficiaries()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->beneficiaryId = null;
+
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Beneficiary added successfully!';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
     }

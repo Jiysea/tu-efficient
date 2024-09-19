@@ -26,6 +26,7 @@
 
                 <div class="mt-6 space-y-2">
                     <form wire:submit.prevent="login" class="space-y-2">
+                        @csrf
                         <div class="relative pt-4">
                             @error('email')
                                 <p class="text-red-500 absolute top-0 right-1 z-10 text-xs">{{ $message }}</p>
@@ -39,7 +40,6 @@
                         </div>
                         <div class="relative pb-4">
                             <input type="password" wire:model.blur="password" id="password"
-                                @keyup.enter="$wire.login();"
                                 class="text-sm duration-200 ease-in-out border rounded-lg outline-none block w-full px-5 py-2 
                             {{ $errors->has('password')
                                 ? 'bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'

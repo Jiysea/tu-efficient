@@ -2,12 +2,16 @@
 
 namespace App\Livewire\Focal\Implementations;
 
+use App\Models\Batch;
 use App\Models\Beneficiary;
+use App\Models\Credential;
+use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\JaccardSimilarity;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Modelable;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Attributes\Validate;
@@ -25,19 +29,20 @@ class AddBeneficiariesModal extends Component
     public $maxDate;
     #[Locked]
     public $minDate;
-    public $beneficiariesFromDatabase;
 
     # ------------------------------------
 
+    public $beneficiariesFromDatabase;
     protected $jaccardSimilarity;
     public $includeBirthdate = false;
     public $similarityResults;
     public $isResults = false;
+    public $isResolved = false;
     public $isPerfectDuplicate = false;
     public $ignorePossibleDuplicates = false;
     public $addReasonModal = false;
 
-    # ------------------------------------
+    # ----------------------------------------------
 
     #[Validate]
     public $first_name;
@@ -76,7 +81,14 @@ class AddBeneficiariesModal extends Component
     public $spouse_last_name;
     public $spouse_extension_name;
 
-    # Runs real-time depending on wire:model suffix
+    # --------------------------------------------
+
+    #[Validate]
+    public $reason_image_file_path;
+    #[Validate]
+    public $image_description;
+
+    # The validation rules, it runs every model update or calling validate()/validateOnly() methods
     public function rules()
     {
         return [
@@ -145,10 +157,13 @@ class AddBeneficiariesModal extends Component
             'birthdate' => 'required|date',
             'contact_num' => 'required',
             'avg_monthly_income' => 'required_unless:occupation,null',
+            'occupation' => 'required_unless:avg_monthly_income,null',
             'image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
             'id_number' => 'required',
             'spouse_first_name' => 'required_if:civil_status,Married',
             'spouse_last_name' => 'required_if:civil_status,Married',
+            'reason_image_file_path' => 'exclude_if:isResults,false|required_if:isResults,true|image|mimes:png,jpg,jpeg|max:5120',
+            'image_description' => 'exclude_if:isResults,false|required_if:isResults,true',
         ];
     }
 
@@ -156,17 +171,25 @@ class AddBeneficiariesModal extends Component
     public function messages()
     {
         return [
-            'first_name.required' => ':attribute should not be empty.',
-            'last_name.required' => ':attribute should not be empty.',
-            'birthdate.required' => ':attribute should not be empty.',
-            'contact_num.required' => ':attribute should not be empty.',
+            'first_name.required' => 'This field is required.',
+            'last_name.required' => 'This field is required.',
+            'birthdate.required' => 'This field is required.',
+            'contact_num.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
-            'id_number.required' => ':attribute should not be empty.',
+            'occupation.required_unless' => 'This field is required.',
+            'id_number.required' => 'This field is required.',
             'spouse_first_name.required_if' => 'This field is required.',
             'spouse_last_name.required_if' => 'This field is required.',
 
             'image_file_path.image' => ':attribute should be an image type.',
             'image_file_path.mimes' => ':attribute should be in PNG or JPG format.',
+
+            'image_description.required_if' => 'Description must not be left blank.',
+
+            'reason_image_file_path.required_if' => 'Case proof is required.',
+            'reason_image_file_path.image' => 'Case proof must be an image type.',
+            'reason_image_file_path.mimes' => 'It must be in PNG or JPG format.',
+            'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
         ];
     }
 
@@ -210,42 +233,120 @@ class AddBeneficiariesModal extends Component
         }
     }
 
-    # for possible duplicates
-    # it's called from AddReasonModal
-    protected function addReason($reason_image_file_path, $image_description)
+    public function updatedBeneficiaryType()
     {
-        dump($reason_image_file_path);
-        dump($image_description);
+        if ($this->beneficiary_type === 'Underemployed') {
+            $this->reset('reason_image_file_path', 'image_description');
+            $this->isResolved = false;
+        }
     }
+
+    // public function updatedOccupation()
+    // {
+    //     if (!$this->avg_monthly_income) {
+    //         $this->resetValidation('occupation');
+    //         $this->resetValidation('avg_monthly_income');
+    //     }
+    // }
+
+    public function updatedAvgMonthlyIncome()
+    {
+        if (!$this->occupation) {
+            $this->resetValidation('avg_monthly_income');
+            $this->reset('occupation');
+        }
+    }
+
+    # ----------------------------------------------------------------------------------------------
+    # ADD REASON MODAL AREA
+
+    public function saveReason()
+    {
+        $this->validateOnly('reason_image_file_path');
+        $this->validateOnly('image_description');
+
+        $this->isResolved = true;
+        $this->addReasonModal = false;
+    }
+
+    # END OF ADD REASON MODAL AREA
+    # ----------------------------------------------------------------------------------------------
 
     # a livewire action executes after clicking the `Create Project` button
     public function saveBeneficiary()
     {
-        // dump($this->all());
-        $this->validate();
+        if (!$this->occupation && !$this->avg_monthly_income) {
+            $this->reset('occupation');
+            $this->resetValidation('avg_monthly_income');
+        }
 
+        // dump($this->all());
+
+        $this->validate();
         # other attributes not in this form:
         # city_municipality, province, district, age, is_senior_citizen, is_pwd,
 
-        // if() {
+        $batch = Batch::find($this->batchId);
+        $implementation = Implementation::find($batch->value('implementations_id'));
 
-        // }
-        // Beneficiary::create([
-        //     'users_id' => Auth()->id(),
-        //     'project_num' => $this->project_num,
-        //     'project_title' => $this->project_title,
-        //     'purpose' => $this->purpose,
-        //     'district' => $this->district,
-        //     'province' => $this->province,
-        //     'city_municipality' => $this->city_municipality,
-        //     'budget_amount' => $this->budget_amount,
-        //     'total_slots' => $this->total_slots,
-        //     'days_of_work' => $this->days_of_work
-        // ]);
+        $beneficiary = Beneficiary::create([
+            'batches_id' => $this->batchId,
+            'first_name' => $this->first_name,
+            'middle_name' => $this->middle_name ?? null,
+            'last_name' => $this->last_name,
+            'extension_name' => $this->extension_name ?? null,
+            'birthdate' => $this->birthdate,
+            'barangay_name' => $batch->value('barangay_name'),
+            'contact_num' => $this->contact_num,
+            'occupation' => $this->occupation ?? null,
+            'avg_monthly_income' => $this->avg_monthly_income ?? null,
+            'city_municipality' => $implementation->value('city_municipality'),
+            'province' => $implementation->value('province'),
+            'district' => $implementation->value('district'),
+            'type_of_id' => $this->type_of_id,
+            'id_number' => $this->id_number,
+            'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
+            'beneficiary_type' => strtolower($this->beneficiary_type),
+            'sex' => strtolower($this->sex),
+            'civil_status' => strtolower($this->civil_status),
+            'age' => $this->beneficiaryAge($this->birthdate),
+            'dependent' => $this->dependent ?? null,
+            'self_employment' => strtolower($this->self_employment),
+            'skills_training' => $this->skills_training ?? null,
+            'is_pwd' => strtolower($this->is_pwd),
+            'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+            'spouse_first_name' => $this->spouse_first_name,
+            'spouse_middle_name' => $this->spouse_middle_name,
+            'spouse_last_name' => $this->spouse_last_name,
+            'spouse_extension_name' => $this->spouse_extension_name,
+        ]);
 
-        // $this->reset();
-        // $this->dispatch('add-beneficiaries');
+        $file = $this->image_file_path->store(path: 'credentials');
 
+        Credential::create([
+            'beneficiaries_id' => $beneficiary->id,
+            'image_description' => null,
+            'image_file_path' => $file ?? null,
+            'for_duplicates' => 'no',
+        ]);
+
+        if ($this->isResults) {
+            $file = $this->reason_image_file_path->store(path: 'credentials');
+            Credential::create([
+                'beneficiaries_id' => $beneficiary->id,
+                'image_description' => $this->image_description,
+                'image_file_path' => $file,
+                'for_duplicates' => 'yes',
+            ]);
+        }
+
+        $this->resetExcept(
+            'batchId',
+            'maxDate',
+            'minDate',
+        );
+
+        $this->dispatch('add-beneficiaries');
     }
 
     public function nameCheck()
@@ -285,6 +386,9 @@ class AddBeneficiariesModal extends Component
                 # if there are symbols except "."
                 $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
                 if (!strpbrk($filteredInputString, $illegal)) {
+
+                    # removes excess whitespaces between words
+                    $filteredInputString = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $filteredInputString)));
 
                     # checks if the string has numbers
                     if (!preg_match('~[0-9]+~', $filteredInputString)) {
@@ -496,6 +600,11 @@ class AddBeneficiariesModal extends Component
                 }
             }
         }
+    }
+
+    protected function beneficiaryAge($birthdate)
+    {
+        return Carbon::parse($birthdate)->age;
     }
 
     # returns the full name of the beneficiary

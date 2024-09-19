@@ -7,9 +7,12 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Code;
 use App\Models\Implementation;
+use App\Models\SystemsLog;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\UserSetting;
+use Carbon\Carbon;
+use Database\Factories\CredentialFactory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -40,14 +43,42 @@ class DatabaseSeeder extends Seeder
             'field_office' => null,
             'user_type' => 'admin',
         ]);
+        SystemsLog::factory()->create([
+            'users_id' => $admin['id'],
+            'log_timestamp' => Carbon::now(),
+            'description' => $admin['first_name'] . ' has been created as admin.'
+        ]);
+
         $rFocalUser = User::factory()->create([
             'field_office' => null,
             'user_type' => 'r_focal',
         ]);
+
+        SystemsLog::factory()->create([
+            'users_id' => $rFocalUser['id'],
+            'log_timestamp' => Carbon::now(),
+            'description' => $this->getFullName($rFocalUser) . ' has been created as regional office focal.'
+        ]);
+
         $focalUser = User::factory()->create([
             'user_type' => 'focal',
         ]);
+
+        SystemsLog::factory()->create([
+            'users_id' => $focalUser['id'],
+            'log_timestamp' => Carbon::now(),
+            'description' => $this->getFullName($focalUser) . ' has been created as field office focal.'
+        ]);
+
         $coordinatorUsers = User::factory($this->coordinatorsAmount)->create();
+
+        foreach ($coordinatorUsers as $key => $user) {
+            SystemsLog::factory()->create([
+                'users_id' => $user['id'],
+                'log_timestamp' => Carbon::now(),
+                'description' => $this->getFullName($user) . ' has been created as field office focal.'
+            ]);
+        }
 
         # Uncomment and use this only when adding additional settings
         # also remove all existing settings if you're adding new settings
@@ -70,28 +101,46 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($settingsFocal as $key => $setting) {
-            UserSetting::factory()->create([
+            $initSetting = UserSetting::factory()->create([
                 'users_id' => $focalUser->id,
                 'key' => $key,
                 'value' => $setting,
+            ]);
+
+            SystemsLog::factory()->create([
+                'users_id' => null,
+                'log_timestamp' => Carbon::now(),
+                'description' => 'A setting ' . $initSetting['key'] . ' has been initialized with ' . $initSetting['value'] . ' for ' . $this->getFullName(person: $focalUser)
             ]);
         }
 
         foreach ($coordinatorUsers as $user) {
             foreach ($settingsCoordinator as $key => $setting) {
-                UserSetting::factory()->create([
+                $initSetting = UserSetting::factory()->create([
                     'users_id' => $user->id,
                     'key' => $key,
                     'value' => $setting,
                 ]);
+
+                SystemsLog::factory()->create([
+                    'users_id' => null,
+                    'log_timestamp' => Carbon::now(),
+                    'description' => 'A setting ' . $initSetting['key'] . ' has been initialized with ' . $initSetting['value'] . ' for ' . $this->getFullName(person: $user)
+                ]);
             }
         }
+
         $project_title = ucwords('implementation number');
         $implementations = Implementation::factory($this->implementationAmount)->create();
 
         foreach ($implementations as $key => $implementation) {
             $implementation->update([
                 'project_title' => $project_title . ' ' . $key,
+            ]);
+            SystemsLog::factory()->create([
+                'users_id' => $focalUser->id,
+                'log_timestamp' => Carbon::now(),
+                'description' => 'Created an implementation project ' . $implementation['project_num'],
             ]);
         }
 
@@ -111,16 +160,28 @@ class DatabaseSeeder extends Seeder
         });
 
         foreach ($batches as $batch) {
+            SystemsLog::factory()->create([
+                'users_id' => $focalUser->id,
+                'log_timestamp' => Carbon::now(),
+                'description' => 'Created a batch assignment ' . $batch['batch_num'] . ' in Project ' . Implementation::find($batch['implementations_id'])->get('project_num'),
+            ]);
+
             $amount = mt_rand($this->assignmentAmountMin, $this->assignmentAmountMax);
             $coordinators = $coordinatorUsers->random($amount);
             $currentDate = $batch->created_at;
 
-            $coordinators->each(function ($user) use ($batch, $currentDate) {
-                Assignment::factory()->create([
+            $coordinators->each(function ($user) use ($batch, $currentDate, $focalUser) {
+                $assignment = Assignment::factory()->create([
                     'batches_id' => $batch->id,
                     'users_id' => $user->id,
                     'created_at' => $currentDate,
                     'updated_at' => $currentDate,
+                ]);
+
+                SystemsLog::factory()->create([
+                    'users_id' => $focalUser->id,
+                    'log_timestamp' => Carbon::now(),
+                    'description' => 'Assigned ' . $this->getFullName($user) . ' in Batch ' . $batch->batch_num,
                 ]);
             });
         }
@@ -133,15 +194,53 @@ class DatabaseSeeder extends Seeder
 
         foreach ($batches as $batch) {
             $batch->update(['submission_status' => 'submitted']);
+            SystemsLog::factory()->create([
+                'users_id' => $focalUserId,
+                'log_timestamp' => Carbon::now(),
+                'description' => 'Updated a batch (' . $batch->batch_num . ')',
+            ]);
+            $code = Code::factory()->create(['batches_id' => $batch->id]);
 
-            Code::factory()->create(['batches_id' => $batch->id]);
+            SystemsLog::factory()->create([
+                'users_id' => $focalUserId,
+                'log_timestamp' => Carbon::now(),
+                'description' => 'Created an access code for Batch ' . $code->access_code,
+            ]);
 
-            Beneficiary::factory($batch->slots_allocated)->create([
+            $beneficiary = Beneficiary::factory($batch->slots_allocated)->create([
                 'batches_id' => $batch->id,
                 'barangay_name' => $batch->barangay_name,
                 'district' => $batch->implementation->district,
             ]);
+
+            SystemsLog::factory()->create([
+                'users_id' => $focalUser->id,
+                'log_timestamp' => Carbon::now(),
+                'description' => 'Added ' . $this->getFullName($beneficiary) . ' as beneficiary in Batch ' . $batch->batch_num,
+            ]);
+
+            // CredentialFactory::factory()->create([
+            //     'beneficiaries_id' => $beneficiary->id,
+
+            // ]);
         }
+    }
+
+    function getFullName($person)
+    {
+        $name = null;
+        $name = $person['first_name'];
+
+        if ($person['middle_name']) {
+            $name .= ' ' . $person['middle_name'];
+        }
+
+        $name .= ' ' . $person['last_name'];
+
+        if ($person['extension_name']) {
+            $name .= ' ' . $person['extension_name'];
+        }
+        return $name;
     }
 
     function generateRandomArray($totalValue, $minThresholdPercentage = 15)

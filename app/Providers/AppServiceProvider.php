@@ -26,5 +26,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('delete-implementation', function (User $user, Implementation $implementation) {
             return $user->id === $implementation->users_id;
         });
+
+        Gate::define('delete-batch', function (User $user, Implementation $implementation) {
+            return $user->id === $implementation->users_id;
+        });
     }
 }

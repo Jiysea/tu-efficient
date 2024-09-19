@@ -24,7 +24,7 @@
                     <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                         <span class="flex items-center justify-center">
                             <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">View Batch
-                                {{ $this->remainingSlots }}
+
                             </h1>
 
                         </span>
@@ -404,7 +404,7 @@
                                             </svg>
                                         </button>
 
-                                        {{-- <livewire:focal.implementations.confirmations.delete-batch-modal /> --}}
+                                        <livewire:focal.implementations.confirmations.delete-batch-modal />
                                     </div>
 
                                     {{-- Batch Number OFF --}}

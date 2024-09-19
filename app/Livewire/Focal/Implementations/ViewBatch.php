@@ -375,6 +375,17 @@ class ViewBatch extends Component
         }
     }
 
+    public function deleteBatch()
+    {
+        $batch = Batch::find(decrypt($this->passedId));
+        $this->authorize('delete-batch', $batch);
+        $batch->delete();
+
+        $this->edit = false;
+        $this->resetEverything();
+        $this->dispatch('delete-batches');
+    }
+
     public function resetEverything()
     {
         if ($this->edit) {
@@ -390,6 +401,8 @@ class ViewBatch extends Component
 
     public function render()
     {
+        # Check if there's no batches made with this project yet
+        $this->checkEmpty();
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->batchNumPrefix = $settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
