@@ -33,6 +33,23 @@ class BeneficiaryFactory extends Factory
         $id_number = $this->getIdNumber($type_of_id);
         $age = $this->age($birthdate);
         $civil_status = fake()->randomElement(['single', 'married']);
+        $skills_training = fake()->optional(0.25)->randomElement([
+            'Agriculture crops production',
+            'Aquaculture',
+            'Automotive',
+            'Construction',
+            'Weilding',
+            'Information and Communication Technology',
+            'Electrical and electronics',
+            'Furniture making',
+            'Garments making',
+            'Textile making',
+            'Food processing',
+            'Cooking',
+            'Housekeeping',
+            'Tourism',
+            'Customer services',
+        ]);
 
 
         return [
@@ -58,7 +75,7 @@ class BeneficiaryFactory extends Factory
             'age' => $age,
             'dependent' => fake()->optional(0.1)->name(),
             'self_employment' => 'no',
-            'skills_training' => null,
+            'skills_training' => $skills_training,
             'is_pwd' => fake()->optional(0.05, "no")->randomElement(['yes']),
             'is_senior_citizen' => $this->checkSeniorCitizen($age),
             'spouse_first_name' => $this->checkSpouse($civil_status, $sex, 'first'),

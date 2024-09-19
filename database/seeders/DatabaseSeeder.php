@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             'middle_name' => '-',
             'last_name' => '-',
             'extension_name' => '-',
-            'email' => 'tu-admin@gmail.com',
+            'email' => 'tuefficient@gmail.com',
             'password' => Hash::make('password'),
             'contact_num' => fake()->phoneNumber(),
             'regional_office' => null,
@@ -214,14 +214,11 @@ class DatabaseSeeder extends Seeder
                 'district' => $batch->implementation->district,
             ]);
 
-            foreach ($beneficiaries as $beneficiary) {
-                SystemsLog::factory()->create([
-                    'users_id' => $focalUser->id,
-                    'log_timestamp' => Carbon::now(),
-                    'description' => 'Added ' . $this->getFullName($beneficiary) . ' as beneficiary in Batch ' . $batch->batch_num,
-                ]);
-
-            }
+            SystemsLog::factory()->create([
+                'users_id' => $focalUser->id,
+                'log_timestamp' => Carbon::now(),
+                'description' => 'Added ' . $batch->slots_allocated . ' beneficiaries in Batch ' . $batch->batch_num,
+            ]);
 
             // CredentialFactory::factory()->create([
             //     'beneficiaries_id' => $beneficiary->id,
