@@ -62,9 +62,8 @@ class Login extends Component
         $this->validateOnly('password');
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
-
+            // session()->regenerate();
             if (strtolower(Auth::user()->user_type) === 'focal') {
-                session()->regenerate();
 
                 # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
                 session()->flash('heads-up', Auth::user()->last_login);
@@ -75,7 +74,6 @@ class Login extends Component
                 $this->redirectRoute('focal.dashboard');
 
             } else if (strtolower(Auth::user()->user_type) === 'coordinator') {
-                session()->regenerate();
 
                 # Logs the login date of the user
                 User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
