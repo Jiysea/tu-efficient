@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
             'field_office' => null,
             'user_type' => 'admin',
         ]);
+
         SystemsLog::factory()->create([
             'users_id' => $admin['id'],
             'log_timestamp' => Carbon::now(),
@@ -163,7 +164,7 @@ class DatabaseSeeder extends Seeder
             SystemsLog::factory()->create([
                 'users_id' => $focalUser->id,
                 'log_timestamp' => Carbon::now(),
-                'description' => 'Created a batch assignment ' . $batch['batch_num'] . ' in Project ' . Implementation::find($batch['implementations_id'])->get('project_num'),
+                'description' => 'Created a batch assignment ' . $batch->batch_num . ' in Project ' . Implementation::find($batch->implementations_id)->value('project_num'),
             ]);
 
             $amount = mt_rand($this->assignmentAmountMin, $this->assignmentAmountMax);
@@ -207,17 +208,20 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Created an access code for Batch ' . $code->access_code,
             ]);
 
-            $beneficiary = Beneficiary::factory($batch->slots_allocated)->create([
+            $beneficiaries = Beneficiary::factory($batch->slots_allocated)->create([
                 'batches_id' => $batch->id,
                 'barangay_name' => $batch->barangay_name,
                 'district' => $batch->implementation->district,
             ]);
 
-            SystemsLog::factory()->create([
-                'users_id' => $focalUser->id,
-                'log_timestamp' => Carbon::now(),
-                'description' => 'Added ' . $this->getFullName($beneficiary) . ' as beneficiary in Batch ' . $batch->batch_num,
-            ]);
+            foreach ($beneficiaries as $beneficiary) {
+                SystemsLog::factory()->create([
+                    'users_id' => $focalUser->id,
+                    'log_timestamp' => Carbon::now(),
+                    'description' => 'Added ' . $this->getFullName($beneficiary) . ' as beneficiary in Batch ' . $batch->batch_num,
+                ]);
+
+            }
 
             // CredentialFactory::factory()->create([
             //     'beneficiaries_id' => $beneficiary->id,
@@ -229,16 +233,16 @@ class DatabaseSeeder extends Seeder
     function getFullName($person)
     {
         $name = null;
-        $name = $person['first_name'];
+        $name = $person->first_name;
 
-        if ($person['middle_name']) {
-            $name .= ' ' . $person['middle_name'];
+        if ($person->middle_name) {
+            $name .= ' ' . $person->middle_name;
         }
 
-        $name .= ' ' . $person['last_name'];
+        $name .= ' ' . $person->last_name;
 
-        if ($person['extension_name']) {
-            $name .= ' ' . $person['extension_name'];
+        if ($person->extension_name) {
+            $name .= ' ' . $person->extension_name;
         }
         return $name;
     }
