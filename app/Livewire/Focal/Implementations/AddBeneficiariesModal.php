@@ -2,10 +2,16 @@
 
 namespace App\Livewire\Focal\Implementations;
 
+use App\Models\Batch;
 use App\Models\Beneficiary;
+use App\Models\Credential;
+use App\Models\Implementation;
+use App\Models\UserSetting;
 use App\Services\JaccardSimilarity;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Modelable;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Attributes\Validate;
@@ -23,19 +29,28 @@ class AddBeneficiariesModal extends Component
     public $maxDate;
     #[Locked]
     public $minDate;
+
+    # ------------------------------------
+
     public $beneficiariesFromDatabase;
-
-    # ------------------------------------
-
     protected $jaccardSimilarity;
+    public $includeBirthdate = false;
+    public $similarityResults;
+    public $isResults = false;
+    public $isResolved = false;
+    public $isPerfectDuplicate = false;
+    public $ignorePossibleDuplicates = false;
+    public $addReasonModal = false;
 
-    # ------------------------------------
+    # ----------------------------------------------
 
     #[Validate]
     public $first_name;
+    #[Validate]
     public $middle_name;
     #[Validate]
     public $last_name;
+    #[Validate]
     public $extension_name;
     #[Validate]
     public $birthdate;
@@ -52,7 +67,7 @@ class AddBeneficiariesModal extends Component
     public $e_payment_acc_num;
     public $self_employment = 'No';
     public $beneficiary_type = 'Underemployed';
-    public $skills_training = 'No';
+    public $skills_training;
     public $is_pwd = 'No';
     #[Validate]
     public $image_file_path;
@@ -66,19 +81,89 @@ class AddBeneficiariesModal extends Component
     public $spouse_last_name;
     public $spouse_extension_name;
 
-    # Runs real-time depending on wire:model suffix
+    # --------------------------------------------
+
+    #[Validate]
+    public $reason_image_file_path;
+    #[Validate]
+    public $image_description;
+
+    # The validation rules, it runs every model update or calling validate()/validateOnly() methods
     public function rules()
     {
         return [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'birthdate' => 'required',
+            'first_name' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (preg_match('~[0-9]+~', $value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+                },
+            ],
+            'middle_name' => [
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (preg_match('~[0-9]+~', $value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+                },
+            ],
+            'last_name' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (preg_match('~[0-9]+~', $value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+                },
+            ],
+            'extension_name' => [
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('No illegal characters.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (preg_match('~[0-9]+~', $value)) {
+                        $fail('No numbers.');
+                    }
+                },
+            ],
+            'birthdate' => 'required|date',
             'contact_num' => 'required',
             'avg_monthly_income' => 'required_unless:occupation,null',
+            'occupation' => 'required_unless:avg_monthly_income,null',
             'image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
             'id_number' => 'required',
             'spouse_first_name' => 'required_if:civil_status,Married',
             'spouse_last_name' => 'required_if:civil_status,Married',
+            'reason_image_file_path' => 'exclude_if:isResults,false|required_if:isResults,true|image|mimes:png,jpg,jpeg|max:5120',
+            'image_description' => 'exclude_if:isResults,false|required_if:isResults,true',
         ];
     }
 
@@ -86,17 +171,25 @@ class AddBeneficiariesModal extends Component
     public function messages()
     {
         return [
-            'first_name.required' => ':attribute should not be empty.',
-            'last_name.required' => ':attribute should not be empty.',
-            'birthdate.required' => ':attribute should not be empty.',
-            'contact_num.required' => ':attribute should not be empty.',
+            'first_name.required' => 'This field is required.',
+            'last_name.required' => 'This field is required.',
+            'birthdate.required' => 'This field is required.',
+            'contact_num.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
-            'id_number.required' => ':attribute should not be empty.',
+            'occupation.required_unless' => 'This field is required.',
+            'id_number.required' => 'This field is required.',
             'spouse_first_name.required_if' => 'This field is required.',
             'spouse_last_name.required_if' => 'This field is required.',
 
             'image_file_path.image' => ':attribute should be an image type.',
             'image_file_path.mimes' => ':attribute should be in PNG or JPG format.',
+
+            'image_description.required_if' => 'Description must not be left blank.',
+
+            'reason_image_file_path.required_if' => 'Case proof is required.',
+            'reason_image_file_path.image' => 'Case proof must be an image type.',
+            'reason_image_file_path.mimes' => 'It must be in PNG or JPG format.',
+            'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
         ];
     }
 
@@ -132,35 +225,142 @@ class AddBeneficiariesModal extends Component
         }
     }
 
+    public function updatedCivilStatus()
+    {
+        if ($this->civil_status === 'Single') {
+            $this->resetValidation('spouse_first_name');
+            $this->resetValidation('spouse_last_name');
+        }
+    }
+
+    public function updatedBeneficiaryType()
+    {
+        if ($this->beneficiary_type === 'Underemployed') {
+            $this->reset('reason_image_file_path', 'image_description');
+            $this->isResolved = false;
+        }
+    }
+
+    // public function updatedOccupation()
+    // {
+    //     if (!$this->avg_monthly_income) {
+    //         $this->resetValidation('occupation');
+    //         $this->resetValidation('avg_monthly_income');
+    //     }
+    // }
+
+    public function updatedAvgMonthlyIncome()
+    {
+        if (!$this->occupation) {
+            $this->resetValidation('avg_monthly_income');
+            $this->reset('occupation');
+        }
+    }
+
+    # ----------------------------------------------------------------------------------------------
+    # ADD REASON MODAL AREA
+
+    public function saveReason()
+    {
+        $this->validateOnly('reason_image_file_path');
+        $this->validateOnly('image_description');
+
+        $this->isResolved = true;
+        $this->addReasonModal = false;
+    }
+
+    # END OF ADD REASON MODAL AREA
+    # ----------------------------------------------------------------------------------------------
+
     # a livewire action executes after clicking the `Create Project` button
     public function saveBeneficiary()
     {
-        $this->validate();
+        if (!$this->occupation && !$this->avg_monthly_income) {
+            $this->reset('occupation');
+            $this->resetValidation('avg_monthly_income');
+        }
 
+        // dump($this->all());
+
+        $this->validate();
         # other attributes not in this form:
         # city_municipality, province, district, age, is_senior_citizen, is_pwd,
 
-        // Beneficiary::create([
-        //     'users_id' => Auth()->id(),
-        //     'project_num' => $this->project_num,
-        //     'project_title' => $this->project_title,
-        //     'purpose' => $this->purpose,
-        //     'district' => $this->district,
-        //     'province' => $this->province,
-        //     'city_municipality' => $this->city_municipality,
-        //     'budget_amount' => $this->budget_amount,
-        //     'total_slots' => $this->total_slots,
-        //     'days_of_work' => $this->days_of_work
-        // ]);
+        $batch = Batch::find($this->batchId);
+        $implementation = Implementation::find($batch->value('implementations_id'));
 
-        // $this->reset();
-        // $this->dispatch('add-beneficiaries');
+        $beneficiary = Beneficiary::create([
+            'batches_id' => $this->batchId,
+            'first_name' => $this->first_name,
+            'middle_name' => $this->middle_name ?? null,
+            'last_name' => $this->last_name,
+            'extension_name' => $this->extension_name ?? null,
+            'birthdate' => $this->birthdate,
+            'barangay_name' => $batch->value('barangay_name'),
+            'contact_num' => $this->contact_num,
+            'occupation' => $this->occupation ?? null,
+            'avg_monthly_income' => $this->avg_monthly_income ?? null,
+            'city_municipality' => $implementation->value('city_municipality'),
+            'province' => $implementation->value('province'),
+            'district' => $implementation->value('district'),
+            'type_of_id' => $this->type_of_id,
+            'id_number' => $this->id_number,
+            'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
+            'beneficiary_type' => strtolower($this->beneficiary_type),
+            'sex' => strtolower($this->sex),
+            'civil_status' => strtolower($this->civil_status),
+            'age' => $this->beneficiaryAge($this->birthdate),
+            'dependent' => $this->dependent ?? null,
+            'self_employment' => strtolower($this->self_employment),
+            'skills_training' => $this->skills_training ?? null,
+            'is_pwd' => strtolower($this->is_pwd),
+            'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+            'spouse_first_name' => $this->spouse_first_name,
+            'spouse_middle_name' => $this->spouse_middle_name,
+            'spouse_last_name' => $this->spouse_last_name,
+            'spouse_extension_name' => $this->spouse_extension_name,
+        ]);
 
+        $file = $this->image_file_path->store(path: 'credentials');
+
+        Credential::create([
+            'beneficiaries_id' => $beneficiary->id,
+            'image_description' => null,
+            'image_file_path' => $file ?? null,
+            'for_duplicates' => 'no',
+        ]);
+
+        if ($this->isResults) {
+            $file = $this->reason_image_file_path->store(path: 'credentials');
+            Credential::create([
+                'beneficiaries_id' => $beneficiary->id,
+                'image_description' => $this->image_description,
+                'image_file_path' => $file,
+                'for_duplicates' => 'yes',
+            ]);
+        }
+
+        $this->resetExcept(
+            'batchId',
+            'maxDate',
+            'minDate',
+        );
+
+        $this->dispatch('add-beneficiaries');
     }
 
     public function nameCheck()
     {
-        $start = microtime(true);
+        // $start = microtime(true); # FOR TESTING
+        # the illegal characters for a name
+        $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+        # clear out any previous similarity results
+        $this->similarityResults = [];
+        $this->isResults = false;
+        $this->isPerfectDuplicate = false;
+
+        # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
 
             # double checking again before handing over to the algorithm
@@ -175,7 +375,6 @@ class AddBeneficiariesModal extends Component
 
             # checks the first_name, middle_name, and last_name
             # if there are symbols
-            $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
             if (!strpbrk($filteredInputString, $illegal)) {
 
                 # checks if there's an extension_name input
@@ -188,14 +387,21 @@ class AddBeneficiariesModal extends Component
                 $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
                 if (!strpbrk($filteredInputString, $illegal)) {
 
+                    # removes excess whitespaces between words
+                    $filteredInputString = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $filteredInputString)));
+
                     # checks if the string has numbers
                     if (!preg_match('~[0-9]+~', $filteredInputString)) {
+                        # gets the matching mode settings of the user
+                        $settings = UserSetting::where('users_id', Auth::id())
+                            ->pluck('value', 'key');
+                        $matchingMode = $settings->get('extensive_matching', config('settings.extensive_matching'));
+                        $duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
 
                         # removes excess whitespaces
                         $filteredInputString = preg_replace('/\s+/', ' ', $filteredInputString);
-                        // dump($filteredInputString);
 
-                        # preprocess / indexing the table
+                        # only take beneficiaries from the start of the year until today
                         $startDate = now()->startOfYear();
                         $endDate = now();
 
@@ -206,7 +412,7 @@ class AddBeneficiariesModal extends Component
                         # basically, it uses the first letter of every name fields
                         # and loops them to get the same names with the same first letters.
                         # 0 = exact matching; 1 = soft matching; 2 = extensive matching enabled
-                        if (intval(config('settings.extensive_matching')) === 2) # extensive matching
+                        if (intval($matchingMode) === 2) # extensive matching
                         {
                             # separate each word from all the name fields
                             $namesToLetters = array_map(fn($word) => $word[0], explode(' ', $filteredInputString));
@@ -238,10 +444,13 @@ class AddBeneficiariesModal extends Component
                                         $query->orWhere('beneficiaries.last_name', 'LIKE', $letter . '%');
                                     }
                                 })
-                                ->select(['beneficiaries.first_name', 'beneficiaries.middle_name', 'beneficiaries.last_name', 'beneficiaries.extension_name', 'beneficiaries.birthdate', 'beneficiaries.barangay_name', 'beneficiaries.contact_num'])
-                                ->get()
-                                ->toArray();
-                        } else if (intval(config('settings.extensive_matching')) === 1) # soft matching
+                                ->select([
+                                    'beneficiaries.*',
+                                    'implementations.project_num',
+                                    'batches.batch_num'
+                                ])
+                                ->get();
+                        } else if (intval($matchingMode) === 1) # soft matching
                         {
                             # separate each word from all the name fields
                             # and get the first letter of each word
@@ -265,9 +474,12 @@ class AddBeneficiariesModal extends Component
                                         $q->orWhere('beneficiaries.last_name', 'LIKE', $letter . '%');
                                     }
                                 })
-                                ->select(['beneficiaries.first_name', 'beneficiaries.middle_name', 'beneficiaries.last_name', 'beneficiaries.extension_name', 'beneficiaries.birthdate', 'beneficiaries.barangay_name', 'beneficiaries.contact_num'])
-                                ->get()
-                                ->toArray();
+                                ->select([
+                                    'beneficiaries.*',
+                                    'implementations.project_num',
+                                    'batches.batch_num'
+                                ])
+                                ->get();
                         } else # 0 or direct matching (not recommended)
                         {
                             # direct matching basically works similarly to soft matching
@@ -294,52 +506,95 @@ class AddBeneficiariesModal extends Component
                                         $q->orWhere('beneficiaries.last_name', 'LIKE', $word . '%');
                                     }
                                 })
-                                ->select(['beneficiaries.first_name', 'beneficiaries.middle_name', 'beneficiaries.last_name', 'beneficiaries.extension_name', 'beneficiaries.birthdate', 'beneficiaries.barangay_name', 'beneficiaries.contact_num'])
-                                ->get()
-                                ->toArray();
+                                ->select([
+                                    'beneficiaries.*',
+                                    'implementations.project_num',
+                                    'batches.batch_num'
+                                ])
+                                ->get();
                         }
 
-                        # add birthdate to da mix
-                        $filteredInputString .= ' ' . $this->birthdate;
+                        # add birthdate to da mix if the user allows it
+                        if ($this->includeBirthdate) {
+                            $filteredInputString .= ' ' . $this->birthdate;
+                        }
 
-                        # and also filter the beneficiaries from the database
-                        $filteredBeneficariesFromDatabase = $this->beneficaryNamesToArrayStrings($beneficiariesFromDatabase, $this->middle_name, $this->extension_name);
+                        # and also filter the beneficiaries from the database (NOT USING IT)
+                        // $filteredBeneficariesFromDatabase = $this->beneficaryNamesToArrayStrings($beneficiariesFromDatabase, $this->middle_name, $this->extension_name);
 
-                        # algorithm bullshet
-                        $jaccard = [];
-                        $threshold = config('settings.duplication_threshold') / 100;
+                        # call the JaccardSimilarity class object instance
                         $this->jaccardSimilarity = new JaccardSimilarity();
-                        foreach ($filteredBeneficariesFromDatabase as $key => $beneficiaryFromDatabase) {
-                            $coEfficient = $this->jaccardSimilarity->calculateSimilarity($beneficiaryFromDatabase, $filteredInputString);
-                            if ($coEfficient > $threshold) {
-                                $jaccard[] = [
-                                    'id' => $beneficiaryFromDatabase['id'],
-                                    'coEfficient' => $coEfficient,
 
+                        # initialize possible duplicates variable
+                        $possibleDuplicates = [];
+
+                        # this is where it checks the similarities
+                        foreach ($beneficiariesFromDatabase as $key => $beneficiary) {
+                            # gets the full name of the beneficiary
+                            $name = $this->beneficiaryName($beneficiary, $this->middle_name, $this->extension_name);
+
+                            # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
+                            $coEfficient = $this->jaccardSimilarity->calculateSimilarity($name, $filteredInputString);
+
+                            # then check if it goes over the Threshold
+                            if ($coEfficient > $duplicationThreshold) {
+                                $this->isResults = true;
+
+                                if (intval($coEfficient * 100) === 100 && !$this->isPerfectDuplicate) {
+                                    $this->isPerfectDuplicate = true;
+                                }
+
+                                # if it does, then do some shit...
+                                $possibleDuplicates[] = [
+                                    'project_num' => $beneficiary->project_num,
+                                    'batch_num' => $beneficiary->batch_num,
+                                    'first_name' => $beneficiary->first_name,
+                                    'middle_name' => $beneficiary->middle_name,
+                                    'last_name' => $beneficiary->last_name,
+                                    'extension_name' => $beneficiary->extension_name,
+                                    'birthdate' => Carbon::parse($beneficiary->birthdate)->format('M d, Y'),
+                                    'barangay_name' => $beneficiary->barangay_name,
+                                    'contact_num' => $beneficiary->contact_num,
+                                    'sex' => $beneficiary->sex,
+                                    'age' => $beneficiary->age,
+                                    'beneficiary_type' => $beneficiary->beneficiary_type,
+                                    'type_of_id' => $beneficiary->type_of_id,
+                                    'id_number' => $beneficiary->id_number,
+                                    'is_pwd' => $beneficiary->is_pwd,
+                                    'dependent' => $beneficiary->dependent,
+                                    'coEfficient' => $coEfficient * 100,
                                 ];
                             }
                         }
 
-                        $end = microtime(true);
+                        $this->similarityResults = $possibleDuplicates;
+
+                        // dump($possibleDuplicates);
 
                         # test purposes
+                        // $end = microtime(true); # FOR TESTING
                         // $count = 0;
+                        // # the names and coefficient;
+                        // $result = [];
                         // foreach ($jaccard as $output) {
-                        //     if ($output > $threshold) {
+                        //     if ($output['coEfficient'] > $duplicationThreshold) {
                         //         $count++;
+
+                        //         $result[] = $output;
                         //     }
                         // }
 
-                        // $jaccardResult = $count . ' / ' . sizeof($jaccard) . ' are possible duplicates, ' . $threshold * 100 . '% threshold';
+                        // $jaccardResult = $count . ' / ' . sizeof($jaccard) . ' are possible duplicates, ' . $duplicationThreshold * 100 . '% threshold';
                         // $results = [
                         //     'user input' => $filteredInputString,
                         //     'beneficiaries indexed' => sizeof($beneficiariesFromDatabase),
                         //     'names being compared' => $filteredBeneficariesFromDatabase,
                         //     'jaccard' => $jaccardResult,
                         //     'time processed' => strval(number_format($end - $start, 4)) . 's',
-                        //     'results' => $jaccard
+                        //     'results' => $result
                         // ];
                         // dump($results);
+
                         # end of test
                     }
                 }
@@ -347,29 +602,62 @@ class AddBeneficiariesModal extends Component
         }
     }
 
-    protected function beneficaryNamesToArrayStrings($names, $is_middle_name_present, $is_extension_name_present)
+    protected function beneficiaryAge($birthdate)
     {
-        $arrayNames = [];
-        foreach ($names as $name) {
-
-            $filteredInputString = $name['first_name'];
-
-            if ($is_middle_name_present && $name['middle_name']) {
-                $filteredInputString .= ' ' . $name['middle_name'];
-            }
-
-            $filteredInputString .= ' ' . $name['last_name'];
-
-            if ($is_extension_name_present && $name['extension_name']) {
-                $filteredInputString .= ' ' . $name['extension_name'];
-            }
-            $formatBirthdate = Carbon::parse($name['birthdate'])->format('Y-m-d');
-            $filteredInputString .= ' ' . $formatBirthdate;
-
-            $arrayNames[] = $filteredInputString;
-        }
-        return $arrayNames;
+        return Carbon::parse($birthdate)->age;
     }
+
+    # returns the full name of the beneficiary
+    protected function beneficiaryName($name, $is_middle_name_present, $is_extension_name_present)
+    {
+        $returnedName = null;
+        $returnedName = $name->first_name;
+
+        # checks if middle_name is present on user input then adds it if true
+        if ($is_middle_name_present && $name->middle_name) {
+            $returnedName .= ' ' . $name->middle_name;
+        }
+
+        $returnedName .= ' ' . $name->last_name;
+
+        # checks if extension_name is present on user input then adds it if true
+        if ($is_extension_name_present && $name->extension_name) {
+            $returnedName .= ' ' . $name->extension_name;
+        }
+
+        # add birthdate to da mix if the user allows it
+        if ($this->includeBirthdate) {
+            $formatBirthdate = Carbon::parse($name->birthdate)->format('Y-m-d');
+            $returnedName .= ' ' . $formatBirthdate;
+        }
+
+        return $returnedName;
+    }
+
+    # compiles all beneficiaries (from database matching) into an array
+    // protected function beneficaryNamesToArrayStrings($names, $is_middle_name_present, $is_extension_name_present)
+    // {
+    //     $arrayNames = [];
+    //     foreach ($names as $name) {
+
+    //         $filteredInputString = $name->first_name;
+
+    //         if ($is_middle_name_present && $name->middle_name) {
+    //             $filteredInputString .= ' ' . $name->middle_name;
+    //         }
+
+    //         $filteredInputString .= ' ' . $name->last_name;
+
+    //         if ($is_extension_name_present && $name->extension_name) {
+    //             $filteredInputString .= ' ' . $name->extension_name;
+    //         }
+    //         $formatBirthdate = Carbon::parse($name->birthdate)->format('Y-m-d');
+    //         $filteredInputString .= ' ' . $formatBirthdate;
+
+    //         $arrayNames[] = $filteredInputString;
+    //     }
+    //     return $arrayNames;
+    // }
 
     public function render()
     {

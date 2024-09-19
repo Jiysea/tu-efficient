@@ -34,7 +34,7 @@ return new class extends Migration {
             $table->integer('age');
             $table->string('dependent')->nullable();
             $table->string('self_employment'); // 'yes', 'no'
-            $table->string('skills_training'); // 'yes', 'no'
+            $table->string('skills_training');
             $table->string('is_pwd'); // 'yes', 'no'
             $table->string('is_senior_citizen'); // 'yes', 'no'
             $table->string('spouse_first_name')->nullable();

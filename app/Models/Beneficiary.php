@@ -40,6 +40,8 @@ class Beneficiary extends Model
         'dependent',
         'self_employment',
         'skills_training',
+        'is_pwd',
+        'is_senior_citizen',
         'spouse_first_name',
         'spouse_middle_name',
         'spouse_last_name',

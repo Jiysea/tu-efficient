@@ -212,11 +212,11 @@
                                 </g>
                             </svg>
                             <div :class="{
-                                '-translate-x-10 scale-0 opacity-0': open === false,
-                                '-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100': open ===
+                                '-translate-x-10 scale-0': open === false,
+                                '-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100': open ===
                                     true,
                             }"
-                                class="-translate-x-10 scale-0 opacity-0 xl:translate-x-0 xl:scale-100 xl:opacity-100 origin-left ms-3 duration-500 ease-in-out whitespace-nowrap select-none">
+                                class="-translate-x-10 scale-0 xl:translate-x-0 xl:scale-100 origin-left ms-3 transition-transform duration-300 ease-in-out truncate select-none">
                                 {{ Auth::user()->first_name . ' ' . Auth::user()->last_name }}
                             </div>
                         </button>
@@ -228,8 +228,10 @@
                             }"
                             class="hidden -bottom-0 left-full xl:bottom-full xl:left-1/4 xl:mb-3 absolute text-indigo-1100 bg-white shadow-lg border border-indigo-100 rounded">
                             <ul class="text-sm max-h-44">
+
+                                {{-- Profile --}}
                                 <li>
-                                    <a aria-label="{{ __('Profile') }}"
+                                    <a href="#" aria-label="{{ __('Profile') }}"
                                         class="flex items-center text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -243,8 +245,10 @@
                                         Profile
                                     </a>
                                 </li>
+
+                                {{-- Settings --}}
                                 <li>
-                                    <a href="{{ route('settings') }}" aria-label="{{ __('Settings') }}"
+                                    <a href="{{ route('focal.settings') }}" aria-label="{{ __('Settings') }}"
                                         class=" flex items-center text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -258,10 +262,11 @@
                                         Settings
                                     </a>
                                 </li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <li>
 
+                                {{-- Logout --}}
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
                                         <button type="submit" aria-label="{{ __('Logout') }}"
                                             class="flex items-center w-full text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
@@ -276,10 +281,8 @@
                                             </svg>
                                             Logout
                                         </button>
-
-                                    </li>
-                                </form>
-
+                                    </form>
+                                </li>
                             </ul>
                         </div>
                     </li>

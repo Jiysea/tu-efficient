@@ -1,42 +1,12 @@
 <div wire:ignore.self id="create-modal" tabindex="-1" data-modal-backdrop="static" aria-hidden="true"
     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div x-trap="trapCreate" x-data="{
-        budgetToFloat: null,
-        budgetToInt: null,
-        unmaskedBudget: null,
-    
         init() {
             window.addEventListener('update-implementations', () => {
-                budgetToFloat: null;
-                budgetToInt: null;
-                unmaskedBudget = null;
-    
-                const budgetAmount = document.getElementById('budget_amount');
                 const modal = FlowbiteInstances.getInstance('Modal', 'create-modal');
-    
-                budgetAmount.value = null;
                 modal.hide();
             });
         },
-    
-        demaskValue(value) {
-            if (value) {
-                // Remove commas
-                this.budgetToFloat = value.replaceAll(',', '');
-    
-                // Check if there's a decimal point
-                if (this.budgetToFloat.includes('.')) {
-                    // Convert to float, format to 2 decimal places, then remove the decimal
-                    this.budgetToInt = parseInt((parseFloat(this.budgetToFloat).toFixed(2)).replace('.', ''));
-                } else {
-                    // Append '00' if there's no decimal point
-                    this.budgetToInt = parseInt(this.budgetToFloat + '00');
-                }
-            } else {
-                this.budgetToInt = null;
-            }
-            this.unmaskedBudget = this.budgetToInt;
-        }
     }" class="relative p-4 w-full max-w-5xl max-h-full">
         <!-- Modal content -->
         <div class="relative bg-white rounded-md shadow">
@@ -73,15 +43,14 @@
             <hr class="mx-4">
             <!-- Modal body -->
             <form wire:submit.prevent="saveProject" class="p-4 md:p-5">
-                @csrf
                 <div class="grid gap-4 mb-4 grid-cols-5 text-xs">
 
                     {{-- Project Number --}}
                     <div class="relative col-span-5 sm:col-span-2 mb-4">
                         <label for="project_num" class="block mb-1  font-medium text-indigo-1100 ">Project
-                            Number <span class="text-red-700 font-normal text-sm">*</span> <span
+                            Number <span class="text-red-700 font-normal text-xs">*</span> <span
                                 class="text-gray-500 ms-2">prefix:
-                                <strong>{{ substr(config('settings.project_number_prefix'), 0, strlen(config('settings.project_number_prefix')) - 1) }}</strong></span></label>
+                                <strong>{{ substr($projectNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($projectNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong></span></label>
                         <input type="number" id="project_num" autocomplete="off" wire:model.blur="project_num"
                             class="text-xs duration-200 {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
                             placeholder="Type project number">
@@ -104,19 +73,16 @@
 
                     {{-- Budget --}}
                     <div class="relative col-span-5 sm:col-span-2 mb-4">
-                        <label for="budget_amount" class="block mb-1  font-medium text-indigo-1100 ">Budget <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
-                        <div {{-- x-effect="console.log(unmaskedBudget)" --}} class="relative">
+                        <label for="budget_amount" class="block mb-1 font-medium text-indigo-1100 ">Budget <span
+                                class="text-red-700 font-normal text-xs">*</span></label>
+                        <div class="relative">
                             <div
                                 class="text-sm {{ $errors->has('budget_amount') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-indigo-600 text-indigo-50' }} absolute inset-y-0 px-3 rounded-l flex items-center justify-center text-center pointer-events-none">
                                 <p class="flex text-center w-full relative items-center justify-center font-semibold">₱
                                 </p>
                             </div>
-                            <input x-mask:dynamic="$money($input)" type="text" inputmode="numeric" min="0"
-                                autocomplete="off" id="budget_amount"
-                                @input="demaskValue($el.value);
-                                $wire.set('budget_amount', unmaskedBudget);
-                                $wire.toggleTry();"
+                            <input x-mask:dynamic="$money($input)" type="text" min="0" autocomplete="off"
+                                id="budget_amount" @blur="$wire.toggleTry(); $wire.set('budget_amount', $el.value)"
                                 class="text-xs duration-200 {{ $errors->has('budget_amount') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} ps-11 border rounded block w-full pe-2.5 py-2.5"
                                 placeholder="Type total budget">
                         </div>
@@ -132,14 +98,14 @@
                         <div class="flex items-center">
                             <label for="total_slots"
                                 class="block mb-1 whitespace-nowrap font-medium text-indigo-1100 ">Total
-                                Slots <span class="text-red-700 font-normal text-sm">*</span></label>
+                                Slots <span class="text-red-700 font-normal text-xs">*</span></label>
                             <div tabindex="-1" class="w-full mb-1 flex items-center justify-end">
                                 <label class="inline-flex items-center cursor-pointer">
                                     <span
                                         class="me-2 text-xs {{ $isAutoComputeEnabled ? 'text-indigo-900' : 'text-gray-500' }} duration-150 ease-in-out">Auto
                                         compute by minimum wage</span>
                                     <input type="checkbox" id="auto-compute" wire:click="toggleTry" autocomplete="off"
-                                        wire:model.live="isAutoComputeEnabled" class="sr-only peer">
+                                        wire:model.blur="isAutoComputeEnabled" class="sr-only peer">
                                     <div
                                         class="relative w-9 h-4 bg-gray-500 peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-[calc(100%+8px)] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:size-3 after:transition-all duration-300 ease-in-out peer-checked:bg-indigo-900">
                                     </div>
@@ -147,7 +113,7 @@
                             </div>
                         </div>
                         <input type="number" min="0" id="total_slots" autocomplete="off"
-                            wire:model.live="total_slots" @if ($isAutoComputeEnabled) disabled @endif
+                            wire:model.blur="total_slots" @if ($isAutoComputeEnabled) disabled @endif
                             class="text-xs duration-300 ease-in-out {{ $isAutoComputeEnabled ? 'bg-gray-200 border-gray-300 text-indigo-1100 focus:ring-gray-800 focus:border-gray-800' : 'bg-indigo-50 autofill:bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} {{ $errors->has('total_slots') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} rounded border block w-full p-2.5"
                             placeholder="Type total slots">
                         @error('total_slots')
@@ -159,9 +125,9 @@
                     {{-- Days of Work --}}
                     <div class="relative col-span-2 sm:col-span-1 mb-4">
                         <label for="days_of_work" class="block mb-1  font-medium text-indigo-1100 ">Days of
-                            Work <span class="text-red-700 font-normal text-sm">*</span></label>
+                            Work <span class="text-red-700 font-normal text-xs">*</span></label>
                         <input type="number" min="0" max="15" id="days_of_work"
-                            wire:model.live="days_of_work" @input="$wire.toggleTry()"
+                            wire:model.blur="days_of_work" @blur="$wire.toggleTry()"
                             class="text-xs duration-200 {{ $errors->has('days_of_work') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
                             placeholder="Type days of work">
                         @error('days_of_work')
@@ -172,12 +138,12 @@
 
                     {{-- Province --}}
                     <div class="relative col-span-2 mb-4">
-                        <label for="province" class="block mb-1  font-medium text-indigo-1100 ">Province <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
-                        <select id="province" autocomplete="off" wire:model.live="province"
+                        <label for="province" class="block mb-1  font-medium text-indigo-1100 ">Province</label>
+                        <select id="province" autocomplete="off" wire:model.blur="province"
                             class="text-xs duration-200 {{ $errors->has('province') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                            @foreach ($this->getProvince as $province)
-                                <option>{{ $province }}</option>
+                            @foreach ($provinces as $province)
+                                <option>{{ $province }}
+                                </option>
                             @endforeach
                         </select>
                         @error('province')
@@ -188,11 +154,11 @@
                     {{-- City/Municipality --}}
                     <div class="relative col-span-3 mb-4">
                         <label for="city_municipality" class="block mb-1  font-medium text-indigo-1100 ">
-                            City/Municipality <span class="text-red-700 font-normal text-sm">*</span></label>
-                        <select id="city_municipality" autocomplete="off" wire:model.live="city_municipality"
+                            City/Municipality</label>
+                        <select id="city_municipality" autocomplete="off" wire:model.blur="city_municipality"
                             wire:key="{{ $province }}"
                             class="text-xs duration-200 {{ $errors->has('city_municipality') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                            @foreach ($this->getCityMunicipality as $city_municipality)
+                            @foreach ($cities_municipalities as $city_municipality)
                                 <option>{{ $city_municipality }}</option>
                             @endforeach
                         </select>
@@ -203,12 +169,11 @@
 
                     {{-- District --}}
                     <div class="relative col-span-2 mb-4">
-                        <label for="district" class="block mb-1  font-medium text-indigo-1100 ">District <span
-                                class="text-red-700 font-normal text-sm">*</span></label>
-                        <select id="district" autocomplete="off" wire:model.live="district"
+                        <label for="district" class="block mb-1  font-medium text-indigo-1100 ">District</label>
+                        <select id="district" autocomplete="off" wire:model.blur="district"
                             wire:key="{{ $district }}"
                             class="text-xs duration-200 {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                            @foreach ($this->getDistrict as $district)
+                            @foreach ($districts as $district)
                                 <option>{{ $district }}</option>
                             @endforeach
                         </select>
@@ -220,11 +185,11 @@
                     {{-- Purpose --}}
                     <div class="relative col-span-3 mb-4">
                         <label for="purpose" class="block mb-1  font-medium text-indigo-1100 ">Purpose of
-                            Project <span class="text-red-700 font-normal text-sm">*</span></label>
-                        <select id="purpose" autocomplete="off" wire:model.live="purpose"
+                            Project <span class="text-red-700 font-normal text-xs">*</span></label>
+                        <select id="purpose" autocomplete="off" wire:model.blur="purpose"
                             class="text-xs duration-200 {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                             <option value="">Select a purpose...</option>
-                            <option>DUE TO DISADVANTAGE/DISPLACEMENT</option>
+                            <option>DUE TO DISPLACEMENT/DISADVANTAGE</option>
                         </select>
                         @error('purpose')
                             <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>

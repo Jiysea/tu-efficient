@@ -40,7 +40,6 @@
                         </div>
                         <div class="relative pb-4">
                             <input type="password" wire:model.blur="password" id="password"
-                                @keyup.enter="$wire.login();"
                                 class="text-sm duration-200 ease-in-out border rounded-lg outline-none block w-full px-5 py-2 
                             {{ $errors->has('password')
                                 ? 'bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'

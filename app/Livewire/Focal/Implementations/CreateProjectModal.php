@@ -3,23 +3,33 @@
 namespace App\Livewire\Focal\Implementations;
 
 use App\Models\Implementation;
+use App\Models\UserSetting;
+use App\Services\CitiesMunicipalities;
+use App\Services\Districts;
+use App\Services\MoneyFormat;
+use App\Services\Provinces;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Js;
-use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CreateProjectModal extends Component
 {
+    protected Provinces $p;
+    protected CitiesMunicipalities $c;
+    protected Districts $d;
+
+    # ----------------------------------------
+
     public $isAutoComputeEnabled = false;
     public $minimumWage;
-    public $previousTotalSlots;
-    public $previousDaysOfWork;
-    public $budgetToFloat;
-    public $budgetToInt;
+    public $provinces;
+    public $cities_municipalities;
+    public $districts;
+
+    # ----------------------------------------
+
+    public $projectNumPrefix;
     #[Validate]
     public $project_num;
     #[Validate]
@@ -27,11 +37,11 @@ class CreateProjectModal extends Component
     #[Validate]
     public $purpose;
     #[Validate]
-    public $district;
-    #[Validate]
     public $province;
     #[Validate]
     public $city_municipality;
+    #[Validate]
+    public $district;
     #[Validate]
     public $budget_amount;
     #[Validate]
@@ -42,24 +52,18 @@ class CreateProjectModal extends Component
     # Runs real-time depending on wire:model suffix
     public function rules()
     {
-        // Pre-set the project number to its set prefix.
-        // $this->project_num = config('settings.project_number_prefix') . $this->project_num;
-
         return [
             'project_num' => [
                 'required',
                 'integer',
                 function ($attribute, $value, $fail) {
-                    // Fetch the project number with the prefix
-                    $prefixedProjectNum = config('settings.project_number_prefix') . $value;
-
-                    // Check for uniqueness of the prefixed value in the database
+                    # Check for uniqueness of the prefixed value in the database
                     $exists = DB::table('implementations')
-                        ->where('project_num', $prefixedProjectNum)
+                        ->where('project_num', $this->projectNumPrefix . $value)
                         ->exists();
 
                     if ($exists) {
-                        // Fail the validation if the project number with the prefix already exists
+                        # Fail the validation if the project number with the prefix already exists
                         $fail('This :attribute already exists.');
                     }
                 },
@@ -69,7 +73,29 @@ class CreateProjectModal extends Component
             'district' => 'required',
             'province' => 'required',
             'city_municipality' => 'required',
-            'budget_amount' => 'required|integer|min:1',
+            'budget_amount' => [
+                'required',
+                # Checks if the number is a valid number
+                function ($attribute, $value, $fail) {
+                    $money = new MoneyFormat();
+                    // dump($value);
+                    $number = $money->isMaskInt($value);
+
+                    if (!$number) {
+
+                        $fail('The :attribute should be a valid amount.');
+                    }
+                },
+                # Checks if the number is less than 1
+                function ($attribute, $value, $fail) {
+                    $money = new MoneyFormat();
+                    $negative = $money->isNegative($value);
+
+                    if ($negative) {
+                        $fail('The :attribute value should be more than 1.');
+                    }
+                },
+            ],
             'total_slots' => 'required|integer|min:1',
             'days_of_work' => 'required|integer|min:1',
         ];
@@ -88,11 +114,7 @@ class CreateProjectModal extends Component
             'total_slots.required' => 'The :attribute should not be empty.',
             'days_of_work.required' => 'Invalid :attribute.',
 
-            'project_num.unique' => 'This :attribute already exists.',
             'project_num.integer' => 'The :attribute should be a valid number.',
-
-            'budget_amount.integer' => 'The :attribute should be a valid amount.',
-            'budget_amount.min' => 'The :attribute value should be more than 1.',
 
             'total_slots.integer' => 'The :attribute should be a valid number.',
             'total_slots.min' => 'The :attribute value should be more than 1.',
@@ -124,7 +146,10 @@ class CreateProjectModal extends Component
     {
         $this->validate();
 
-        // $this->project_num = config('settings.project_number_prefix') . $this->project_num;
+        $this->project_num = $this->projectNumPrefix . $this->project_num;
+        $money = new MoneyFormat();
+        $this->budget_amount = $money->unmask($this->budget_amount);
+
         Implementation::create([
             'users_id' => Auth()->id(),
             'project_num' => $this->project_num,
@@ -138,7 +163,15 @@ class CreateProjectModal extends Component
             'days_of_work' => $this->days_of_work
         ]);
 
-        $this->reset();
+        $this->reset(
+            'project_num',
+            'project_title',
+            'purpose',
+            'budget_amount',
+            'total_slots',
+            'days_of_work',
+            'isAutoComputeEnabled',
+        );
         $this->dispatch('update-implementations');
 
     }
@@ -154,133 +187,73 @@ class CreateProjectModal extends Component
             # Also logically, real-life money has only 2 digits below a ph peso
             # So it doesn't matter how many decimal digits it has, it will
             # always be formatted to 2 simple digits (rounded off)
-            $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval(config('settings.minimum_wage')), 2)));
 
+            $money = new MoneyFormat();
+            $tempBudget = $money->unmask($this->budget_amount ?? '0.00');
             ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 1 : $this->days_of_work;
             // dd($this->days_of_work);
-            $this->total_slots = intval($this->budget_amount / ($this->minimumWage * $this->days_of_work));
+            $this->total_slots = intval($tempBudget / ($this->minimumWage * $this->days_of_work));
 
             $this->validateOnly('total_slots');
             $this->validateOnly('days_of_work');
-        } else {
-            //
         }
     }
 
-    #[Computed]
-    public function getProvince()
+    public function getProvinces()
     {
-        $province = null;
-        if (Auth::user()->regional_office === 'Region XI') {
-            $province = [
-                'Davao del Sur',
-                'Davao de Oro',
-                'Davao del Norte',
-                'Davao Oriental',
-                'Davao Occidental',
-            ];
-        }
-        $this->province = $province[0];
-        return $province;
+        $this->p = new Provinces();
+        $provinces = $this->p->getProvinces(Auth::user()->regional_office);
+        $this->provinces = $provinces;
     }
 
-    #[Computed]
-    public function getCityMunicipality()
+    public function getCitiesMunicipalities()
     {
-        $city_municipality = null;
-        if ($this->province === 'Davao del Sur') {
-            $city_municipality = [
-                'Davao City',
-                'Bansalan',
-                'Digos City',
-                'Hagonoy',
-                'Kiblawan',
-                'Magsaysay',
-                'Malalag',
-                'Matanao',
-                'Padada',
-                'Santa Cruz',
-            ];
-        } else if ($this->province === 'Davao del Norte') {
-            $city_municipality = [
-                'Asuncion',
-                'Braulio E. Dujali',
-                'Carmen',
-                'Kapalong',
-                'New Corella',
-                'Panabo',
-                'Samal',
-                'San Isidro',
-                'Santo Tomas',
-                'Tagum',
-                'Talaingod'
-            ];
-        } else if ($this->province === 'Davao de Oro') {
-            $city_municipality = [
-                'Compostela',
-                'Laak',
-                'Mabini',
-                'Maco',
-                'Maragusan',
-                'Mawab',
-                'Monkayo',
-                'Montevista',
-                'Nabunturan',
-                'New Bataan',
-                'Pantukan'
-            ];
-        } else if ($this->province === 'Davao Occidental') {
-            $city_municipality = [
-                'Don Marcelino',
-                'Jose Abad Santos',
-                'Malita',
-                'Santa Maria',
-                'Sarangani'
-            ];
-        } else if ($this->province === 'Davao Oriental') {
-            $city_municipality = [
-                'Baganga',
-                'Banaybanay',
-                'Boston',
-                'Caraga',
-                'Cateel',
-                'Governor Generoso',
-                'Lupon',
-                'Manay',
-                'Mati',
-                'San Isidro',
-                'Tarragona'
-            ];
-        }
-
-        $this->city_municipality = $city_municipality[0];
-        return $city_municipality;
+        $this->c = new CitiesMunicipalities();
+        $cities_municipalities = $this->c->getCitiesMunicipalities($this->province);
+        $this->cities_municipalities = $cities_municipalities;
     }
 
-    #[Computed]
-    public function getDistrict()
+    public function getDistricts()
     {
-        $district = null;
-        if ($this->city_municipality === 'Davao City') {
-            $district = [
-                '1st District',
-                '2nd District',
-                '3rd District',
-            ];
-        } else {
-            $district = [
-                'To be continued...',
-            ];
-        }
-
-        $this->district = $district[0];
-        return $district;
+        $this->d = new Districts();
+        $districts = $this->d->getDistricts($this->city_municipality, $this->province);
+        $this->districts = $districts;
     }
 
+    public function updatedProvince()
+    {
+        $this->getCitiesMunicipalities();
+        $this->city_municipality = $this->cities_municipalities[0];
+        $this->getDistricts();
+        $this->district = $this->districts[0];
+
+    }
+
+    public function updatedCityMunicipality()
+    {
+        $this->getDistricts();
+        $this->district = $this->districts[0];
+    }
+
+    public function mount()
+    {
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+
+        $minimumWage = $settings->get('minimum_wage', config('settings.minimum_wage'));
+        $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval($minimumWage), 2)));
+        $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
+
+        $this->getProvinces();
+        $this->province = $this->provinces[0];
+        $this->getCitiesMunicipalities();
+        $this->city_municipality = $this->cities_municipalities[0];
+        $this->getDistricts();
+        $this->district = $this->districts[0];
+    }
 
     public function render()
     {
-
         return view('livewire.focal.implementations.create-project-modal');
     }
 }

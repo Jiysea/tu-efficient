@@ -84,10 +84,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     </style>
 
     @if (session('heads-up'))
-        <livewire:focal.dashboard.heads-up-modal wire:key="{{ str()->random(50) }}" />
+        <livewire:focal.dashboard.heads-up-modal />
     @endif
 
-    <livewire:sidebar.focal-bar wire:key="{{ str()->random(50) }}" />
+    <livewire:sidebar.focal-bar />
 
     <div :class="{
         'xl:ml-20': open === false,
@@ -178,7 +178,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                             <div class="flex flex-col items-start justify-center">
                                 <h1 class="text-lg sm:text-xl text-indigo-1100 font-bold leading-tight">
-                                    {{ $projectCounters['total_implementations'] ?? 0 }}
+                                    {{ $this->projectCounters->total_implementations ?? 0 }}
                                 </h1>
                                 <p class="text-xs md:text-sm text-indigo-900 font-bold leading-tight">
                                     Total Implementations
@@ -203,7 +203,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                             <div class="flex flex-col items-start justify-center">
                                 <h1 class="text-lg sm:text-xl text-green-1100 font-bold leading-tight">
-                                    {{ $projectCounters['total_approved_assignments'] ?? 0 }}
+                                    {{ $this->projectCounters->total_approved_assignments ?? 0 }}
                                 </h1>
                                 <p class="text-xs md:text-sm text-green-900 font-bold leading-tight">
                                     Approved Assignments
@@ -228,7 +228,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                             <div class="flex flex-col items-start justify-center">
                                 <h1 class="text-lg sm:text-xl text-blue-1100 font-bold leading-tight">
-                                    {{ $projectCounters['total_pending_assignments'] ?? 0 }}
+                                    {{ $this->projectCounters->total_pending_assignments ?? 0 }}
                                 </h1>
                                 <p class="text-xs md:text-sm text-blue-900 font-bold leading-tight">
                                     Pending Assignments
@@ -251,10 +251,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <div class="relative w-52 z-20">
                             {{-- Dropdown Button --}}
                             <div @click="show = !show ; rotation += 180;"
-                                class="w-full text-indigo-50 {{ $implementationsId ? 'bg-indigo-900 hover:bg-indigo-800 active:bg-indigo-900 cursor-pointer duration-200 ease-in-out' : 'bg-indigo-300' }} outline-none text-sm font-semibold px-4 py-2 rounded flex items-center justify-between">
+                                class="w-full text-indigo-50 {{ $this->implementations->isNotEmpty() ? 'bg-indigo-900 hover:bg-indigo-800 active:bg-indigo-900 cursor-pointer duration-200 ease-in-out' : 'bg-indigo-300' }} outline-none text-sm font-semibold px-4 py-2 rounded flex items-center justify-between">
                                 {{ $currentImplementation }}
 
-                                <svg @if ($implementationsId) :class="{
+                                <svg @if ($this->implementations->isNotEmpty()) :class="{
                                     'rotate-0': rotation % 360 === 0,
                                     'rotate-180': rotation % 360 === 180,
                                 }" @endif
@@ -266,7 +266,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </svg>
                             </div>
                             {{-- Dropdown Content --}}
-                            @if ($implementationsId)
+                            @if ($this->implementations->isNotEmpty())
                                 <div x-show="show" @click.away="show = !show; rotation += 180"
                                     :class="{
                                         'block': show === true,
@@ -287,7 +287,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             placeholder="Search project number">
                                     </div>
                                     <ul class="mt-2 text-sm overflow-y-auto min-h-44 max-h-44">
-                                        @forelse ($implementations as $key => $implementation)
+                                        @forelse ($this->implementations as $key => $implementation)
                                             <li wire:key={{ $key }}>
                                                 <button
                                                     wire:click.prevent="updateCurrentImplementation({{ $key }})"
@@ -375,7 +375,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <!-- Donut Charts -->
                         <div class="grid grid-cols-3 place-items-center place-content-center">
                             <div class="relative">
-                                @if ($implementationCount['total_male'] === null && $implementationCount['total_female'] === null)
+                                @if ($this->implementationCount->total_male === null && $this->implementationCount->total_female === null)
                                     <div
                                         class="bg-white absolute z-10 min-h-full min-w-full flex flex-col items-center justify-center">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -396,7 +396,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <div wire:ignore id="overall-chart"></div>
                             </div>
                             <div class="relative">
-                                @if ($implementationCount['total_pwd_male'] === null && $implementationCount['total_pwd_female'] === null)
+                                @if ($this->implementationCount->total_pwd_male === null && $this->implementationCount->total_pwd_female === null)
                                     <div
                                         class="bg-white absolute z-10 min-h-full min-w-full flex flex-col items-center justify-center">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -418,7 +418,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <div wire:ignore id="pwd-chart"></div>
                             </div>
                             <div class="relative">
-                                @if ($implementationCount['total_senior_male'] === null && $implementationCount['total_senior_female'] === null)
+                                @if ($this->implementationCount->total_senior_male === null && $this->implementationCount->total_senior_female === null)
                                     <div
                                         class="bg-white absolute z-10 min-h-full min-w-full flex flex-col items-center justify-center">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -461,7 +461,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <p class="mx-2 font-bold">Total Beneficiaries</p>
                                     </div>
                                     <div class="flex text-indigo-1100">
-                                        <p>{{ $beneficiaryCounters['total_beneficiaries'] ?? 0 }}</p>
+                                        <p>{{ $this->beneficiaryCounters->total_beneficiaries ?? 0 }}</p>
                                     </div>
                                 </div>
                                 <div class="flex flex-row items-center justify-between">
@@ -479,7 +479,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <p class="mx-2 font-bold">Total Senior Citizens</p>
                                     </div>
                                     <div class="flex text-indigo-1100">
-                                        <p>{{ $beneficiaryCounters['total_senior_citizen_beneficiaries'] ?? 0 }}</p>
+                                        <p>{{ $this->beneficiaryCounters->total_senior_citizen_beneficiaries ?? 0 }}
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="flex flex-row items-center justify-between">
@@ -496,7 +497,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <p class="mx-2 font-bold">Total PWDs</p>
                                     </div>
                                     <div class="flex text-indigo-1100">
-                                        <p>{{ $beneficiaryCounters['total_pwd_beneficiaries'] ?? 0 }}</p>
+                                        <p>{{ $this->beneficiaryCounters->total_pwd_beneficiaries ?? 0 }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -541,12 +542,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </p>
                                 </div>
                                 <p class="text-base px-4 rounded-lg font-bold bg-indigo-100 text-indigo-900">
-                                    {{ $batchesCount }}
+                                    {{ $this->batchesCount }}
                                 </p>
                             </div>
 
-                            @if ($batchesCount !== 0)
-                                @foreach ($batches as $key => $batch)
+                            @if ($this->batchesCount !== 0)
+                                @foreach ($this->batches as $key => $batch)
                                     <div wire:key="{{ $key }}"
                                         class="flex flex-row items-center rounded-lg bg-indigo-50 shadow-sm p-2 mx-4 my-2">
                                         <div class="flex flex-col w-full">
@@ -604,7 +605,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </div>
                             @endif
                         </div>
-                        {{ $batches->links() }}
+                        {{ $this->batches->links() }}
                     </div>
 
                 </div>
@@ -632,7 +633,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 });
             });
 
-            let data = @json($implementationCount);
+            let data = @json($this->implementationCount);
 
             let overallValues = [parseInt(data.total_male), parseInt(data.total_female)];
             let pwdValues = [parseInt(data.total_pwd_male), parseInt(data.total_pwd_female)];

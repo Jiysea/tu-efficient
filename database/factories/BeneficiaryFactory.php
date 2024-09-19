@@ -58,7 +58,7 @@ class BeneficiaryFactory extends Factory
             'age' => $age,
             'dependent' => fake()->optional(0.1)->name(),
             'self_employment' => 'no',
-            'skills_training' => 'no',
+            'skills_training' => null,
             'is_pwd' => fake()->optional(0.05, "no")->randomElement(['yes']),
             'is_senior_citizen' => $this->checkSeniorCitizen($age),
             'spouse_first_name' => $this->checkSpouse($civil_status, $sex, 'first'),

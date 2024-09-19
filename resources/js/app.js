@@ -13,3 +13,9 @@ window.ApexCharts = ApexCharts;
 document.addEventListener("livewire:navigated", () => {
     initFlowbite();
 });
+
+// Livewire.on("sessionRegenerated", (csrfToken) => {
+//     document.head
+//         .querySelector('meta[name="csrf-token"]')
+//         .setAttribute("content", csrfToken);
+// });

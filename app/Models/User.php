@@ -28,6 +28,7 @@ class User extends Authenticatable
         'field_office',
         'user_type',
         'last_login',
+        'email_verified_at'
     ];
 
     public function systems_log()
@@ -37,12 +38,17 @@ class User extends Authenticatable
 
     public function implementation()
     {
-        return $this->hasMany(Implementation::class, 'implementations_id');
+        return $this->hasMany(Implementation::class, 'users_id');
     }
 
     public function assignment()
     {
         return $this->hasMany(Assignment::class, 'users_id');
+    }
+
+    public function user_setting()
+    {
+        return $this->hasMany(UserSetting::class, 'users_id');
     }
 
     /**

@@ -24,17 +24,16 @@ class ImplementationFactory extends Factory
         $startDate = Carbon::createFromDate(2023, 9, 1); // Start date (YYYY, MM, DD)
         $endDate = Carbon::createFromDate(2024, 9, 1); // End date (YYYY, MM, DD)
 
-        $project_title = ucwords(fake()->words(mt_rand(1, 3), true));
         $budgetAmount = fake()->numberBetween(100000000, 250000000);
         $daysOfWork = fake()->randomElement([10, 15]);
         $total_slots = $this->calculateTotalSlots($budgetAmount, $daysOfWork);
-        $district = fake()->randomElement(['Poblacion', 'Talomo', 'Agdao', 'Buhangin', 'Bunawan', 'Paquibato', 'Baguio', 'Calinan', 'Marilog', 'Toril', 'Tugbok']);
+        $district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
         $currentDate = $this->dateRandomizer($startDate, $endDate);
 
         return [
             'users_id' => 3,
             'project_num' => fake()->bothify('XII-DCFO-######'),
-            'project_title' => $project_title,
+            'project_title' => '',
             'purpose' => 'DUE TO DISPLACEMENT/DISADVANTAGE',
             'province' => 'Davao del Sur',
             'city_municipality' => 'Davao City',

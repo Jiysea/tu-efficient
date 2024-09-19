@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Credential>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\UserSetting>
  */
-class CredentialFactory extends Factory
+class UserSettingFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,10 +17,9 @@ class CredentialFactory extends Factory
     public function definition(): array
     {
         return [
-            'beneficiaries_id' => 1,
-            'image_description' => null,
-            'image_file_path' => null,
-            'for_duplicates' => 'no',
+            'users_id' => 0,
+            'key' => '',
+            'value' => ''
         ];
     }
 }

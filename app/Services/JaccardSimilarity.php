@@ -22,7 +22,8 @@ class JaccardSimilarity
         # Split the string into words (tokens)
         $tokens = explode(' ', $string);
 
-        unset($tokens[sizeOf($tokens) - 1]);
+        # Removes the birthdate (FOR TESTING)
+        // unset($tokens[sizeOf($tokens) - 1]);
 
         # Sort the tokens to neutralize order differences
         sort($tokens);

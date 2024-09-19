@@ -43,7 +43,6 @@
             <hr class="mx-4">
             <!-- Modal body -->
             <form wire:submit.prevent="saveUser" class="p-4 md:p-5">
-                @csrf
                 <div class="grid gap-4 mb-4 grid-cols-8 text-xs">
                     {{-- First Name --}}
                     <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
