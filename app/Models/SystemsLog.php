@@ -9,6 +9,8 @@ class SystemsLog extends Model
 {
     use HasFactory;
 
+    protected $table = 'system_logs';
+
     /**
      * The attributes that are mass assignable.
      *
