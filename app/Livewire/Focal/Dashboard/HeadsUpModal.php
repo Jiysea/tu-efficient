@@ -18,7 +18,7 @@ class HeadsUpModal extends Component
     {
         $last_login = Carbon::parse(session('heads-up'))->format('Y-m-d H:i:s');
         $now = Carbon::parse(now())->format('Y-m-d H:i:s');
-        $activities = [];
+        $activities = collect();
 
         $batches = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
             ->join('users', 'users.id', '=', 'implementations.users_id')
@@ -41,50 +41,37 @@ class HeadsUpModal extends Component
                 $submitted++;
             }
 
-            if ($batch->approval_status === 'encoding') {
+            if ($batch->submission_status === 'encoding') {
                 $encoding++;
             }
 
-            if ($batch->approval_status === 'revalidate') {
+            if ($batch->submission_status === 'revalidate') {
                 $revalidate++;
             }
         }
 
-        $activities = [
-            'approved' => $approved,
-            'submitted' => $submitted,
-            'encoding' => $encoding,
-            'revalidate' => $revalidate,
-        ];
+        if ($approved !== 0) {
+            $activities->add([
+                'approved' => $approved
+            ]);
+        }
+        if ($submitted !== 0) {
+            $activities->add([
+                'submitted' => $submitted
+            ]);
+        }
+        if ($encoding !== 0) {
+            $activities->add([
+                'encoding' => $encoding
+            ]);
+        }
+        if ($revalidate !== 0) {
+            $activities->add([
+                'revalidate' => $revalidate
+            ]);
+        }
 
-        # -----------------------------------------------
-        ## FOR TESTING
-
-        // $users = User::where('regional_office', Auth::user()->regional_office)
-        //     ->where('field_office', Auth::user()->field_office)
-        //     ->where('user_type', 'coordinator')
-        //     ->select(['first_name', 'last_name'])
-        //     ->get()
-        //     ->toArray();
-
-        // for ($row = 0; $row < $rows; $row++) {
-        //     $start = Carbon::now()->subMonth()->getTimestamp();
-        //     $end = Carbon::now()->getTimestamp();
-
-        //     # date time
-        //     $randomTimestamp = Carbon::createFromTimestamp(mt_rand($start, $end))->format('M d, Y | H:i:s');
-
-        //     # random user
-        //     $id = mt_rand(0, sizeof($users) - 1);
-        //     $user = $users[$id]['first_name'] . ' ' . $users[$id]['last_name'];
-
-        //     $activities->add([
-        //         'log_timestamp' => $randomTimestamp,
-        //         'user' => $user,
-        //     ]);
-        // }
-
-        return $activities;
+        return $activities->count() !== 0 ? $activities->collapseWithKeys() : null;
     }
 
     public function render()

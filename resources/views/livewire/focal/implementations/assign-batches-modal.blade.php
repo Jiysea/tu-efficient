@@ -313,8 +313,8 @@
                                         @enderror
                                         {{-- Adding Batch button --}}
                                         <button type="button" wire:click="addBatchRow"
-                                            class="flex items-center justify-center space-x-2 text-sm py-2 px-3 whitespace-nowrap rounded ms-4 font-bold uppercase bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 focus:ring-indigo-300 focus:ring-4 text-indigo-50 focus:outline-none duration-200 ease-in-out">
-                                            <p>create batch</p>
+                                            class="flex items-center justify-center space-x-2 text-sm py-2 px-3 whitespace-nowrap rounded ms-4 font-bold bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 focus:ring-indigo-300 focus:ring-4 text-indigo-50 focus:outline-none duration-200 ease-in-out">
+                                            <p>CREATE BATCH</p>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">

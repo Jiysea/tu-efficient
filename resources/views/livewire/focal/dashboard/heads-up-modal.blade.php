@@ -53,7 +53,7 @@
 
                     {{-- Welcome message | Headers --}}
                     <p class="text-lg sm:text-3xl font-bold flex items-center justify-start">Welcome
-                        back
+                        back, {{ Auth::user()->first_name }}!
                         <span class="ms-3">
                             <img class="size-5 sm:size-10" src="{{ asset('assets/w_c.png') }}" alt="Confetti">
                         </span>
@@ -61,71 +61,86 @@
 
                     {{-- Counters --}}
                     <p class="text-sm mb-6 mt-3">
-                        Here are some <strong>updates</strong> that happened while you
+                        Here are some <strong>updates</strong> after you
                         were
                         away:
                     </p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 items-center justify-center my-3 pb-6 gap-2 sm:gap-4">
-                        <p
-                            class="flex h-full pb-4 relative w-full col-span-full text-indigo-1100 text-lg font-bold mt-4">
+                    <div class="grid my-3">
+                        <p class="flex h-full relative w-full col-span-full text-indigo-1100 text-lg font-bold mt-4">
                             <span class="text-indigo-700 me-2">#</span>Batch Updates
                         </p>
                         {{-- Batches Counts --}}
-                        <div class="flex flex-col col-span-full justify-center items-center">
+                        <div class="flex flex-col justify-center items-center">
 
-                            <div
-                                class="relative flex flex-col items-center justify-center gap-2 sm:gap-4 h-[28vh] w-full">
+                            @if ($this->activities)
+                                <div class="relative flex flex-col items-center justify-start gap-2 h-full w-full p-4">
 
-                                {{-- New Approved Batches --}}
-                                <div
-                                    class="flex-1 m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-green-1100 hover:bg-green-50 focus:bg-green-50 border-green-300 duration-200 ease-in-out rounded">
-                                    <span
-                                        class="text-sm grid place-items-center font-bold size-8 text-green-50 bg-green-700 duration-200 ease-in-out rounded">
-                                        {{ $this->activities['approved'] }}
-                                    </span>
-                                    <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
-                                        <p class="text-sm font-semibold">New Approved Batches</p>
-                                    </span>
+                                    {{-- New Approved Batches --}}
+                                    @if (isset($this->activities['approved']))
+                                        <div
+                                            class="m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-green-1100 hover:bg-green-50 border-green-300 duration-200 ease-in-out rounded">
+                                            <span
+                                                class="text-sm grid place-items-center font-bold size-8 text-green-50 bg-green-700 duration-200 ease-in-out rounded">
+                                                {{ $this->activities['approved'] }}
+                                            </span>
+                                            <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
+                                                <p class="text-sm font-semibold">New Approved Batches</p>
+                                            </span>
+                                        </div>
+                                    @endif
+                                    {{-- New Submitted Lists --}}
+                                    @if (isset($this->activities['submitted']))
+                                        <div
+                                            class="m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-indigo-1100 hover:bg-indigo-50 border-indigo-300 duration-200 ease-in-out rounded">
+                                            <span
+                                                class="text-sm grid place-items-center font-bold size-8 text-indigo-50 bg-indigo-700 duration-200 ease-in-out rounded">
+                                                {{ $this->activities['submitted'] }}
+                                            </span>
+                                            <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
+                                                <p class="text-sm font-semibold">New Submitted Batches
+                                                </p>
+                                            </span>
+                                        </div>
+                                    @endif
+                                    {{-- New Opened Batches --}}
+                                    @if (isset($this->activities['encoding']))
+                                        <div
+                                            class="m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-blue-1100 hover:bg-blue-50 border-blue-300 duration-200 ease-in-out rounded">
+                                            <span
+                                                class="text-sm grid place-items-center font-bold size-8 text-blue-50 bg-blue-700 duration-200 ease-in-out rounded">
+                                                {{ $this->activities['encoding'] }}
+                                            </span>
+                                            <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
+                                                <p class="text-sm font-semibold">New Opened Batches</p>
+                                            </span>
+                                        </div>
+                                    @endif
+                                    {{-- New Revalidating Lists --}}
+                                    @if (isset($this->activities['revalidate']))
+                                        <div
+                                            class="m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-red-950 hover:bg-red-50 border-red-300 duration-200 ease-in-out rounded">
+                                            <span
+                                                class="text-sm grid place-items-center font-bold size-8 text-red-50 bg-red-700 duration-200 ease-in-out rounded">
+                                                {{ $this->activities['revalidate'] }}
+                                            </span>
+                                            <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
+                                                <p class="text-sm font-semibold">Revalidating Submissions</p>
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
-
-                                {{-- New Submitted Lists --}}
+                            @else
                                 <div
-                                    class="flex-1 m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-indigo-1100 hover:bg-indigo-50 focus:bg-indigo-50 border-indigo-300 duration-200 ease-in-out rounded">
-                                    <span
-                                        class="text-sm grid place-items-center font-bold size-8 text-indigo-50 bg-indigo-700 duration-200 ease-in-out rounded">
-                                        {{ $this->activities['submitted'] }}
-                                    </span>
-                                    <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
-                                        <p class="text-sm font-semibold">New List of Beneficiaries (Submissions)</p>
-                                    </span>
+                                    class="relative flex flex-col items-center justify-center gap-2 h-full w-full border border-gray-300 bg-gray-50 text-gray-700 p-4 rounded">
+                                    <div
+                                        class="m-0 flex w-full items-center justify-center px-2 py-2 outline-none rounded">
+                                        <span class="flex flex-col items-center ms-2 duration-200 ease-in-out">
+                                            <p class="text-sm font-semibold">There were none.</p>
+                                        </span>
+                                    </div>
                                 </div>
-
-                                {{-- New Opened Batches --}}
-                                <div
-                                    class="flex-1 m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-blue-1100 hover:bg-blue-50 focus:bg-blue-50 border-blue-300 duration-200 ease-in-out rounded">
-                                    <span
-                                        class="text-sm grid place-items-center font-bold size-8 text-blue-50 bg-blue-700 duration-200 ease-in-out rounded">
-                                        {{ $this->activities['encoding'] }}
-                                    </span>
-                                    <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
-                                        <p class="text-sm font-semibold">New Opened Batches</p>
-                                    </span>
-                                </div>
-
-                                {{-- New Revalidating Lists --}}
-                                <div
-                                    class="flex-1 m-0 flex w-full items-center justify-start px-2 py-2 border outline-none bg-white text-red-950 hover:bg-red-50 focus:bg-red-50 border-red-300 duration-200 ease-in-out rounded">
-                                    <span
-                                        class="text-sm grid place-items-center font-bold size-8 text-red-50 bg-red-700 duration-200 ease-in-out rounded">
-                                        {{ $this->activities['revalidate'] }}
-                                    </span>
-                                    <span class="flex flex-col items-start ms-2 duration-200 ease-in-out">
-                                        <p class="text-sm font-semibold">Revalidating Submissions</p>
-                                    </span>
-                                </div>
-                            </div>
+                            @endif
                         </div>
-
                     </div>
                 </div>
             </div>

@@ -164,11 +164,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="relative text-xs">
                                     @foreach ($this->batches as $key => $batch)
-                                        @php
-                                            $encryptedId = Crypt::encrypt($batch->id);
-                                        @endphp
                                         <tr wire:key="batch-{{ $key }}"
-                                            wire:click.prevent='selectBatchRow({{ $key }}, "{{ $encryptedId }}")'
+                                            wire:loading.class="pointer-events-none"
+                                            wire:click.prevent='selectBatchRow({{ $key }}, "{{ encrypt($batch->id) }}")'
                                             class="relative border-b {{ $selectedBatchRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out cursor-pointer">
                                             <th scope="row" class="px-2 py-2 font-medium">
                                                 {{ $key + 1 }}

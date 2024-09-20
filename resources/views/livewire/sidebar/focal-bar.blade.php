@@ -10,7 +10,7 @@
         </svg>
     </button> --}}
 
-    <aside id="logo-sidebar"
+    <div x-data="{ dashboardHover: false, implementationsHover: false, umanagementHover: false, alogsHover: false }" id="logo-sidebar"
         :class="{
             'w-20': open === false,
             'w-20 xl:w-64': open === true,
@@ -160,8 +160,8 @@
                         </div>
                     </li>
                     <li class="relative">
-                        <a href="{{-- route('focal.activity-logs') --}}" wire:loading.attr="disabled" @mouseover="alogsHover = true"
-                            @mouseleave="alogsHover = false"
+                        <a href="{{ route('focal.activity-logs') }}" wire:loading.attr="disabled"
+                            @mouseover="alogsHover = true" @mouseleave="alogsHover = false"
                             class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300  group-focus:text-indigo-300"
@@ -194,7 +194,6 @@
                         </div>
                     </li>
                 </ul>
-
             </div>
             <div>
                 <ul class="font-medium text-sm">
@@ -289,5 +288,5 @@
                 </ul>
             </div>
         </div>
-    </aside>
+    </div>
 </nav>

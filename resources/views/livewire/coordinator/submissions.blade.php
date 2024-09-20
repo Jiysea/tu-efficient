@@ -14,7 +14,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         <livewire:coordinator.submissions.download-options-alert />
     @endif
 
-    <div x-data="{ scrollToTop() { document.getElementById('batches-table').scrollTo({ top: 0, behavior: 'smooth' }); } }" :class="{
+    <div :class="{
         'xl:ml-20': open === false,
         'xl:ml-64': open === true,
     }"
@@ -29,8 +29,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     {{-- Start --}}
                     <div class="relative w-36 z-10">
-                        <div
-                            class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <div class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                 viewBox="0, 0, 400,400">
@@ -99,8 +98,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </g>
                         </svg>
                     </button>
-
-
 
                     <button type="button"
                         class="flex items-center justify-center px-3 py-1.5 mx-2 rounded-md text-sm font-bold outline-none text-blue-50 bg-green-700 hover:bg-green-800 active:bg-green-900">
@@ -235,12 +232,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <ul class="px-2 text-sm text-blue-1100 overflow-y-auto h-48 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700"
                                     aria-labelledby="batchButton">
                                     @forelse ($this->batches as $key => $batch)
-                                        @php
-                                            $encryptedId = encrypt($batch->id);
-                                        @endphp
                                         <li wire:key="batch-{{ $key }}">
                                             <button type="button" @click="open = !open;"
-                                                wire:click="selectBatchRow({{ $key }}, '{{ $encryptedId }}')"
+                                                wire:loading.class="pointer-events-none"
+                                                wire:click="selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
                                                 class="flex items-center w-full px-1 py-2 text-xs hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
                                                 {{ $batch->batch_num }} / {{ $batch->barangay_name }}
                                             </button>
@@ -311,11 +306,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="relative text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        @php
-                                            $encryptedId = Crypt::encrypt($beneficiary->id);
-                                        @endphp
                                         <tr wire:key="batch-{{ $key }}"
-                                            wire:click.prevent='selectBeneficiaryRow({{ $key }}, "{{ $encryptedId }}")'
+                                            wire:loading.class="pointer-events-none"
+                                            wire:click.prevent='selectBeneficiaryRow({{ $key }}, "{{ encrypt($beneficiary->id) }}")'
                                             class="relative border-b {{ $selectedBeneficiaryRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out cursor-pointer">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
                                                 {{ $key + 1 }}
@@ -708,7 +701,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <p class="text-base text-amber-950 my-2 font-bold ms-3">Special Cases</p>
                         @if (false)
                             {{-- Special Cases Table --}}
-                            <div id="implementations-table"
+                            <div id="special-cases-table"
                                 class="relative h-[40vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                                 <table class="relative w-full text-sm text-left text-indigo-1100 whitespace-nowrap">
                                     <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
@@ -735,8 +728,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             @php
                                                 $encryptedId = Crypt::encrypt($implementation->id);
                                             @endphp
-                                            <tr @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
-                                                wire:key="implementation-{{ $key }}"
+                                            <tr wire:key="implementation-{{ $key }}"
                                                 wire:click.prevent='selectImplementationRow({{ $key }}, "{{ $encryptedId }}")'
                                                 class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }}  whitespace-nowrap cursor-pointer">
                                                 <th scope="row" class="pe-2 ps-4 py-2 font-medium">

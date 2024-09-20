@@ -8,6 +8,7 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\User;
+use App\Models\UserSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,7 @@ class Submissions extends Component
     public $selectedBeneficiaryRow = -1;
     public $searchBeneficiaries;
     public $searchBatches;
+    public $batchNumPrefix;
 
     # ------------------------------------------
 
@@ -107,13 +109,10 @@ class Submissions extends Component
     #[Computed]
     public function batches()
     {
-        $coordinatorUserId = Auth::user()->id;
-        $batchNumPrefix = config('settings.batch_number_prefix', 'DCFO-BN-');
-
         $batches = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
-            ->where('assignments.users_id', $coordinatorUserId)
+            ->where('assignments.users_id', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
-            ->where('batches.batch_num', 'LIKE', $batchNumPrefix . '%' . $this->searchBatches . '%')
+            ->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
                 [
                     'batches.id',
@@ -283,6 +282,10 @@ class Submissions extends Component
         } else {
             $this->batchId = $batchId;
         }
+
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+        $this->batchNumPrefix = $settings->get('batch_num_prefix', config('settings.batch_number_prefix'));
 
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
         $this->end = date('Y-m-d H:i:s', strtotime(now()));

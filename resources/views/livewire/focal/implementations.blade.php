@@ -2,7 +2,7 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, show: false, trapCreate: false, trapAssign: false, trapAdd: false, profileShow: false, rotation: 0, caretRotate: 0, dashboardHover: false, implementationsHover: false, umanagementHover: false, alogsHover: false, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, show: false, trapCreate: false, trapAssign: false, trapAdd: false, profileShow: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
@@ -179,12 +179,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="relative text-xs">
                                     @foreach ($this->implementations as $key => $implementation)
-                                        @php
-                                            $encryptedId = Crypt::encrypt($implementation->id);
-                                        @endphp
                                         <tr wire:key="implementation-{{ $key }}"
                                             @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
-                                            wire:click.prevent='selectImplementationRow({{ $key }}, "{{ $encryptedId }}")'
+                                            wire:click.prevent='selectImplementationRow({{ $key }}, "{{ encrypt($implementation->id) }}")'
                                             class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }}  whitespace-nowrap cursor-pointer">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
                                                 {{ $implementation->project_num }}
@@ -201,7 +198,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             {{-- Implementation Triple Dots --}}
                                             <td class="py-1">
                                                 <button type="button"
-                                                    @click.stop="$wire.viewProject('{{ $encryptedId }}');"
+                                                    @click.stop="$wire.viewProject('{{ encrypt($implementation->id) }}');"
                                                     id="implementationRowButton-{{ $key }}"
                                                     aria-label="{{ __('View Project') }}"
                                                     class="flex items-center justify-center z-0 p-1 outline-none rounded duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">

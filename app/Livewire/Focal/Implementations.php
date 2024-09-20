@@ -218,17 +218,16 @@ class Implementations extends Component
             ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
             ->where('batches.id', $this->batchId)
             ->when($this->searchBeneficiaries, function ($q) {
-                # Check if `searchBeneficiaries` contains 'num:' and filter by contact number
+                # Check if the search field starts with '#' and filter by contact number
                 if (str_contains($this->searchBeneficiaries, '#')) {
                     $searchValue = trim(str_replace('#', '', $this->searchBeneficiaries));
 
                     if (strpos($searchValue, '0') === 0) {
                         $searchValue = substr($searchValue, 1);
                     }
-                    // dump($searchValue);
                     $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
                 } else {
-                    // Otherwise, search by first, middle, or last name
+                    # Otherwise, search by first, middle, or last name
                     $q->where(function ($query) {
                         $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
                             ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')

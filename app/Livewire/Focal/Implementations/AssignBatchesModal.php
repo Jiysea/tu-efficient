@@ -52,6 +52,7 @@ class AssignBatchesModal extends Component
     public $barangay_name;
     #[Validate]
     public $slots_allocated;
+    #[Validate]
     public $assigned_coordinators = [];
 
 
@@ -168,12 +169,15 @@ class AssignBatchesModal extends Component
         }
 
         # resets after submitting
-        $this->batch_num = null;
-        $this->barangay_name = null;
-        $this->slots_allocated = null;
-        $this->assigned_coordinators = [];
-        $this->temporaryBatchesList = [];
+        $this->reset(
+            'batch_num',
+            'barangay_name',
+            'slots_allocated',
+            'assigned_coordinators',
+            'temporaryBatchesList',
+        );
         $this->dispatch('assign-create-batches');
+        $this->js('assignBatchesModal = !assignBatchesModal');
     }
 
     # triggers when a user clicks the `pen` button which activates the edit mode
@@ -198,10 +202,6 @@ class AssignBatchesModal extends Component
     public function addBatchRow()
     {
         $this->validate();
-        // $this->validateOnly('batch_num');
-        // $this->validateOnly('barangay_name');
-        // $this->validateOnly('slots_allocated');
-        // $this->validateOnly('assigned_coordinators');
 
         $this->batch_num = $this->batchNumPrefix . $this->batch_num;
 
@@ -213,10 +213,16 @@ class AssignBatchesModal extends Component
         ];
 
         $this->totalSlots -= $this->slots_allocated;
-        $this->batch_num = null;
-        $this->barangay_name = null;
-        $this->slots_allocated = null;
-        $this->assigned_coordinators = [];
+        // $this->batch_num = null;
+        // $this->barangay_name = null;
+        // $this->slots_allocated = null;
+        // $this->assigned_coordinators = [];
+        $this->reset(
+            'batch_num',
+            'barangay_name',
+            'slots_allocated',
+            'assigned_coordinators',
+        );
         $this->getAllCoordinators();
         $this->getAllCoordinatorsForBatchList();
         $this->validateOnly('temporaryBatchesList');
@@ -323,7 +329,6 @@ class AssignBatchesModal extends Component
 
     public function liveUpdateRemainingSlots()
     {
-        $focalUserId = auth()->id();
         $batchCountDelta = 0;
 
         # this condition initializes the slots
@@ -342,7 +347,7 @@ class AssignBatchesModal extends Component
 
             # retrieves all of the `slots_alloted` values from the batches table
             $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-                ->where('implementations.users_id', $focalUserId)
+                ->where('implementations.users_id', Auth::id())
                 ->where('implementations.id', $this->implementationId)
                 ->select('batches.slots_allocated')
                 ->get()
