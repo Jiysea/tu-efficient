@@ -84,7 +84,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             <div class="relative grid grid-cols-1 w-full h-full gap-4 lg:grid-cols-5">
 
                 {{-- List of Batches --}}
-                <div class="relative lg:col-span-3 h-full w-full rounded bg-white shadow">
+                <div x-data="{ viewBatchModal: $wire.entangle('viewBatchModal') }" class="relative lg:col-span-3 h-full w-full rounded bg-white shadow">
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 flex items-center justify-between">
                         <div class="inline-flex items-center text-blue-900">
@@ -152,10 +152,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             slots
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
-                                            a. status
+                                            approval
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
-                                            s. status
+                                            submission
                                         </th>
                                         <th scope="col" class="px-2 py-2 text-center">
 
@@ -164,10 +164,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="relative text-xs">
                                     @foreach ($this->batches as $key => $batch)
-                                        <tr wire:key="batch-{{ $key }}"
+                                        <tr x-data="{ row: $wire.entangle('selectedBatchRow') }" wire:key="batch-{{ $key }}"
                                             wire:loading.class="pointer-events-none"
-                                            wire:click.prevent='selectBatchRow({{ $key }}, "{{ encrypt($batch->id) }}")'
-                                            class="relative border-b {{ $selectedBatchRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out cursor-pointer">
+                                            @click.prevent="row == {{ $key }}; $wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}');"
+                                            class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer"
+                                            :class="{
+                                                'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': row ==
+                                                    {{ $key }},
+                                                'hover:bg-gray-50': row != {{ $key }}
+                                            }">
                                             <th scope="row" class="px-2 py-2 font-medium">
                                                 {{ $key + 1 }}
                                             </th>
@@ -185,46 +190,51 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <td class="pr-2 py-2 text-center">
                                                 @if ($batch->approval_status === 'approved')
                                                     <span
-                                                        class="bg-green-300 text-green-1100 rounded py-1 px-2 uppercase font-medium">{{ $batch->approval_status }}</span>
-                                                @else
+                                                        class="bg-green-300 text-green-1000 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
+                                                @elseif($batch->approval_status === 'pending')
                                                     <span
-                                                        class="bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->approval_status }}</span>
+                                                        class="bg-amber-300 text-amber-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
                                                 @endif
                                             </td>
                                             <td class="pr-2 py-2 text-center">
                                                 @if ($batch->submission_status === 'unopened')
                                                     <span
-                                                        class="bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
+                                                        class="bg-amber-200 text-amber-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @elseif($batch->submission_status === 'encoding')
                                                     <span
-                                                        class="bg-sky-300 text-sky-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
+                                                        class="bg-sky-200 text-sky-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @elseif($batch->submission_status === 'submitted')
                                                     <span
-                                                        class="bg-green-300 text-green-1100 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
+                                                        class="bg-green-200 text-green-1000 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @elseif($batch->submission_status === 'revalidate')
                                                     <span
-                                                        class="bg-red-300 text-red-950 rounded py-1 px-2 uppercase font-medium">{{ $batch->submission_status }}</span>
+                                                        class="bg-red-200 text-red-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @endif
                                             </td>
 
-                                            {{-- Batch Dropdown --}}
-                                            <td x-data="batchDropdown({{ $key }})" class="py-2 flex">
-                                                <button @click.stop="handleClick()"
-                                                    id="batchRowButton-{{ $key }}"
-                                                    data-dropdown-placement="left"
-                                                    data-dropdown-toggle="batchRowDropdown-{{ $key }}"
-                                                    class="z-0 mx-1 p-1 outline-none font-medium rounded 
-                                                    text-gray-900 hover:text-gray-800 active:text-gray-950 hover:bg-gray-300  duration-200 ease-in-out">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                        fill="currentColor"
-                                                        :class="{
-                                                            'rotate-0': !isVisible(),
-                                                            'rotate-90': isVisible(),
-                                                        }"
-                                                        class="w-4 duration-200 ease-in-out">
-                                                        <path fill-rule="evenodd"
-                                                            d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
-                                                            clip-rule="evenodd" />
+                                            {{-- Batch View --}}
+                                            <td class="py-1">
+                                                <button type="button" wire:loading.attr="disabled"
+                                                    @click.stop="row == {{ $key }}; $wire.viewAssignment('{{ encrypt($batch->id) }}');"
+                                                    id="assignmentRowButton-{{ $key }}"
+                                                    aria-label="{{ __('View Assignment') }}"
+                                                    class="flex items-center justify-center z-0 p-1 outline-none rounded duration-200 ease-in-out"
+                                                    :class="{
+                                                        'hover:bg-blue-700 focus:bg-blue-700 text-blue-900 hover:text-blue-50 focus:text-blue-50': row ==
+                                                            {{ $key }},
+                                                        'text-gray-900 hover:text-blue-900 focus:text-blue-900 hover:bg-gray-300 focus:bg-gray-300': row !=
+                                                            {{ $key }},
+                                                    }">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
+                                                        <g>
+                                                            <path
+                                                                d="M196.094 28.629 C 195.449 28.884,154.668 44.553,105.469 63.450 C -5.207 105.958,5.050 101.718,2.258 106.121 C -2.113 113.013,-0.475 121.858,5.978 126.207 C 11.439 129.887,195.785 200.000,200.000 200.000 C 204.215 200.000,388.561 129.887,394.022 126.207 C 402.510 120.487,401.990 106.158,393.130 101.648 C 391.538 100.837,348.398 84.081,297.266 64.412 C 207.418 29.852,199.805 27.159,196.094 28.629 M270.092 85.625 C 308.670 100.491,341.237 113.019,342.463 113.463 C 345.218 114.462,202.811 169.873,199.219 169.200 C 198.145 168.999,165.351 156.563,126.345 141.564 L 55.424 114.293 127.517 86.499 C 167.168 71.211,199.686 58.679,199.779 58.649 C 199.873 58.618,231.513 70.758,270.092 85.625 M27.734 178.937 C 8.335 186.462,5.574 187.749,3.334 190.309 C -2.881 197.416,-0.344 209.612,8.118 213.305 C 34.431 224.791,197.646 286.063,201.099 285.752 C 204.384 285.456,376.320 220.179,391.882 213.319 C 400.350 209.586,402.878 197.424,396.666 190.302 C 394.417 187.724,391.728 186.476,372.085 178.892 L 350.029 170.377 330.733 177.806 C 320.120 181.893,310.950 185.509,310.354 185.843 C 309.658 186.232,315.440 188.805,326.508 193.029 C 335.988 196.648,343.743 199.785,343.740 200.000 C 343.737 200.215,311.394 212.816,271.867 228.003 L 200.000 255.614 128.133 228.003 C 88.606 212.816,56.263 200.215,56.260 200.000 C 56.257 199.785,64.002 196.652,73.470 193.038 C 82.938 189.424,90.408 186.230,90.069 185.941 C 89.518 185.472,53.654 171.648,50.781 170.798 C 50.137 170.607,39.766 174.269,27.734 178.937 M28.200 264.467 C 1.675 274.836,-0.000 276.085,0.000 285.509 C 0.000 292.897,2.730 296.701,10.265 299.816 C 49.494 316.032,196.246 371.435,200.000 371.445 C 203.950 371.456,381.599 304.222,393.130 298.352 C 399.546 295.086,402.301 284.114,398.224 278.064 C 395.451 273.950,393.030 272.722,370.793 264.156 L 349.950 256.126 330.249 263.690 C 319.413 267.850,310.240 271.441,309.865 271.670 C 309.490 271.898,317.177 275.154,326.947 278.904 C 343.410 285.223,344.546 285.782,342.472 286.533 C 341.241 286.980,308.701 299.497,270.159 314.349 L 200.084 341.354 127.712 313.514 L 55.339 285.673 72.942 278.969 C 82.624 275.282,90.300 272.037,89.999 271.757 C 89.162 270.976,50.655 256.239,49.682 256.327 C 49.213 256.369,39.546 260.032,28.200 264.467 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
+                                                            </path>
+                                                        </g>
                                                     </svg>
                                                 </button>
                                             </td>
@@ -238,49 +248,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </tbody>
                             </table>
                         </div>
-
-                        {{-- Batch Dropdown Content --}}
-                        @foreach ($this->batches as $key => $batch)
-                            <div wire:key="batchRowDropdown-{{ $key }}"
-                                id="batchRowDropdown-{{ $key }}"
-                                class="absolute z-50 hidden bg-white border rounded-md shadow">
-                                <ul class="text-sm text-blue-1100"
-                                    aria-labelledby="batchRowButton-{{ $key }}">
-                                    <li>
-                                        <a aria-label="{{ __('View Batch') }}"
-                                            class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                height="400" viewBox="0, 0, 400,400">
-                                                <g>
-                                                    <path
-                                                        d="M60.938 83.730 C 45.814 88.028,46.103 112.166,61.328 116.325 C 65.742 117.531,334.258 117.531,338.672 116.325 C 354.152 112.097,354.152 87.903,338.672 83.675 C 334.514 82.539,64.940 82.593,60.938 83.730 M234.766 167.662 C 156.261 181.679,140.899 289.719,212.395 324.999 C 237.348 337.313,270.981 336.146,293.071 322.201 L 296.300 320.163 319.048 342.824 C 342.668 366.353,343.717 367.179,350.000 367.179 C 358.743 367.179,367.179 358.743,367.179 350.000 C 367.179 343.717,366.353 342.668,342.824 319.048 L 320.163 296.300 322.201 293.071 C 333.786 274.719,336.850 245.659,329.540 223.444 C 316.488 183.772,276.467 160.217,234.766 167.662 M60.938 183.730 C 45.814 188.028,46.103 212.166,61.328 216.325 C 65.625 217.499,134.375 217.499,138.672 216.325 C 154.152 212.097,154.152 187.903,138.672 183.675 C 134.630 182.571,64.843 182.621,60.938 183.730 M262.403 202.039 C 298.694 210.121,311.890 258.368,285.129 285.129 C 258.320 311.938,210.580 298.894,201.980 262.411 C 193.184 225.094,224.669 193.636,262.403 202.039 M60.938 283.730 C 45.814 288.028,46.103 312.166,61.328 316.325 C 65.625 317.499,134.375 317.499,138.672 316.325 C 154.152 312.097,154.152 287.903,138.672 283.675 C 134.630 282.571,64.843 282.621,60.938 283.730 "
-                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                    </path>
-                                                </g>
-                                            </svg>
-                                            View Batch
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a aria-label="{{ __('Access Code') }}"
-                                            class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                height="400" viewBox="0, 0, 400,400">
-                                                <g>
-                                                    <path
-                                                        d="M247.559 1.564 C 165.364 16.307,120.087 103.855,155.105 180.332 L 158.083 186.836 82.194 262.754 C 28.622 316.345,5.951 339.526,5.105 341.576 C 1.996 349.110,3.341 351.295,23.637 371.666 C 48.980 397.102,49.168 397.132,67.779 378.680 L 78.934 367.620 94.350 382.946 C 111.224 399.721,111.590 400.000,116.695 400.000 C 122.546 400.000,123.922 398.973,141.622 381.402 C 168.809 354.411,168.685 356.088,145.223 332.400 L 129.725 316.754 169.372 277.112 L 209.019 237.471 214.827 240.332 C 283.781 274.302,369.459 235.883,390.997 161.337 C 416.829 71.931,338.941 -14.827,247.559 1.564 M285.156 66.046 C 349.039 85.419,345.621 174.012,280.483 187.159 C 231.814 196.981,191.537 143.903,213.671 99.113 C 226.697 72.754,258.606 57.994,285.156 66.046 "
-                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                    </path>
-                                                </g>
-                                            </svg>
-                                            Access Code
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        @endforeach
                     @else
                         <div
                             class="relative bg-white px-4 pb-4 pt-2 h-[82.5vh] min-w-full flex items-center justify-center">
@@ -303,8 +270,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     @endif
 
-                    {{-- Create Button | Main Modal --}}
-                    {{-- <livewire:focal.batchs.create-project-modal /> --}}
+                    {{-- View Batch Modal --}}
+                    @if ($passedId)
+                        <livewire:coordinator.assignments.view-batch-modal :$passedId :key="$passedId" />
+                    @endif
                 </div>
 
                 {{-- List Overview --}}
@@ -365,7 +334,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     <div class="flex items-center justify-end h-[1.5rem] my-2 w-full text-sm">
                         {{-- Found 3 special cases! --}}
-                        <button type="button" wire:click="viewList" @if (!$batchId) disabled @endif
+                        <button type="button" wire:click="viewList"
+                            @if (!$batchId) disabled @endif
                             class="flex items-center justify-center rounded px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $batchId ? 'bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500' : 'bg-blue-300 text-blue-50' }}">
                             <p class="p-0 m-0">
                                 VIEW LIST
@@ -490,29 +460,5 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 initFlowbite();
             }, 1);
         });
-
-        // Implementation Dropdown Shenanigans
-        Alpine.data('batchDropdown', (key) => ({
-            dropdown: null,
-
-            init() {
-                // Initialize the dropdown when the Alpine component is initialized
-                this.dropdown = new Dropdown(
-                    document.getElementById(`batchRowDropdown-${key}`), document.getElementById(
-                        `batchRowButton-${key}`)
-                );
-            },
-            handleClick() {
-
-                if (!this.dropdown) {
-                    this.init();
-                }
-                this.dropdown.toggle();
-            },
-
-            isVisible() {
-                return this.dropdown.isVisible();
-            },
-        }));
     </script>
 @endscript

@@ -317,12 +317,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="text-xs relative">
                                     @foreach ($this->batches as $key => $batch)
-                                        @php
-                                            $encryptedId = encrypt($batch->id);
-                                        @endphp
                                         <tr wire:key="batch-{{ $key }}"
                                             @if (!$this->beneficiaries->isEmpty()) @click="scrollToTop()" @endif
-                                            wire:click='selectBatchRow({{ $key }}, "{{ $encryptedId }}")'
+                                            wire:click='selectBatchRow({{ $key }}, "{{ encrypt($batch->id) }}")'
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-200' : ' hover:bg-gray-50' }}">
                                             <th scope="row" class="z-0 ps-4 py-2 font-medium">
                                                 {{ $batch->barangay_name }}
@@ -337,7 +334,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 </p>
                                             </td>
                                             <td class="py-1 ps-2">
-                                                <button @click.stop="$wire.viewBatch('{{ $encryptedId }}');"
+                                                <button @click.stop="$wire.viewBatch('{{ encrypt($batch->id) }}');"
                                                     id="batchRowButton-{{ $key }}"
                                                     class="flex justify-center items-center z-0 p-1 font-medium rounded outline-none duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-5"

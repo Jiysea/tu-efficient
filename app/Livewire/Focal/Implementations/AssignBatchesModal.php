@@ -154,8 +154,8 @@ class AssignBatchesModal extends Component
                 'batch_num' => $batch['batch_num'],
                 'barangay_name' => $batch['barangay_name'],
                 'slots_allocated' => $batch['slots_allocated'],
-                'approval_status' => 'PENDING',
-                'submission_status' => 'UNOPENED'
+                'approval_status' => 'pending',
+                'submission_status' => 'unopened'
             ]);
 
             $batch_id = $batch->id;

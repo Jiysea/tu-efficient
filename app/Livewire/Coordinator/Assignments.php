@@ -22,6 +22,9 @@ class Assignments extends Component
 {
     #[Locked]
     public $batchId;
+    #[Locked]
+    public $passedId;
+    public $viewBatchModal = false;
     public $batchesCount;
     public $defaultBatches_on_page = 15;
     public $defaultBeneficiaries_on_page = 30;
@@ -72,6 +75,12 @@ class Assignments extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    public function viewAssignment($encryptedId)
+    {
+        $this->passedId = $encryptedId;
+        $this->viewBatchModal = true;
+    }
+
     public function selectBatchRow($key, $encryptedId)
     {
         if ($this->selectedBatchRow === $key) {
@@ -106,8 +115,8 @@ class Assignments extends Component
                     'batches.submission_status',
                 ]
             )
-            ->orderBy('batches.id')
             ->take($this->batches_on_page)
+            ->latest('batches.updated_at')
             ->get();
 
         return $batches;
