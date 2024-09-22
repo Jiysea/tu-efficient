@@ -6,6 +6,7 @@ use App\Livewire\Focal\Dashboard;
 use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
+use App\Models\Code;
 use App\Models\User;
 use Auth;
 use Illuminate\Support\Facades\DB;
@@ -142,9 +143,7 @@ class Assignments extends Component
 
     public function setBatchesCount()
     {
-        $coordinatorUserId = Auth::user()->id;
-
-        $this->batchesCount = User::where('users.id', $coordinatorUserId)
+        $this->batchesCount = User::where('users.id', Auth::id())
             ->join('assignments', 'users.id', '=', 'assignments.users_id')
             ->join('batches', 'batches.id', '=', 'assignments.batches_id')
             ->whereBetween('batches.created_at', [$this->start, $this->end])
@@ -154,29 +153,24 @@ class Assignments extends Component
     #[Computed]
     public function beneficiaries()
     {
-        $coordinatorUserId = Auth::user()->id;
+        $beneficiaries = Batch::join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('batches.id', $this->batchId)
+            ->select([
+                'beneficiaries.id',
+                'beneficiaries.first_name',
+                'beneficiaries.middle_name',
+                'beneficiaries.last_name',
+                'beneficiaries.extension_name AS extension_name',
+                'beneficiaries.birthdate AS birthdate',
+                'beneficiaries.contact_num AS contact_num'
+            ])
+            ->orderBy('beneficiaries.id')
+            ->take($this->beneficiaries_on_page)
+            ->get();
 
-        if ($this->batchId) {
-            $beneficiaries = Batch::join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-                ->where('batches.id', $this->batchId)
-                ->select([
-                    'beneficiaries.id',
-                    'beneficiaries.first_name',
-                    'beneficiaries.middle_name',
-                    'beneficiaries.last_name',
-                    'beneficiaries.extension_name AS extension_name',
-                    'beneficiaries.birthdate AS birthdate',
-                    'beneficiaries.contact_num AS contact_num'
-                ])
-                ->orderBy('beneficiaries.id')
-                ->take($this->beneficiaries_on_page)
-                ->get();
+        return $beneficiaries;
 
-            return $beneficiaries;
 
-        } else {
-            $this->beneficiaries = null;
-        }
     }
 
     #[Computed]
@@ -207,7 +201,7 @@ class Assignments extends Component
         if ($this->batchId) {
             $accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
                 ->where('batches.id', $this->batchId)
-                ->where('codes.accessible', 'yes')
+                ->where('codes.is_accessible', 'yes')
                 ->select(['codes.access_code'])
                 ->groupBy([
                     'codes.access_code',
@@ -224,23 +218,11 @@ class Assignments extends Component
     #[Computed]
     public function submissions()
     {
-        if ($this->batchId) {
-            $submissions = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
-                ->where('batches.id', $this->batchId)
-                ->where('codes.accessible', 'no')
-                ->select(
-                    [
-                        DB::raw('COUNT(DISTINCT codes.id) AS total_count')
-                    ],
-                )
-                ->groupBy('codes.access_code')
-                ->first();
+        $submissions = Code::where('batches_id', $this->batchId)
+            ->where('is_accessible', 'no')
+            ->count();
 
-            return $submissions;
-
-        } else {
-            return null;
-        }
+        return $submissions;
     }
 
     #[Computed]
@@ -290,6 +272,13 @@ class Assignments extends Component
                 ]
             );
         }
+    }
+
+    #[On('refreshAfterOpening')]
+    public function refreshAfterOpening()
+    {
+        unset($this->batches);
+        unset($this->accessCode);
     }
 
     public function mount()

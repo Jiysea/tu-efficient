@@ -12,8 +12,7 @@ class Code extends Model
     protected $fillable = [
         'batches_id',
         'access_code',
-        'accessible',
-        'created_at',
+        'is_accessible',
     ];
 
     public function batch()
@@ -21,5 +20,4 @@ class Code extends Model
         return $this->belongsTo(Batch::class, 'batches_id');
     }
 
-    public $timestamps = false;
 }

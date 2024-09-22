@@ -190,25 +190,25 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <td class="pr-2 py-2 text-center">
                                                 @if ($batch->approval_status === 'approved')
                                                     <span
-                                                        class="bg-green-300 text-green-1000 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
+                                                        class="bg-green-300 text-green-1000 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
                                                 @elseif($batch->approval_status === 'pending')
                                                     <span
-                                                        class="bg-amber-300 text-amber-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
+                                                        class="bg-amber-300 text-amber-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
                                                 @endif
                                             </td>
                                             <td class="pr-2 py-2 text-center">
                                                 @if ($batch->submission_status === 'unopened')
                                                     <span
-                                                        class="bg-amber-200 text-amber-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                        class="bg-amber-200 text-amber-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @elseif($batch->submission_status === 'encoding')
                                                     <span
-                                                        class="bg-sky-200 text-sky-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                        class="bg-sky-200 text-sky-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @elseif($batch->submission_status === 'submitted')
                                                     <span
-                                                        class="bg-green-200 text-green-1000 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                        class="bg-green-200 text-green-1000 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @elseif($batch->submission_status === 'revalidate')
                                                     <span
-                                                        class="bg-red-200 text-red-900 rounded-full text-2xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                        class="bg-red-200 text-red-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
                                                 @endif
                                             </td>
 
@@ -305,7 +305,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 Access Code: <p class="ps-2 font-normal">
                                     @if ($this->accessCode)
                                         <span
-                                            class="bg-blue-300 text-blue-1000 rounded py-1 px-2">{{ $this->accessCode->access_code }}</span>
+                                            class="bg-blue-300 text-blue-1000 rounded py-1 px-2 select-all">{{ $this->accessCode->access_code }}</span>
                                     @else
                                         <span
                                             class="font-semibold bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase">not
@@ -315,7 +315,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
                                 Submissions: <p class="font-normal ps-2">
-                                    {{ $this->submissions->total_count ?? 0 }}</p>
+                                    {{ $this->submissions }}</p>
                             </div>
                         @else
                             <div class="relative bg-white p-2 h-[18.5vh] min-w-full flex items-center justify-center">
@@ -349,7 +349,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </button>
                     </div>
 
-                    @if ($this->beneficiaries)
+                    @if ($this->beneficiaries->isNotEmpty())
                         {{-- Table --}}
                         <div
                             class="relative h-[64vh] overflow-y-auto rounded whitespace-nowrap bg-white scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
@@ -413,7 +413,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <p>Try <span class="underline underline-offset-2">clicking</span> one of the <span
                                             class="text-blue-900">batches</span> row.
                                     </p>
-                                @else
+                                @elseif ($this->beneficiaries->isEmpty())
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -425,10 +425,23 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>No beneficiaries found.</p>
+                                    <p>Try adding <span class="text-blue-900">new
+                                            beneficiaries</span>.</p>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M178.125 0.827 C 46.919 16.924,-34.240 151.582,13.829 273.425 C 21.588 293.092,24.722 296.112,36.372 295.146 C 48.440 294.145,53.020 282.130,46.568 268.403 C 8.827 188.106,45.277 89.951,128.125 48.784 C 171.553 27.204,219.595 26.272,266.422 46.100 C 283.456 53.313,294.531 48.539,294.531 33.984 C 294.531 23.508,289.319 19.545,264.116 10.854 C 238.096 1.882,202.941 -2.217,178.125 0.827 M377.734 1.457 C 373.212 3.643,2.843 374.308,1.198 378.295 C -4.345 391.732,9.729 404.747,23.047 398.500 C 28.125 396.117,397.977 25.550,399.226 21.592 C 403.452 8.209,389.945 -4.444,377.734 1.457 M359.759 106.926 C 348.924 111.848,347.965 119.228,355.735 137.891 C 411.741 272.411,270.763 412.875,136.719 356.108 C 120.384 349.190,113.734 349.722,107.773 358.421 C 101.377 367.755,106.256 378.058,119.952 384.138 C 163.227 403.352,222.466 405.273,267.578 388.925 C 375.289 349.893,429.528 225.303,383.956 121.597 C 377.434 106.757,370.023 102.263,359.759 106.926 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No beneficiaries found.</p>
                                     <p>Ask your focal to assign a <span class="text-blue-900">new
                                             batch</span>.</p>
                                 @endif
-
                             </div>
                         </div>
                     @endif

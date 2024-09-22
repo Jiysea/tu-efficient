@@ -7,7 +7,7 @@
     </div>
 
     <!-- Modal -->
-    <div x-trap.inert="batchDeleteModal" x-show="batchDeleteModal" x-trap.noscroll="batchDeleteModal"
+    <div x-show="batchDeleteModal" x-trap.noscroll="batchDeleteModal"
         class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full"
         x-transition:enter="transition ease-in-out duration-300" x-transition:enter-start="opacity-0 transform scale-90"
         x-transition:enter-end="opacity-100 transform scale-100"

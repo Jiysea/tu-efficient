@@ -20,7 +20,6 @@ class CodeFactory extends Factory
             'batches_id' => 1,
             'access_code' => fake()->bothify('?##??#?#'),
             'accessible' => 'no',
-            'created_at' => now(),
         ];
     }
 }

@@ -36,7 +36,7 @@ class Login extends Component
                 [
                     'required',
                     'max:8',
-                    Rule::exists('codes', 'access_code')->where('accessible', 'Yes'),
+                    Rule::exists('codes', 'access_code')->where('is_accessible', 'yes'),
                 ],
         ];
     }
@@ -97,7 +97,7 @@ class Login extends Component
     {
         $this->validateOnly('access_code');
 
-        // if (Code::where('access_code', $this->accessCode)->value('accessible') === 'Yes') {
+        // if (Code::where('access_code', $this->accessCode)->value('is_accessible') === 'yes') {
         //     session()->regenerate();
 
         //     return redirect()->route('barangay.index', ['accessCode' => $this->accessCode]);
