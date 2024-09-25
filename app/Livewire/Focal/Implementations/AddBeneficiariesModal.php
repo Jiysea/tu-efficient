@@ -8,10 +8,10 @@ use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\JaccardSimilarity;
+use App\Services\MoneyFormat;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\Modelable;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Attributes\Validate;
@@ -142,7 +142,7 @@ class AddBeneficiariesModal extends Component
             'extension_name' => [
                 # Check if the name has illegal characters
                 function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
 
                     # throws validation errors whenever it detects illegal characters on names
                     if (strpbrk($value, $illegal)) {
@@ -154,10 +154,41 @@ class AddBeneficiariesModal extends Component
                     }
                 },
             ],
-            'birthdate' => 'required|date',
-            'contact_num' => 'required',
-            'avg_monthly_income' => 'required_unless:occupation,null',
-            'occupation' => 'required_unless:avg_monthly_income,null',
+            'birthdate' => 'required',
+            'contact_num' => [
+                'required',
+                function ($attr, $value, $fail) {
+                    if (!preg_match('~[0-9]+~', $value)) {
+                        $fail('Value only accepts numbers.');
+                    } else if ((strlen($value) !== 11)) {
+                        $fail('Valid number should be 11 digits.');
+                    }
+                }
+            ],
+            'avg_monthly_income' => [
+                'required_unless:occupation,null',
+                function ($attr, $value, $fail) {
+                    if ($this->avg_monthly_income) {
+                        $money = new MoneyFormat();
+
+                        if ($money->isNegative($value)) {
+                            $fail('The value should be more than 1.');
+                        }
+                        if (!$money->isMaskInt($value)) {
+
+                            $fail('The value should be a valid amount.');
+                        }
+                    }
+                },
+            ],
+            'occupation' => [
+                # hard-coded since `required_unless` is messy with `$money($input)` x-mask
+                function ($attr, $value, $fail) {
+                    if ($this->avg_monthly_income && !$value) {
+                        $fail('This field is required.');
+                    }
+                },
+            ],
             'image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
             'id_number' => 'required',
             'spouse_first_name' => 'required_if:civil_status,Married',
@@ -176,7 +207,6 @@ class AddBeneficiariesModal extends Component
             'birthdate.required' => 'This field is required.',
             'contact_num.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
-            'occupation.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
             'spouse_first_name.required_if' => 'This field is required.',
             'spouse_last_name.required_if' => 'This field is required.',
@@ -272,7 +302,7 @@ class AddBeneficiariesModal extends Component
     # END OF ADD REASON MODAL AREA
     # ----------------------------------------------------------------------------------------------
 
-    # a livewire action executes after clicking the `Create Project` button
+    # a livewire action executes after clicking the `Add` button
     public function saveBeneficiary()
     {
         if (!$this->occupation && !$this->avg_monthly_income) {
@@ -280,11 +310,9 @@ class AddBeneficiariesModal extends Component
             $this->resetValidation('avg_monthly_income');
         }
 
-        // dump($this->all());
-
         $this->validate();
-        # other attributes not in this form:
-        # city_municipality, province, district, age, is_senior_citizen, is_pwd,
+        $money = new MoneyFormat();
+        $this->avg_monthly_income = $money->unmask($this->avg_monthly_income);
 
         $batch = Batch::find($this->batchId);
         $implementation = Implementation::find($batch->value('implementations_id'));

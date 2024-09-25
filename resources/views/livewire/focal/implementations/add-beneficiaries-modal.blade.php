@@ -1,6 +1,6 @@
 <div wire:ignore.self id="add-beneficiaries-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-4 w-full max-w-7xl max-h-full">
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 max-h-full">
+    <div class="relative pt-4 px-4 w-full max-w-7xl max-h-full">
         <!-- Modal content -->
         <div class="relative bg-white rounded-md shadow">
             <!-- Modal header -->
@@ -760,25 +760,6 @@
                         budgetToInt: null,
                         unmaskedBudget: null,
                         occ: $wire.entangle('occupation'),
-                    
-                        demaskValue(value) {
-                            if (value) {
-                                // Remove commas
-                                this.budgetToFloat = value.replaceAll(',', '');
-                    
-                                // Check if there's a decimal point
-                                if (this.budgetToFloat.includes('.')) {
-                                    // Convert to float, format to 2 decimal places, then remove the decimal
-                                    this.budgetToInt = parseInt((parseFloat(this.budgetToFloat).toFixed(2)).replace('.', ''));
-                                } else {
-                                    // Append '00' if there's no decimal point
-                                    this.budgetToInt = parseInt(this.budgetToFloat + '00');
-                                }
-                            } else {
-                                this.budgetToInt = null;
-                            }
-                            this.unmaskedBudget = this.budgetToInt;
-                        }
                     }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                         <label for="avg_monthly_income" class="block mb-1  font-medium text-indigo-1100 ">Average
                             Monthly
@@ -790,10 +771,9 @@
                                 <p class="flex text-center w-full relative items-center justify-center font-medium">₱
                                 </p>
                             </div>
-                            <input x-mask:dynamic="$money($input)" type="text" inputmode="numeric" min="0"
+                            <input x-mask:dynamic="$money($input)" type="text" min="0"
                                 autocomplete="off" id="avg_monthly_income"
-                                @input="demaskValue($el.value);
-                                $wire.set('avg_monthly_income', unmaskedBudget);"
+                                wire:model.blur="avg_monthly_income"
                                 class="text-xs outline-none border ps-10 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('avg_monthly_income') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50  border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="0.00">
                         </div>

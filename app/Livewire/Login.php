@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Code;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -97,14 +98,15 @@ class Login extends Component
     {
         $this->validateOnly('access_code');
 
-        // if (Code::where('access_code', $this->accessCode)->value('is_accessible') === 'yes') {
-        //     session()->regenerate();
+        if (Code::where('access_code', $this->access_code)->value('is_accessible') === 'yes') {
+            session()->regenerate();
 
-        //     return redirect()->route('barangay.index', ['accessCode' => $this->accessCode]);
-        // }
+            $encryptedAccessCode = encrypt($this->access_code);
 
-        // session()->flash('access-code', 'Access code do not match our records.');
-        // session()->flash('access-code', 'Temporarily blocked access. Please try again later.');
+            session()->put('code', $encryptedAccessCode);
+
+            $this->redirectRoute('barangay.index');
+        }
     }
 
     public function mount()
@@ -114,6 +116,12 @@ class Login extends Component
                 return redirect()->route('focal.dashboard');
             else if (Auth::user()->user_type === 'coordinator')
                 return redirect()->route('coordinator.assignments');
+        } else {
+            if (session('code')) {
+                session()->invalidate();
+                session()->flush();
+                session()->regenerateToken();
+            }
         }
     }
     public function render()

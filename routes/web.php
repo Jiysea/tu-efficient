@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\BarangayController;
+use App\Http\Controllers\ImageController;
+use App\Livewire\Barangay\ListingPage;
 use App\Livewire\Coordinator\Assignments;
 use App\Livewire\Coordinator\Submissions;
 use App\Livewire\Coordinator\Forms;
@@ -14,13 +16,6 @@ use App\Livewire\Login\FocalCoordinatorForm;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Login::class)->name('login');
-
-Route::get('/logoutiftroubled', function () {
-    Auth::logout();
-    session()->invalidate();
-    session()->flush();
-    session()->regenerateToken();
-});
 
 // -------------------------------------
 
@@ -40,9 +35,16 @@ Route::middleware('auth')->group(function () {
 
 });
 
-// Route::get('/barangay/{accessCode}', [BarangayIndexController::class, 'showAll'])->name('barangay.index');
+Route::get('/barangay/listing', ListingPage::class)->name('barangay.index');
 
 // --------------------------------------
+
+// Route::get('/logoutiftroubled', function () {
+//     Auth::logout();
+//     session()->invalidate();
+//     session()->flush();
+//     session()->regenerateToken();
+// });
 
 // Route::get('/focal/verify', FocalSMSVerificationController::class)->name('focal.verify');
 // Route::get('/coordinator/verify', CoordinatorSMSVerificationController::class)->name('coordinator.verify');

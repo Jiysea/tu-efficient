@@ -119,6 +119,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </path>
                                 </svg>
                             </div>
+
+                            {{-- Search Input Bar --}}
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
                                     <svg class="size-3 {{ $this->implementations->isNotEmpty() || $searchProjects ? 'text-indigo-800' : 'text-zinc-400' }}"
@@ -571,14 +573,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        @php
-                                            $encryptedId = Crypt::encrypt($beneficiary->id);
-                                        @endphp
                                         <tr wire:key="beneficiary-{{ $key }}"
-                                            wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ $encryptedId }}')"
+                                            wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}')"
                                             class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} border-b whitespace-nowrap">
                                             <th scope="row"
-                                                class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap ">
+                                                class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium">
                                                 {{ $key + 1 }}
                                             </th>
                                             <td class="px-2 border-r border-gray-200">
@@ -594,7 +593,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $beneficiary->extension_name ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                {{ $beneficiary->birthdate }}
+                                                {{ \Carbon\Carbon::parse($beneficiary->birthdate)->format('M d, Y') }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
                                                 {{ $beneficiary->contact_num }}
