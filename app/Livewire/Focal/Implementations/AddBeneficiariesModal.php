@@ -349,14 +349,16 @@ class AddBeneficiariesModal extends Component
             'spouse_extension_name' => $this->spouse_extension_name,
         ]);
 
-        $file = $this->image_file_path->store(path: 'credentials');
+        if ($this->image_file_path) {
+            $file = $this->image_file_path->store(path: 'credentials');
 
-        Credential::create([
-            'beneficiaries_id' => $beneficiary->id,
-            'image_description' => null,
-            'image_file_path' => $file ?? null,
-            'for_duplicates' => 'no',
-        ]);
+            Credential::create([
+                'beneficiaries_id' => $beneficiary->id,
+                'image_description' => null,
+                'image_file_path' => $file ?? null,
+                'for_duplicates' => 'no',
+            ]);
+        }
 
         if ($this->isResults) {
             $file = $this->reason_image_file_path->store(path: 'credentials');
