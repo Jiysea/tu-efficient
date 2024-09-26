@@ -49,7 +49,11 @@ class Submissions extends Component
         $this->batches_on_page = $this->defaultBatches_on_page;
         $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
-        $this->batchId = null;
+        if ($this->batches->isNotEmpty()) {
+            $this->batchId = $this->batches[0]->id;
+        } else {
+            $this->batchId = null;
+        }
 
         $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
@@ -68,7 +72,11 @@ class Submissions extends Component
         $this->batches_on_page = $this->defaultBatches_on_page;
         $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
-        $this->batchId = null;
+        if ($this->batches->isNotEmpty()) {
+            $this->batchId = $this->batches[0]->id;
+        } else {
+            $this->batchId = null;
+        }
 
         $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
@@ -99,7 +107,6 @@ class Submissions extends Component
 
         $this->dispatch('init-reload')->self();
     }
-
 
     #[Computed]
     public function batches()
@@ -215,12 +222,10 @@ class Submissions extends Component
             $currentBatch = 'None';
         }
 
-
-
         return $currentBatch;
     }
 
-
+    # this loads the beneficiaries to take more after scrolling to the bottom on the table list
     public function loadMoreBeneficiaries()
     {
         $this->beneficiaries_on_page += $this->defaultBeneficiaries_on_page;
@@ -251,15 +256,7 @@ class Submissions extends Component
         return $full_name;
     }
 
-    public function checkIfBatchIdExists()
-    {
-        if (!$this->batchId) {
-            $this->batchId = $this->batches[0]->id;
-        }
-        // if ($this->batches->isNotEmpty())
-
-    }
-
+    # batchId and coordinatorId will only be NOT null when the user clicks `View List` from the assignments page
     public function mount($batchId = null, $coordinatorId = null)
     {
         if (Auth::user()->user_type !== 'coordinator') {
@@ -272,23 +269,24 @@ class Submissions extends Component
             }
         }
 
+        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
+        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+
         if ($batchId !== null) {
             $this->batchId = decrypt($batchId);
+        } elseif ($this->batches->isEmpty()) {
+            $this->batchId = null;
         } else {
-            $this->batchId = $batchId;
+            $this->batchId = $this->batches[0]->id;
         }
 
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->batchNumPrefix = $settings->get('batch_num_prefix', config('settings.batch_number_prefix'));
 
-        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d H:i:s', strtotime(now()));
-
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
 
-        $this->checkIfBatchIdExists();
     }
     public function render()
     {

@@ -771,9 +771,8 @@
                                 <p class="flex text-center w-full relative items-center justify-center font-medium">₱
                                 </p>
                             </div>
-                            <input x-mask:dynamic="$money($input)" type="text" min="0"
-                                autocomplete="off" id="avg_monthly_income"
-                                wire:model.blur="avg_monthly_income"
+                            <input x-mask:dynamic="$money($input)" type="text" min="0" autocomplete="off"
+                                id="avg_monthly_income" wire:model.blur="avg_monthly_income"
                                 class="text-xs outline-none border ps-10 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('avg_monthly_income') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50  border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="0.00">
                         </div>
@@ -1308,8 +1307,6 @@
                     this.styles =
                         `bottom: ${svgIcon.offsetHeight + 4}px; right: 0px;`;
                 });
-
-
             }
         });
 

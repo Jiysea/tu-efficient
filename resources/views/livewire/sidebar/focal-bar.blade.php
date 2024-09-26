@@ -10,12 +10,13 @@
         </svg>
     </button> --}}
 
-    <div x-data="{ dashboardHover: false, implementationsHover: false, umanagementHover: false, alogsHover: false }" id="logo-sidebar"
+    {{-- XL --}}
+    <div id="logo-sidebar"
         :class="{
             'w-20': open === false,
             'w-20 xl:w-64': open === true,
         }"
-        class="fixed top-0 left-0 z-40 w-20 xl:w-64 h-screen duration-500 ease-in-out select-none" aria-label="Sidebar">
+        class="fixed top-0 left-0 z-40 w-20 xl:w-64 h-full duration-500 ease-in-out select-none" aria-label="Sidebar">
 
         {{-- Sidebar Opener --}}
         <div :class="{
@@ -37,7 +38,7 @@
             </svg>
         </div>
 
-        <div class="relative overflow-visible  flex flex-col justify-between h-full px-3 w-full py-4 bg-indigo-900">
+        <div class="relative overflow-visible flex flex-col justify-between h-full px-3 w-full py-4 bg-indigo-900">
             <div class="">
                 <img :class="{
                     'translate-x-0 opacity-100 xl:-translate-x-16 xl:opacity-0': open === true,
@@ -58,9 +59,9 @@
 
                 <ul class="space-y-2 font-medium text-sm">
 
-                    <li class="relative">
-                        <a href="{{ route('focal.dashboard') }}" wire:loading.attr="disabled"
-                            @mouseover="dashboardHover = true" @mouseleave="dashboardHover = false"
+                    <li x-data="{ hover: false }" class="relative">
+                        <a href="{{ route('focal.dashboard') }}" wire:loading.attr="disabled" @mouseover="hover = true"
+                            @mouseleave="hover = false"
                             class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300 group-focus:text-indigo-300"
@@ -80,7 +81,7 @@
                                 Dashboard
                             </div>
                         </a>
-                        <div x-show="dashboardHover" x-transition
+                        <div x-show="hover" x-transition
                             :class="{
                                 'hidden': (open === true && isAboveBreakpoint === true),
                                 'inline-block': (open === false && isAboveBreakpoint === true),
@@ -91,7 +92,7 @@
                             </div>
                         </div>
                     </li>
-                    <li class="relative">
+                    <li x-data="{ hover: false }" class="relative">
                         <a href="{{ route('focal.implementations') }}" wire:loading.attr="disabled"
                             @mouseover="implementationsHover = true" @mouseleave="implementationsHover = false"
                             class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
@@ -113,7 +114,7 @@
                                 Implementations
                             </div>
                         </a>
-                        <div x-show="implementationsHover" x-transition
+                        <div x-show="hover" x-transition
                             :class="{
                                 'hidden': (open === true && isAboveBreakpoint === true),
                                 'inline-block': (open === false && isAboveBreakpoint === true),
@@ -124,9 +125,9 @@
                             </div>
                         </div>
                     </li>
-                    <li class="relative">
+                    <li x-data="{ hover: false }" class="relative">
                         <a href="{{ route('focal.user-management') }}" wire:loading.attr="disabled"
-                            @mouseover="umanagementHover = true" @mouseleave="umanagementHover = false"
+                            @mouseover="hover = true" @mouseleave="hover = false"
                             class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300  group-focus:text-indigo-300"
@@ -148,7 +149,7 @@
                                 Management
                             </div>
                         </a>
-                        <div x-show="umanagementHover" x-transition
+                        <div x-show="hover" x-transition
                             :class="{
                                 'hidden': (open === true && isAboveBreakpoint === true),
                                 'inline-block': (open === false && isAboveBreakpoint === true),
@@ -159,9 +160,9 @@
                             </div>
                         </div>
                     </li>
-                    <li class="relative">
+                    <li x-data="{ hover: false }" class="relative">
                         <a href="{{ route('focal.activity-logs') }}" wire:loading.attr="disabled"
-                            @mouseover="alogsHover = true" @mouseleave="alogsHover = false"
+                            @mouseover="hover = true" @mouseleave="hover = false"
                             class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="flex-shrink-0 size-6 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300  group-focus:text-indigo-300"
@@ -182,7 +183,7 @@
                                 Logs
                             </div>
                         </a>
-                        <div x-show="alogsHover" x-transition
+                        <div x-show="hover" x-transition
                             :class="{
                                 'hidden': (open === true && isAboveBreakpoint === true),
                                 'inline-block': (open === false && isAboveBreakpoint === true),
@@ -195,10 +196,10 @@
                     </li>
                 </ul>
             </div>
-            <div>
+            <div x-data="{ account: false }">
                 <ul class="font-medium text-sm">
                     <li class="relative">
-                        <button @click="profileShow = !profileShow"
+                        <button @click="account = !account"
                             class="flex items-center w-full px-3 py-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none group duration-300 ease-in-out cursor-pointer">
 
                             <svg class="text-center flex-shrink-0 size-8 text-indigo-50 duration-300 ease-in-out group-hover:text-indigo-300 group-focus:text-indigo-300"
@@ -220,30 +221,13 @@
                             </div>
                         </button>
                         <!-- Profile Dropdown menu -->
-                        <div x-show="profileShow" @click.away="profileShow = !profileShow"
+                        <div x-show="account" @click.away="account = !account"
                             :class="{
-                                'block': profileShow === true,
-                                'hidden': profileShow === false,
+                                'block': account === true,
+                                'hidden': account === false,
                             }"
                             class="hidden -bottom-0 left-full xl:bottom-full xl:left-1/4 xl:mb-3 absolute text-indigo-1100 bg-white shadow-lg border border-indigo-100 rounded">
                             <ul class="text-sm max-h-44">
-
-                                {{-- Profile --}}
-                                <li>
-                                    <a href="#" aria-label="{{ __('Profile') }}"
-                                        class="flex items-center text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M182.813 38.986 C 133.336 49.902,106.480 104.390,127.973 150.254 C 159.471 217.470,258.751 208.316,276.928 136.519 C 291.440 79.197,240.383 26.285,182.813 38.986 M210.547 64.172 C 234.701 68.412,253.447 91.229,253.463 116.406 C 253.494 166.508,190.733 189.409,158.901 150.910 C 126.713 111.982,160.420 55.372,210.547 64.172 M140.625 220.835 C 91.174 226.492,53.906 267.234,53.906 315.639 C 53.906 337.642,67.630 356.006,88.003 361.262 C 95.299 363.144,304.701 363.144,311.997 361.262 C 370.247 346.234,349.547 250.430,282.813 226.190 C 267.722 220.709,269.266 220.816,203.125 220.662 C 170.254 220.585,142.129 220.663,140.625 220.835 M265.524 247.911 C 296.763 256.284,318.236 281.590,320.063 312.187 C 320.759 323.829,316.827 331.310,307.821 335.478 C 302.259 338.053,97.741 338.053,92.179 335.478 C 83.173 331.310,79.241 323.829,79.937 312.187 C 81.894 279.407,107.358 251.869,140.265 246.944 C 149.590 245.549,259.886 246.400,265.524 247.911 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                            </g>
-                                        </svg>
-                                        Profile
-                                    </a>
-                                </li>
 
                                 {{-- Settings --}}
                                 <li>

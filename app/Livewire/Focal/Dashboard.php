@@ -40,12 +40,19 @@ class Dashboard extends Component
         $this->reset('searchProject');
         $choosenDate = date('Y-m-d', strtotime($value));
         $currentTime = date('H:i:s', strtotime(now()));
-        $this->implementationId = $this->implementations[0]->id;
-        $this->currentImplementation = $this->implementations[0]->project_num ?? 'N/A';
-        $this->resetPage();
-        $this->setCharts();
 
         $this->start = $choosenDate . ' ' . $currentTime;
+
+        if ($this->implementations->isEmpty()) {
+            $this->implementationId = null;
+            $this->currentImplementation = 'None';
+        } else {
+            $this->implementationId = $this->implementations[0]->id;
+            $this->currentImplementation = $this->implementations[0]->project_num;
+        }
+
+        $this->resetPage();
+        $this->setCharts();
     }
 
     #[On('end-change')]
@@ -54,12 +61,19 @@ class Dashboard extends Component
         $this->reset('searchProject');
         $choosenDate = date('Y-m-d', strtotime($value));
         $currentTime = date('H:i:s', strtotime(now()));
-        $this->implementationId = $this->implementations[0]->id;
-        $this->currentImplementation = $this->implementations[0]->project_num ?? 'N/A';
-        $this->resetPage();
-        $this->setCharts();
 
         $this->end = $choosenDate . ' ' . $currentTime;
+
+        if ($this->implementations->isEmpty()) {
+            $this->implementationId = null;
+            $this->currentImplementation = 'None';
+        } else {
+            $this->implementationId = $this->implementations[0]->id;
+            $this->currentImplementation = $this->implementations[0]->project_num;
+        }
+
+        $this->resetPage();
+        $this->setCharts();
     }
 
     #[Computed]
@@ -87,6 +101,7 @@ class Dashboard extends Component
             ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
             ->whereBetween('created_at', [$this->start, $this->end])
             ->select('id', 'project_num')
+            ->latest('updated_at')
             ->get();
 
         return $implementations;
