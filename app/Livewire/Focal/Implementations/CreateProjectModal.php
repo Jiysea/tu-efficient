@@ -10,25 +10,16 @@ use App\Services\MoneyFormat;
 use App\Services\Provinces;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CreateProjectModal extends Component
 {
-    protected Provinces $p;
-    protected CitiesMunicipalities $c;
-    protected Districts $d;
-
     # ----------------------------------------
 
     public $isAutoComputeEnabled = false;
     public $minimumWage;
-    public $provinces;
-    public $cities_municipalities;
-    public $districts;
-
-    # ----------------------------------------
-
     public $projectNumPrefix;
     #[Validate]
     public $project_num;
@@ -177,7 +168,7 @@ class CreateProjectModal extends Component
     }
 
     # a livewire action for toggling the auto computation for total slots
-    public function toggleTry()
+    public function autoCompute()
     {
         # checks if the toggle (checkbox) is on/true OR off/false
         if ($this->isAutoComputeEnabled) {
@@ -190,8 +181,8 @@ class CreateProjectModal extends Component
 
             $money = new MoneyFormat();
             $tempBudget = $money->unmask($this->budget_amount ?? '0.00');
+
             ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 1 : $this->days_of_work;
-            // dd($this->days_of_work);
             $this->total_slots = intval($tempBudget / ($this->minimumWage * $this->days_of_work));
 
             $this->validateOnly('total_slots');
@@ -199,39 +190,57 @@ class CreateProjectModal extends Component
         }
     }
 
-    public function getProvinces()
+    # Gets all the provinces according to the authenticated user's (focal) regional office
+    #[Computed]
+    public function provinces()
     {
-        $this->p = new Provinces();
-        $provinces = $this->p->getProvinces(Auth::user()->regional_office);
-        $this->provinces = $provinces;
+        $p = new Provinces();
+        return $p->getProvinces(Auth::user()->regional_office);
     }
 
-    public function getCitiesMunicipalities()
+    # Gets all the cities/municipalities according to the choosen province by the user
+    #[Computed]
+    public function cities_municipalities()
     {
-        $this->c = new CitiesMunicipalities();
-        $cities_municipalities = $this->c->getCitiesMunicipalities($this->province);
-        $this->cities_municipalities = $cities_municipalities;
+        $c = new CitiesMunicipalities();
+        return $c->getCitiesMunicipalities($this->province);
     }
 
-    public function getDistricts()
+    # Gets all the districts (unless it's a lone district) according to the choosen city/municipality by the user
+    #[Computed]
+    public function districts()
     {
-        $this->d = new Districts();
-        $districts = $this->d->getDistricts($this->city_municipality, $this->province);
-        $this->districts = $districts;
+        $d = new Districts();
+        return $d->getDistricts($this->city_municipality, $this->province);
     }
 
     public function updatedProvince()
     {
-        $this->getCitiesMunicipalities();
         $this->city_municipality = $this->cities_municipalities[0];
-        $this->getDistricts();
         $this->district = $this->districts[0];
 
     }
 
     public function updatedCityMunicipality()
     {
-        $this->getDistricts();
+        $this->district = $this->districts[0];
+    }
+
+    public function resetProject()
+    {
+        $this->reset(
+            'project_num',
+            'project_title',
+            'purpose',
+            'budget_amount',
+            'total_slots',
+            'days_of_work',
+            'isAutoComputeEnabled',
+        );
+
+        $this->resetValidation();
+        $this->province = $this->provinces[0];
+        $this->city_municipality = $this->cities_municipalities[0];
         $this->district = $this->districts[0];
     }
 
@@ -244,11 +253,8 @@ class CreateProjectModal extends Component
         $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval($minimumWage), 2)));
         $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
 
-        $this->getProvinces();
         $this->province = $this->provinces[0];
-        $this->getCitiesMunicipalities();
         $this->city_municipality = $this->cities_municipalities[0];
-        $this->getDistricts();
         $this->district = $this->districts[0];
     }
 

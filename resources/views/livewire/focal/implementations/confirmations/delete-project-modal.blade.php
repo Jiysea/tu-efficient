@@ -1,19 +1,11 @@
 <div x-cloak>
     <!-- Modal Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="projectDeleteModal"
-        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="deleteProjectModal">
     </div>
 
     <!-- Modal -->
-    <div x-trap.inert="projectDeleteModal" x-show="projectDeleteModal" x-trap.noscroll="projectDeleteModal"
-        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full"
-        x-transition:enter="transition ease-in-out duration-300" x-transition:enter-start="opacity-0 transform scale-90"
-        x-transition:enter-end="opacity-100 transform scale-100"
-        x-transition:leave="transition ease-in-out duration-300"
-        x-transition:leave-start="opacity-100 transform scale-100"
-        x-transition:leave-end="opacity-0 transform scale-90">
+    <div x-trap.inert="deleteProjectModal" x-show="deleteProjectModal" x-trap.noscroll="deleteProjectModal"
+        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
 
         {{-- The Modal --}}
         <div class="relative w-full max-w-xl max-h-full">
@@ -37,9 +29,9 @@
                     <div class="flex items-center justify-center w-full gap-4">
                         <button type="button"
                             class="duration-200 ease-in-out flex flex-1 items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm border border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50"
-                            @click="projectDeleteModal = false;">CANCEL</button>
+                            @click="deleteProjectModal = false;">CANCEL</button>
 
-                        <button type="button" @click="projectDeleteModal = false; openProjectModal = false;"
+                        <button type="button" @click="deleteProjectModal = false; viewProjectModal = false;"
                             class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50"
                             wire:click.prevent="$parent.deleteProject()">CONFIRM</button>
                     </div>

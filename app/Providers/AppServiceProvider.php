@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Batch;
 use App\Models\Code;
 use App\Models\Implementation;
 use App\Models\User;
@@ -28,8 +29,12 @@ class AppServiceProvider extends ServiceProvider
             return $user->id === $implementation->users_id;
         });
 
-        Gate::define('delete-batch', function (User $user, Implementation $implementation) {
-            return $user->id === $implementation->users_id;
+        Gate::define('delete-batch', function (User $user, Implementation $implementation, Batch $batch) {
+            if ($batch->implementations_id === $implementation->id) {
+                return $user->id === $implementation->users_id;
+            } else {
+                return false;
+            }
         });
     }
 }
