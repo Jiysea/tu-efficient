@@ -35,10 +35,12 @@ class Implementations extends Component
     public $viewProjectModal = false;
     #[Locked]
     public $passedBatchId;
-    public $viewBatchModal = false;
     public $assignBatchesModal = false;
+    public $viewBatchModal = false;
     #[Locked]
-    public $passedId;
+    public $passedBeneficiaryId;
+    public $addBeneficiariesModal = false;
+    public $viewBeneficiaryModal = false;
 
     # ------------------------------------------
 
@@ -74,7 +76,7 @@ class Implementations extends Component
 
         $this->passedProjectId = null;
         $this->passedBatchId = null;
-        $this->passedId = null;
+        $this->passedBeneficiaryId = null;
         $this->implementationId = null;
         $this->batchId = null;
 
@@ -97,7 +99,7 @@ class Implementations extends Component
 
         $this->passedProjectId = null;
         $this->passedBatchId = null;
-        $this->passedId = null;
+        $this->passedBeneficiaryId = null;
         $this->implementationId = null;
         $this->batchId = null;
 
@@ -118,6 +120,12 @@ class Implementations extends Component
     {
         $this->passedBatchId = $batchId;
         $this->viewBatchModal = true;
+    }
+
+    public function viewBeneficiary(string $beneficiaryId)
+    {
+        $this->passedBeneficiaryId = $beneficiaryId;
+        $this->viewBeneficiaryModal = true;
     }
 
     public function selectImplementationRow($key, $encryptedId)
@@ -158,7 +166,7 @@ class Implementations extends Component
     public function selectBeneficiaryRow($key, $encryptedId)
     {
         $this->selectedBeneficiaryRow = $key;
-        $this->beneficiaryId = Crypt::decrypt($encryptedId);
+        $this->beneficiaryId = $encryptedId;
     }
 
     #[Computed]
@@ -336,7 +344,7 @@ class Implementations extends Component
         $this->createProjectModal = false;
     }
 
-    #[On('edit-implementations')]
+    #[On('edit-project')]
     public function editProject()
     {
         $dateTimeFromEnd = $this->end;
@@ -354,7 +362,7 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
-    #[On('delete-implementations')]
+    #[On('delete-project')]
     public function deleteProject()
     {
         $dateTimeFromEnd = $this->end;
@@ -446,7 +454,7 @@ class Implementations extends Component
     }
 
     #[On('add-beneficiaries')]
-    public function addBeneficiaries()
+    public function saveBeneficiaries()
     {
         $dateTimeFromEnd = $this->end;
         $value = substr($dateTimeFromEnd, 0, 10);
@@ -465,11 +473,44 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
-    # ASSIGN BATCHES && VIEW BATCH MODAL ---------------------------------------
+    #[On('edit-beneficiary')]
+    public function editBeneficiary()
+    {
+        // $dateTimeFromEnd = $this->end;
+        // $value = substr($dateTimeFromEnd, 0, 10);
 
+        // $choosenDate = date('Y-m-d', strtotime($value));
+        // $currentTime = date('H:i:s', strtotime(now()));
+        // $this->end = $choosenDate . ' ' . $currentTime;
 
+        $this->showAlert = true;
+        $this->alertMessage = 'Nothing happened.';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
 
-    # ASSIGN BATCHES && VIEW BATCH MODAL ---------------------------------------
+    #[On('delete-beneficiary')]
+    public function deleteBeneficiary()
+    {
+        // $dateTimeFromEnd = $this->end;
+        // $value = substr($dateTimeFromEnd, 0, 10);
+
+        // $choosenDate = date('Y-m-d', strtotime($value));
+        // $currentTime = date('H:i:s', strtotime(now()));
+        // $this->end = $choosenDate . ' ' . $currentTime;
+
+        // $this->passedBeneficiaryId = null;
+        // $this->beneficiaryId = null;
+
+        // $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Nothing happened.';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+
+        # $this->viewBeneficiaryModal = false;
+    }
 
     public function mount()
     {

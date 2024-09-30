@@ -524,9 +524,6 @@ class ListingPage extends Component
             # removes excess whitespaces between words
             $filteredInputString = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $filteredInputString)));
 
-            # removes excess whitespaces
-            // $filteredInputString = preg_replace('/\s+/', ' ', $filteredInputString);
-
             # gets the matching mode settings
             $settings = UserSetting::where('users_id', Auth::id())
                 ->pluck('value', 'key');

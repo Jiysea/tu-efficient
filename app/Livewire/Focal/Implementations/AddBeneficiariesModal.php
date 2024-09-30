@@ -11,6 +11,7 @@ use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
@@ -32,8 +33,7 @@ class AddBeneficiariesModal extends Component
 
     # ------------------------------------
 
-    public $beneficiariesFromDatabase;
-    protected $jaccardSimilarity;
+    public $isMarried = false;
     public $includeBirthdate = false;
     public $similarityResults;
     public $isResults = false;
@@ -71,7 +71,7 @@ class AddBeneficiariesModal extends Component
     public $is_pwd = 'No';
     #[Validate]
     public $image_file_path;
-    public $type_of_id = 'e-Card / UMID';
+    public $type_of_id = 'Barangay ID';
     #[Validate]
     public $id_number;
     #[Validate]
@@ -211,8 +211,8 @@ class AddBeneficiariesModal extends Component
             'spouse_first_name.required_if' => 'This field is required.',
             'spouse_last_name.required_if' => 'This field is required.',
 
-            'image_file_path.image' => ':attribute should be an image type.',
-            'image_file_path.mimes' => ':attribute should be in PNG or JPG format.',
+            'image_file_path.image' => 'It should be an image type.',
+            'image_file_path.mimes' => 'It should be in PNG or JPG format.',
 
             'image_description.required_if' => 'Description must not be left blank.',
 
@@ -223,31 +223,13 @@ class AddBeneficiariesModal extends Component
         ];
     }
 
-    # Validation attribute names for human readability purpose
-    # for example: The project_num should not be empty.
-    # instead of that: The project number should not be empty.
-    public function validationAttributes()
+    public function updatedBirthdate()
     {
-        return [
-            'first_name' => 'First name',
-            'last_name' => 'Last name',
-            'birthdate' => 'Birth date',
-            'contact_num' => 'Contact number',
-            'id_number' => 'ID Number',
-            'image_file_path' => 'File',
-        ];
-    }
+        if ($this->birthdate) {
+            $choosenDate = Carbon::parse($this->birthdate)->format('Y-m-d');
 
-    #[On('birthdate-change')]
-    public function setBirthdate($value)
-    {
-        if ($value) {
-            $choosenDate = Carbon::createFromFormat('m-d-Y', $value)->format('Y-m-d');
-
-            $this->birthdate = $choosenDate;
-
-            if ($this->type_of_id === 'Senior Citizen ID' && strtotime($this->birthdate) > strtotime(Carbon::now()->subYears(60))) {
-                $this->type_of_id = 'e-Card / UMID';
+            if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
+                $this->type_of_id = 'Barangay ID';
             }
             $this->nameCheck();
         } else {
@@ -258,8 +240,14 @@ class AddBeneficiariesModal extends Component
     public function updatedCivilStatus()
     {
         if ($this->civil_status === 'Single') {
+            $this->spouse_first_name = null;
+            $this->spouse_middle_name = null;
+            $this->spouse_last_name = null;
+            $this->spouse_extension_name = null;
             $this->resetValidation('spouse_first_name');
             $this->resetValidation('spouse_last_name');
+        } else {
+
         }
     }
 
@@ -271,19 +259,18 @@ class AddBeneficiariesModal extends Component
         }
     }
 
-    // public function updatedOccupation()
-    // {
-    //     if (!$this->avg_monthly_income) {
-    //         $this->resetValidation('occupation');
-    //         $this->resetValidation('avg_monthly_income');
-    //     }
-    // }
-
     public function updatedAvgMonthlyIncome()
     {
         if (!$this->occupation) {
             $this->resetValidation('avg_monthly_income');
             $this->reset('occupation');
+        }
+    }
+
+    public function updatedIsPwd()
+    {
+        if ($this->is_pwd === 'No' && $this->type_of_id === "Person's With Disability (PWD) ID") {
+            $this->type_of_id = 'Barangay ID';
         }
     }
 
@@ -311,26 +298,30 @@ class AddBeneficiariesModal extends Component
         }
 
         $this->validate();
-        $money = new MoneyFormat();
-        $this->avg_monthly_income = $money->unmask($this->avg_monthly_income);
 
-        $batch = Batch::find($this->batchId);
+        $money = new MoneyFormat();
+        $this->avg_monthly_income = $this->avg_monthly_income ? $money->unmask($this->avg_monthly_income) : null;
+
+        $this->birthdate = Carbon::parse($this->birthdate)->format('Y-m-d h:i:s');
+        $this->contact_num = '+63' . substr($this->contact_num, 1);
+
+        $batch = Batch::find(decrypt($this->batchId));
         $implementation = Implementation::find($batch->value('implementations_id'));
 
         $beneficiary = Beneficiary::create([
-            'batches_id' => $this->batchId,
+            'batches_id' => decrypt($this->batchId),
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name ?? null,
             'last_name' => $this->last_name,
             'extension_name' => $this->extension_name ?? null,
             'birthdate' => $this->birthdate,
-            'barangay_name' => $batch->value('barangay_name'),
+            'barangay_name' => $batch->barangay_name,
             'contact_num' => $this->contact_num,
             'occupation' => $this->occupation ?? null,
             'avg_monthly_income' => $this->avg_monthly_income ?? null,
-            'city_municipality' => $implementation->value('city_municipality'),
-            'province' => $implementation->value('province'),
-            'district' => $implementation->value('district'),
+            'city_municipality' => $implementation->city_municipality,
+            'province' => $implementation->province,
+            'district' => $implementation->district,
             'type_of_id' => $this->type_of_id,
             'id_number' => $this->id_number,
             'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
@@ -349,16 +340,19 @@ class AddBeneficiariesModal extends Component
             'spouse_extension_name' => $this->spouse_extension_name,
         ]);
 
+        $file = null;
+
         if ($this->image_file_path) {
             $file = $this->image_file_path->store(path: 'credentials');
-
-            Credential::create([
-                'beneficiaries_id' => $beneficiary->id,
-                'image_description' => null,
-                'image_file_path' => $file ?? null,
-                'for_duplicates' => 'no',
-            ]);
         }
+
+        Credential::create([
+            'beneficiaries_id' => $beneficiary->id,
+            'image_description' => null,
+            'image_file_path' => $file,
+            'for_duplicates' => 'no',
+        ]);
+
 
         if ($this->isResults) {
             $file = $this->reason_image_file_path->store(path: 'credentials');
@@ -370,13 +364,8 @@ class AddBeneficiariesModal extends Component
             ]);
         }
 
-        $this->resetExcept(
-            'batchId',
-            'maxDate',
-            'minDate',
-        );
-
         $this->dispatch('add-beneficiaries');
+        $this->resetBeneficiaries();
     }
 
     public function nameCheck()
@@ -395,246 +384,126 @@ class AddBeneficiariesModal extends Component
 
             # double checking again before handing over to the algorithm
             # basically we filter the user input along the way
+            $this->first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->first_name)));
             $filteredInputString = $this->first_name;
+            $this->validateOnly('first_name');
 
             if ($this->middle_name) {
+                $this->middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->middle_name)));
                 $filteredInputString .= ' ' . $this->middle_name;
+                $this->validateOnly('middle_name');
             }
 
+            $this->last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->last_name)));
             $filteredInputString .= ' ' . $this->last_name;
+            $this->validateOnly('last_name');
 
-            # checks the first_name, middle_name, and last_name
-            # if there are symbols
-            if (!strpbrk($filteredInputString, $illegal)) {
+            # checks if there's an extension_name input
+            if ($this->extension_name) {
+                $this->extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->extension_name)));
+                $filteredInputString .= ' ' . $this->extension_name;
+                $this->validateOnly('extension_name');
+            }
 
-                # checks if there's an extension_name input
-                if ($this->extension_name) {
-                    $filteredInputString .= ' ' . $this->extension_name;
-                }
+            # removes excess whitespaces between words
+            $filteredInputString = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $filteredInputString)));
 
-                # checks the extension_name
-                # if there are symbols except "."
-                $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
-                if (!strpbrk($filteredInputString, $illegal)) {
+            # gets the matching mode settings of the user
+            $settings = UserSetting::where('users_id', Auth::id())
+                ->pluck('value', 'key');
+            $duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
 
-                    # removes excess whitespaces between words
-                    $filteredInputString = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $filteredInputString)));
+            # fetch all the potential duplicating names from the database
+            $beneficiariesFromDatabase = $this->prefetchNames($filteredInputString);
 
-                    # checks if the string has numbers
-                    if (!preg_match('~[0-9]+~', $filteredInputString)) {
-                        # gets the matching mode settings of the user
-                        $settings = UserSetting::where('users_id', Auth::id())
-                            ->pluck('value', 'key');
-                        $matchingMode = $settings->get('extensive_matching', config('settings.extensive_matching'));
-                        $duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+            # call the JaccardSimilarity class object instance
+            $algorithm = new JaccardSimilarity();
 
-                        # removes excess whitespaces
-                        $filteredInputString = preg_replace('/\s+/', ' ', $filteredInputString);
+            # initialize possible duplicates variable
+            $possibleDuplicates = [];
 
-                        # only take beneficiaries from the start of the year until today
-                        $startDate = now()->startOfYear();
-                        $endDate = now();
+            # this is where it checks the similarities
+            foreach ($beneficiariesFromDatabase as $beneficiary) {
 
-                        $beneficiariesFromDatabase = null;
+                # gets the full name of the beneficiary
+                $name = $this->beneficiaryName($beneficiary, $this->middle_name, $this->extension_name);
 
-                        # basically a setting to enable extensive matching of duplication checks
-                        # now, what is `Extensive Matching`?
-                        # basically, it uses the first letter of every name fields
-                        # and loops them to get the same names with the same first letters.
-                        # 0 = exact matching; 1 = soft matching; 2 = extensive matching enabled
-                        if (intval($matchingMode) === 2) # extensive matching
-                        {
-                            # separate each word from all the name fields
-                            $namesToLetters = array_map(fn($word) => $word[0], explode(' ', $filteredInputString));
+                # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
+                $coEfficient = $algorithm->calculateSimilarity($name, $filteredInputString);
 
-                            # get the beneficiaries with indexing and filtering
-                            # really complicated but basically here's how it works:
+                # then check if it goes over the Threshold
+                if ($coEfficient > $duplicationThreshold) {
+                    $this->isResults = true;
 
-                            #   - Before the query, we tried to get the substrings of the firstname, middlename, and lastname.
-                            #   - Since there's a possibility that a person can have more than 1 firstname, I map the first
-                            #           letter of each word of their first name.
-                            #   - Also, getting the dates from the start of this year (ex. January 1st of this year)
-                            #           then the date of today to scope the data since you could only apply to TUPAD
-                            #           once a year.
-                            #   - Then we start the query with the INNER JOINS (beneficiaries->batches->implementations)
-                            #   - A where clause for the dates in implementations table to query its creation date.
-                            #   - Then we loop all the firstname substrings for the LIKE query.
-                            #   - Next, we have the lastname where clause followed by an OR where clause for the middlename
-                            #           since it's optional.
-                            #   - Then finally select the first_name, middle_name, last_name, extension_name,
-                            #           birthdate, and barangay_name and get it as an array.
-
-                            $beneficiariesFromDatabase = Beneficiary::join('batches', 'beneficiaries.batches_id', '=', 'batches.id')
-                                ->join('implementations', 'batches.implementations_id', '=', 'implementations.id')
-                                ->whereBetween('implementations.created_at', [$startDate, $endDate])
-                                ->where(function ($query) use ($namesToLetters) {
-                                    foreach ($namesToLetters as $letter) {
-                                        $query->orWhere('beneficiaries.first_name', 'LIKE', '%' . $letter . '%');
-                                        $query->orWhere('beneficiaries.middle_name', 'LIKE', $letter . '%');
-                                        $query->orWhere('beneficiaries.last_name', 'LIKE', $letter . '%');
-                                    }
-                                })
-                                ->select([
-                                    'beneficiaries.*',
-                                    'implementations.project_num',
-                                    'batches.batch_num'
-                                ])
-                                ->get();
-                        } else if (intval($matchingMode) === 1) # soft matching
-                        {
-                            # separate each word from all the name fields
-                            # and get the first letter of each word
-                            $namesToLetters = array_map(fn($word) => $word[0], explode(' ', $filteredInputString));
-
-                            $beneficiariesFromDatabase = Beneficiary::join('batches', 'beneficiaries.batches_id', '=', 'batches.id')
-                                ->join('implementations', 'batches.implementations_id', '=', 'implementations.id')
-                                ->whereBetween('implementations.created_at', [$startDate, $endDate])
-                                ->where(function ($query) use ($namesToLetters) {
-                                    foreach ($namesToLetters as $letter) {
-                                        $query->orWhere('beneficiaries.first_name', 'LIKE', $letter . '%');
-                                    }
-                                })
-                                ->where(function ($q) use ($namesToLetters) {
-                                    $q->when($this->middle_name, function ($q) use ($namesToLetters) {
-                                        foreach ($namesToLetters as $letter) {
-                                            $q->orWhere('beneficiaries.middle_name', 'LIKE', $letter . '%');
-                                        }
-                                    });
-                                    foreach ($namesToLetters as $letter) {
-                                        $q->orWhere('beneficiaries.last_name', 'LIKE', $letter . '%');
-                                    }
-                                })
-                                ->select([
-                                    'beneficiaries.*',
-                                    'implementations.project_num',
-                                    'batches.batch_num'
-                                ])
-                                ->get();
-                        } else # 0 or direct matching (not recommended)
-                        {
-                            # direct matching basically works similarly to soft matching
-                            # except that it queries by word instead of by letter.
-                            # Although it's more performant than the other matching mechanics,
-                            # we wouldn't recommend using this if you need better accuracy.
-                            $namesToWords = explode(' ', $filteredInputString);
-
-                            $beneficiariesFromDatabase = Beneficiary::join('batches', 'beneficiaries.batches_id', '=', 'batches.id')
-                                ->join('implementations', 'batches.implementations_id', '=', 'implementations.id')
-                                ->whereBetween('implementations.created_at', [$startDate, $endDate])
-                                ->where(function ($query) use ($namesToWords) {
-                                    foreach ($namesToWords as $word) {
-                                        $query->orWhere('beneficiaries.first_name', 'LIKE', '%' . $word . '%');
-                                    }
-                                })
-                                ->where(function ($q) use ($namesToWords) {
-                                    foreach ($namesToWords as $word) {
-                                        $q->when($this->middle_name, function ($query) use ($word) {
-                                            return $query->orWhere('beneficiaries.middle_name', 'LIKE', $word . '%');
-                                        });
-                                    }
-                                    foreach ($namesToWords as $word) {
-                                        $q->orWhere('beneficiaries.last_name', 'LIKE', $word . '%');
-                                    }
-                                })
-                                ->select([
-                                    'beneficiaries.*',
-                                    'implementations.project_num',
-                                    'batches.batch_num'
-                                ])
-                                ->get();
-                        }
-
-                        # add birthdate to da mix if the user allows it
-                        if ($this->includeBirthdate) {
-                            $filteredInputString .= ' ' . $this->birthdate;
-                        }
-
-                        # and also filter the beneficiaries from the database (NOT USING IT)
-                        // $filteredBeneficariesFromDatabase = $this->beneficaryNamesToArrayStrings($beneficiariesFromDatabase, $this->middle_name, $this->extension_name);
-
-                        # call the JaccardSimilarity class object instance
-                        $this->jaccardSimilarity = new JaccardSimilarity();
-
-                        # initialize possible duplicates variable
-                        $possibleDuplicates = [];
-
-                        # this is where it checks the similarities
-                        foreach ($beneficiariesFromDatabase as $key => $beneficiary) {
-                            # gets the full name of the beneficiary
-                            $name = $this->beneficiaryName($beneficiary, $this->middle_name, $this->extension_name);
-
-                            # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
-                            $coEfficient = $this->jaccardSimilarity->calculateSimilarity($name, $filteredInputString);
-
-                            # then check if it goes over the Threshold
-                            if ($coEfficient > $duplicationThreshold) {
-                                $this->isResults = true;
-
-                                if (intval($coEfficient * 100) === 100 && !$this->isPerfectDuplicate) {
-                                    $this->isPerfectDuplicate = true;
-                                }
-
-                                # if it does, then do some shit...
-                                $possibleDuplicates[] = [
-                                    'project_num' => $beneficiary->project_num,
-                                    'batch_num' => $beneficiary->batch_num,
-                                    'first_name' => $beneficiary->first_name,
-                                    'middle_name' => $beneficiary->middle_name,
-                                    'last_name' => $beneficiary->last_name,
-                                    'extension_name' => $beneficiary->extension_name,
-                                    'birthdate' => Carbon::parse($beneficiary->birthdate)->format('M d, Y'),
-                                    'barangay_name' => $beneficiary->barangay_name,
-                                    'contact_num' => $beneficiary->contact_num,
-                                    'sex' => $beneficiary->sex,
-                                    'age' => $beneficiary->age,
-                                    'beneficiary_type' => $beneficiary->beneficiary_type,
-                                    'type_of_id' => $beneficiary->type_of_id,
-                                    'id_number' => $beneficiary->id_number,
-                                    'is_pwd' => $beneficiary->is_pwd,
-                                    'dependent' => $beneficiary->dependent,
-                                    'coEfficient' => $coEfficient * 100,
-                                ];
-                            }
-                        }
-
-                        $this->similarityResults = $possibleDuplicates;
-
-                        // dump($possibleDuplicates);
-
-                        # test purposes
-                        // $end = microtime(true); # FOR TESTING
-                        // $count = 0;
-                        // # the names and coefficient;
-                        // $result = [];
-                        // foreach ($jaccard as $output) {
-                        //     if ($output['coEfficient'] > $duplicationThreshold) {
-                        //         $count++;
-
-                        //         $result[] = $output;
-                        //     }
-                        // }
-
-                        // $jaccardResult = $count . ' / ' . sizeof($jaccard) . ' are possible duplicates, ' . $duplicationThreshold * 100 . '% threshold';
-                        // $results = [
-                        //     'user input' => $filteredInputString,
-                        //     'beneficiaries indexed' => sizeof($beneficiariesFromDatabase),
-                        //     'names being compared' => $filteredBeneficariesFromDatabase,
-                        //     'jaccard' => $jaccardResult,
-                        //     'time processed' => strval(number_format($end - $start, 4)) . 's',
-                        //     'results' => $result
-                        // ];
-                        // dump($results);
-
-                        # end of test
+                    if (intval($coEfficient * 100) === 100 && !$this->isPerfectDuplicate) {
+                        $this->isPerfectDuplicate = true;
                     }
+
+                    # if it does, then do some shit...
+                    $possibleDuplicates[] = [
+                        'project_num' => $beneficiary->project_num,
+                        'batch_num' => $beneficiary->batch_num,
+                        'first_name' => $beneficiary->first_name,
+                        'middle_name' => $beneficiary->middle_name,
+                        'last_name' => $beneficiary->last_name,
+                        'extension_name' => $beneficiary->extension_name,
+                        'birthdate' => Carbon::parse($beneficiary->birthdate)->format('M d, Y'),
+                        'barangay_name' => $beneficiary->barangay_name,
+                        'contact_num' => $beneficiary->contact_num,
+                        'sex' => $beneficiary->sex,
+                        'age' => $beneficiary->age,
+                        'beneficiary_type' => $beneficiary->beneficiary_type,
+                        'type_of_id' => $beneficiary->type_of_id,
+                        'id_number' => $beneficiary->id_number,
+                        'is_pwd' => $beneficiary->is_pwd,
+                        'dependent' => $beneficiary->dependent,
+                        'coEfficient' => $coEfficient * 100,
+                    ];
                 }
             }
+
+            $this->similarityResults = $possibleDuplicates;
+
         }
     }
 
-    protected function beneficiaryAge($birthdate)
+    protected function prefetchNames(string $filteredInputString)
     {
-        return Carbon::parse($birthdate)->age;
+        $beneficiariesFromDatabase = null;
+
+        # only take beneficiaries from the start of the year until today
+        $startDate = now()->startOfYear();
+        $endDate = now();
+
+        # separate each word from all the name fields
+        # and get the first letter of each word
+        $namesToLetters = array_map(fn($word) => $word[0], explode(' ', $filteredInputString));
+
+        $beneficiariesFromDatabase = Beneficiary::join('batches', 'beneficiaries.batches_id', '=', 'batches.id')
+            ->join('implementations', 'batches.implementations_id', '=', 'implementations.id')
+            ->whereBetween('implementations.created_at', [$startDate, $endDate])
+            ->where(function ($query) use ($namesToLetters) {
+                foreach ($namesToLetters as $letter) {
+                    $query->orWhere('beneficiaries.first_name', 'LIKE', $letter . '%');
+                }
+            })
+            ->where(function ($q) use ($namesToLetters) {
+                $q->when($this->middle_name, function ($q) use ($namesToLetters) {
+                    foreach ($namesToLetters as $letter) {
+                        $q->orWhere('beneficiaries.middle_name', 'LIKE', $letter . '%');
+                    }
+                });
+                foreach ($namesToLetters as $letter) {
+                    $q->orWhere('beneficiaries.last_name', 'LIKE', $letter . '%');
+                }
+            })
+            ->select([
+                'beneficiaries.*'
+            ])
+            ->get();
+
+
+        return $beneficiariesFromDatabase;
     }
 
     # returns the full name of the beneficiary
@@ -657,37 +526,51 @@ class AddBeneficiariesModal extends Component
 
         # add birthdate to da mix if the user allows it
         if ($this->includeBirthdate) {
-            $formatBirthdate = Carbon::parse($name->birthdate)->format('Y-m-d');
+            $formatBirthdate = Carbon::parse($name->birthdate)->format('Y m d');
             $returnedName .= ' ' . $formatBirthdate;
         }
 
         return $returnedName;
     }
 
-    # compiles all beneficiaries (from database matching) into an array
-    // protected function beneficaryNamesToArrayStrings($names, $is_middle_name_present, $is_extension_name_present)
-    // {
-    //     $arrayNames = [];
-    //     foreach ($names as $name) {
+    protected function beneficiaryAge($birthdate)
+    {
+        return Carbon::parse($birthdate)->age;
+    }
 
-    //         $filteredInputString = $name->first_name;
+    #[Computed]
+    public function listOfIDs()
+    {
+        $ids = [
+            'Barangay ID',
+            'e-Card / UMID',
+            "Driver's License",
+            'Passport',
+            'Phil-health ID',
+            'Philippine Postal ID',
+            'SSS ID',
+            "COMELEC / Voter's ID / COMELEC Registration Form",
+            'Philippine Identification (PhilID / ePhilID)',
+            'NBI Clearance',
+            'Pantawid Pamilya Pilipino Program (4Ps) ID',
+            'Integrated Bar of the Philippines (IBP) ID',
+            'BIR (TIN)',
+            'Pag-ibig ID',
+            'Solo Parent ID'
+        ];
 
-    //         if ($is_middle_name_present && $name->middle_name) {
-    //             $filteredInputString .= ' ' . $name->middle_name;
-    //         }
+        return $ids;
+    }
 
-    //         $filteredInputString .= ' ' . $name->last_name;
-
-    //         if ($is_extension_name_present && $name->extension_name) {
-    //             $filteredInputString .= ' ' . $name->extension_name;
-    //         }
-    //         $formatBirthdate = Carbon::parse($name->birthdate)->format('Y-m-d');
-    //         $filteredInputString .= ' ' . $formatBirthdate;
-
-    //         $arrayNames[] = $filteredInputString;
-    //     }
-    //     return $arrayNames;
-    // }
+    public function resetBeneficiaries()
+    {
+        $this->resetExcept(
+            'batchId',
+            'maxDate',
+            'minDate',
+        );
+        $this->resetValidation();
+    }
 
     public function render()
     {

@@ -70,7 +70,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- Loading State --}}
                 <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
                     wire:loading.flex
-                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, updateImplementations, updateBatches, viewProject, viewBatch, assignBatch">
+                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProjectModal, saveBatches, editBatch, deleteBatch, viewBatchModal, saveBeneficiaries, editBeneficiary, deleteBeneficiary, viewBeneficiaryModal">
                     <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -261,6 +261,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 {{-- List of Batches --}}
                 <div x-data="{ assignBatchesModal: $wire.entangle('assignBatchesModal'), viewBatchModal: $wire.entangle('viewBatchModal') }" class="relative lg:col-span-2 h-full w-full rounded bg-white shadow">
+
+                    {{-- Upper/Header --}}
                     <div class="relative flex justify-between max-h-12 items-center">
                         <div class="inline-flex items-center my-2 text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
@@ -277,7 +279,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         {{-- Assign Button --}}
                         <div class="mx-2 flex items-center">
                             @if ($remainingBatchSlots || $remainingBatchSlots === 0)
-                                <p class="text-xs text-indigo-1100 capitalize font-light me-1">remaining slots:</p>
+                                <p class="text-xs text-indigo-1100 capitalize font-light me-1">unallocated slots:</p>
                                 <div
                                     class="{{ $remainingBatchSlots > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700' }} rounded-md py-1 px-2 text-xs me-2">
                                     {{ $remainingBatchSlots }}</div>
@@ -412,15 +414,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     @endif
 
-                    {{-- Assign Button | Main Modal --}}
+                    {{-- Assign Batches Modal --}}
                     <livewire:focal.implementations.assign-batches-modal :$implementationId />
 
                     {{-- View Batch Modal --}}
                     <livewire:focal.implementations.view-batch :$passedBatchId />
                 </div>
 
-                {{-- List of Beneficiaries by Batch --}}
-                <div class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
+                {{-- List of Beneficiaries --}}
+                <div x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), viewBeneficiaryModal: $wire.entangle('viewBeneficiaryModal') }" class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
 
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
@@ -475,7 +477,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
 
                             <button
-                                @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) data-modal-target="add-beneficiaries-modal" data-modal-toggle="add-beneficiaries-modal" @click="trapAdd = true" @else disabled @endif
+                                @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
                                 class="flex items-center {{ $batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }} rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
                                 ADD
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
@@ -638,7 +640,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $beneficiary->self_employment }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200 capitalize">
-                                                {{ $beneficiary->skills_training }}
+                                                {{ $beneficiary->skills_training ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
                                                 {{ $beneficiary->spouse_first_name ?? '-' }}
@@ -653,7 +655,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $beneficiary->spouse_extension_name ?? '-' }}
                                             </td>
                                             <td class="py-1">
-                                                <button @click.stop="" id="beneficiaryRowButton-{{ $key }}"
+                                                <button type="button"
+                                                    @click.stop="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
+                                                    id="beneficiaryRowButton-{{ $key }}"
                                                     class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out {{ $selectedBeneficiaryRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
@@ -755,11 +759,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                         </div>
                     @endif
-                    @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'])
-                        {{-- Add Button | Add Beneficiaries Modal --}}
-                        <livewire:focal.implementations.add-beneficiaries-modal :$batchId :key="$batchId" />
-                    @endif
 
+                    {{-- $batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] --}}
+
+                    {{-- Add Beneficiaries Modal --}}
+                    <livewire:focal.implementations.add-beneficiaries-modal :$batchId />
+
+                    {{-- View Beneficiaries Modal --}}
+                    <livewire:focal.implementations.view-beneficiary :$passedBeneficiaryId />
                 </div>
             </div>
         </div>

@@ -224,7 +224,7 @@ class ViewProject extends Component
             ]);
 
         $this->toggleEdit();
-        $this->dispatch('edit-implementations');
+        $this->dispatch('edit-project');
     }
 
     public function deleteProject()
@@ -234,7 +234,7 @@ class ViewProject extends Component
         $project->delete();
 
         $this->editMode = false;
-        $this->dispatch('delete-implementations');
+        $this->dispatch('delete-project');
         $this->resetViewProject();
     }
 
