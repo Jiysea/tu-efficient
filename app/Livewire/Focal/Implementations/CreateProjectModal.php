@@ -17,10 +17,9 @@ use Livewire\Component;
 class CreateProjectModal extends Component
 {
     # ----------------------------------------
-
-    public $isAutoComputeEnabled = false;
-    public $minimumWage;
+    public $defaultMinimumWage;
     public $projectNumPrefix;
+    public $isAutoComputeEnabled = false;
     #[Validate]
     public $project_num;
     #[Validate]
@@ -35,6 +34,8 @@ class CreateProjectModal extends Component
     public $district;
     #[Validate]
     public $budget_amount;
+    #[Validate]
+    public $minimum_wage;
     #[Validate]
     public $total_slots;
     #[Validate]
@@ -66,24 +67,42 @@ class CreateProjectModal extends Component
             'city_municipality' => 'required',
             'budget_amount' => [
                 'required',
-                # Checks if the number is a valid number
+
                 function ($attribute, $value, $fail) {
                     $money = new MoneyFormat();
-                    // dump($value);
-                    $number = $money->isMaskInt($value);
 
-                    if (!$number) {
+                    # Checks if the number is a valid number
+                    if (!$money->isMaskInt($value)) {
 
-                        $fail('The :attribute should be a valid amount.');
+                        $fail('The should be a valid amount.');
+                    }
+
+                    # Checks if the number is a negative
+                    elseif ($money->isNegative($value)) {
+                        $fail('The value should be nonnegative.');
+                    }
+                    # Checks if the number is less than the minimum wage
+                    elseif ($this->minimum_wage) {
+                        if ($money->unmask($value ?? 0) < $money->unmask($this->minimum_wage)) {
+                            $fail('The value should be > ₱' . $money->mask($this->minimum_wage) . '.');
+                        }
                     }
                 },
-                # Checks if the number is less than 1
+            ],
+            'minimum_wage' => [
+                'required',
                 function ($attribute, $value, $fail) {
                     $money = new MoneyFormat();
-                    $negative = $money->isNegative($value);
 
-                    if ($negative) {
-                        $fail('The :attribute value should be more than 1.');
+                    # Checks if the number is a valid number
+                    if (!$money->isMaskInt($value)) {
+
+                        $fail('The value should be a valid amount.');
+                    }
+
+                    # Checks if the number is a negative
+                    elseif ($money->isNegative($value)) {
+                        $fail('The value should be nonnegative.');
                     }
                 },
             ],
@@ -96,39 +115,20 @@ class CreateProjectModal extends Component
     public function messages()
     {
         return [
-            'project_num.required' => 'The :attribute should not be empty.',
-            'purpose.required' => 'Please select a :attribute .',
-            'district.required' => 'The :attribute should not be empty.',
-            'province.required' => 'The :attribute should not be empty.',
-            'city_municipality.required' => 'The :attribute should not be empty.',
-            'budget_amount.required' => 'The :attribute should not be empty.',
-            'total_slots.required' => 'The :attribute should not be empty.',
-            'days_of_work.required' => 'Invalid :attribute.',
-
-            'project_num.integer' => 'The :attribute should be a valid number.',
-
-            'total_slots.integer' => 'The :attribute should be a valid number.',
-            'total_slots.min' => 'The :attribute value should be more than 1.',
-
-            'days_of_work.integer' => 'The :attribute should be a valid number.',
-            'days_of_work.min' => 'The :attribute value should be more than 1.',
-        ];
-    }
-
-    # Validation attribute names for human readability purpose
-    # for example: The project_num should not be empty.
-    # instead of that: The project number should not be empty.
-    public function validationAttributes()
-    {
-        return [
-            'project_num' => 'project number',
-            'purpose' => 'purpose',
-            'district' => 'district',
-            'province' => 'province',
-            'city_municipality' => 'city or municipality',
-            'budget_amount' => 'budget',
-            'total_slots' => 'slots',
-            'days_of_work' => 'days of work',
+            'project_num.required' => 'This field is required.',
+            'purpose.required' => 'Please select a purpose.',
+            'district.required' => 'This field is required.',
+            'province.required' => 'This field is required.',
+            'city_municipality.required' => 'This field is required.',
+            'budget_amount.required' => 'This field is required.',
+            'minimum_wage.required' => 'This field is required.',
+            'total_slots.required' => 'This field is required.',
+            'days_of_work.required' => 'This field is required.',
+            'project_num.integer' => 'Project Number should be a number.',
+            'total_slots.integer' => 'Total Slots should be a number.',
+            'total_slots.min' => 'Total Slots should be > 0.',
+            'days_of_work.integer' => 'Days should be a number.',
+            'days_of_work.min' => 'Days should be > 0.',
         ];
     }
 
@@ -140,6 +140,7 @@ class CreateProjectModal extends Component
         $this->project_num = $this->projectNumPrefix . $this->project_num;
         $money = new MoneyFormat();
         $this->budget_amount = $money->unmask($this->budget_amount);
+        $this->minimum_wage = $money->unmask($this->minimum_wage);
 
         Implementation::create([
             'users_id' => Auth()->id(),
@@ -150,21 +151,13 @@ class CreateProjectModal extends Component
             'province' => $this->province,
             'city_municipality' => $this->city_municipality,
             'budget_amount' => $this->budget_amount,
+            'minimum_wage' => $this->minimum_wage,
             'total_slots' => $this->total_slots,
             'days_of_work' => $this->days_of_work
         ]);
 
-        $this->reset(
-            'project_num',
-            'project_title',
-            'purpose',
-            'budget_amount',
-            'total_slots',
-            'days_of_work',
-            'isAutoComputeEnabled',
-        );
-        $this->dispatch('update-implementations');
-
+        $this->dispatch('create-project');
+        $this->resetProject();
     }
 
     # a livewire action for toggling the auto computation for total slots
@@ -181,12 +174,13 @@ class CreateProjectModal extends Component
 
             $money = new MoneyFormat();
             $tempBudget = $money->unmask($this->budget_amount ?? '0.00');
+            $tempWage = $money->unmask($this->minimum_wage ?? $this->defaultMinimumWage);
 
-            ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 1 : $this->days_of_work;
-            $this->total_slots = intval($tempBudget / ($this->minimumWage * $this->days_of_work));
+            ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 10 : $this->days_of_work;
+            $this->total_slots = intval($tempBudget / ($tempWage * $this->days_of_work));
 
-            $this->validateOnly('total_slots');
             $this->validateOnly('days_of_work');
+            $this->validateOnly('total_slots');
         }
     }
 
@@ -249,8 +243,7 @@ class CreateProjectModal extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
 
-        $minimumWage = $settings->get('minimum_wage', config('settings.minimum_wage'));
-        $this->minimumWage = intval(str_replace([',', '.'], '', number_format(floatval($minimumWage), 2)));
+        $this->defaultMinimumWage = $settings->get('minimum_wage', config('settings.minimum_wage'));
         $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
 
         $this->province = $this->provinces[0];
@@ -260,6 +253,11 @@ class CreateProjectModal extends Component
 
     public function render()
     {
+        if (is_null($this->minimum_wage)) {
+            $this->minimum_wage = $this->defaultMinimumWage;
+            $this->resetValidation('minimum_wage');
+        }
+
         return view('livewire.focal.implementations.create-project-modal');
     }
 }

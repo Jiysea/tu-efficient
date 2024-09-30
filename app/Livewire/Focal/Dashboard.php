@@ -79,9 +79,8 @@ class Dashboard extends Component
     #[Computed]
     public function projectCounters()
     {
-        $focalUserId = auth()->id();
         $projectCounters = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
-            ->where('implementations.users_id', $focalUserId)
+            ->where('implementations.users_id', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->select([
                 DB::raw('COUNT(DISTINCT implementations.id) AS total_implementations'),
@@ -96,8 +95,7 @@ class Dashboard extends Component
     #[Computed]
     public function implementations()
     {
-        $focalUserId = auth()->id();
-        $implementations = Implementation::where('users_id', $focalUserId)
+        $implementations = Implementation::where('users_id', Auth::id())
             ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
             ->whereBetween('created_at', [$this->start, $this->end])
             ->select('id', 'project_num')

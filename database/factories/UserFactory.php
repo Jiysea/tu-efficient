@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -25,6 +26,7 @@ class UserFactory extends Factory
         $last = $this->getLastName();
 
         $email = $this->getEmail($first, $last);
+        $startDate = Carbon::createFromDate(2023, 9, 29);
 
         return [
             'first_name' => $first,
@@ -37,6 +39,10 @@ class UserFactory extends Factory
             'regional_office' => 'Region XI',
             'field_office' => 'Davao City',
             'user_type' => 'coordinator',
+            'email_verified_at' => null,
+            'last_login' => null,
+            'created_at' => $startDate,
+            'updated_at' => $startDate,
         ];
     }
 

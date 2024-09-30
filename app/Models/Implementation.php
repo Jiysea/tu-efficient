@@ -33,6 +33,7 @@ class Implementation extends Model
         'district',
         'city_municipality',
         'budget_amount',
+        'minimum_wage',
         'total_slots',
         'days_of_work',
     ];

@@ -1,0 +1,542 @@
+<?php
+
+namespace App\Livewire\Focal\Implementations;
+
+use App\Models\Assignment;
+use App\Models\Batch;
+use App\Models\Implementation;
+use App\Models\User;
+use App\Models\UserSetting;
+use App\Services\Barangays;
+use Auth;
+use DB;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Reactive;
+use Livewire\Attributes\Validate;
+use Livewire\Component;
+
+class AssignBatchesModal extends Component
+{
+    #[Reactive]
+    #[Locked]
+    public $implementationId;
+    public $batchNumPrefix;
+    public $remainingSlots;
+    public $totalSlots;
+    public $ignoredCoordinatorIDs;
+    public $selectedCoordinatorKey;
+    public $currentCoordinator;
+    public $searchCoordinator;
+    public $searchBarangay;
+    public $batchesCount;
+    public $selectedBatchListRow = -1;
+    #[Validate]
+    public $batch_num;
+    #[Validate]
+    public $barangay_name;
+    #[Validate]
+    public $slots_allocated;
+    #[Validate]
+    public $assigned_coordinators = [];
+    public $temporaryBatchesList = [];
+
+    # Runs real-time depending on wire:model suffix
+    public function rules()
+    {
+        return [
+            # Assign Batches Modal
+            'batch_num' => [
+                'required',
+
+                # Checks uniqueness from the `Database`
+                function ($attribute, $value, $fail) {
+
+                    # Check for uniqueness of the prefixed value in the database
+                    $exists = DB::table('batches')
+                        ->where('batch_num', $this->batchNumPrefix . $value)
+                        ->exists();
+
+                    if ($exists) {
+                        # Fail the validation if the project number with the prefix already exists
+                        $fail('This :attribute already exists.');
+                    }
+                },
+
+                # Checks uniqueness from the Temporary Batch List
+                function ($attribute, $value, $fail) {
+                    foreach ($this->temporaryBatchesList as $batch) {
+                        if ($batch['batch_num'] === $this->batchNumPrefix . $value) {
+                            $fail('This :attribute has already been added.');
+                        }
+                    }
+                },
+            ],
+            'barangay_name' => [
+                'required',
+
+                # Checks uniqueness from the `Database`
+                function ($attribute, $value, $fail) {
+
+                    # Check for uniqueness of the prefixed value in the database
+                    $exists = Batch::where('implementations_id', $this->implementation->id)
+                        ->where('barangay_name', $value)
+                        ->exists();
+
+                    if ($exists) {
+                        # Fail the validation if this barangay already existed 
+                        $fail('This :attribute already existed on this project.');
+                    }
+                },
+
+                # Checks uniqueness from the Temporary Batch List
+                function ($attribute, $value, $fail) {
+                    foreach ($this->temporaryBatchesList as $batch) {
+                        if ($batch['barangay_name'] === $value) {
+                            $fail('This :attribute has already been added.');
+                        }
+                    }
+                },
+            ],
+            'slots_allocated' => [
+                'required',
+                'integer',
+                'gte:0',
+                'min:1',
+                'lte:' . $this->totalSlots,
+            ],
+            'assigned_coordinators' => 'required',
+        ];
+    }
+
+    # The validation error messages
+    public function messages()
+    {
+        return [
+            # Assign Batches Modal
+            'batch_num.required' => 'This field is required.',
+            'barangay_name.required' => 'This field is required.',
+            'slots_allocated.required' => 'Invalid :attribute amount.',
+            'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
+            'batch_num.integer' => 'The :attribute should be a valid number.',
+            'slots_allocated.integer' => ':attribute should be a valid number.',
+            'slots_allocated.min' => ':attribute should be > 0.',
+            'slots_allocated.gte' => ':attribute should be nonnegative.',
+            'slots_allocated.lte' => ':attribute should be less than total.',
+        ];
+    }
+
+    # Validation attribute names for human readability purpose
+    public function validationAttributes()
+    {
+        return [
+            # Assign Batches Modal
+            'batch_num' => 'batch number',
+            'barangay_name' => 'barangay',
+            'slots_allocated' => 'Slots',
+            'assigned_coordinators' => 'assigned coordinator',
+        ];
+    }
+
+    # triggers when clicking the `ADD BATCH` button which adds the user input
+    # to the temporary batch list table for saving later.
+    public function addBatchRow()
+    {
+        $this->validate(
+            [
+                'batch_num' => [
+                    'required',
+
+                    # Checks uniqueness from the `Database`
+                    function ($attribute, $value, $fail) {
+
+                        # Check for uniqueness of the prefixed value in the database
+                        $exists = DB::table('batches')
+                            ->where('batch_num', $this->batchNumPrefix . $value)
+                            ->exists();
+
+                        if ($exists) {
+                            # Fail the validation if the project number with the prefix already exists
+                            $fail('This :attribute already exists.');
+                        }
+                    },
+
+                    # Checks uniqueness from the Temporary Batch List
+                    function ($attribute, $value, $fail) {
+                        foreach ($this->temporaryBatchesList as $batch) {
+                            if ($batch['batch_num'] === $this->batchNumPrefix . $value) {
+                                $fail('This :attribute has already been added.');
+                            }
+                        }
+                    },
+                ],
+                'barangay_name' => [
+                    'required',
+
+                    # Checks uniqueness from the `Database`
+                    function ($attribute, $value, $fail) {
+
+                        # Check for uniqueness of the prefixed value in the database
+                        $exists = Batch::where('implementations_id', $this->implementation->id)
+                            ->where('barangay_name', $value)
+                            ->exists();
+
+                        if ($exists) {
+                            # Fail the validation if this barangay already existed 
+                            $fail('This :attribute already existed on this project.');
+                        }
+                    },
+
+                    # Checks uniqueness from the Temporary Batch List
+                    function ($attribute, $value, $fail) {
+                        foreach ($this->temporaryBatchesList as $batch) {
+                            if ($batch['barangay_name'] === $value) {
+                                $fail('This :attribute has already been added.');
+                            }
+                        }
+                    },
+                ],
+                'slots_allocated' => [
+                    'required',
+                    'integer',
+                    'gte:0',
+                    'min:1',
+                    'lte:' . $this->totalSlots,
+                ],
+                'assigned_coordinators' => 'required',
+            ],
+            [
+                'batch_num.required' => 'This field is required.',
+                'barangay_name.required' => 'This field is required.',
+                'slots_allocated.required' => 'Invalid :attribute amount.',
+                'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
+
+                'batch_num.integer' => 'The :attribute should be a valid number.',
+
+                'slots_allocated.integer' => ':attribute should be a valid number.',
+                'slots_allocated.min' => ':attribute should be > 0.',
+                'slots_allocated.gte' => ':attribute should be nonnegative.',
+                'slots_allocated.lte' => ':attribute should be less than total.',
+            ],
+            [
+                'batch_num' => 'batch number',
+                'barangay_name' => 'barangay',
+                'slots_allocated' => 'Slots',
+                'assigned_coordinators' => 'assigned coordinator',
+            ]
+        );
+
+        $this->batch_num = $this->batchNumPrefix . $this->batch_num;
+
+        $this->temporaryBatchesList[] = [
+            'batch_num' => $this->batch_num,
+            'barangay_name' => $this->barangay_name,
+            'slots_allocated' => $this->slots_allocated,
+            'assigned_coordinators' => $this->assigned_coordinators,
+        ];
+
+        $this->totalSlots -= $this->slots_allocated;
+        $this->reset(
+            'batch_num',
+            'barangay_name',
+            'slots_allocated',
+            'assigned_coordinators',
+        );
+
+        $this->validateOnly('temporaryBatchesList');
+    }
+
+    # triggers when clicking the `X` button which removes the
+    # batch row from the list and temporary batch array.
+    public function removeBatchRow($key)
+    {
+        $this->totalSlots += $this->temporaryBatchesList[$key]['slots_allocated'];
+        // $this->liveUpdateRemainingSlots();
+
+        if ($this->selectedBatchListRow === $key) {
+            # resets the rows styling/emphasis
+            $this->selectedBatchListRow = -1;
+        } else if ($key > $this->selectedBatchListRow) {
+            $this->selectedBatchListRow -= 1;
+        }
+
+        unset($this->temporaryBatchesList[$key]);
+    }
+
+    # a livewire action executes after clicking the `Finish` button
+    public function saveBatches()
+    {
+        $this->validate(['temporaryBatchesList' => 'required'], ['temporaryBatchesList.required' => 'There should be at least 1 :attribute before finishing.',], ['temporaryBatchesList' => 'batch assignment',]);
+
+        foreach ($this->temporaryBatchesList as $keyBatch => $batch) {
+            $batch = Batch::create([
+                'implementations_id' => decrypt($this->implementationId),
+                'batch_num' => $batch['batch_num'],
+                'barangay_name' => $batch['barangay_name'],
+                'slots_allocated' => $batch['slots_allocated'],
+                'approval_status' => 'pending',
+                'submission_status' => 'unopened'
+            ]);
+
+            $batch_id = $batch->id;
+
+            foreach ($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'] as $coordinator) {
+                Assignment::create([
+                    'batches_id' => $batch_id,
+                    'users_id' => decrypt($coordinator['users_id']),
+                ]);
+            }
+        }
+
+        # resets after submitting
+        $this->dispatch('assign-batches');
+
+        $this->resetBatches();
+    }
+
+    # this function adds the selected coordinator from the `Add Coordinator` dropdown
+    # and append it to the `Assigned Coordinators` as a toast-like element.
+    # It would also remove the added coordinator from the `Add Coordinator` dropdown list
+    # so as to avoid duplicating/conflicting names.
+    public function addToastCoordinator()
+    {
+        if ($this->coordinators->isNotEmpty()) {
+
+            # appends the coordinator to the `Assigned Coordinators` box
+            $this->assigned_coordinators[] = [
+                'users_id' => encrypt($this->coordinators[$this->selectedCoordinatorKey]->id),
+                'first_name' => $this->coordinators[$this->selectedCoordinatorKey]->first_name,
+                'middle_name' => $this->coordinators[$this->selectedCoordinatorKey]->middle_name,
+                'last_name' => $this->coordinators[$this->selectedCoordinatorKey]->last_name,
+                'extension_name' => $this->coordinators[$this->selectedCoordinatorKey]->extension_name,
+            ];
+
+            $this->validateOnly('assigned_coordinators');
+
+
+
+            # removes the coordinator from the `Add Coordinator` dropdown
+            $this->ignoredCoordinatorIDs[] = encrypt($this->coordinators[$this->selectedCoordinatorKey]->id);
+
+            # bust the cache to refresh the coordinators list
+            unset($this->coordinators);
+            $this->setCoordinator();
+
+        }
+    }
+
+    # triggers when a user clicks the `X` from the toast of the `Assigned Coordinators` box
+    public function removeToastCoordinator($key)
+    {
+        # removes the coordinator from the `Assigned Coordinators` box
+        unset($this->assigned_coordinators[$key]);
+
+        # appens the coordinator back to the `Add Coordinator` dropdown
+        unset($this->ignoredCoordinatorIDs[$key]);
+
+        # bust the cache to refresh the coordinators list
+        unset($this->coordinators);
+        $this->setCoordinator();
+    }
+
+    public function liveUpdateRemainingSlots()
+    {
+        $batchCountDelta = 0;
+
+        # this condition initializes the slots
+        # and it makes sense to have when the 1st time this component
+        # is rendered will have empty and temporary batch list.
+        #
+        # It's also counterproductive to also retrieve all the existing batches
+        # from the selected implementation project because it's designed to 
+        # assign and create `new` batch assignments.
+        #
+        # So, the only value that we're retrieving is the `total_slots` from the implementations
+        # and the `slots_alloted` from the batches to give an indicator of how many remaining
+        # slots left for the user to input.
+        if (!$this->temporaryBatchesList) {
+
+            $this->totalSlots = $this->implementation->total_slots;
+
+            # retrieves all of the `slots_alloted` values from the batches table
+            $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->where('implementations.users_id', Auth::id())
+                ->where('implementations.id', decrypt($this->implementationId))
+                ->select('batches.slots_allocated')
+                ->get();
+
+            # retrieves all the slots allocated from existing (if any) batches
+            # and iterate it as a single value
+            foreach ($this->batchesCount as $batch) {
+                $batchCountDelta += $batch['slots_allocated'];
+            }
+
+
+            # re-assign the total slots based on batch counts (if any)
+            # then assign the remaining slots to it
+            $this->totalSlots -= $batchCountDelta;
+            $this->remainingSlots = $this->totalSlots;
+
+        } else {
+
+            # re-assigns the remaining slots to the total slots that was
+            # also re-assigned during addition of the new batch to the temporary list.
+            $this->remainingSlots = $this->totalSlots;
+
+        }
+
+        # this condition basically filters the input to take only numbers
+        if (ctype_digit((string) $this->slots_allocated)) {
+
+            # assign the difference between the remaining slots and the input slots value
+            $newRemainingSlots = 0;
+            $newRemainingSlots = intval($this->remainingSlots) - intval($this->slots_allocated);
+
+
+            # it also filters
+            if ($newRemainingSlots >= 0) {
+                $this->remainingSlots = $newRemainingSlots;
+            } else if ($newRemainingSlots < 0) {
+                $this->remainingSlots = 0;
+            }
+        }
+    }
+
+    #[Computed]
+    public function coordinators()
+    {
+        $coordinators = null;
+
+        if ($this->ignoredCoordinatorIDs) {
+            $ignoredIDs = [];
+            foreach ($this->ignoredCoordinatorIDs as $encryptedId) {
+                $ignoredIDs[] = decrypt($encryptedId);
+            }
+
+            $coordinators = User::where('user_type', 'Coordinator')
+                ->where('regional_office', Auth::user()->regional_office)
+                ->where('field_office', Auth::user()->field_office)
+                ->when($this->searchCoordinator, function ($q) {
+                    # Otherwise, search by first, middle, or last name
+                    $q->where(function ($query) {
+                        $searchValue = trim($this->searchCoordinator);
+                        $query->where('first_name', 'LIKE', '%' . $searchValue . '%')
+                            ->orWhere('middle_name', 'LIKE', '%' . $searchValue . '%')
+                            ->orWhere('last_name', 'LIKE', '%' . $searchValue . '%');
+                    });
+                })
+                ->whereNotIn('id', $ignoredIDs)
+                ->get();
+
+        } else {
+            $coordinators = User::where('user_type', 'Coordinator')
+                ->where('regional_office', Auth::user()->regional_office)
+                ->where('field_office', Auth::user()->field_office)
+                ->when($this->searchCoordinator, function ($q) {
+                    # Otherwise, search by first, middle, or last name
+                    $q->where(function ($query) {
+                        $searchValue = trim($this->searchCoordinator);
+                        $query->where('first_name', 'LIKE', '%' . $searchValue . '%')
+                            ->orWhere('middle_name', 'LIKE', '%' . $searchValue . '%')
+                            ->orWhere('last_name', 'LIKE', '%' . $searchValue . '%');
+                    });
+                })
+                ->get();
+        }
+
+        return $coordinators;
+    }
+
+    #[Computed]
+    public function implementation()
+    {
+        if ($this->implementationId) {
+            $implementation = Implementation::find(decrypt($this->implementationId));
+            return $implementation;
+        }
+    }
+
+    # this function returns all of the barangays based on the project's location
+    #[Computed]
+    public function barangays()
+    {
+        $b = new Barangays();
+        # this returns an array
+        $barangays = $b->getBarangays($this->implementation->city_municipality, $this->implementation->district);
+
+        # If searchBarangay is set, filter the barangays array
+        if ($this->searchBarangay) {
+            $barangays = array_values(array_filter($barangays, function ($barangay) {
+                return stripos($barangay, $this->searchBarangay) !== false; # Case-insensitive search
+            }));
+        }
+
+        return $barangays;
+    }
+
+    #[Computed]
+    public function getFullName($person)
+    {
+        $fullName = $person['first_name'];
+
+        if ($person['middle_name']) {
+            $fullName .= ' ' . $person['middle_name'];
+        }
+
+        $fullName .= ' ' . $person['last_name'];
+
+        if ($person['extension_name']) {
+            $fullName .= ' ' . $person['extension_name'];
+        }
+
+        return $fullName;
+    }
+
+    public function setCoordinator()
+    {
+        if ($this->coordinators->isEmpty()) {
+            $this->selectedCoordinatorKey = -1;
+            $this->currentCoordinator = 'None';
+        } else {
+            $this->selectedCoordinatorKey = 0;
+            $this->currentCoordinator = $this->getFullName($this->coordinators[$this->selectedCoordinatorKey]);
+        }
+    }
+
+    public function resetBatches()
+    {
+        $this->reset(
+            'searchBarangay',
+            'temporaryBatchesList',
+            'selectedBatchListRow',
+            'ignoredCoordinatorIDs',
+            'batch_num',
+            'barangay_name',
+            'slots_allocated',
+            'assigned_coordinators',
+            'remainingSlots',
+            'totalSlots',
+        );
+
+        $this->resetValidation();
+    }
+
+    public function mount()
+    {
+        # setting up settings
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+        $this->batchNumPrefix = $settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
+        $this->setCoordinator();
+    }
+
+    public function render()
+    {
+        # Assign Batches Modal
+        if ($this->implementationId) {
+            $this->liveUpdateRemainingSlots();
+        }
+
+        return view('livewire.focal.implementations.assign-batches-modal');
+    }
+}

@@ -14,8 +14,8 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('beneficiaries_id')->constrained();
             $table->string('image_description')->nullable();
-            $table->string('image_file_path');
-            $table->string('for_duplicates'); // 'Yes', 'No'
+            $table->string('image_file_path')->nullable();
+            $table->string('for_duplicates'); // 'yes', 'no'
             $table->timestamps();
         });
     }

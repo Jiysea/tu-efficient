@@ -30,7 +30,7 @@ class MoneyFormat
      *  @param string $value An integer value
      *  @return string Returns a string that contains `.` and `,`
      */
-    public function mask(int $value)
+    public static function mask(int $value)
     {
         # Convert integer back to float by dividing by 100
         $text = $value / 100;

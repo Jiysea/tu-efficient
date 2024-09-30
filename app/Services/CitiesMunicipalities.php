@@ -16,9 +16,9 @@ class CitiesMunicipalities
         # Region XI
         if ($province === 'Davao del Sur') {
             $cities_municipalities = [
+                'Davao City',
                 'Digos City',
                 'Bansalan',
-                'Davao City',
                 'Hagonoy',
                 'Kiblawan',
                 'Magsaysay',
