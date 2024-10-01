@@ -69,22 +69,21 @@ class CreateProjectModal extends Component
                 'required',
 
                 function ($attribute, $value, $fail) {
-                    $money = new MoneyFormat();
 
                     # Checks if the number is a valid number
-                    if (!$money->isMaskInt($value)) {
+                    if (!MoneyFormat::isMaskInt($value)) {
 
                         $fail('The should be a valid amount.');
                     }
 
                     # Checks if the number is a negative
-                    elseif ($money->isNegative($value)) {
+                    elseif (MoneyFormat::isNegative($value)) {
                         $fail('The value should be nonnegative.');
                     }
                     # Checks if the number is less than the minimum wage
                     elseif ($this->minimum_wage) {
-                        if ($money->unmask($value ?? 0) < $money->unmask($this->minimum_wage)) {
-                            $fail('The value should be > ₱' . $money->mask($this->minimum_wage) . '.');
+                        if (MoneyFormat::unmask($value ?? 0) < MoneyFormat::unmask($this->minimum_wage)) {
+                            $fail('The value should be > ₱' . MoneyFormat::mask($this->minimum_wage) . '.');
                         }
                     }
                 },
@@ -92,16 +91,14 @@ class CreateProjectModal extends Component
             'minimum_wage' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    $money = new MoneyFormat();
-
                     # Checks if the number is a valid number
-                    if (!$money->isMaskInt($value)) {
+                    if (!MoneyFormat::isMaskInt($value)) {
 
                         $fail('The value should be a valid amount.');
                     }
 
                     # Checks if the number is a negative
-                    elseif ($money->isNegative($value)) {
+                    elseif (MoneyFormat::isNegative($value)) {
                         $fail('The value should be nonnegative.');
                     }
                 },
@@ -138,9 +135,8 @@ class CreateProjectModal extends Component
         $this->validate();
 
         $this->project_num = $this->projectNumPrefix . $this->project_num;
-        $money = new MoneyFormat();
-        $this->budget_amount = $money->unmask($this->budget_amount);
-        $this->minimum_wage = $money->unmask($this->minimum_wage);
+        $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
+        $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
 
         Implementation::create([
             'users_id' => Auth()->id(),
@@ -172,9 +168,8 @@ class CreateProjectModal extends Component
             # So it doesn't matter how many decimal digits it has, it will
             # always be formatted to 2 simple digits (rounded off)
 
-            $money = new MoneyFormat();
-            $tempBudget = $money->unmask($this->budget_amount ?? '0.00');
-            $tempWage = $money->unmask($this->minimum_wage ?? $this->defaultMinimumWage);
+            $tempBudget = MoneyFormat::unmask($this->budget_amount ?? '0.00');
+            $tempWage = MoneyFormat::unmask($this->minimum_wage ?? $this->defaultMinimumWage);
 
             ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 10 : $this->days_of_work;
             $this->total_slots = intval($tempBudget / ($tempWage * $this->days_of_work));

@@ -116,6 +116,8 @@ class ListingPage extends Component
                         $fail('Value only accepts numbers.');
                     } else if ((strlen($value) !== 11)) {
                         $fail('Valid number should be 11 digits.');
+                    } else if (substr($value, 0, 2) !== '09') {
+                        $fail("Valid number should start with '09'.");
                     }
                 }
             ],
@@ -123,12 +125,11 @@ class ListingPage extends Component
                 'required_unless:occupation,null',
                 function ($attr, $value, $fail) {
                     if ($this->avg_monthly_income) {
-                        $money = new MoneyFormat();
 
-                        if ($money->isNegative($value)) {
+                        if (MoneyFormat::isNegative($value)) {
                             $fail('The value should be more than 1.');
                         }
-                        if (!$money->isMaskInt($value)) {
+                        if (!MoneyFormat::isMaskInt($value)) {
 
                             $fail('The value should be a valid amount.');
                         }
@@ -468,26 +469,26 @@ class ListingPage extends Component
     #[Validate]
     public $image_description;
 
-    #[On('birthdate-change')]
-    public function setBirthdate($value)
-    {
-        if ($value) {
-            $choosenDate = Carbon::createFromFormat('m-d-Y', $value)->format('Y-m-d');
+    // #[On('birthdate-change')]
+    // public function setBirthdate($value)
+    // {
+    //     if ($value) {
+    //         $choosenDate = Carbon::createFromFormat('m-d-Y', $value)->format('Y-m-d');
 
-            $this->birthdate = $choosenDate;
+    //         $this->birthdate = $choosenDate;
 
-            # `Senior Citizen ID` will show up as one of the options if it's determined that the beneficiary is more than 60 years old
-            $seniorAge = intval(config('settings.senior_age_threshold', 60));
-            if ($this->type_of_id === 'Senior Citizen ID' && strtotime($this->birthdate) > strtotime(Carbon::now()->subYears($seniorAge))) {
-                $this->type_of_id = 'e-Card / UMID';
-            }
-            $this->nameCheck();
-        } else {
-            $this->birthdate = null;
-        }
+    //         # `Senior Citizen ID` will show up as one of the options if it's determined that the beneficiary is more than 60 years old
+    //         $seniorAge = intval(config('settings.senior_age_threshold', 60));
+    //         if ($this->type_of_id === 'Senior Citizen ID' && strtotime($this->birthdate) > strtotime(Carbon::now()->subYears($seniorAge))) {
+    //             $this->type_of_id = 'e-Card / UMID';
+    //         }
+    //         $this->nameCheck();
+    //     } else {
+    //         $this->birthdate = null;
+    //     }
 
-        $this->validateOnly('birthdate');
-    }
+    //     $this->validateOnly('birthdate');
+    // }
 
     # the action that runs the algorithm where it checks each prefetched names and calculate the similarities
     public function nameCheck()
@@ -533,7 +534,7 @@ class ListingPage extends Component
             # fetch all the potential duplicating names from the database
             $beneficiariesFromDatabase = $this->prefetchNames($filteredInputString, $matchingMode);
 
-            # call the JaccardSimilarity class object instance
+            # initialize the algorithm instance
             $algorithm = new JaccardSimilarity();
 
             # initialize possible duplicates variable
@@ -566,11 +567,14 @@ class ListingPage extends Component
         $this->validate();
 
         if ($this->avg_monthly_income) {
-            $money = new MoneyFormat();
-            $this->avg_monthly_income = $money->unmask($this->avg_monthly_income);
+            $this->avg_monthly_income = MoneyFormat::unmask($this->avg_monthly_income);
         }
 
         $this->authorizeBeforeExecuting();
+        // $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
+
+        // $this->birthdate = Carbon::parse($this->birthdate)->format('Y-m-d');
+        // $this->contact_num = '+63' . substr($this->contact_num, 1);
 
         $beneficiary = Beneficiary::create([
             'batches_id' => $this->batch->id,
@@ -789,6 +793,20 @@ class ListingPage extends Component
         return $beneficiariesFromDatabase;
     }
 
+    public function updatedBirthdate()
+    {
+        if ($this->birthdate) {
+            $choosenDate = Carbon::parse($this->birthdate)->format('Y-m-d');
+
+            if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
+                $this->type_of_id = 'Barangay ID';
+            }
+            $this->nameCheck();
+        } else {
+            $this->birthdate = null;
+        }
+    }
+
     public function updatedCivilStatus()
     {
         if ($this->civil_status === 'Single') {
@@ -805,11 +823,29 @@ class ListingPage extends Component
         }
     }
 
+    public function updatedContactNum()
+    {
+        if ($this->contact_num === '') {
+            $this->contact_num = null;
+            $this->resetValidation('contact_num');
+        }
+    }
+
     public function updatedAvgMonthlyIncome()
     {
-        if (!$this->occupation) {
+        if (!$this->occupation && !$this->avg_monthly_income) {
+            $this->resetValidation('occupation');
             $this->resetValidation('avg_monthly_income');
             $this->reset('occupation');
+        }
+    }
+
+    public function updatedOccupation()
+    {
+        if (!$this->avg_monthly_income && !$this->occupation) {
+            $this->resetValidation('avg_monthly_income');
+            $this->resetValidation('occupation');
+            $this->reset('avg_monthly_income');
         }
     }
     # end of add-beneficiaries-modal -------------------------------------------

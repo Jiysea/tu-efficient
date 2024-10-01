@@ -2,9 +2,14 @@
 
 namespace App\Livewire\Focal\Implementations;
 
+use App\Models\Archive;
 use App\Models\Beneficiary;
+use App\Models\Credential;
 use App\Models\Implementation;
+use App\Models\UserSetting;
+use Auth;
 use Carbon\Carbon;
+use DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Reactive;
@@ -15,13 +20,25 @@ class ViewBeneficiary extends Component
     #[Reactive]
     #[Locked]
     public $passedBeneficiaryId;
+    #[Locked]
+    public $duplicationThreshold;
     public $editMode = false;
     public $deleteBeneficiaryModal = false;
+
+    public function rules()
+    {
+
+    }
+
+    public function messages()
+    {
+
+    }
 
     public function toggleEdit()
     {
         # Not Yet
-        # $this->editMode = !$this->editMode;
+        // # $this->editMode = !$this->editMode;
     }
 
     public function editBeneficiary()
@@ -31,8 +48,47 @@ class ViewBeneficiary extends Component
 
     public function deleteBeneficiary()
     {
-        $this->dispatch('delete-beneficiary');
-        $this->deleteBeneficiaryModal = false;
+        $this->authorize('delete-beneficiary-focal');
+
+        $beneficiary = Beneficiary::find(decrypt($this->passedBeneficiaryId));
+        $credentials = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
+            ->get();
+
+        # if the batch where this beneficiary belongs to is approved,
+        # then we should archive it
+        if ($this->projectInformation->approval_status === 'approved') {
+
+            # Archive their credentials first
+            foreach ($credentials as $credential) {
+                Archive::create([
+                    'last_id' => $credential->id,
+                    'source_table' => 'credentials',
+                    'data' => $credential->toJson(),
+                ]);
+                $credential->delete();
+            }
+
+            # then archive the Beneficiary record
+            Archive::create([
+                'last_id' => $beneficiary->id,
+                'source_table' => 'beneficiaries',
+                'data' => $beneficiary->toJson(),
+            ]);
+            $beneficiary->delete();
+
+            $this->resetViewBeneficiary();
+            $this->dispatch('archive-beneficiary');
+        }
+
+        # otherwise, we could just delete it.
+        else {
+            foreach ($credentials as $credential) {
+                $credential->delete();
+            }
+            $beneficiary->delete();
+            $this->resetViewBeneficiary();
+            $this->dispatch('delete-beneficiary');
+        }
     }
 
     #[Computed]
@@ -46,6 +102,8 @@ class ViewBeneficiary extends Component
                     [
                         'implementations.project_num',
                         'batches.batch_num',
+                        'batches.submission_status',
+                        'batches.approval_status',
                     ]
                 )
                 ->first();
@@ -116,9 +174,16 @@ class ViewBeneficiary extends Component
         }
     }
 
+    public function mount()
+    {
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+        $this->duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+    }
+
     public function resetViewBeneficiary()
     {
-        $this->resetExcept('passedBeneficiaryId');
+        $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold');
     }
 
     public function render()

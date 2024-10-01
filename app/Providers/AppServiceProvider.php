@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Batch;
+use App\Models\Beneficiary;
 use App\Models\Code;
 use App\Models\Implementation;
 use App\Models\User;
@@ -32,6 +33,18 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('delete-batch', function (User $user, Implementation $implementation, Batch $batch) {
             if ($batch->implementations_id === $implementation->id) {
                 return $user->id === $implementation->users_id;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('delete-beneficiary-focal', function (User $user) {
+            $implementation = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->select('implementations.users_id')
+                ->first();
+
+            if ($implementation->users_id === $user->id) {
+                return true;
             } else {
                 return false;
             }

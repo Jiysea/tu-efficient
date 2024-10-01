@@ -10,6 +10,7 @@ use App\Models\UserSetting;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -30,6 +31,8 @@ class AddBeneficiariesModal extends Component
     public $maxDate;
     #[Locked]
     public $minDate;
+    #[Locked]
+    public $duplicationThreshold;
 
     # ------------------------------------
 
@@ -162,6 +165,8 @@ class AddBeneficiariesModal extends Component
                         $fail('Value only accepts numbers.');
                     } else if ((strlen($value) !== 11)) {
                         $fail('Valid number should be 11 digits.');
+                    } else if (substr($value, 0, 2) !== '09') {
+                        $fail("Valid number should start with '09'.");
                     }
                 }
             ],
@@ -169,12 +174,11 @@ class AddBeneficiariesModal extends Component
                 'required_unless:occupation,null',
                 function ($attr, $value, $fail) {
                     if ($this->avg_monthly_income) {
-                        $money = new MoneyFormat();
 
-                        if ($money->isNegative($value)) {
+                        if (MoneyFormat::isNegative($value)) {
                             $fail('The value should be more than 1.');
                         }
-                        if (!$money->isMaskInt($value)) {
+                        if (!MoneyFormat::isMaskInt($value)) {
 
                             $fail('The value should be a valid amount.');
                         }
@@ -223,57 +227,6 @@ class AddBeneficiariesModal extends Component
         ];
     }
 
-    public function updatedBirthdate()
-    {
-        if ($this->birthdate) {
-            $choosenDate = Carbon::parse($this->birthdate)->format('Y-m-d');
-
-            if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
-                $this->type_of_id = 'Barangay ID';
-            }
-            $this->nameCheck();
-        } else {
-            $this->birthdate = null;
-        }
-    }
-
-    public function updatedCivilStatus()
-    {
-        if ($this->civil_status === 'Single') {
-            $this->spouse_first_name = null;
-            $this->spouse_middle_name = null;
-            $this->spouse_last_name = null;
-            $this->spouse_extension_name = null;
-            $this->resetValidation('spouse_first_name');
-            $this->resetValidation('spouse_last_name');
-        } else {
-
-        }
-    }
-
-    public function updatedBeneficiaryType()
-    {
-        if ($this->beneficiary_type === 'Underemployed') {
-            $this->reset('reason_image_file_path', 'image_description');
-            $this->isResolved = false;
-        }
-    }
-
-    public function updatedAvgMonthlyIncome()
-    {
-        if (!$this->occupation) {
-            $this->resetValidation('avg_monthly_income');
-            $this->reset('occupation');
-        }
-    }
-
-    public function updatedIsPwd()
-    {
-        if ($this->is_pwd === 'No' && $this->type_of_id === "Person's With Disability (PWD) ID") {
-            $this->type_of_id = 'Barangay ID';
-        }
-    }
-
     # ----------------------------------------------------------------------------------------------
     # ADD REASON MODAL AREA
 
@@ -292,78 +245,75 @@ class AddBeneficiariesModal extends Component
     # a livewire action executes after clicking the `Add` button
     public function saveBeneficiary()
     {
-        if (!$this->occupation && !$this->avg_monthly_income) {
-            $this->reset('occupation');
-            $this->resetValidation('avg_monthly_income');
-        }
-
         $this->validate();
 
-        $money = new MoneyFormat();
-        $this->avg_monthly_income = $this->avg_monthly_income ? $money->unmask($this->avg_monthly_income) : null;
-
-        $this->birthdate = Carbon::parse($this->birthdate)->format('Y-m-d h:i:s');
+        $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
+        $this->birthdate = Carbon::parse($this->birthdate)->format('Y-m-d');
         $this->contact_num = '+63' . substr($this->contact_num, 1);
-
         $batch = Batch::find(decrypt($this->batchId));
         $implementation = Implementation::find($batch->value('implementations_id'));
 
-        $beneficiary = Beneficiary::create([
-            'batches_id' => decrypt($this->batchId),
-            'first_name' => $this->first_name,
-            'middle_name' => $this->middle_name ?? null,
-            'last_name' => $this->last_name,
-            'extension_name' => $this->extension_name ?? null,
-            'birthdate' => $this->birthdate,
-            'barangay_name' => $batch->barangay_name,
-            'contact_num' => $this->contact_num,
-            'occupation' => $this->occupation ?? null,
-            'avg_monthly_income' => $this->avg_monthly_income ?? null,
-            'city_municipality' => $implementation->city_municipality,
-            'province' => $implementation->province,
-            'district' => $implementation->district,
-            'type_of_id' => $this->type_of_id,
-            'id_number' => $this->id_number,
-            'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
-            'beneficiary_type' => strtolower($this->beneficiary_type),
-            'sex' => strtolower($this->sex),
-            'civil_status' => strtolower($this->civil_status),
-            'age' => $this->beneficiaryAge($this->birthdate),
-            'dependent' => $this->dependent ?? null,
-            'self_employment' => strtolower($this->self_employment),
-            'skills_training' => $this->skills_training ?? null,
-            'is_pwd' => strtolower($this->is_pwd),
-            'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-            'spouse_first_name' => $this->spouse_first_name,
-            'spouse_middle_name' => $this->spouse_middle_name,
-            'spouse_last_name' => $this->spouse_last_name,
-            'spouse_extension_name' => $this->spouse_extension_name,
-        ]);
+        # Re-Check for Duplicates
+        $this->nameCheck();
 
-        $file = null;
+        # And then use DB::Transaction to ensure that only 1 record can be saved
+        DB::transaction(function () use ($batch, $implementation) {
+            $beneficiary = Beneficiary::create([
+                'batches_id' => decrypt($this->batchId),
+                'first_name' => $this->first_name,
+                'middle_name' => $this->middle_name ?? null,
+                'last_name' => $this->last_name,
+                'extension_name' => $this->extension_name ?? null,
+                'birthdate' => $this->birthdate,
+                'barangay_name' => $batch->barangay_name,
+                'contact_num' => $this->contact_num,
+                'occupation' => $this->occupation ?? null,
+                'avg_monthly_income' => $this->avg_monthly_income ?? null,
+                'city_municipality' => $implementation->city_municipality,
+                'province' => $implementation->province,
+                'district' => $implementation->district,
+                'type_of_id' => $this->type_of_id,
+                'id_number' => $this->id_number,
+                'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
+                'beneficiary_type' => strtolower($this->beneficiary_type),
+                'sex' => strtolower($this->sex),
+                'civil_status' => strtolower($this->civil_status),
+                'age' => $this->beneficiaryAge($this->birthdate),
+                'dependent' => $this->dependent ?? null,
+                'self_employment' => strtolower($this->self_employment),
+                'skills_training' => $this->skills_training ?? null,
+                'is_pwd' => strtolower($this->is_pwd),
+                'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+                'spouse_first_name' => $this->spouse_first_name,
+                'spouse_middle_name' => $this->spouse_middle_name,
+                'spouse_last_name' => $this->spouse_last_name,
+                'spouse_extension_name' => $this->spouse_extension_name,
+            ]);
 
-        if ($this->image_file_path) {
-            $file = $this->image_file_path->store(path: 'credentials');
-        }
+            $file = null;
 
-        Credential::create([
-            'beneficiaries_id' => $beneficiary->id,
-            'image_description' => null,
-            'image_file_path' => $file,
-            'for_duplicates' => 'no',
-        ]);
+            if ($this->image_file_path) {
+                $file = $this->image_file_path->store(path: 'credentials');
+            }
 
-
-        if ($this->isResults) {
-            $file = $this->reason_image_file_path->store(path: 'credentials');
             Credential::create([
                 'beneficiaries_id' => $beneficiary->id,
-                'image_description' => $this->image_description,
+                'image_description' => null,
                 'image_file_path' => $file,
-                'for_duplicates' => 'yes',
+                'for_duplicates' => 'no',
             ]);
-        }
 
+            if ($this->isResults) {
+                $file = $this->reason_image_file_path->store(path: 'credentials');
+                Credential::create([
+                    'beneficiaries_id' => $beneficiary->id,
+                    'image_description' => $this->image_description,
+                    'image_file_path' => $file,
+                    'for_duplicates' => 'yes',
+                ]);
+            }
+
+        });
         $this->dispatch('add-beneficiaries');
         $this->resetBeneficiaries();
     }
@@ -408,16 +358,11 @@ class AddBeneficiariesModal extends Component
             # removes excess whitespaces between words
             $filteredInputString = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $filteredInputString)));
 
-            # gets the matching mode settings of the user
-            $settings = UserSetting::where('users_id', Auth::id())
-                ->pluck('value', 'key');
-            $duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+            # initiate the algorithm instance
+            $algorithm = new JaccardSimilarity();
 
             # fetch all the potential duplicating names from the database
             $beneficiariesFromDatabase = $this->prefetchNames($filteredInputString);
-
-            # call the JaccardSimilarity class object instance
-            $algorithm = new JaccardSimilarity();
 
             # initialize possible duplicates variable
             $possibleDuplicates = [];
@@ -432,10 +377,13 @@ class AddBeneficiariesModal extends Component
                 $coEfficient = $algorithm->calculateSimilarity($name, $filteredInputString);
 
                 # then check if it goes over the Threshold
-                if ($coEfficient > $duplicationThreshold) {
+                if ($coEfficient >= $this->duplicationThreshold) {
                     $this->isResults = true;
 
-                    if (intval($coEfficient * 100) === 100 && !$this->isPerfectDuplicate) {
+                    if (
+                        intval($coEfficient * 100) === 100
+                        && Carbon::parse($this->birthdate)->format('Y-m-d') == Carbon::parse($beneficiary->birthdate)->format('Y-m-d')
+                    ) {
                         $this->isPerfectDuplicate = true;
                     }
 
@@ -498,10 +446,11 @@ class AddBeneficiariesModal extends Component
                 }
             })
             ->select([
-                'beneficiaries.*'
+                'beneficiaries.*',
+                'implementations.project_num',
+                'batches.batch_num'
             ])
             ->get();
-
 
         return $beneficiariesFromDatabase;
     }
@@ -562,14 +511,90 @@ class AddBeneficiariesModal extends Component
         return $ids;
     }
 
+    public function updatedBirthdate()
+    {
+        if ($this->birthdate) {
+            $choosenDate = Carbon::parse($this->birthdate)->format('Y-m-d');
+
+            if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
+                $this->type_of_id = 'Barangay ID';
+            }
+            $this->nameCheck();
+        } else {
+            $this->birthdate = null;
+        }
+    }
+
+    public function updatedCivilStatus()
+    {
+        if ($this->civil_status === 'Single') {
+            $this->spouse_first_name = null;
+            $this->spouse_middle_name = null;
+            $this->spouse_last_name = null;
+            $this->spouse_extension_name = null;
+            $this->resetValidation('spouse_first_name');
+            $this->resetValidation('spouse_last_name');
+        } else {
+
+        }
+    }
+
+    public function updatedBeneficiaryType()
+    {
+        if ($this->beneficiary_type === 'Underemployed') {
+            $this->reset('reason_image_file_path', 'image_description');
+            $this->isResolved = false;
+        }
+    }
+
+    public function updatedContactNum()
+    {
+        if ($this->contact_num === '') {
+            $this->contact_num = null;
+            $this->resetValidation('contact_num');
+        }
+    }
+
+    public function updatedAvgMonthlyIncome()
+    {
+        if (!$this->occupation && !$this->avg_monthly_income) {
+            $this->resetValidation('occupation');
+            $this->resetValidation('avg_monthly_income');
+            $this->reset('occupation');
+        }
+    }
+
+    public function updatedOccupation()
+    {
+        if (!$this->avg_monthly_income && !$this->occupation) {
+            $this->resetValidation('avg_monthly_income');
+            $this->resetValidation('occupation');
+            $this->reset('avg_monthly_income');
+        }
+    }
+
+    public function updatedIsPwd()
+    {
+        if ($this->is_pwd === 'No' && $this->type_of_id === "Person's With Disability (PWD) ID") {
+            $this->type_of_id = 'Barangay ID';
+        }
+    }
+
     public function resetBeneficiaries()
     {
         $this->resetExcept(
             'batchId',
-            'maxDate',
-            'minDate',
+            'duplicationThreshold',
         );
         $this->resetValidation();
+    }
+
+    public function mount()
+    {
+        # gets the matching mode settings of the user
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+        $this->duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
     }
 
     public function render()

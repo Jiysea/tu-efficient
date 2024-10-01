@@ -4,12 +4,12 @@ namespace App\Services;
 
 class JaccardSimilarity
 {
-    protected static $n; // N-gram size
+    protected $n = 2; // N-gram size
 
-    public function __construct($n = 2)
-    {
-        self::$n = $n;
-    }
+    // public function __construct($n = 2)
+    // {
+    //     $this->$n = $n;
+    // }
 
     /**
      * Preprocess the string by tokenizing and sorting.
@@ -17,7 +17,7 @@ class JaccardSimilarity
      * @param string $string
      * @return string
      */
-    protected static function preprocessString($string)
+    protected function preprocessString($string)
     {
         # Split the string into words (tokens)
         $tokens = explode(' ', $string);
@@ -38,13 +38,14 @@ class JaccardSimilarity
      * @param string $string
      * @return array
      */
-    protected static function generateNGrams($string)
+    protected function generateNGrams($string)
     {
+        $n = 2;
         $ngrams = [];
-        $length = strlen($string) - self::$n + 1;
+        $length = strlen($string) - $n + 1;
 
         for ($i = 0; $i < $length; $i++) {
-            $ngrams[] = substr($string, $i, self::$n);
+            $ngrams[] = substr($string, $i, $n);
         }
 
         return $ngrams;
@@ -60,12 +61,12 @@ class JaccardSimilarity
     public function calculateSimilarity($beneficiaryFromDatabase, $inputtedBeneficiary)
     {
         # Preprocess the strings
-        $name1 = self::preprocessString($beneficiaryFromDatabase);
-        $name2 = self::preprocessString($inputtedBeneficiary);
+        $name1 = $this->preprocessString($beneficiaryFromDatabase);
+        $name2 = $this->preprocessString($inputtedBeneficiary);
 
         # Generate n-grams
-        $ngrams1 = array_unique(self::generateNGrams($name1));
-        $ngrams2 = array_unique(self::generateNGrams($name2));
+        $ngrams1 = array_unique($this->generateNGrams($name1));
+        $ngrams2 = array_unique($this->generateNGrams($name2));
 
         # Calculate intersection and union
         $intersection = array_intersect($ngrams1, $ngrams2);

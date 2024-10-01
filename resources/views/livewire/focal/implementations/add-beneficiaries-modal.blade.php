@@ -108,24 +108,12 @@
                                         <div x-cloak>
                                             <!-- Modal Backdrop -->
                                             <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-                                                x-show="addReasonModal"
-                                                x-transition:enter="transition ease-out duration-300"
-                                                x-transition:enter-start="opacity-0"
-                                                x-transition:enter-end="opacity-100"
-                                                x-transition:leave="transition ease-in duration-200"
-                                                x-transition:leave-start="opacity-100"
-                                                x-transition:leave-end="opacity-0">
+                                                x-show="addReasonModal">
                                             </div>
 
                                             <!-- Modal -->
                                             <div x-show="addReasonModal" x-trap.noscroll="addReasonModal"
-                                                class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full"
-                                                x-transition:enter="transition ease-in-out duration-300"
-                                                x-transition:enter-start="opacity-0 transform scale-90"
-                                                x-transition:enter-end="opacity-100 transform scale-100"
-                                                x-transition:leave="transition ease-in-out duration-300"
-                                                x-transition:leave-start="opacity-100 transform scale-100"
-                                                x-transition:leave-end="opacity-0 transform scale-90">
+                                                class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
 
                                                 {{-- The Modal --}}
                                                 <div class="relative w-full max-w-3xl max-h-full">
@@ -149,11 +137,9 @@
                                                                             fill="none" viewBox="0 0 24 24">
                                                                             <circle class="opacity-25" cx="12"
                                                                                 cy="12" r="10"
-                                                                                stroke="currentColor"
-                                                                                stroke-width="4">
+                                                                                stroke="currentColor" stroke-width="4">
                                                                             </circle>
-                                                                            <path class="opacity-75"
-                                                                                fill="currentColor"
+                                                                            <path class="opacity-75" fill="currentColor"
                                                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                                                             </path>
                                                                         </svg>
@@ -321,22 +307,11 @@
 
                             {{-- TABLE AREA --}}
                             <div x-show="isResults && expanded"
-                                class="relative min-h-40 max-h-40 rounded text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin"
-                                :class="{
-                                    'bg-red-50 text-red-950 scrollbar-track-red-50 scrollbar-thumb-red-700': isPerfectDuplicate &&
-                                        !isResolved,
-                                    'bg-amber-50 text-amber-950 scrollbar-track-amber-50 scrollbar-thumb-amber-700': !
-                                        isPerfectDuplicate &&
-                                        !isResolved,
-                                    'bg-green-50 text-green-950 scrollbar-track-green-50 scrollbar-thumb-green-700': isResolved,
-                                }">
+                                class="relative min-h-56 max-h-5min-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
+                                border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                                 <table class="relative w-full text-sm text-left select-auto">
-                                    <thead class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap"
-                                        :class="{
-                                            'bg-red-300': isPerfectDuplicate && !isResolved,
-                                            'bg-amber-300': !isPerfectDuplicate && !isResolved,
-                                            'bg-green-300': isResolved
-                                        }">
+                                    <thead
+                                        class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
                                         <tr>
                                             <th scope="col" class="ps-4 py-2">
                                                 similarity %
@@ -394,13 +369,7 @@
                                     <tbody class="text-xs relative">
                                         @forelse ($similarityResults ?? [] as $key => $result)
                                             <tr wire:key='batch-{{ $key }}'
-                                                class="relative whitespace-nowrap"
-                                                :class="{
-                                                    'bg-red-50 hover:bg-red-100': isPerfectDuplicate && !isResolved,
-                                                    'bg-amber-50 hover:bg-amber-100': !isPerfectDuplicate && !
-                                                        isResolved,
-                                                    'bg-green-50 hover:bg-green-100': isResolved
-                                                }">
+                                                class="relative whitespace-nowrap hover:bg-gray-50">
                                                 <td class="ps-4 py-2 font-medium">
                                                     {{ $result['coEfficient'] }}%
                                                 </td>
@@ -411,19 +380,34 @@
                                                     {{ $result['batch_num'] }}
                                                 </td>
                                                 <td class="px-2 py-2">
-                                                    {{ $result['first_name'] }}
+                                                    <span
+                                                        class="{{ $first_name === $result['first_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        {{ $result['first_name'] }}
+                                                    </span>
                                                 </td>
                                                 <td class="px-2 py-2">
-                                                    {{ $result['middle_name'] ?? '-' }}
+                                                    <span
+                                                        class="{{ ($middle_name === $result['middle_name'] && !is_null($middle_name)) || ($middle_name === $result['middle_name'] && $middle_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        {{ $result['middle_name'] ?? '-' }}
+                                                    </span>
                                                 </td>
                                                 <td class="px-2 py-2">
-                                                    {{ $result['last_name'] }}
+                                                    <span
+                                                        class="{{ $last_name === $result['last_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        {{ $result['last_name'] }}
+                                                    </span>
                                                 </td>
                                                 <td class="px-2 py-2">
-                                                    {{ $result['extension_name'] ?? '-' }}
+                                                    <span
+                                                        class="{{ ($extension_name === $result['extension_name'] && !is_null($extension_name)) || ($extension_name === $result['extension_name'] && $extension_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        {{ $result['extension_name'] ?? '-' }}
+                                                    </span>
                                                 </td>
                                                 <td class="px-2 py-2">
-                                                    {{ $result['birthdate'] }}
+                                                    <span
+                                                        class="{{ \Carbon\Carbon::parse($birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        {{ $result['birthdate'] }}
+                                                    </span>
                                                 </td>
                                                 <td class="px-2 py-2">
                                                     {{ $result['contact_num'] }}
@@ -781,8 +765,7 @@
                                         Yes
                                     </button>
 
-                                    <button type="button"
-                                        @click="self_employment = 'No'; open = false;
+                                    <button type="button" @click="self_employment = 'No'; open = false;"
                                         class="flex
                                         items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b
                                         p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900
@@ -830,7 +813,7 @@
                                                 class="absolute -left-20 sm:left-0 bottom-full mb-2 z-50 text-xs whitespace-nowrap border border-gray-300 text-indigo-50 bg-gray-700 rounded p-2 shadow"
                                                 x-show="pop">
                                                 It's basically an image of a beneficiary's ID card <br>
-                                                to prove that their identity is legitimate.
+                                                to further prove that their identity is legitimate.
                                             </div>
                                         </div>
                                     </div>

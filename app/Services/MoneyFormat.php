@@ -9,7 +9,7 @@ class MoneyFormat
      *  @param string $value A numeric value that contains `.` and `,`
      *  @return int Returns an integer without other symbols
      */
-    public function unmask(string $value)
+    public static function unmask(string $value)
     {
         $number = floatval(str_replace(',', '', $value));
 
@@ -46,17 +46,17 @@ class MoneyFormat
      *  @param string $value A numeric value that contains `.` and `,`
      *  @return bool Returns true if it's a float value, otherwise false
      */
-    public function isMaskInt($value)
+    public static function isMaskInt($value)
     {
-        $value = $this->unmask($value);
+        $value = self::unmask($value);
         $check = filter_var($value, FILTER_VALIDATE_INT);
 
         return $check;
     }
 
-    public function isNegative($value)
+    public static function isNegative($value)
     {
-        $value = $this->unmask($value);
+        $value = self::unmask($value);
         $check = $value <= 0;
         return $check;
     }

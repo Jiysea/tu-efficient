@@ -70,7 +70,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- Loading State --}}
                 <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
                     wire:loading.flex
-                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProjectModal, saveBatches, editBatch, deleteBatch, viewBatchModal, saveBeneficiaries, editBeneficiary, deleteBeneficiary, viewBeneficiaryModal">
+                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProjectModal, saveBatches, editBatch, deleteBatch, viewBatchModal, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary viewBeneficiaryModal">
                     <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -422,7 +422,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 </div>
 
                 {{-- List of Beneficiaries --}}
-                <div x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), viewBeneficiaryModal: $wire.entangle('viewBeneficiaryModal') }" class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
+                <div x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), viewBeneficiaryModal: $wire.entangle('viewBeneficiaryModal'), importFileModal: $wire.entangle('importFileModal') }" class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
 
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
@@ -475,6 +475,21 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full "
                                     placeholder="Search for beneficiaries">
                             </div>
+
+                            <button
+                                @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) @click="importFileModal = !importFileModal;" @else disabled @endif
+                                class="flex items-center {{ $batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries'] ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }} rounded-md px-4 py-1 me-2 text-sm font-bold duration-200 ease-in-out">
+                                IMPORT
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ml-2"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                    viewBox="0, 0, 400,400">
+                                    <g>
+                                        <path
+                                            d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M206.688 139.873 C 212.751 143.620,212.500 140.621,212.500 209.231 C 212.500 242.826,212.767 270.313,213.093 270.313 C 213.420 270.313,220.714 263.272,229.304 254.667 C 248.566 235.371,251.875 233.906,259.339 241.370 C 267.556 249.587,267.098 250.354,234.514 283.031 C 204.767 312.862,204.216 313.301,197.927 312.154 C 194.787 311.582,142.095 260.408,139.398 255.312 C 136.012 248.916,140.354 240.015,147.563 238.573 C 153.629 237.360,154.856 238.189,171.509 254.750 C 180.116 263.309,187.411 270.313,187.720 270.313 C 188.029 270.313,188.281 242.680,188.281 208.907 C 188.281 140.478,188.004 144.025,193.652 140.187 C 197.275 137.725,202.990 137.588,206.688 139.873 "
+                                            stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                    </g>
+                                </svg>
+                            </button>
 
                             <button
                                 @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
@@ -767,6 +782,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     {{-- View Beneficiaries Modal --}}
                     <livewire:focal.implementations.view-beneficiary :$passedBeneficiaryId />
+
+                    {{-- Import File Modal --}}
+                    <livewire:focal.implementations.import-file-modal :$batchId />
                 </div>
             </div>
         </div>

@@ -42,6 +42,8 @@ class Implementations extends Component
     public $addBeneficiariesModal = false;
     public $viewBeneficiaryModal = false;
 
+    public $importFileModal = false;
+
     # ------------------------------------------
 
     public $temporaryCount = 0; # debugging purposes
@@ -492,24 +494,47 @@ class Implementations extends Component
     #[On('delete-beneficiary')]
     public function deleteBeneficiary()
     {
-        // $dateTimeFromEnd = $this->end;
-        // $value = substr($dateTimeFromEnd, 0, 10);
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
 
-        // $choosenDate = date('Y-m-d', strtotime($value));
-        // $currentTime = date('H:i:s', strtotime(now()));
-        // $this->end = $choosenDate . ' ' . $currentTime;
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
 
-        // $this->passedBeneficiaryId = null;
-        // $this->beneficiaryId = null;
+        $this->passedBeneficiaryId = null;
+        $this->beneficiaryId = null;
 
-        // $this->selectedBeneficiaryRow = -1;
+        $this->selectedBeneficiaryRow = -1;
 
         $this->showAlert = true;
-        $this->alertMessage = 'Nothing happened.';
+        $this->alertMessage = 'Beneficiary record has been deleted.';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
 
-        # $this->viewBeneficiaryModal = false;
+        $this->viewBeneficiaryModal = false;
+    }
+
+    #[On('archive-beneficiary')]
+    public function archiveBeneficiary()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->passedBeneficiaryId = null;
+        $this->beneficiaryId = null;
+
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Moved record to Archives.';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+
+        $this->viewBeneficiaryModal = false;
     }
 
     public function mount()

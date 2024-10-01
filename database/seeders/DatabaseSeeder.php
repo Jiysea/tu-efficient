@@ -201,7 +201,6 @@ class DatabaseSeeder extends Seeder
             ->select(['batches.*', 'implementations.district'])
             ->get();
 
-        $algorithm = new JaccardSimilarity();
         foreach ($batches as $batch) {
             Batch::withoutTimestamps(function () use ($batch) {
                 $batch->submission_status = 'submitted';
@@ -232,7 +231,7 @@ class DatabaseSeeder extends Seeder
             ]);
 
             $specialCases = 0;
-
+            $algorithm = new JaccardSimilarity();
             foreach ($beneficiaries as $beneficiary) {
 
                 # check its Jaccard Similarity index

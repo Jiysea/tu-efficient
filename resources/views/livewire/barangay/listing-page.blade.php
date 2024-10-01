@@ -921,7 +921,7 @@
                                     @enderror
                                 </div>
                                 {{-- Birthdate --}}
-                                <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
+                                <div x-data="{ birthdate: $wire.entangle('birthdate') }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                                     <label for="birthdate" class="block mb-1  font-medium text-green-1100 ">Birthdate
                                         <span class="text-red-700 font-normal text-xs">*</span></label>
                                     <div
@@ -936,6 +936,8 @@
                                     <input datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                         datepicker-min-date='{{ $minDate }}'
                                         datepicker-max-date='{{ $maxDate }}' id="birthdate" autocomplete="off"
+                                        wire:model.blur="birthdate"
+                                        @change-date.camel="birthdate = $el.value; $wire.$refresh();"
                                         class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                         placeholder="Select date">
                                     @error('birthdate')
@@ -947,7 +949,7 @@
                                 <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
                                     <label for="contact_num" class="block mb-1 font-medium text-green-1100 ">Contact
                                         Number <span class="text-red-700 font-normal text-xs">*</span></label>
-                                    <div {{-- x-effect="console.log(unmaskedBudget)" --}} class="relative">
+                                    <div class="relative">
                                         <div
                                             class="text-xs outline-none absolute inset-y-0 px-2 rounded-l flex items-center justify-center text-center duration-200 ease-in-out pointer-events-none {{ $errors->has('contact_num') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-green-700 text-green-50' }}">
                                             <p
@@ -955,9 +957,8 @@
                                                 +63
                                             </p>
                                         </div>
-                                        <input x-mask="99999999999" type="text" inputmode="numeric"
-                                            min="0" autocomplete="off" id="contact_num"
-                                            @blur="$wire.set('contact_num', $el.value);"
+                                        <input x-mask="99999999999" type="text" min="0" autocomplete="off"
+                                            id="contact_num" wire:model.blur="contact_num"
                                             class="text-xs outline-none border ps-12 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('contact_num') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50  border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                             placeholder="ex. 09123456789">
                                     </div>
@@ -1920,15 +1921,3 @@
         </div>
     </div>
 </div>
-
-@script
-    <script>
-        const birthdatePicker = document.getElementById('birthdate');
-
-        birthdatePicker.addEventListener('changeDate', function(event) {
-            $wire.dispatchSelf('birthdate-change', {
-                value: birthdatePicker.value
-            });
-        });
-    </script>
-@endscript

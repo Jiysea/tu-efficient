@@ -133,16 +133,28 @@
                                                     {{-- Modal body --}}
                                                     <div
                                                         class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
-                                                        <p class="font-medium text-sm mb-1">
-                                                            Are you sure about deleting this beneficiary?
-                                                        </p>
-                                                        <p class="text-gray-500 text-sm mb-4">
-                                                            (This is action is irreversible)
-                                                        </p>
+                                                        @if ($this->projectInformation->approval_status === 'approved')
+                                                            <p class="font-medium text-sm mb-5">
+                                                                Are you sure about archiving this beneficiary?
+                                                            </p>
+                                                        @else
+                                                            <p class="font-medium text-sm mb-1">
+                                                                Are you sure about deleting this beneficiary?
+                                                            </p>
+                                                            <p class="text-gray-500 text-sm mb-4">
+                                                                (This is action is irreversible)
+                                                            </p>
+                                                        @endif
+
                                                         <div class="flex items-center justify-center w-full gap-4">
                                                             <button type="button"
                                                                 class="duration-200 ease-in-out flex flex-1 items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm border border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50"
                                                                 @click="deleteBeneficiaryModal = false;">CANCEL</button>
+
+                                                            <button type="button"
+                                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50"
+                                                                wire:click.prevent="restoreBeneficiary">RESTORE THE
+                                                                ARCHIVE</button>
 
                                                             <button type="button"
                                                                 class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50"
