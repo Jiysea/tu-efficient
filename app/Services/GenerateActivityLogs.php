@@ -13,4 +13,54 @@ class GenerateActivityLogs
             'description' => 'Imported (' . $added_count . ') beneficiaries in Brgy. ' . $barangay_name . ' with no duplications.',
         ]);
     }
+
+    public static function set_create_project_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_assign_batches_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_add_beneficiary_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_edit_project_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_edit_batches_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_edit_beneficiary_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_delete_project_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_delete_batches_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_delete_beneficiary_log(int $users_id, )
+    {
+
+    }
+
+    public static function set_archive_beneficiary_log(int $users_id, )
+    {
+
+    }
 }
