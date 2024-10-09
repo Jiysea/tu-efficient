@@ -153,7 +153,7 @@ class ImportFileModal extends Component
             $this->successCounter = 0;
             $this->errorCounter = 0;
             $this->similarityCounter = 0;
-
+            dump(cache("similarity_" . Auth::id()));
             foreach (cache("similarity_" . Auth::id()) as $beneficiary) {
 
                 if ($beneficiary['success']) {

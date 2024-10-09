@@ -27,7 +27,7 @@ class MoneyFormat
 
     /**
      * 
-     *  @param string $value An integer value
+     *  @param int $value An integer value
      *  @return string Returns a string that contains `.` and `,`
      */
     public static function mask(int $value)
@@ -46,7 +46,7 @@ class MoneyFormat
      *  @param string $value A numeric value that contains `.` and `,`
      *  @return bool Returns true if it's a float value, otherwise false
      */
-    public static function isMaskInt($value)
+    public static function isMaskInt(string $value)
     {
         $value = self::unmask($value);
         $check = filter_var($value, FILTER_VALIDATE_INT);
@@ -54,7 +54,12 @@ class MoneyFormat
         return $check;
     }
 
-    public static function isNegative($value)
+    /**
+     * 
+     *  @param string $value A numeric value that contains `.` and `,`
+     *  @return bool Returns true if it's a negative value, otherwise false
+     */
+    public static function isNegative(string $value)
     {
         $value = self::unmask($value);
         $check = $value <= 0;

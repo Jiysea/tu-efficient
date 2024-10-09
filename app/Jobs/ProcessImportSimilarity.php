@@ -330,8 +330,9 @@ class ProcessImportSimilarity implements ShouldQueue
             if (self::check_if_has_comma($beneficiary['avg_monthly_income'])) {
                 $errors .= self::is_negative($beneficiary['avg_monthly_income']);
                 $errors .= self::is_money_integer($beneficiary['avg_monthly_income']);
+                $beneficiary['avg_monthly_income'] = MoneyFormat::unmask($beneficiary['avg_monthly_income']);
             } else {
-                $avg_monthly_income = MoneyFormat::mask($beneficiary['avg_monthly_income']);
+                $avg_monthly_income = MoneyFormat::mask(intval($beneficiary['avg_monthly_income']));
                 $errors .= self::is_negative($avg_monthly_income);
                 $errors .= self::is_money_integer($avg_monthly_income);
                 $beneficiary['avg_monthly_income'] = MoneyFormat::unmask($avg_monthly_income);
