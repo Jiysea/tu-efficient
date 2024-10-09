@@ -456,7 +456,7 @@ class AddBeneficiariesModal extends Component
     public function updatedBirthdate()
     {
         if ($this->birthdate) {
-            $choosenDate = Carbon::parse($this->birthdate)->format('Y-m-d');
+            $choosenDate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
 
             if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
                 $this->type_of_id = 'Barangay ID';

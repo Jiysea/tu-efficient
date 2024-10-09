@@ -1437,7 +1437,7 @@
                                         <div class="flex items-center justify-center w-full gap-4">
                                             <div class="relative me-2">
                                                 <input type="password" id="password" wire:model.blur="password"
-                                                    class="flex {{ $errors->has('password') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-blue-300 bg-blue-50' }} rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
+                                                    class="flex {{ $errors->has('password') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 bg-indigo-50' }} rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
                                                     placeholder="Enter your password">
                                                 @error('password')
                                                     <p class="absolute top-full left-0 text-xs text-red-700">

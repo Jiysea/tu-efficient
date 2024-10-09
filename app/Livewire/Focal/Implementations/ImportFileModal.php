@@ -129,7 +129,10 @@ class ImportFileModal extends Component
 
         $jobBatch = Bus::batch([
             new ProcessImportSimilarity($filePath, Auth::id(), $this->batch->id, $this->duplicationThreshold),
-        ])->dispatch();
+        ])->catch(function (Batch $batch, Throwable $e) {
+            dump($e->getMessage());
+        })
+            ->dispatch();
 
         $this->jobsBatchId = $jobBatch->id;
 
@@ -150,6 +153,7 @@ class ImportFileModal extends Component
             $this->successCounter = 0;
             $this->errorCounter = 0;
             $this->similarityCounter = 0;
+
             foreach (cache("similarity_" . Auth::id()) as $beneficiary) {
 
                 if ($beneficiary['success']) {

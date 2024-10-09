@@ -1,10 +1,10 @@
-<div x-cloak x-show="importFileModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto  backdrop-blur-sm z-50">
+<div x-cloak x-show="importFileModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
     <!-- Modal -->
     <div x-show="importFileModal" x-trap.noscroll="importFileModal"
-        class="min-h-screen p-4 flex items-center justify-center select-none">
+        class="relative h-full overflow-y-auto p-4 flex items-center justify-center select-none">
 
-        <div class="relative size-full max-w-5xl">
+        <div class="size-full max-w-5xl">
 
             <!-- Modal content -->
             <div class="relative bg-white rounded-md shadow">
@@ -494,7 +494,7 @@
                                             <thead
                                                 class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
                                                 <tr>
-                                                    <th scope="col" class="ps-4 py-2">
+                                                    <th scope="col" class="p-2">
                                                         row
                                                     </th>
                                                     <th scope="col" class="px-2 py-2">
@@ -545,49 +545,49 @@
                                                 @foreach ($successResults as $key => $result)
                                                     <tr wire:key='batch-{{ $key }}'
                                                         class="relative whitespace-nowrap hover:bg-gray-50">
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['row'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['first_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['middle_name'] ?? '-' }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['last_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['extension_name'] ?? '-' }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['contact_num'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['barangay_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['sex'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['age'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['beneficiary_type'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['type_of_id'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['id_number'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['is_pwd'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['dependent'] }}
                                                         </td>
                                                     </tr>
@@ -637,7 +637,7 @@
                                             <thead
                                                 class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
                                                 <tr>
-                                                    <th scope="col" class="ps-4 py-2">
+                                                    <th scope="col" class="p-2">
                                                         row
                                                     </th>
                                                     <th scope="col" class="px-2 py-2">
@@ -688,49 +688,49 @@
                                                 @foreach ($errorResults as $key => $result)
                                                     <tr wire:key='batch-{{ $key }}'
                                                         class="relative whitespace-nowrap hover:bg-gray-50">
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['row'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['first_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['middle_name'] ?? '-' }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['last_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['extension_name'] ?? '-' }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['contact_num'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['barangay_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['sex'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['age'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['beneficiary_type'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['type_of_id'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['id_number'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['is_pwd'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['dependent'] }}
                                                         </td>
                                                     </tr>
@@ -780,49 +780,49 @@
                                             <thead
                                                 class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
                                                 <tr>
-                                                    <th scope="col" class="ps-4 py-2">
+                                                    <th scope="col" class="p-2">
                                                         row
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         first name
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         middle name
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         last name
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         ext.
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         birthdate
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         contact #
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         barangay
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         sex
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         age
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         beneficiary type
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         id type
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         id #
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         pwd
                                                     </th>
-                                                    <th scope="col" class="px-2 py-2">
+                                                    <th scope="col" class="p-2">
                                                         dependent
                                                     </th>
                                                 </tr>
@@ -831,49 +831,49 @@
                                                 @foreach ($similarityResults as $key => $result)
                                                     <tr wire:key='batch-{{ $key }}'
                                                         class="relative whitespace-nowrap hover:bg-gray-50">
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['row'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['first_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['middle_name'] ?? '-' }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['last_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['extension_name'] ?? '-' }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['contact_num'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['barangay_name'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['sex'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['age'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['beneficiary_type'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['type_of_id'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['id_number'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                        <td class="p-2 font-medium capitalize">
                                                             {{ $result['is_pwd'] }}
                                                         </td>
-                                                        <td class="ps-4 py-2 font-medium">
+                                                        <td class="p-2 font-medium">
                                                             {{ $result['dependent'] }}
                                                         </td>
                                                     </tr>
