@@ -9,6 +9,7 @@ use App\Services\CitiesMunicipalities;
 use App\Services\Districts;
 use App\Services\MoneyFormat;
 use App\Services\Provinces;
+use Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -54,6 +55,8 @@ class ViewProject extends Component
     public $total_slots;
     #[Validate]
     public $days_of_work;
+    #[Validate]
+    public $password;
 
     # Runs real-time depending on wire:model suffix
     public function rules()
@@ -121,6 +124,14 @@ class ViewProject extends Component
             ],
             'total_slots' => 'required|integer|min:1',
             'days_of_work' => 'required|integer|min:1',
+            'password' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, Auth::user()->password)) {
+                        $fail('Wrong password.');
+                    }
+                },
+            ]
         ];
     }
 
@@ -142,6 +153,7 @@ class ViewProject extends Component
             'total_slots.min' => 'Total Slots should be > 0.',
             'days_of_work.integer' => 'Days should be a number.',
             'days_of_work.min' => 'Days should be > 0.',
+            'password.required' => 'This field is required.',
         ];
     }
 
@@ -199,7 +211,88 @@ class ViewProject extends Component
     # Also disallows edits when there are any batches associated with this implementation project
     public function editProject()
     {
-        $this->validate();
+        $this->validate(
+            [
+                'project_num' => [
+                    'required',
+                    'integer',
+                    function ($attribute, $value, $fail) {
+                        // Check for uniqueness of the prefixed value in the database
+                        $exists = DB::table('implementations')
+                            ->where('project_num', $this->projectNumPrefix . $value)
+                            ->whereNotIn('id', [decrypt($this->passedProjectId)])
+                            ->exists();
+
+                        if ($exists) {
+                            // Fail the validation if the project number with the prefix already exists
+                            $fail('This :attribute already exists.');
+                        }
+                    },
+                ],
+                'project_title' => 'nullable',
+                'purpose' => 'required',
+                'district' => 'required',
+                'province' => 'required',
+                'city_municipality' => 'required',
+                'budget_amount' => [
+                    'required',
+
+                    function ($attribute, $value, $fail) {
+
+                        # Checks if the number is a valid number
+                        if (!MoneyFormat::isMaskInt($value)) {
+
+                            $fail('The should be a valid amount.');
+                        }
+
+                        # Checks if the number is a negative
+                        elseif (MoneyFormat::isNegative($value)) {
+                            $fail('The value should be nonnegative.');
+                        }
+                        # Checks if the number is less than the minimum wage
+                        elseif ($this->minimum_wage) {
+                            if (MoneyFormat::unmask($value ?? 0) < MoneyFormat::unmask($this->minimum_wage)) {
+                                $fail('The value should be > ₱' . MoneyFormat::mask($this->minimum_wage) . '.');
+                            }
+                        }
+                    },
+                ],
+                'minimum_wage' => [
+                    'required',
+                    function ($attribute, $value, $fail) {
+
+                        # Checks if the number is a valid number
+                        if (!MoneyFormat::isMaskInt($value)) {
+
+                            $fail('The value should be a valid amount.');
+                        }
+
+                        # Checks if the number is a negative
+                        elseif (MoneyFormat::isNegative($value)) {
+                            $fail('The value should be nonnegative.');
+                        }
+                    },
+                ],
+                'total_slots' => 'required|integer|min:1',
+                'days_of_work' => 'required|integer|min:1',
+            ],
+            [
+                'project_num.required' => 'This field is required.',
+                'purpose.required' => 'Please select a purpose.',
+                'district.required' => 'This field is required.',
+                'province.required' => 'This field is required.',
+                'city_municipality.required' => 'This field is required.',
+                'budget_amount.required' => 'This field is required.',
+                'minimum_wage.required' => 'This field is required.',
+                'total_slots.required' => 'This field is required.',
+                'days_of_work.required' => 'This field is required.',
+                'project_num.integer' => 'Project Number should be a number.',
+                'total_slots.integer' => 'Total Slots should be a number.',
+                'total_slots.min' => 'Total Slots should be > 0.',
+                'days_of_work.integer' => 'Days should be a number.',
+                'days_of_work.min' => 'Days should be > 0.',
+            ],
+        );
         $this->project_num = $this->projectNumPrefix . $this->project_num;
 
         $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
@@ -226,6 +319,7 @@ class ViewProject extends Component
 
     public function deleteProject()
     {
+        $this->validateOnly('password');
         $project = Implementation::find(decrypt($this->passedProjectId));
         $this->authorize('delete-implementation', $project);
         $project->delete();

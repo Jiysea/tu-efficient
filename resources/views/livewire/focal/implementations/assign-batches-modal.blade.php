@@ -1,14 +1,12 @@
-<div x-cloak>
-    <!-- Modal Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="assignBatchesModal">
-    </div>
+<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
+    x-show="assignBatchesModal">
 
     <!-- Modal -->
     <div x-show="assignBatchesModal" x-trap.noscroll="assignBatchesModal"
-        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
+        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="relative w-full max-w-5xl max-h-full">
+        <div class="relative size-full max-w-5xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -434,7 +432,7 @@
                                     <div
                                         class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-gray-500 bg-red-50 border-red-300' : 'text-gray-500 bg-gray-50 border-gray-300' }}">
                                         <svg xmlns="http://www.w3.org/2000/svg"
-                                            class="size-12 sm:size-20 mb-4 duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-red-500' : 'text-gray-500' }}"
+                                            class="size-12 sm:size-20 mb-4 duration-500 ease-in-out {{ $errors->has('temporaryBatchesList') ? 'text-red-400' : 'text-gray-400' }}"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                             viewBox="0, 0, 400,400">
                                             <g>

@@ -1,14 +1,13 @@
-<div x-cloak>
-    <!-- Modal Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="createProjectModal">
-    </div>
+<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
+    x-show="createProjectModal">
+
 
     <!-- Modal -->
     <div x-show="createProjectModal" x-trap.noscroll="createProjectModal"
-        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="relative w-full max-w-6xl max-h-full">
+        <div class="relative size-full max-w-6xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->

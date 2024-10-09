@@ -493,9 +493,6 @@ class ListingPage extends Component
     # the action that runs the algorithm where it checks each prefetched names and calculate the similarities
     public function nameCheck()
     {
-        # clear out any previous similarity results / initialize
-        $this->isPerfectDuplicate = false;
-
         # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
 
@@ -522,37 +519,7 @@ class ListingPage extends Component
                 $this->validateOnly('extension_name');
             }
 
-            # removes excess whitespaces between words
-            $filteredInputString = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $filteredInputString)));
-
-            # gets the matching mode settings
-            $settings = UserSetting::where('users_id', Auth::id())
-                ->pluck('value', 'key');
-            $matchingMode = $settings->get('extensive_matching', config('settings.extensive_matching'));
-            $duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
-
-            # fetch all the potential duplicating names from the database
-            $beneficiariesFromDatabase = $this->prefetchNames($filteredInputString, $matchingMode);
-
-            # initialize the algorithm instance
-            $algorithm = new JaccardSimilarity();
-
-            # initialize possible duplicates variable
-            $possibleDuplicates = [];
-
-            # this is where it checks the similarities
-            foreach ($beneficiariesFromDatabase as $key => $beneficiary) {
-                # gets the full name of the beneficiary
-                $name = $this->beneficiaryName($beneficiary);
-
-                # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
-                $coEfficient = $algorithm->calculateSimilarity($name, $filteredInputString);
-
-                # check if it's a perfect duplicate
-                if (intval($coEfficient * 100) === 100 && !$this->isPerfectDuplicate) {
-                    $this->isPerfectDuplicate = true;
-                }
-            }
+            $this->isPerfectDuplicate = JaccardSimilarity::isPerfect($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, $this->birthdate);
         }
     }
 
@@ -571,10 +538,10 @@ class ListingPage extends Component
         }
 
         $this->authorizeBeforeExecuting();
-        // $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
+        $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
 
-        // $this->birthdate = Carbon::parse($this->birthdate)->format('Y-m-d');
-        // $this->contact_num = '+63' . substr($this->contact_num, 1);
+        $this->birthdate = Carbon::parse($this->birthdate)->format('Y-m-d');
+        $this->contact_num = '+63' . substr($this->contact_num, 1);
 
         $beneficiary = Beneficiary::create([
             'batches_id' => $this->batch->id,
@@ -608,10 +575,16 @@ class ListingPage extends Component
             'spouse_extension_name' => $this->spouse_extension_name,
         ]);
 
+        $file = null;
+
+        if ($this->image_file_path) {
+            $file = $this->image_file_path->store(path: 'credentials');
+        }
+
         Credential::create([
             'beneficiaries_id' => $beneficiary->id,
             'image_description' => null,
-            'image_file_path' => $this->image_file_path->store(path: 'credentials'),
+            'image_file_path' => $file,
             'for_duplicates' => 'no',
         ]);
 

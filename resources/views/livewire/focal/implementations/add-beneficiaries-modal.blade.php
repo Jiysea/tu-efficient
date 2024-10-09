@@ -1,14 +1,12 @@
-<div x-cloak>
-    <!-- Modal Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="addBeneficiariesModal">
-    </div>
+<div x-cloak x-show="addBeneficiariesModal"
+    class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50">
 
     <!-- Modal -->
     <div x-show="addBeneficiariesModal" x-trap.noscroll="addBeneficiariesModal"
-        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         <!-- Modal content -->
-        <div class="relative pt-4 px-4 w-full max-w-7xl max-h-full">
+        <div class="relative size-full max-w-7xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -53,398 +51,412 @@
                     <div class="grid gap-4 sm:gap-2 grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
-                        <div x-data="{ isResolved: $wire.entangle('isResolved'), isResults: $wire.entangle('isResults'), expanded: false, isPerfectDuplicate: $wire.entangle('isPerfectDuplicate') }" class="relative col-span-full mb-2">
-                            <div x-show = "isResults" x-transition
-                                class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
-                                :class="{
-                                    'border-red-300 bg-red-50 text-red-900': isPerfectDuplicate && !isResolved,
-                                    'border-amber-300 bg-amber-50 text-amber-900': !isPerfectDuplicate && !isResolved,
-                                    'border-green-300 bg-green-50 text-green-900': isResolved,
-                                }">
+                        <div x-data="{ expanded: false, addReasonModal: $wire.entangle('addReasonModal'), isResults: $wire.entangle('isResults'), isSameImplementation: $wire.entangle('isSameImplementation') }" x-init="$watch('isResults', value => {
+                            if (expanded == true && value == false) {
+                                expanded = false;
+                            }
+                        });
+                        $watch('isSameImplementation', value => {
+                            if (expanded == true && value == true) {
+                                expanded = false;
+                            }
+                        });" class="relative col-span-full mb-2">
 
-                                <p x-show="isPerfectDuplicate && !isResolved" class="inline mx-2">This beneficiary has
-                                    already
-                                    been listed in the
-                                    database this
-                                    year.
-                                    <button type="button" @click="expanded = ! expanded"
-                                        class="underline underline-offset-2 font-bold">Show possible duplicates</button>
-                                </p>
+                            @if ($isResults)
+                                <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
+                                    :class="{
+                                        'border-red-300 bg-red-50 text-red-900': {{ json_encode(($isPerfectDuplicate && !$isResolved) || $isSpecialCaseAlready || $isSameImplementation) }},
+                                        'border-amber-300 bg-amber-50 text-amber-900': {{ json_encode(!$isPerfectDuplicate && !$isSpecialCaseAlready && !$isResolved) }},
+                                        'border-green-300 bg-green-50 text-green-900': {{ json_encode($isResolved) }},
+                                    }">
+                                    @if ($isPerfectDuplicate && $isSameImplementation && !$isResolved)
+                                        <p class="inline mx-2">You cannot enter the same beneficiary on the same
+                                            implementation.
+                                        </p>
+                                    @elseif ($isPerfectDuplicate && !$isSpecialCaseAlready && !$isResolved)
+                                        <p class="inline mx-2">This beneficiary
+                                            has
+                                            already
+                                            been listed in the
+                                            database this
+                                            year.
+                                            <button type="button" @click="expanded = ! expanded"
+                                                class="underline underline-offset-2 font-bold">Show possible
+                                                duplicates</button>
+                                        </p>
 
-                                <p x-show="!isPerfectDuplicate && !isResolved" class="inline mx-2">There are possible
-                                    duplicates found
-                                    associated with this name.
-                                    <button type="button" @click="expanded = ! expanded"
-                                        class="underline underline-offset-2 font-bold">Show
-                                        possible duplicates</button>
+                                        @if (!$isSpecialCaseAlready && $beneficiary_type === 'Special Case')
+                                            <button type="button" @click="addReasonModal = !addReasonModal"
+                                                class="px-2 py-1 rounded font-bold text-xs {{ $isPerfectDuplicate ? ' bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50' : ' bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50' }}">
+                                                ADD REASON
+                                            </button>
+                                        @elseif (!$isSpecialCaseAlready && !$isResolved)
+                                            <p class="inline mx-2">Not a mistake? Change the
+                                                Type of Beneficiary to
+                                                <strong class="underline underline-offset-2">Special Case</strong>
+                                            </p>
+                                        @endif
+                                    @elseif (!$isPerfectDuplicate && !$isSpecialCaseAlready && !$isResolved)
+                                        <p class="inline mx-2">There are
+                                            possible
+                                            duplicates found
+                                            associated with this name.
+                                            <button type="button" @click="expanded = ! expanded"
+                                                class="underline underline-offset-2 font-bold">Show
+                                                possible duplicates</button>
+                                        </p>
+                                    @elseif($isResolved)
+                                        <p class="inline mx-2">Possible
+                                            duplication is resolved.
+                                            <button type="button" @click="expanded = ! expanded"
+                                                class="underline underline-offset-2 font-bold">Show
+                                                possible duplicates</button>
+                                        </p>
 
-                                </p>
-
-                                <p x-show="isResolved" class="inline mx-2">Possible duplication is resolved.
-                                    <button type="button" @click="expanded = ! expanded"
-                                        class="underline underline-offset-2 font-bold">Show
-                                        possible duplicates</button>
-                                </p>
-
-                                @if ($beneficiary_type === 'Special Case')
-                                    <div x-data="{ addReasonModal: $wire.entangle('addReasonModal') }">
-                                        <button x-show="isResults && !isResolved" type="button"
-                                            @click="addReasonModal = !addReasonModal"
-                                            class="px-2 py-1 rounded font-bold text-xs"
-                                            :class="{
-                                                ' bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50': isPerfectDuplicate,
-                                                ' bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50': !
-                                                    isPerfectDuplicate,
-                                            
-                                            }">ADD
-                                            REASON</button>
-
-                                        <button x-show="isResolved" type="button"
-                                            @click="addReasonModal = !addReasonModal"
+                                        <button type="button" @click="addReasonModal = !addReasonModal"
                                             class="px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
                                             REASON</button>
+                                    @elseif($isSpecialCaseAlready)
+                                        <p class="inline mx-2">This beneficiary
+                                            has
+                                            already
+                                            been listed twice (2) and now ineligible to apply anymore this
+                                            year.
+                                            <button type="button" @click="expanded = ! expanded"
+                                                class="underline underline-offset-2 font-bold">Show past
+                                                records & possible duplicates</button>
+                                        </p>
+                                    @endif
+                                </div>
 
-                                        {{-- Hard-coded Add Reason because the nesting doesn't work! --}}
-                                        <div x-cloak>
-                                            <!-- Modal Backdrop -->
-                                            <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-                                                x-show="addReasonModal">
-                                            </div>
 
-                                            <!-- Modal -->
-                                            <div x-show="addReasonModal" x-trap.noscroll="addReasonModal"
-                                                class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+                                {{-- TABLE AREA --}}
+                                <div x-show="expanded"
+                                    class="relative min-h-56 max-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
+                                border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                                    <table class="relative w-full text-sm text-left select-auto">
+                                        <thead
+                                            class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
+                                            <tr>
+                                                <th scope="col" class="ps-4 py-2">
+                                                    similarity %
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    project number
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    batch number
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    first name
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    middle name
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    last name
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    ext.
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    birthdate
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    contact #
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    barangay
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    sex
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    age
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    beneficiary type
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    id type
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    id #
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    pwd
+                                                </th>
+                                                <th scope="col" class="px-2 py-2">
+                                                    dependent
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-xs relative">
+                                            @forelse ($similarityResults ?? [] as $key => $result)
+                                                <tr wire:key='batch-{{ $key }}'
+                                                    class="relative whitespace-nowrap hover:bg-gray-50">
+                                                    <td class="ps-4 py-2 font-medium">
+                                                        {{ $result['coEfficient'] }}%
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['project_num'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['batch_num'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        <span
+                                                            class="{{ $first_name === $result['first_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            {{ $result['first_name'] }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        <span
+                                                            class="{{ ($middle_name === $result['middle_name'] && !is_null($middle_name)) || ($middle_name === $result['middle_name'] && $middle_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            {{ $result['middle_name'] ?? '-' }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        <span
+                                                            class="{{ $last_name === $result['last_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            {{ $result['last_name'] }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        <span
+                                                            class="{{ ($extension_name === $result['extension_name'] && !is_null($extension_name)) || ($extension_name === $result['extension_name'] && $extension_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            {{ $result['extension_name'] ?? '-' }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        <span
+                                                            class="{{ \Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            {{ $result['birthdate'] }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['contact_num'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['barangay_name'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2 capitalize">
+                                                        {{ $result['sex'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['age'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2 capitalize">
+                                                        {{ $result['beneficiary_type'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['type_of_id'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['id_number'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2 capitalize">
+                                                        {{ $result['is_pwd'] }}
+                                                    </td>
+                                                    <td class="px-2 py-2">
+                                                        {{ $result['dependent'] ?? '-' }}
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td>No possible duplicates found.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                                                {{-- The Modal --}}
-                                                <div class="relative w-full max-w-3xl max-h-full">
-                                                    <div class="relative bg-white rounded-md shadow">
-                                                        <form wire:submit.prevent="saveReason">
-                                                            <!-- Modal Header -->
-                                                            <div
-                                                                class="flex items-center justify-between py-2 px-4 rounded-t-md">
-                                                                <span class="flex items-center justify-center">
-                                                                    <h1
-                                                                        class="text-sm sm:text-base font-semibold text-indigo-1100">
-                                                                        Add Reason
-                                                                    </h1>
-                                                                </span>
+                                {{-- Add Reason Modal --}}
+                                <div x-cloak>
+                                    <!-- Modal Backdrop -->
+                                    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+                                        x-show="addReasonModal">
+                                    </div>
 
-                                                                <div class="flex items-center justify-center">
-                                                                    {{-- Loading State for Changes --}}
-                                                                    <div class="z-50 text-indigo-900" wire:loading>
-                                                                        <svg class="size-6 mr-3 -ml-1 animate-spin"
-                                                                            xmlns="http://www.w3.org/2000/svg"
-                                                                            fill="none" viewBox="0 0 24 24">
-                                                                            <circle class="opacity-25" cx="12"
-                                                                                cy="12" r="10"
-                                                                                stroke="currentColor" stroke-width="4">
-                                                                            </circle>
-                                                                            <path class="opacity-75" fill="currentColor"
-                                                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                                            </path>
-                                                                        </svg>
+                                    <!-- Modal -->
+                                    <div x-show="addReasonModal" x-trap.noscroll="addReasonModal"
+                                        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+
+                                        {{-- The Modal --}}
+                                        <div class="relative w-full max-w-3xl max-h-full">
+                                            <div class="relative bg-white rounded-md shadow">
+                                                <form wire:submit.prevent="saveReason">
+                                                    <!-- Modal Header -->
+                                                    <div
+                                                        class="flex items-center justify-between py-2 px-4 rounded-t-md">
+                                                        <span class="flex items-center justify-center">
+                                                            <h1
+                                                                class="text-sm sm:text-base font-semibold text-indigo-1100">
+                                                                Add Reason
+                                                            </h1>
+                                                        </span>
+
+                                                        <div class="flex items-center justify-center">
+                                                            {{-- Loading State for Changes --}}
+                                                            <div class="z-50 text-indigo-900" wire:loading>
+                                                                <svg class="size-6 mr-3 -ml-1 animate-spin"
+                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                    viewBox="0 0 24 24">
+                                                                    <circle class="opacity-25" cx="12"
+                                                                        cy="12" r="10" stroke="currentColor"
+                                                                        stroke-width="4">
+                                                                    </circle>
+                                                                    <path class="opacity-75" fill="currentColor"
+                                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                                    </path>
+                                                                </svg>
+                                                            </div>
+                                                            <button type="button" @click="addReasonModal = false;"
+                                                                class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                                <svg class="size-3" aria-hidden="true"
+                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                    viewBox="0 0 14 14">
+                                                                    <path stroke="currentColor" stroke-linecap="round"
+                                                                        stroke-linejoin="round" stroke-width="2"
+                                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                                </svg>
+                                                                <span class="sr-only">Close Modal</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <hr class="">
+
+                                                    {{-- Modal Body --}}
+                                                    <div class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
+                                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+
+                                                            {{-- Case Proof --}}
+                                                            <div class="relative col-span-full sm:col-span-1 pb-4">
+                                                                <div class="flex flex-col items-start">
+                                                                    <div class="flex items-center">
+                                                                        <p
+                                                                            class="inline mb-1 font-medium text-indigo-1100">
+                                                                            Case Proof <span
+                                                                                class="text-red-700 font-normal text-xs">*</span>
+                                                                        </p>
                                                                     </div>
+
+                                                                    {{-- Image Area --}}
+                                                                    <label for="reason_image_file_path"
+                                                                        class="{{ $errors->has('reason_image_file_path') ? 'border-red-300 bg-red-50 text-red-500' : 'border-indigo-300 bg-indigo-50 text-gray-500' }} flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded cursor-pointer">
+
+                                                                        {{-- Image Preview --}}
+                                                                        <div
+                                                                            class="relative flex flex-col items-center justify-center w-full h-full aspect-square">
+
+                                                                            {{-- Loading State for Changes --}}
+                                                                            <div class="absolute flex items-center justify-center w-full h-full z-50 text-indigo-900"
+                                                                                wire:loading.flex
+                                                                                wire:target="reason_image_file_path">
+                                                                                <div
+                                                                                    class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
+                                                                                    {{-- Darkness... --}}
+                                                                                </div>
+
+                                                                                {{-- Loading Circle --}}
+                                                                                <svg class="size-6 animate-spin"
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none"
+                                                                                    viewBox="0 0 24 24">
+                                                                                    <circle class="opacity-25"
+                                                                                        cx="12" cy="12"
+                                                                                        r="10" stroke="currentColor"
+                                                                                        stroke-width="4">
+                                                                                    </circle>
+                                                                                    <path class="opacity-75"
+                                                                                        fill="currentColor"
+                                                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                                                    </path>
+                                                                                </svg>
+                                                                            </div>
+
+                                                                            {{-- Preview --}}
+                                                                            @if ($reason_image_file_path && !$errors->has('reason_image_file_path'))
+                                                                                <img class="size-[95%]"
+                                                                                    src="{{ $reason_image_file_path->temporaryUrl() }}">
+
+                                                                                {{-- Default --}}
+                                                                            @else
+                                                                                <svg class="size-8 mb-4"
+                                                                                    aria-hidden="true"
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none"
+                                                                                    viewBox="0 0 20 16">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                                                                </svg>
+                                                                                <p class="mb-2 text-xs">
+                                                                                    <span class="font-semibold">Click
+                                                                                        to
+                                                                                        upload</span> or
+                                                                                    drag
+                                                                                    and
+                                                                                    drop
+                                                                                </p>
+                                                                                <p class="text-xs">
+                                                                                    PNG or JPG (MAX. 5MB)
+                                                                                </p>
+                                                                            @endif
+                                                                        </div>
+
+                                                                        {{-- The Image itself --}}
+                                                                        <input id="reason_image_file_path"
+                                                                            wire:model="reason_image_file_path"
+                                                                            type="file" accept=".png,.jpg,.jpeg"
+                                                                            class="hidden" />
+                                                                    </label>
+                                                                </div>
+                                                                @error('reason_image_file_path')
+                                                                    <p
+                                                                        class="text-center whitespace-nowrap w-full text-red-500 mt-1 z-10 text-xs">
+                                                                        {{ $message }}</p>
+                                                                @enderror
+                                                            </div>
+
+                                                            {{-- Image Description --}}
+                                                            <div
+                                                                class="relative flex flex-col justify-between col-span-full sm:col-span-2 pb-4">
+                                                                <div class="flex flex-col">
+                                                                    <label for="image_description"
+                                                                        class="block mb-1 font-medium text-indigo-1100 ">Description
+                                                                        <span
+                                                                            class="text-red-700 font-normal text-xs">*</span></label>
+                                                                    <textarea type="text" id="image_description" autocomplete="off" wire:model.blur="image_description"
+                                                                        maxlength="255" rows="4"
+                                                                        class="resize-none h-full text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('image_description') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
+                                                                        placeholder="What is the reason for this special case?"></textarea>
+
+                                                                    @error('image_description')
+                                                                        <p
+                                                                            class="text-red-500 whitespace-nowrap w-full mt-1 z-10 text-xs">
+                                                                            {{ $message }}</p>
+                                                                    @enderror
+                                                                </div>
+                                                                <div class="flex justify-end w-full">
                                                                     <button type="button"
-                                                                        @click="addReasonModal = false;"
-                                                                        class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
-                                                                        <svg class="size-3" aria-hidden="true"
-                                                                            xmlns="http://www.w3.org/2000/svg"
-                                                                            fill="none" viewBox="0 0 14 14">
-                                                                            <path stroke="currentColor"
-                                                                                stroke-linecap="round"
-                                                                                stroke-linejoin="round"
-                                                                                stroke-width="2"
-                                                                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                                                        </svg>
-                                                                        <span class="sr-only">Close Modal</span>
+                                                                        wire:click.prevent="saveReason"
+                                                                        class="px-2 py-1 rounded bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 font-bold text-lg">
+                                                                        CONFIRM
                                                                     </button>
                                                                 </div>
                                                             </div>
-
-                                                            <hr class="">
-
-                                                            {{-- Modal Body --}}
-                                                            <div
-                                                                class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
-                                                                <div
-                                                                    class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
-
-                                                                    {{-- Case Proof --}}
-                                                                    <div
-                                                                        class="relative col-span-full sm:col-span-1 pb-4">
-                                                                        <div class="flex flex-col items-start">
-                                                                            <div class="flex items-center">
-                                                                                <p
-                                                                                    class="inline mb-1 font-medium text-indigo-1100">
-                                                                                    Case Proof <span
-                                                                                        class="text-red-700 font-normal text-xs">*</span>
-                                                                                </p>
-                                                                            </div>
-
-                                                                            {{-- Image Area --}}
-                                                                            <label for="reason_image_file_path"
-                                                                                class="{{ $errors->has('reason_image_file_path') ? 'border-red-300 bg-red-50 text-red-500' : 'border-indigo-300 bg-indigo-50 text-gray-500' }} flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded cursor-pointer">
-
-                                                                                {{-- Image Preview --}}
-                                                                                <div
-                                                                                    class="relative flex flex-col items-center justify-center w-full h-full aspect-square">
-
-                                                                                    {{-- Loading State for Changes --}}
-                                                                                    <div class="absolute flex items-center justify-center w-full h-full z-50 text-indigo-900"
-                                                                                        wire:loading.flex
-                                                                                        wire:target="reason_image_file_path">
-                                                                                        <div
-                                                                                            class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
-                                                                                            {{-- Darkness... --}}
-                                                                                        </div>
-
-                                                                                        {{-- Loading Circle --}}
-                                                                                        <svg class="size-6 animate-spin"
-                                                                                            xmlns="http://www.w3.org/2000/svg"
-                                                                                            fill="none"
-                                                                                            viewBox="0 0 24 24">
-                                                                                            <circle class="opacity-25"
-                                                                                                cx="12"
-                                                                                                cy="12" r="10"
-                                                                                                stroke="currentColor"
-                                                                                                stroke-width="4">
-                                                                                            </circle>
-                                                                                            <path class="opacity-75"
-                                                                                                fill="currentColor"
-                                                                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                                                            </path>
-                                                                                        </svg>
-                                                                                    </div>
-
-                                                                                    {{-- Preview --}}
-                                                                                    @if ($reason_image_file_path && !$errors->has('reason_image_file_path'))
-                                                                                        <img class="size-28"
-                                                                                            src="{{ $reason_image_file_path->temporaryUrl() }}">
-
-                                                                                        {{-- Default --}}
-                                                                                    @else
-                                                                                        <svg class="size-8 mb-4"
-                                                                                            aria-hidden="true"
-                                                                                            xmlns="http://www.w3.org/2000/svg"
-                                                                                            fill="none"
-                                                                                            viewBox="0 0 20 16">
-                                                                                            <path stroke="currentColor"
-                                                                                                stroke-linecap="round"
-                                                                                                stroke-linejoin="round"
-                                                                                                stroke-width="2"
-                                                                                                d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
-                                                                                        </svg>
-                                                                                        <p class="mb-2 text-xs">
-                                                                                            <span
-                                                                                                class="font-semibold">Click
-                                                                                                to
-                                                                                                upload</span> or drag
-                                                                                            and
-                                                                                            drop
-                                                                                        </p>
-                                                                                        <p class="text-xs">
-                                                                                            PNG or JPG (MAX. 5MB)</p>
-                                                                                    @endif
-                                                                                </div>
-
-                                                                                {{-- The Image itself --}}
-                                                                                <input id="reason_image_file_path"
-                                                                                    wire:model="reason_image_file_path"
-                                                                                    type="file"
-                                                                                    accept=".png,.jpg,.jpeg"
-                                                                                    class="hidden" />
-                                                                            </label>
-                                                                        </div>
-                                                                        @error('reason_image_file_path')
-                                                                            <p
-                                                                                class="text-center whitespace-nowrap w-full text-red-500 mt-1 z-10 text-xs">
-                                                                                {{ $message }}</p>
-                                                                        @enderror
-                                                                    </div>
-
-                                                                    {{-- Image Description --}}
-                                                                    <div
-                                                                        class="relative flex flex-col justify-between col-span-full sm:col-span-2 pb-4">
-                                                                        <div class="flex flex-col">
-                                                                            <label for="image_description"
-                                                                                class="block mb-1 font-medium text-indigo-1100 ">Description
-                                                                                <span
-                                                                                    class="text-red-700 font-normal text-xs">*</span></label>
-                                                                            <textarea type="text" id="image_description" autocomplete="off" wire:model.blur="image_description"
-                                                                                maxlength="255" rows="4"
-                                                                                class="resize-none h-full text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('image_description') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
-                                                                                placeholder="What is the reason for this special case?"></textarea>
-
-                                                                            @error('image_description')
-                                                                                <p
-                                                                                    class="text-red-500 whitespace-nowrap w-full mt-1 z-10 text-xs">
-                                                                                    {{ $message }}</p>
-                                                                            @enderror
-                                                                        </div>
-                                                                        <div class="flex justify-end w-full">
-                                                                            <button type="button"
-                                                                                wire:click.prevent="saveReason"
-                                                                                class="px-2 py-1 rounded bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 font-bold text-lg">
-                                                                                CONFIRM
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </form>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
-                                @else
-                                    <p x-show="isResults && !isResolved" class="inline mx-2">Not a mistake? Change the
-                                        Type of Beneficiary to
-                                        <strong class="underline underline-offset-2">Special Case</strong>
-                                    </p>
-                                @endif
-                            </div>
-
-                            {{-- TABLE AREA --}}
-                            <div x-show="isResults && expanded"
-                                class="relative min-h-56 max-h-5min-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
-                                border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
-                                <table class="relative w-full text-sm text-left select-auto">
-                                    <thead
-                                        class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
-                                        <tr>
-                                            <th scope="col" class="ps-4 py-2">
-                                                similarity %
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                project number
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                batch number
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                first name
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                middle name
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                last name
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                ext.
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                birthdate
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                contact #
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                barangay
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                sex
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                age
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                beneficiary type
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                id type
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                id #
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                pwd
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                dependent
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-xs relative">
-                                        @forelse ($similarityResults ?? [] as $key => $result)
-                                            <tr wire:key='batch-{{ $key }}'
-                                                class="relative whitespace-nowrap hover:bg-gray-50">
-                                                <td class="ps-4 py-2 font-medium">
-                                                    {{ $result['coEfficient'] }}%
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['project_num'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['batch_num'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ $first_name === $result['first_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['first_name'] }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ ($middle_name === $result['middle_name'] && !is_null($middle_name)) || ($middle_name === $result['middle_name'] && $middle_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['middle_name'] ?? '-' }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ $last_name === $result['last_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['last_name'] }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ ($extension_name === $result['extension_name'] && !is_null($extension_name)) || ($extension_name === $result['extension_name'] && $extension_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['extension_name'] ?? '-' }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ \Carbon\Carbon::parse($birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['birthdate'] }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['contact_num'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['barangay_name'] }}
-                                                </td>
-                                                <td class="px-2 py-2 capitalize">
-                                                    {{ $result['sex'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['age'] }}
-                                                </td>
-                                                <td class="px-2 py-2 capitalize">
-                                                    {{ $result['beneficiary_type'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['type_of_id'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['id_number'] }}
-                                                </td>
-                                                <td class="px-2 py-2 capitalize">
-                                                    {{ $result['is_pwd'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['dependent'] ?? '-' }}
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td>No possible duplicates found.</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- First Name --}}
@@ -495,7 +507,8 @@
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('extension_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="III, Sr., etc.">
                             @error('extension_name')
-                                <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">{{ $message }}</p>
+                                <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs whitespace-nowrap">
+                                    {{ $message }}</p>
                             @enderror
                         </div>
 
@@ -591,11 +604,13 @@
                                         Underemployed
                                     </button>
 
-                                    <button type="button"
-                                        @click="open = !open; beneficiary_type = 'Special Case'; $wire.$refresh();"
-                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
-                                        Special Case
-                                    </button>
+                                    @if ($isResults && !$isSpecialCaseAlready && !$isSameImplementation)
+                                        <button type="button"
+                                            @click="open = !open; beneficiary_type = 'Special Case'; $wire.$refresh();"
+                                            class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
+                                            Special Case
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -743,7 +758,7 @@
                                     class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-indigo-50 border-indigo-300 text-indigo-1100 outline-indigo-300 focus:outline-indigo-600 focus:border-indigo-600">
                                     <span x-text="self_employment"></span> <!-- Display selected option -->
 
-                                    <!-- Heroicon: chevron-down -->
+                                    <!-- Icon -->
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-4 text-indigo-1100 group-hover:text-indigo-900 group-active:text-indigo-1000 duration-200 ease-in-out"
                                         viewBox="0 0 20 20" fill="currentColor">
@@ -1077,9 +1092,14 @@
                         <div class="relative col-span-full w-full flex items-center justify-end">
                             <div class="flex items-center justify-end relative">
                                 {{-- Loading State for Changes --}}
-                                <div class="z-50 text-indigo-900" wire:loading wire:target="saveBeneficiary">
-                                    <svg class="size-6 me-3 -ms-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 24 24">
+                                <button wire:click.prevent="saveBeneficiary" wire:loading.attr="disabled"
+                                    wire:target="saveBeneficiary"
+                                    class="space-x-2 py-2 px-4 text-center text-white font-bold flex items-center bg-indigo-700 disabled:opacity-75 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 rounded-md">
+                                    <p>ADD</p>
+
+                                    {{-- Loading Icon --}}
+                                    <svg class="size-5 animate-spin" wire:loading wire:target="saveBeneficiary"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
                                         </circle>
@@ -1087,14 +1107,11 @@
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                         </path>
                                     </svg>
-                                </div>
-                                <button wire:click.prevent="saveBeneficiary" wire:loading.attr="disabled"
-                                    wire:target="saveBeneficiary"
-                                    class="space-x-2 py-2 px-4 text-center text-white font-bold flex items-center bg-indigo-700 disabled:opacity-75 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 rounded-md">
-                                    <p>ADD</p>
-                                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
+
+                                    {{-- Add Icon --}}
+                                    <svg class="size-5" wire:loading.remove wire:target="saveBeneficiary"
+                                        xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                        width="400" height="400" viewBox="0, 0, 400,400">
                                         <g>
                                             <path
                                                 d="M181.716 13.755 C 102.990 27.972,72.357 125.909,128.773 183.020 C 181.183 236.074,272.696 214.609,295.333 143.952 C 318.606 71.310,256.583 0.235,181.716 13.755 M99.463 202.398 C 60.552 222.138,32.625 260.960,26.197 304.247 C 24.209 317.636,24.493 355.569,26.629 361.939 C 30.506 373.502,39.024 382.022,50.561 385.877 C 55.355 387.479,56.490 387.500,136.304 387.500 L 217.188 387.500 209.475 379.883 C 171.918 342.791,164.644 284.345,192.232 241.338 C 195.148 236.792,195.136 236.719,191.484 236.719 C 169.055 236.719,137.545 223.179,116.259 204.396 L 108.691 197.717 99.463 202.398 M269.531 213.993 C 176.853 234.489,177.153 366.574,269.922 386.007 C 337.328 400.126,393.434 333.977,369.538 268.559 C 355.185 229.265,310.563 204.918,269.531 213.993 M293.788 265.042 C 298.143 267.977,299.417 271.062,299.832 279.675 L 300.199 287.301 307.825 287.668 C 319.184 288.215,324.219 292.002,324.219 300.000 C 324.219 307.998,319.184 311.785,307.825 312.332 L 300.199 312.699 299.832 320.325 C 299.285 331.684,295.498 336.719,287.500 336.719 C 279.502 336.719,275.715 331.684,275.168 320.325 L 274.801 312.699 267.175 312.332 C 255.816 311.785,250.781 307.998,250.781 300.000 C 250.781 292.002,255.816 288.215,267.175 287.668 L 274.801 287.301 275.168 279.675 C 275.715 268.316,279.502 263.281,287.500 263.281 C 290.019 263.281,291.997 263.835,293.788 265.042 "

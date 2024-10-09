@@ -167,8 +167,15 @@ class Implementations extends Component
 
     public function selectBeneficiaryRow($key, $encryptedId)
     {
-        $this->selectedBeneficiaryRow = $key;
-        $this->beneficiaryId = $encryptedId;
+        if ($key === $this->selectedBeneficiaryRow) {
+            $this->selectedBeneficiaryRow = -1;
+            $this->beneficiaryId = null;
+        } else {
+            $this->selectedBeneficiaryRow = $key;
+            $this->beneficiaryId = $encryptedId;
+        }
+
+        $this->dispatch('init-reload')->self();
     }
 
     #[Computed]
@@ -246,7 +253,9 @@ class Implementations extends Component
                     }
                 })
                 ->select(
-                    DB::raw('beneficiaries.*'),
+                    [
+                        'beneficiaries.*'
+                    ],
                 )
                 ->take($this->beneficiaries_on_page)
                 ->get();
@@ -475,18 +484,38 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    #[On('import-success-beneficiaries')]
+    public function importSuccessBeneficiaries($count)
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->beneficiaryId = null;
+
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Imported ' . $count . ' beneficiaries to the database.';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
     #[On('edit-beneficiary')]
     public function editBeneficiary()
     {
-        // $dateTimeFromEnd = $this->end;
-        // $value = substr($dateTimeFromEnd, 0, 10);
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
 
-        // $choosenDate = date('Y-m-d', strtotime($value));
-        // $currentTime = date('H:i:s', strtotime(now()));
-        // $this->end = $choosenDate . ' ' . $currentTime;
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
 
         $this->showAlert = true;
-        $this->alertMessage = 'Nothing happened.';
+        $this->alertMessage = 'Beneficiary successfully updated!';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
     }
@@ -534,6 +563,28 @@ class Implementations extends Component
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
 
+        $this->viewBeneficiaryModal = false;
+    }
+
+    #[On('optimistic-lock')]
+    public function optimisticLockBeneficiary($message)
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->passedBeneficiaryId = null;
+        $this->beneficiaryId = null;
+
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = $message;
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
         $this->viewBeneficiaryModal = false;
     }
 

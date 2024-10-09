@@ -1,23 +1,21 @@
 <div x-cloak x-data="{ showModal: false }" x-init="setTimeout(() => {
     showModal = true;
-}, 500);" @keydown.escape.window="showModal = false">
-    <!-- Modal Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="showModal"
-        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-    </div>
+}, 500);" @keydown.escape.window="showModal = false"
+    class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50" x-show="showModal"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
 
     <!-- Modal -->
     <div x-show="showModal" x-trap.noscroll="showModal"
-        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full"
+        class="min-h-screen p-4 flex items-center justify-center z-50 select-none"
         x-transition:enter="transition ease-in-out duration-300" x-transition:enter-start="opacity-0 transform scale-90"
         x-transition:enter-end="opacity-100 transform scale-100"
         x-transition:leave="transition ease-in-out duration-300"
         x-transition:leave-start="opacity-100 transform scale-100"
         x-transition:leave-end="opacity-0 transform scale-90">
 
-        <div class="relative w-full max-w-2xl max-h-full">
+        <div class="relative size-full max-w-2xl">
             <div class="relative bg-white rounded-md shadow">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">

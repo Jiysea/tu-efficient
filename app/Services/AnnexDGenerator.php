@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Services;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -52,6 +54,7 @@ class AnnexDGenerator
                 'Civil Status',
                 'Age',
                 'Average monthly income',
+                'Person with Disability',
                 'Dependent',
                 'Interested in wage employment or self-employment? (Yes or No)',
                 'Skills Training Needed',
@@ -71,7 +74,7 @@ class AnnexDGenerator
         $i = 1;
 
         ## It's set for ignoring double row attributes on the header
-        $excludedColumns = [1, 2, 3, 4, 6, 7, 8, 9, 23, 24, 25, 26];
+        $excludedColumns = [1, 2, 3, 4, 6, 7, 8, 9, 24, 25, 26, 27];
 
         ## Set default Column widths
         $sheet->getColumnDimension('A')->setWidth(4);
@@ -94,13 +97,14 @@ class AnnexDGenerator
         $sheet->getColumnDimension('R')->setWidth(5.14);
         $sheet->getColumnDimension('S')->setWidth(5.14);
         $sheet->getColumnDimension('T')->setWidth(7.43);
-        $sheet->getColumnDimension('U')->setWidth(19.43);
-        $sheet->getColumnDimension('V')->setWidth(7.86);
-        $sheet->getColumnDimension('W')->setWidth(9.43);
-        $sheet->getColumnDimension('X')->setWidth(18.43);
+        $sheet->getColumnDimension('U')->setWidth(5.14);
+        $sheet->getColumnDimension('V')->setWidth(19.43);
+        $sheet->getColumnDimension('W')->setWidth(7.86);
+        $sheet->getColumnDimension('X')->setWidth(9.43);
         $sheet->getColumnDimension('Y')->setWidth(18.43);
         $sheet->getColumnDimension('Z')->setWidth(18.43);
-        $sheet->getColumnDimension('AA')->setWidth(8.86);
+        $sheet->getColumnDimension('AA')->setWidth(18.43);
+        $sheet->getColumnDimension('AB')->setWidth(8.86);
 
         # Resize the Column (CANCELLED)
         // $columnID = Coordinate::stringFromColumnIndex($colIndex + 1);
@@ -115,7 +119,7 @@ class AnnexDGenerator
         $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-        $i++;
+        $i++; #2
         # A2
         $sheet->setCellValue([1, $i, $number_of_cols, $i], 'Profile of TUPAD Beneficiaries');
         $sheet->getStyle([1, $i])->getFont()->setBold(true);
@@ -124,18 +128,18 @@ class AnnexDGenerator
         $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-        $i++;
+        $i++; #3
         # A3
         $sheet->setCellValue([1, $i, $number_of_cols, $i], '_____________________________________________________________________________________________________________________________________________________');
         $sheet->mergeCells([1, $i, $number_of_cols, $i]);
         $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getRowDimension($i)->setRowHeight(6.75);
 
-        $i++;
+        $i++; #4
         #A4
         $sheet->getRowDimension($i)->setRowHeight(6);
 
-        $i++;
+        $i++; #5
         # A5:B9 | Set font size to 10
         $sheet->getStyle([1, $i, 2, $i + 4])->getFont()->setSize(10); # A5:B9
 
@@ -146,7 +150,7 @@ class AnnexDGenerator
         $sheet->mergeCells([3, $i, 5, $i]);
         $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        $i++;
+        $i++; #6
         # A6
         $sheet->setCellValue([1, $i], 'DOLE Regional Office:');
         $sheet->getStyle([1, $i])->getFont()->setName('Arial');
@@ -154,7 +158,7 @@ class AnnexDGenerator
         $sheet->mergeCells([3, $i, 5, $i]);
         $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        $i++;
+        $i++; #7
         # A7
         $sheet->setCellValue([1, $i], 'Province:');
         $sheet->getStyle([1, $i])->getFont()->setName('Arial');
@@ -162,7 +166,7 @@ class AnnexDGenerator
         $sheet->mergeCells([3, $i, 5, $i]);
         $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        $i++;
+        $i++; #8
         # A8
         $sheet->setCellValue([1, $i], 'Municipality:');
         $sheet->getStyle([1, $i])->getFont()->setName('Arial');
@@ -170,7 +174,7 @@ class AnnexDGenerator
         $sheet->mergeCells([3, $i, 5, $i]);
         $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        $i++;
+        $i++; #9
         # A9
         $sheet->setCellValue([1, $i], 'Barangay:');
         $sheet->getStyle([1, $i])->getFont()->setName('Arial');
@@ -178,11 +182,11 @@ class AnnexDGenerator
         $sheet->mergeCells([3, $i, 5, $i]);
         $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        $i++;
+        $i++; #10
         # A10
         $sheet->getRowDimension($i)->setRowHeight(9);
 
-        $i++;
+        $i++; #11
         # A11
         $sheet->getRowDimension($i)->setRowHeight(18.75);
 
@@ -201,27 +205,27 @@ class AnnexDGenerator
         $sheet->getStyle([7, $i, 10, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle([7, $i, 10, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-        # X11:AA11
-        $sheet->setCellValue([24, $i], 'Spouse');
-        $sheet->mergeCells([24, $i, $number_of_cols, $i]);
-        $sheet->getStyle([24, $i, $number_of_cols, $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getStyle([24, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle([24, $i, $number_of_cols, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        # Y11:AB11
+        $sheet->setCellValue([25, $i], 'Spouse');
+        $sheet->mergeCells([25, $i, $number_of_cols, $i]);
+        $sheet->getStyle([25, $i, $number_of_cols, $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle([25, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle([25, $i, $number_of_cols, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
         ## Set Text & Fill Colors on table header attributes
-        # A11:AA12
+        # A11:AB12
         $sheet->getStyle([1, $i, $number_of_cols, $i + 1])->getFill()
             ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setRGB('B6C6E7');
 
         ## Set Font Size to 8
-        # A11:AA12
+        # A11:AB12
         $sheet->getStyle([1, $i, $number_of_cols, $i + 1])->getFont()->setSize(8);
 
         # A12
         $sheet->getRowDimension($i + 1)->setRowHeight(56.25);
 
-        # A11:AA12
+        # A11:AB12
         $j = $i;
         $default = false;
         # Set the Table attribute headers (first name, middle name, birthdate, etc.)
@@ -237,6 +241,7 @@ class AnnexDGenerator
                     $sheet->getStyle([$colIndex + 1, $rowIndex + $i, $colIndex + 1, $rowIndex + $i + 1])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
                     $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                    $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 } else {
                     if ($default === false) {
                         $i++;
@@ -246,6 +251,7 @@ class AnnexDGenerator
                     $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
                     $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                    $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 }
 
             }
@@ -265,6 +271,10 @@ class AnnexDGenerator
             for ($col = 0; $col < $number_of_cols; $col++) {
                 if ($col === 0) {
                     $sheet->setCellValue([$col + 1, $row + $i], $row + 1);
+                } elseif ($col === 18) {
+                    $sheet->setCellValueExplicit([$col + 1, $row + $i], '=IF(ISBLANK(F' . $row + $i . '), "", DATEDIF(DATEVALUE(SUBSTITUTE(F' . $row + $i . ',"/","-")), TODAY(), "Y"))', DataType::TYPE_FORMULA);
+                } else {
+                    $sheet->getStyle([$col + 1, $row + $i])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 }
                 $sheet->getStyle([$col + 1, $row + $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle([$col + 1, $row + $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -272,7 +282,7 @@ class AnnexDGenerator
             }
         }
 
-        ## Sets the Wrap Text function to true for A11 to AA12
+        ## Sets the Wrap Text function to true for A11 to AB12
         $sheet->getStyle([1, $i - 2, $number_of_cols, $i + $this->number_of_rows - 1])->getAlignment()->setWrapText(true);
 
         $i++;

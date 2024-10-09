@@ -11,6 +11,7 @@ use App\Models\UserSetting;
 use App\Services\Barangays;
 use Auth;
 use DB;
+use Hash;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Reactive;
@@ -44,6 +45,8 @@ class ViewBatch extends Component
     public $view_slots_allocated;
     #[Validate]
     public $view_assigned_coordinators = [];
+    #[Validate]
+    public $password;
 
     # Runs real-time depending on wire:model suffix
     public function rules()
@@ -94,6 +97,14 @@ class ViewBatch extends Component
                 'lte:' . $this->totalSlots,
             ],
             'view_assigned_coordinators' => 'required',
+            'password' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, Auth::user()->password)) {
+                        $fail('Wrong password.');
+                    }
+                },
+            ],
         ];
     }
 
@@ -111,6 +122,7 @@ class ViewBatch extends Component
             'view_slots_allocated.min' => ':attribute should be > 0.',
             'view_slots_allocated.gte' => ':attribute should be nonnegative.',
             'view_slots_allocated.lte' => ':attribute should be less than total.',
+            'password.required' => 'This field is required.',
         ];
     }
 
@@ -280,6 +292,7 @@ class ViewBatch extends Component
     # Deletes the batch as long as there's empty beneficiaries on it
     public function deleteBatch()
     {
+        $this->validateOnly('password');
         $assignments = Assignment::where('batches_id', decrypt($this->passedBatchId))
             ->get();
         $batch = Batch::find(decrypt($this->passedBatchId));
@@ -352,7 +365,6 @@ class ViewBatch extends Component
                     ],
                     'view_assigned_coordinators' => 'required',
                 ],
-
                 [
                     'view_batch_num.required' => 'The :attribute should not be empty.',
                     'view_barangay_name.required' => 'The :attribute should not be empty.',
@@ -366,7 +378,6 @@ class ViewBatch extends Component
                     'view_slots_allocated.gte' => ':attribute should be nonnegative.',
                     'view_slots_allocated.lte' => ':attribute should be less than total.',
                 ],
-
                 [
                     'view_batch_num' => 'batch number',
                     'view_barangay_name' => 'barangay',

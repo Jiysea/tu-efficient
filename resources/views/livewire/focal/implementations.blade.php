@@ -70,7 +70,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- Loading State --}}
                 <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
                     wire:loading.flex
-                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProjectModal, saveBatches, editBatch, deleteBatch, viewBatchModal, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary viewBeneficiaryModal">
+                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary">
                     <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -186,6 +186,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <tbody class="relative text-xs">
                                     @foreach ($this->implementations as $key => $implementation)
                                         <tr wire:key="implementation-{{ $key }}"
+                                            wire:loading.class="pointer-events-none"
+                                            wire:target="selectImplementationRow"
                                             wire:click.prevent='selectImplementationRow({{ $key }}, "{{ encrypt($implementation->id) }}")'
                                             class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} whitespace-nowrap cursor-pointer">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
@@ -326,6 +328,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <tbody class="text-xs relative">
                                     @foreach ($this->batches as $key => $batch)
                                         <tr wire:key="batch-{{ $key }}"
+                                            wire:loading.class="pointer-events-none" wire:target="selectBatchRow"
                                             wire:click='selectBatchRow({{ $key }}, "{{ encrypt($batch->id) }}")'
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-200' : ' hover:bg-gray-50' }}">
                                             <th scope="row" class="z-0 ps-4 py-2 font-medium">
@@ -590,11 +593,20 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="text-xs">
+                                <tbody class="text-xs divide-y">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
                                         <tr wire:key="beneficiary-{{ $key }}"
+                                            wire:loading.class="pointer-events-none"
+                                            wire:target="selectBeneficiaryRow"
                                             wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}')"
-                                            class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} border-b whitespace-nowrap">
+                                            class="relative divide-x whitespace-nowrap cursor-pointer"
+                                            :class="{
+                                                'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
+                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
+                                                'bg-amber-200 text-amber-900 hover:bg-amber-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                'bg-amber-100 text-amber-700 hover:bg-amber-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                            
+                                            }">
                                             <th scope="row"
                                                 class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium">
                                                 {{ $key + 1 }}
@@ -673,7 +685,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 <button type="button"
                                                     @click.stop="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
                                                     id="beneficiaryRowButton-{{ $key }}"
-                                                    class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out {{ $selectedBeneficiaryRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
+                                                    class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out"
+                                                    :class="{
+                                                        'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
+                                                        'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
+                                                        'hover:bg-amber-700 focus:bg-amber-700 text-amber-900 hover:text-amber-50 focus:text-amber-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                        'text-amber-700 hover:text-amber-900 focus:text-amber-900 hover:bg-amber-300 focus:bg-amber-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                    
+                                                    }">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">

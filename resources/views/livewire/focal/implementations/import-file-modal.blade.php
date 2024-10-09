@@ -1,16 +1,13 @@
-<div x-cloak>
-    <!-- Modal Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="importFileModal">
-    </div>
+<div x-cloak x-show="importFileModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto  backdrop-blur-sm z-50">
 
     <!-- Modal -->
     <div x-show="importFileModal" x-trap.noscroll="importFileModal"
-        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+        class="min-h-screen p-4 flex items-center justify-center select-none">
 
-        <div class="relative p-4 w-full max-w-5xl max-h-full">
+        <div class="relative size-full max-w-5xl">
 
             <!-- Modal content -->
-            <div x-trap="trapImport" class="relative bg-white rounded-md shadow">
+            <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
@@ -33,8 +30,8 @@
                                 </path>
                             </svg>
                         </div>
-                        <button type="button" @click="$wire.resetImports(); importFileModal = false;"
-                            wire:loading.attr="disabled" wire:target="validateFile"
+                        <button type="button" @click="importFileModal = false;" wire:loading.attr="disabled"
+                            wire:target="validateFile"
                             class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
@@ -269,7 +266,7 @@
                                 {{ $errors->has('file_path')
                                     ? 'bg-red-50 text-red-500 border-red-300'
                                     : 'text-gray-500 hover:text-indigo-500 bg-gray-50 hover:bg-indigo-50
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-gray-300 hover:border-indigo-300' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-gray-300 hover:border-indigo-300' }}
                                 duration-500 ease-in-out cursor-pointer">
 
                                 <div class="relative flex flex-col items-center justify-center py-6">
@@ -302,7 +299,7 @@
                         </div>
 
                         {{-- Download Desc --}}
-                        <p class="text-center whitespace-nowrap w-full text-gray-500 z-10 h-6 mt-4 text-sm">
+                        <p class="text-center w-full text-gray-500 z-10 h-6 mt-4 text-sm">
                             Please use the
                             <button type="button" @click="downloadSampleModal = !downloadSampleModal;"
                                 class="text-indigo-700 hover:text-indigo-800 active:text-indigo-1000 
@@ -314,19 +311,17 @@
                         </p>
 
                         {{-- Download Sample Format Modal --}}
-                        <div x-cloak>
-                            <!-- Modal Backdrop -->
-                            <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-                                x-show="downloadSampleModal">
-                            </div>
+
+                        <div x-cloak x-show="downloadSampleModal"
+                            class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto  backdrop-blur-sm z-50">
 
                             <!-- Modal -->
                             <div x-show="downloadSampleModal" x-trap.noscroll="downloadSampleModal"
-                                class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+                                class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
-                                <div class="relative p-4 w-full max-w-2xl max-h-full">
+                                <div class="relative size-full max-w-2xl">
                                     <!-- Modal content -->
-                                    <div x-trap="trapDownload" class="relative bg-white rounded-md shadow">
+                                    <div class="relative bg-white rounded-md shadow">
                                         <!-- Modal header -->
                                         <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                                             <h1 class="text-lg font-semibold text-indigo-1100 ">
@@ -457,156 +452,16 @@
                         </div>
                     </div>
                 @elseif($step === 2)
-                    <div class="p-4 md:p-5">
+                    <div class="p-4 md:py-5 md:px-16">
 
-                        {{-- Similarities Table --}}
-                        @if ($isResult)
-                            {{-- TABLE AREA --}}
-                            <div x-show="isResults && expanded"
-                                class="relative min-h-56 max-h-5min-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
-                                border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
-                                <table class="relative w-full text-sm text-left select-auto">
-                                    <thead
-                                        class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
-                                        <tr>
-                                            <th scope="col" class="ps-4 py-2">
-                                                similarity %
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                project number
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                batch number
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                first name
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                middle name
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                last name
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                ext.
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                birthdate
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                contact #
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                barangay
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                sex
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                age
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                beneficiary type
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                id type
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                id #
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                pwd
-                                            </th>
-                                            <th scope="col" class="px-2 py-2">
-                                                dependent
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-xs relative">
-                                        @forelse ($similarityResults ?? [] as $key => $result)
-                                            <tr wire:key='batch-{{ $key }}'
-                                                class="relative whitespace-nowrap hover:bg-gray-50">
-                                                <td class="ps-4 py-2 font-medium">
-                                                    {{ $result['coEfficient'] }}%
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['project_num'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['batch_num'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ $first_name === $result['first_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['first_name'] }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ ($middle_name === $result['middle_name'] && !is_null($middle_name)) || ($middle_name === $result['middle_name'] && $middle_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['middle_name'] ?? '-' }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ $last_name === $result['last_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['last_name'] }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ ($extension_name === $result['extension_name'] && !is_null($extension_name)) || ($extension_name === $result['extension_name'] && $extension_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['extension_name'] ?? '-' }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    <span
-                                                        class="{{ \Carbon\Carbon::parse($birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                        {{ $result['birthdate'] }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['contact_num'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['barangay_name'] }}
-                                                </td>
-                                                <td class="px-2 py-2 capitalize">
-                                                    {{ $result['sex'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['age'] }}
-                                                </td>
-                                                <td class="px-2 py-2 capitalize">
-                                                    {{ $result['beneficiary_type'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['type_of_id'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['id_number'] }}
-                                                </td>
-                                                <td class="px-2 py-2 capitalize">
-                                                    {{ $result['is_pwd'] }}
-                                                </td>
-                                                <td class="px-2 py-2">
-                                                    {{ $result['dependent'] ?? '-' }}
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td>No possible duplicates found.</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="relative bg-white p-4 h-[50vh] min-w-full flex items-center justify-center">
+                        {{-- Validation Progress --}}
+                        @if ($importing && !$importFinished)
+                            <div class="relative bg-white p-4 h-[50vh] min-w-full flex items-center justify-center"
+                                wire:poll.1s="importProgress">
                                 <div
                                     class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65 animate-pulse"
+                                        class="size-12 sm:size-20 mb-4 opacity-65 animate-pulse"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -619,8 +474,436 @@
                                     </p>
                                 </div>
                             </div>
-                        @endif
+                        @elseif($importFinished)
+                            {{-- Successful Inserts --}}
+                            <div x-data="{ expanded: false }" class="w-full flex flex-col mb-4">
 
+                                <button type="button" @click="expanded = !expanded;"
+                                    class="w-full flex flex-1 items-center px-4 py-3 rounded border border-indigo-300 text-indigo-1100 text-xs font-medium">
+                                    <p>
+                                        Successful Records <span
+                                            class="ms-2 rounded p-1.5 bg-indigo-100 text-indigo-700 font-medium text-xs">{{ $successCounter }}</span>
+                                    </p>
+                                </button>
+                                {{-- Table --}}
+                                @if (!empty($successResults))
+                                    <div x-show="expanded"
+                                        class="relative min-h-56 max-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
+                                        border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                                        <table class="relative w-full text-sm text-left select-auto">
+                                            <thead
+                                                class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
+                                                <tr>
+                                                    <th scope="col" class="ps-4 py-2">
+                                                        row
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        first name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        middle name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        last name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        ext.
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        birthdate
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        contact #
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        barangay
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        sex
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        age
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        beneficiary type
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        id type
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        id #
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        pwd
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        dependent
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="text-xs relative">
+                                                @foreach ($successResults as $key => $result)
+                                                    <tr wire:key='batch-{{ $key }}'
+                                                        class="relative whitespace-nowrap hover:bg-gray-50">
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['row'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['first_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['middle_name'] ?? '-' }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['last_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['extension_name'] ?? '-' }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['contact_num'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['barangay_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['sex'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['age'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['beneficiary_type'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['type_of_id'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['id_number'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['is_pwd'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['dependent'] }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div x-show="expanded"
+                                        class="relative bg-white mt-2 h-56 min-w-full flex items-center justify-center">
+                                        <div
+                                            class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-indigo-500 bg-indigo-50 border-indigo-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                class="size-12 sm:size-20 mb-4 opacity-65"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                            <p class="">No rows were successfully added to the database.
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- With Errors --}}
+                            <div x-data="{ expanded: false }" class="w-full flex flex-col mb-4">
+
+                                <button type="button" @click="expanded = !expanded;"
+                                    class="w-full flex flex-1 items-center px-4 py-3 rounded border border-red-300 text-red-950 text-xs font-medium">
+                                    <p>
+                                        Rows with Errors <span
+                                            class="ms-2 rounded p-1.5 bg-red-100 text-red-700 font-medium text-xs">{{ $errorCounter }}</span>
+                                    </p>
+                                </button>
+                                {{-- Table --}}
+                                @if (!empty($errorResults))
+                                    <div x-show="expanded"
+                                        class="relative min-h-56 max-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
+                                        border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                                        <table class="relative w-full text-sm text-left select-auto">
+                                            <thead
+                                                class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
+                                                <tr>
+                                                    <th scope="col" class="ps-4 py-2">
+                                                        row
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        first name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        middle name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        last name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        ext.
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        birthdate
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        contact #
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        barangay
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        sex
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        age
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        beneficiary type
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        id type
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        id #
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        pwd
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        dependent
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="text-xs relative">
+                                                @foreach ($errorResults as $key => $result)
+                                                    <tr wire:key='batch-{{ $key }}'
+                                                        class="relative whitespace-nowrap hover:bg-gray-50">
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['row'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['first_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['middle_name'] ?? '-' }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['last_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['extension_name'] ?? '-' }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['contact_num'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['barangay_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['sex'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['age'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['beneficiary_type'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['type_of_id'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['id_number'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['is_pwd'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['dependent'] }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div x-show="expanded"
+                                        class="relative bg-white mt-2 h-56 min-w-full flex items-center justify-center">
+                                        <div
+                                            class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-red-500 bg-red-50 border-red-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                class="size-12 sm:size-20 mb-4 opacity-65"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                            <p class="">No errors found from the imported rows.
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- With Similarities --}}
+                            <div x-data="{ expanded: false }" class="w-full flex flex-col mb-4">
+
+                                <button type="button" @click="expanded = !expanded;"
+                                    class="w-full flex flex-1 items-center px-4 py-3 rounded border border-amber-300 text-amber-1100 text-xs font-medium">
+                                    <p>
+                                        Rows with Possible Duplicates <span
+                                            class="ms-2 rounded p-1.5 bg-amber-100 text-amber-700 font-medium text-xs">{{ $similarityCounter }}</span>
+                                    </p>
+                                </button>
+                                {{-- Table --}}
+                                @if (!empty($similarityResults))
+                                    <div x-show="expanded"
+                                        class="relative min-h-56 max-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
+                                        border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                                        <table class="relative w-full text-sm text-left select-auto">
+                                            <thead
+                                                class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
+                                                <tr>
+                                                    <th scope="col" class="ps-4 py-2">
+                                                        row
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        first name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        middle name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        last name
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        ext.
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        birthdate
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        contact #
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        barangay
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        sex
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        age
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        beneficiary type
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        id type
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        id #
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        pwd
+                                                    </th>
+                                                    <th scope="col" class="px-2 py-2">
+                                                        dependent
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="text-xs relative">
+                                                @foreach ($similarityResults as $key => $result)
+                                                    <tr wire:key='batch-{{ $key }}'
+                                                        class="relative whitespace-nowrap hover:bg-gray-50">
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['row'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['first_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['middle_name'] ?? '-' }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['last_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['extension_name'] ?? '-' }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['contact_num'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['barangay_name'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['sex'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['age'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['beneficiary_type'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['type_of_id'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['id_number'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium capitalize">
+                                                            {{ $result['is_pwd'] }}
+                                                        </td>
+                                                        <td class="ps-4 py-2 font-medium">
+                                                            {{ $result['dependent'] }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div x-show="expanded"
+                                        class="relative bg-white mt-2 h-56 min-w-full flex items-center justify-center">
+                                        <div
+                                            class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-amber-500 bg-amber-50 border-amber-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                class="size-12 sm:size-20 mb-4 opacity-65"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                            <p class="">No errors found from the imported rows.
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
                         {{-- Modal Footer --}}
                         <div class="w-full flex relative items-center justify-end">
 
@@ -650,7 +933,8 @@
                                         <g>
                                             <path
                                                 d="M295.703 104.354 C 288.091 108.313,284.738 117.130,287.918 124.830 C 288.731 126.797,298.250 136.876,317.407 156.055 L 345.695 184.375 178.190 184.375 L 10.684 184.375 7.316 186.349 C -2.632 192.179,-2.632 207.821,7.316 213.651 L 10.684 215.625 178.190 215.625 L 345.695 215.625 317.407 243.945 C 287.868 273.517,286.719 274.922,286.719 281.450 C 286.719 291.748,296.214 298.639,307.490 296.523 C 310.798 295.903,394.561 214.221,398.124 208.143 C 400.760 203.645,400.760 196.355,398.123 191.857 C 395.754 187.814,311.819 104.984,309.009 103.915 C 305.871 102.722,298.364 102.970,295.703 104.354 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                                stroke="none" fill="currentColor" fill-rule="evenodd">
+                                            </path>
                                         </g>
                                     </svg>
                                 </button>
@@ -708,7 +992,8 @@
                                         <g>
                                             <path
                                                 d="M180.078 0.509 C 57.151 13.726,-24.606 131.499,6.201 250.981 C 33.575 357.147,143.772 421.442,250.981 393.799 C 357.147 366.425,421.442 256.228,393.799 149.019 C 374.270 73.278,311.095 15.798,232.465 2.230 C 223.308 0.650,189.192 -0.471,180.078 0.509 M305.078 115.124 C 315.382 119.943,319.888 131.073,315.455 140.751 C 312.990 146.132,184.588 274.047,178.342 277.344 C 172.999 280.164,165.796 280.096,160.938 277.179 C 156.604 274.578,89.548 213.483,86.666 209.510 C 74.965 193.382,92.607 172.297,110.265 181.305 C 111.964 182.172,125.858 194.335,141.140 208.334 L 168.925 233.785 228.039 174.705 C 260.552 142.211,287.319 115.620,287.522 115.613 C 287.725 115.607,289.297 115.095,291.016 114.476 C 295.663 112.801,300.600 113.029,305.078 115.124 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                                stroke="none" fill="currentColor" fill-rule="evenodd">
+                                            </path>
                                         </g>
                                     </svg>
                                 </button>

@@ -231,7 +231,6 @@ class DatabaseSeeder extends Seeder
             ]);
 
             $specialCases = 0;
-            $algorithm = new JaccardSimilarity();
             foreach ($beneficiaries as $beneficiary) {
 
                 # check its Jaccard Similarity index
@@ -246,7 +245,7 @@ class DatabaseSeeder extends Seeder
                     $currentPerson = $this->getFullName2($beneficiary, $beneficiary->middle_name);
 
                     # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
-                    $coEfficient = $algorithm->calculateSimilarity($existingPerson, $currentPerson);
+                    $coEfficient = JaccardSimilarity::calculateSimilarity($existingPerson, $currentPerson);
 
                     # check if it's a perfect duplicate
                     if (intval($coEfficient * 100) === 100) {

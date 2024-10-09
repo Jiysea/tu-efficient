@@ -1,14 +1,11 @@
-<div x-cloak>
-    <!-- Modal Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewProjectModal">
-    </div>
+<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50" x-show="viewProjectModal">
 
     <!-- Modal -->
     <div x-show="viewProjectModal" x-trap.noscroll="viewProjectModal"
-        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="relative w-full max-w-5xl max-h-full">
+        <div class="relative size-full max-w-5xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal Header -->
@@ -31,6 +28,8 @@
                                 </path>
                             </svg>
                         </div>
+
+                        {{-- Close Button --}}
                         <button type="button" @click="$wire.resetViewProject(); viewProjectModal = false;"
                             class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -440,11 +439,25 @@
                                             <div class="relative w-full max-w-xl max-h-full">
                                                 <div class="relative bg-white rounded-md shadow">
                                                     <!-- Modal Header -->
-                                                    <div class="flex items-center py-2 px-4 rounded-t-md">
+                                                    <div
+                                                        class="flex items-center justify-between py-2 px-4 rounded-t-md">
                                                         <h1
                                                             class="text-sm sm:text-base font-semibold text-indigo-1100">
                                                             Delete the Project
                                                         </h1>
+
+                                                        {{-- Close Button --}}
+                                                        <button type="button" @click="deleteProjectModal = false;"
+                                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                            <svg class="size-3" aria-hidden="true"
+                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                viewBox="0 0 14 14">
+                                                                <path stroke="currentColor" stroke-linecap="round"
+                                                                    stroke-linejoin="round" stroke-width="2"
+                                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                            </svg>
+                                                            <span class="sr-only">Close Modal</span>
+                                                        </button>
                                                     </div>
 
                                                     <hr class="">
@@ -459,10 +472,18 @@
                                                             (This is action is irreversible)
                                                         </p>
                                                         <div class="flex items-center justify-center w-full gap-4">
-                                                            <button type="button"
-                                                                class="duration-200 ease-in-out flex flex-1 items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm border border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50"
-                                                                @click="deleteProjectModal = false;">CANCEL</button>
-
+                                                            <div class="relative me-2">
+                                                                <input type="password" id="view-project-password"
+                                                                    wire:model.blur="password"
+                                                                    class="flex {{ $errors->has('password') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-blue-300 bg-blue-50' }} rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
+                                                                    placeholder="Enter your password">
+                                                                @error('password')
+                                                                    <p
+                                                                        class="absolute top-full left-0 text-xs text-red-700">
+                                                                        {{ $message }}
+                                                                    </p>
+                                                                @enderror
+                                                            </div>
                                                             <button type="button"
                                                                 class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50"
                                                                 wire:click.prevent="deleteProject">CONFIRM</button>

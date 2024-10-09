@@ -62,7 +62,7 @@ class Beneficiary extends Model
     {
         return [
             'age' => 'integer',
-            'birthdate' => 'date',
+            'birthdate' => 'date:Y-m-d',
         ];
     }
 }
