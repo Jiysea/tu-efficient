@@ -49,4 +49,5 @@
     MySQL start (XAMPP)
     npm run dev
     php artisan serve
+    php artisan queue:work
     ```
