@@ -125,7 +125,7 @@
                             </div>
                         </div>
                     </li>
-                    <li x-data="{ hover: false }" class="relative">
+                    {{-- <li x-data="{ hover: false }" class="relative">
                         <a href="{{ route('coordinator.forms') }}" wire:loading.attr="disabled"
                             @mouseover="hover = true" @mouseleave="hover = false"
                             class="flex items-center mx-2 p-2 text-blue-50 rounded-lg hover:text-blue-300 focus:text-blue-300 hover:bg-blue-1000 focus:outline-none focus:bg-blue-1000 group duration-300 ease-in-out">
@@ -159,7 +159,7 @@
                                 <p>Forms</p>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
                 </ul>
 
             </div>

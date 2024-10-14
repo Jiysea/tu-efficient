@@ -8,6 +8,7 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Code;
 use App\Models\User;
+use App\Models\UserSetting;
 use Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -24,7 +25,8 @@ class Assignments extends Component
     #[Locked]
     public $batchId;
     #[Locked]
-    public $passedId;
+    public $passedBatchId;
+    public $batchNumPrefix;
     public $viewBatchModal = false;
     public $batchesCount;
     public $defaultBatches_on_page = 15;
@@ -34,13 +36,28 @@ class Assignments extends Component
     public $selectedBatchRow = -1;
     public $searchBatches;
 
-    # ------------------------------------------
+    # --------------------------------------------------------------------------
 
     public $start;
     public $end;
     public $defaultStart;
     public $defaultEnd;
 
+    public $approvalStatuses = [
+        'approved' => true,
+        'pending' => true,
+    ];
+
+    public $submissionStatuses = [
+        'submitted' => true,
+        'encoding' => true,
+        'unopened' => true,
+        'revalidate' => true,
+    ];
+
+    public $filter = [];
+
+    # --------------------------------------------------------------------------
 
     #[On('start-change')]
     public function setStartDate($value)
@@ -78,8 +95,17 @@ class Assignments extends Component
 
     public function viewAssignment($encryptedId)
     {
-        $this->passedId = $encryptedId;
+        $this->passedBatchId = $encryptedId;
         $this->viewBatchModal = true;
+    }
+
+    public function applyFilter()
+    {
+        $this->filter = [
+            'approval_status' => $this->approvalStatuses,
+            'submission_status' => $this->submissionStatuses,
+        ];
+
     }
 
     public function selectBatchRow($key, $encryptedId)
@@ -99,13 +125,19 @@ class Assignments extends Component
     #[Computed]
     public function batches()
     {
-        $coordinatorUserId = Auth::user()->id;
-        $batchNumPrefix = config('settings.batch_number_prefix', 'DCFO-BN-');
+        $approvalStatuses = array_keys(array_filter($this->filter['approval_status']));
+        $submissionStatuses = array_keys(array_filter($this->filter['submission_status']));
 
         $batches = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
-            ->where('assignments.users_id', $coordinatorUserId)
+            ->where('assignments.users_id', Auth::id())
+            ->when(!empty($approvalStatuses), function ($q) use ($approvalStatuses) {
+                $q->whereIn('batches.approval_status', $approvalStatuses);
+            })
+            ->when(!empty($submissionStatuses), function ($q) use ($submissionStatuses) {
+                $q->whereIn('batches.submission_status', $submissionStatuses);
+            })
             ->whereBetween('batches.created_at', [$this->start, $this->end])
-            ->where('batches.batch_num', 'LIKE', $batchNumPrefix . '%' . $this->searchBatches . '%')
+            ->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
                 [
                     'batches.id',
@@ -143,10 +175,19 @@ class Assignments extends Component
 
     public function setBatchesCount()
     {
-        $this->batchesCount = User::where('users.id', Auth::id())
-            ->join('assignments', 'users.id', '=', 'assignments.users_id')
-            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
+        $approvalStatuses = array_keys(array_filter($this->filter['approval_status']));
+        $submissionStatuses = array_keys(array_filter($this->filter['submission_status']));
+
+        $this->batchesCount = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+            ->where('assignments.users_id', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
+            ->when(!empty($approvalStatuses), function ($q) use ($approvalStatuses) {
+                $q->whereIn('batches.approval_status', $approvalStatuses);
+            })
+            ->when(!empty($submissionStatuses), function ($q) use ($submissionStatuses) {
+                $q->whereIn('batches.submission_status', $submissionStatuses);
+            })
+            ->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
             ->count();
     }
 
@@ -160,9 +201,9 @@ class Assignments extends Component
                 'beneficiaries.first_name',
                 'beneficiaries.middle_name',
                 'beneficiaries.last_name',
-                'beneficiaries.extension_name AS extension_name',
-                'beneficiaries.birthdate AS birthdate',
-                'beneficiaries.contact_num AS contact_num'
+                'beneficiaries.extension_name',
+                'beneficiaries.birthdate',
+                'beneficiaries.contact_num'
             ])
             ->orderBy('beneficiaries.id')
             ->take($this->beneficiaries_on_page)
@@ -295,6 +336,15 @@ class Assignments extends Component
 
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+
+        $settings = UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+        $this->batchNumPrefix = $settings->get('batch_number_prefix', config('settings.batch_number_prefix', 'DCFO-BN-'));
+
+        $this->filter = [
+            'approval_status' => $this->approvalStatuses,
+            'submission_status' => $this->submissionStatuses,
+        ];
     }
 
     public function render()

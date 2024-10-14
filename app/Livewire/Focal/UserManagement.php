@@ -2,38 +2,52 @@
 
 namespace App\Livewire\Focal;
 
-use App\Livewire\Coordinator\Assignments;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Locked;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
+#[Title('User Management | TU-Efficient')]
 class UserManagement extends Component
 {
-    #[Locked]
-    public $users;
-    public $selectedRows = [];
-    public $selectedAllRows = false;
+    public array $selectedRows = [];
+    public bool $selectedAllRows;
     public $showAlert = false;
     public $alertMessage = '';
     public $searchUsers;
+    public $addCoordinatorsModal = false;
 
-    public function loadCoordinators()
+    #[Computed]
+    public function users()
     {
-        $this->users = User::leftJoin('assignments', 'assignments.users_id', '=', 'users.id')
+        $users = User::leftJoin('assignments', 'assignments.users_id', '=', 'users.id')
             ->leftJoin('batches', 'batches.id', '=', 'assignments.batches_id')
             ->where('users.user_type', 'coordinator')
             ->where('regional_office', Auth::user()->regional_office)
             ->where('field_office', Auth::user()->field_office)
-            ->where(function ($q) {
-                $q->orWhere('users.first_name', 'LIKE', '%' . $this->searchUsers . '%');
-                $q->orWhere('users.middle_name', 'LIKE', '%' . $this->searchUsers . '%');
-                $q->orWhere('users.last_name', 'LIKE', '%' . $this->searchUsers . '%');
-                $q->orWhere('users.email', 'LIKE', '%' . $this->searchUsers . '%');
-                $q->orWhere('users.contact_num', 'LIKE', '%' . $this->searchUsers . '%');
+            ->when($this->searchUsers, function ($q) {
+                # Check if the search field starts with '#' and filter by contact number
+                if (str_contains($this->searchUsers, '#')) {
+                    $searchValue = trim(str_replace('#', '', $this->searchUsers));
+
+                    if (strpos($searchValue, '0') === 0) {
+                        $searchValue = substr($searchValue, 1);
+                    }
+                    $q->where('users.contact_num', 'LIKE', '%' . $searchValue . '%');
+                } else {
+                    # Otherwise, search by first, middle, last or extension name
+                    $q->where(function ($query) {
+                        $query->where('users.first_name', 'LIKE', '%' . $this->searchUsers . '%')
+                            ->orWhere('users.middle_name', 'LIKE', '%' . $this->searchUsers . '%')
+                            ->orWhere('users.last_name', 'LIKE', '%' . $this->searchUsers . '%')
+                            ->orWhere('users.extension_name', 'LIKE', '%' . $this->searchUsers . '%');
+                    });
+                }
             })
             ->select([
                 'users.id',
@@ -43,6 +57,10 @@ class UserManagement extends Component
                 'users.extension_name',
                 'users.email',
                 'users.contact_num',
+                'users.regional_office',
+                'users.field_office',
+                'users.user_type',
+                'users.email_verified_at',
                 'users.last_login',
                 'users.created_at',
                 'users.updated_at',
@@ -57,77 +75,54 @@ class UserManagement extends Component
                 'users.extension_name',
                 'users.email',
                 'users.contact_num',
+                'users.regional_office',
+                'users.field_office',
+                'users.user_type',
+                'users.email_verified_at',
                 'users.last_login',
                 'users.created_at',
                 'users.updated_at',
             ])
-            ->get()
-            ->toArray();
+            ->get();
 
-        foreach ($this->users as $key => $user) {
-            $this->selectedRows[] = false;
-
-            $last_login = Carbon::parse($this->users[$key]['last_login'])->setTimezone('Asia/Singapore')->format('Y-m-d H:i:s');
-            $created_at = Carbon::parse($this->users[$key]['created_at'])->setTimezone('Asia/Singapore')->format('Y-m-d H:i:s');
-
-            if ($created_at === $last_login) {
-                $last_login = 'Never';
-            }
-
-            $this->users[$key]['last_login'] = $last_login;
-        }
+        return $users;
     }
 
-    public function selectAllRows()
+
+    public function updatedSelectedAllRows($value)
     {
-        if ($this->selectedAllRows === true) {
-            foreach ($this->selectedRows as $key => $row) {
-                $this->selectedRows[$key] = true;
-            }
+        if ($value) {
+            $this->selectedRows = range(0, count($this->users) - 1);
         } else {
-            foreach ($this->selectedRows as $key => $row) {
-                $this->selectedRows[$key] = false;
-            }
+            $this->selectedRows = [];
         }
     }
 
-    public function setFullName($key)
+    public function full_name($person)
     {
-        $fullName = null;
-        $first = $this->users[$key]['first_name'];
-        $middle = $this->users[$key]['middle_name'];
-        $last = $this->users[$key]['last_name'];
-        $ext = $this->users[$key]['extension_name'];
+        $full_name = $person->first_name;
 
-        $fullName = $first;
-
-        if ($middle) {
-            $fullName .= ' ' . $middle;
+        if ($person->middle_name) {
+            $full_name .= ' ' . $person->middle_name;
         }
 
-        $fullName .= ' ' . $last;
+        $full_name .= ' ' . $person->last_name;
 
-        if ($ext) {
-            $fullName .= ' ' . $ext;
+        if ($person->extension_name) {
+            $full_name .= ' ' . $person->extension_name;
         }
 
-        return $fullName;
+        return $full_name;
     }
 
     #[On('add-new-coordinator')]
-    public function updateCoordinators()
+    public function createCoordinators()
     {
-        $this->loadCoordinators();
-
+        $this->addCoordinatorsModal = false;
         $this->showAlert = true;
         $this->alertMessage = 'Successfully created a new coordinator!';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
-    }
-
-    public function searchForUsers()
-    {
-        $this->loadCoordinators();
     }
 
     public function mount()
@@ -135,7 +130,7 @@ class UserManagement extends Component
         if (Auth::user()->user_type !== 'focal') {
             $this->redirectIntended();
         }
-        $this->loadCoordinators();
+
     }
 
     public function render()

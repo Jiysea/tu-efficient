@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Focal\Implementations;
+namespace App\Livewire\Coordinator\Submissions;
 
 use App\Models\Batch;
 use App\Models\Beneficiary;
@@ -38,7 +38,6 @@ class AddBeneficiariesModal extends Component
 
     public $includeBirthdate = false;
     public $similarityResults;
-    public $isResults = false;
     public $isResolved = false;
     public $isPerfectDuplicate = false;
     public $isSameImplementation = false;
@@ -110,7 +109,6 @@ class AddBeneficiariesModal extends Component
                     elseif (preg_match('~[0-9]+~', $value)) {
                         $fail('Numbers on names are not allowed.');
                     }
-
                 },
             ],
             'middle_name' => [
@@ -215,12 +213,11 @@ class AddBeneficiariesModal extends Component
             'image_description' => [
                 'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
                 function ($attr, $value, $fail) {
-                    if (!$this->isResolved) {
+                    if (!isset($value) && empty($value) && !$this->isResolved) {
                         $fail('Description must not be left blank.', );
                     }
                 },
             ],
-
         ];
     }
 
@@ -345,6 +342,7 @@ class AddBeneficiariesModal extends Component
         $this->similarityResults = null;
         $this->isPerfectDuplicate = false;
         $this->isSameImplementation = false;
+        $this->isIneligible = false;
 
         # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
@@ -377,12 +375,12 @@ class AddBeneficiariesModal extends Component
             }
 
             $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold);
-
             $this->setCheckers($this->similarityResults);
 
             if (!isset($this->similarityResults)) {
                 $this->expanded = false;
             }
+
         }
     }
 
@@ -455,6 +453,7 @@ class AddBeneficiariesModal extends Component
 
     public function updated($property)
     {
+
         if ($property === 'birthdate') {
             if ($this->birthdate) {
                 $choosenDate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
@@ -513,6 +512,7 @@ class AddBeneficiariesModal extends Component
         }
     }
 
+
     public function resetBeneficiaries()
     {
         $this->resetExcept(
@@ -535,6 +535,6 @@ class AddBeneficiariesModal extends Component
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
 
-        return view('livewire.focal.implementations.add-beneficiaries-modal');
+        return view('livewire.coordinator.submissions.add-beneficiaries-modal');
     }
 }

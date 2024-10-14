@@ -186,11 +186,9 @@ class JaccardSimilarity
             })
             ->where(function ($q) use ($namesToLetters, $middle_name, $extension_name) {
 
-                $q->when($middle_name, function ($q) use ($namesToLetters) {
-                    foreach ($namesToLetters as $letter) {
-                        $q->orWhere('beneficiaries.middle_name', 'LIKE', $letter . '%');
-                    }
-                });
+                foreach ($namesToLetters as $letter) {
+                    $q->orWhere('beneficiaries.middle_name', 'LIKE', $letter . '%');
+                }
 
                 foreach ($namesToLetters as $letter) {
                     $q->orWhere('beneficiaries.last_name', 'LIKE', $letter . '%');

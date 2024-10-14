@@ -2,77 +2,82 @@
     <x-c-favicons />
 </x-slot>
 
-<div x-cloak x-data="{ open: true, show: false, trapImport: false, trapDownload: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-cloak x-data="{ open: true, show: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
 
     <livewire:sidebar.coordinator-bar />
 
-    @if ($batchId)
-        <livewire:coordinator.submissions.import-file-modal :$batchId />
-        <livewire:coordinator.submissions.download-options-alert />
-    @endif
+    <livewire:coordinator.submissions.import-file-modal :$batchId />
+    <livewire:coordinator.submissions.download-options-alert />
 
     <div :class="{
         'xl:ml-20': open === false,
         'xl:ml-64': open === true,
     }"
         class="ml-20 xl:ml-64 duration-500 ease-in-out">
-        <div class="p-2 min-h-screen select-none">
+        <div x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), editBeneficiaryModal: $wire.entangle('editBeneficiaryModal'), deleteBeneficiaryModal: $wire.entangle('deleteBeneficiaryModal'), viewCredentialsModal: $wire.entangle('viewCredentialsModal'), approveSubmissionModal: $wire.entangle('approveSubmissionModal') }" class="p-2 min-h-screen select-none">
+
             {{-- Submissions Header --}}
-            <div class="relative flex items-center my-2">
-                <h1 class="text-xl font-bold me-4 ms-3">Submissions</h1>
+            <div class="relative flex items-center justify-between my-2">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold me-4 ms-3">Submissions</h1>
 
-                {{-- Date Range picker --}}
-                <div id="implementations-date-range" date-rangepicker datepicker-autohide class="flex items-center">
+                    {{-- Date range picker --}}
+                    <div id="submissions-date-range" date-rangepicker datepicker-autohide
+                        class="flex items-center gap-2 text-blue-1100">
 
-                    {{-- Start --}}
-                    <div class="relative w-36 z-10">
-                        <div class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
-                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                viewBox="0, 0, 400,400">
-                                <g>
-                                    <path
-                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                </g>
-                            </svg>
+                        {{-- Start --}}
+                        <div class="relative flex flex-1 w-[8rem]">
+                            <div
+                                class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                    viewBox="0, 0, 400,400">
+                                    <g>
+                                        <path
+                                            d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                            stroke="none" fill="currentColor" fill-rule="evenodd">
+                                        </path>
+                                    </g>
+                                </svg>
+                            </div>
+                            <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
+                                class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
+                                placeholder="Select date start">
                         </div>
-                        <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
-                            class="bg-white w-full border border-blue-300 text-blue-1100 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block ps-10"
-                            placeholder="Select date start">
-                    </div>
 
-                    <span class="mx-2 text-blue-1100 text-sm">to</span>
+                        <span class="">to</span>
 
-                    {{-- End --}}
-                    <div class="relative w-36 z-10">
-                        <div
-                            class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
-                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                viewBox="0, 0, 400,400">
-                                <g>
-                                    <path
-                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                </g>
-                            </svg>
+                        {{-- End --}}
+                        <div class="relative flex flex-1 w-[8rem]">
+                            <div
+                                class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                    viewBox="0, 0, 400,400">
+                                    <g>
+                                        <path
+                                            d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                            stroke="none" fill="currentColor" fill-rule="evenodd">
+                                        </path>
+                                    </g>
+                                </svg>
+                            </div>
+                            <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
+                                class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
+                                placeholder="Select date end">
                         </div>
-                        <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
-                            class="bg-white w-full border border-blue-300 text-blue-1100 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block ps-10"
-                            placeholder="Select date end">
                     </div>
                 </div>
 
                 {{-- Buttons on Top & Loading --}}
-                <div class="absolute w-full z-0 flex items-center justify-end">
+                <div class="flex items-center justify-end gap-2 me-2">
 
                     {{-- Loading State --}}
                     <div class="flex items-center justify-start z-50 text-blue-900" wire:loading>
-                        <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <svg class="size-7 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                 stroke-width="4">
@@ -83,12 +88,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </svg>
                     </div>
 
-                    <button type="button"
-                        @if ($batchId) data-modal-target="import-modal" data-modal-toggle="import-modal" @else disabled @endif
-                        @click="trapImport=true"
-                        class="flex items-center justify-center px-3 py-1.5 mx-2 rounded-md text-sm font-bold outline-none text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900">
-                        IMPORT FILE
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ml-2"
+                    <button type="button" @if (
+                        $batchId &&
+                            $this->beneficiarySlots['num_of_beneficiaries'] < $this->beneficiarySlots['slots_allocated'] &&
+                            $this->batch->approval_status !== 'approved') @click="" @else disabled @endif
+                        class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900">
+                        IMPORT
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                             viewBox="0, 0, 400,400">
                             <g>
@@ -99,10 +105,25 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </svg>
                     </button>
 
+                    <button type="button" @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0) @click="" @else disabled @endif
+                        class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-red-50 bg-red-700 hover:bg-red-800 active:bg-red-900">
+                        EXPORT
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                            viewBox="0, 0, 400,400">
+                            <g>
+                                <path
+                                    d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M205.223 139.115 C 208.456 140.341,259.848 191.840,261.742 195.752 C 266.646 205.882,255.514 216.701,245.595 211.446 C 244.365 210.794,236.504 203.379,228.125 194.967 L 212.891 179.672 212.500 242.123 C 212.115 303.671,212.086 304.605,210.499 306.731 C 204.772 314.399,195.433 314.184,190.039 306.258 L 188.281 303.675 188.281 241.528 L 188.281 179.380 172.461 195.051 C 160.663 206.736,155.883 210.967,153.660 211.688 C 144.244 214.742,135.529 205.084,139.108 195.559 C 139.978 193.241,188.052 144.418,193.281 140.540 C 196.591 138.086,201.092 137.549,205.223 139.115 "
+                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                            </g>
+                        </svg>
+                    </button>
+
                     <button type="button"
-                        class="flex items-center justify-center px-3 py-1.5 mx-2 rounded-md text-sm font-bold outline-none text-blue-50 bg-green-700 hover:bg-green-800 active:bg-green-900">
-                        APPROVE SUBMISSION
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ml-2"
+                        @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0 && $this->batch->approval_status !== 'approved') @click="approveSubmissionModal = !approveSubmissionModal;" @else disabled @endif
+                        class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-green-50 bg-green-700 hover:bg-green-800 active:bg-green-900">
+                        MARK AS APPROVED
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                             viewBox="0, 0, 400,400">
                             <g>
@@ -120,143 +141,16 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 {{-- List of Beneficiaries --}}
                 <div class="relative lg:col-span-3 h-[89vh] w-full rounded bg-white shadow">
+
                     {{-- Table Header --}}
-                    <div class="relative max-h-12 my-2 flex items-center justify-between">
-                        <div x-data="{ open: false }" class="relative text-blue-900">
+                    <div class="flex flex-col gap-2 p-2">
 
-                            {{-- Batches Dropdown Button --}}
-                            <button id="batchDropdownButton"
-                                @if ($this->batches->isNotEmpty()) @click="open = !open;"
-                            @else
-                            disabled @endif
-                                class="flex items-center ms-4 py-1 px-2 text-xs outline-none font-semibold rounded {{ $this->batches->isNotEmpty() ? 'bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50' : 'bg-blue-300 text-blue-50' }} duration-200 ease-in-out">
-                                {{ $this->currentBatch }}
-                                @if ($this->batches->isNotEmpty())
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ms-2" viewBox="0 0 20 20"
-                                        fill="currentColor">
-                                        <path fill-rule="evenodd"
-                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                @else
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-3 ms-2"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M178.125 0.827 C 46.919 16.924,-34.240 151.582,13.829 273.425 C 21.588 293.092,24.722 296.112,36.372 295.146 C 48.440 294.145,53.020 282.130,46.568 268.403 C 8.827 188.106,45.277 89.951,128.125 48.784 C 171.553 27.204,219.595 26.272,266.422 46.100 C 283.456 53.313,294.531 48.539,294.531 33.984 C 294.531 23.508,289.319 19.545,264.116 10.854 C 238.096 1.882,202.941 -2.217,178.125 0.827 M377.734 1.457 C 373.212 3.643,2.843 374.308,1.198 378.295 C -4.345 391.732,9.729 404.747,23.047 398.500 C 28.125 396.117,397.977 25.550,399.226 21.592 C 403.452 8.209,389.945 -4.444,377.734 1.457 M359.759 106.926 C 348.924 111.848,347.965 119.228,355.735 137.891 C 411.741 272.411,270.763 412.875,136.719 356.108 C 120.384 349.190,113.734 349.722,107.773 358.421 C 101.377 367.755,106.256 378.058,119.952 384.138 C 163.227 403.352,222.466 405.273,267.578 388.925 C 375.289 349.893,429.528 225.303,383.956 121.597 C 377.434 106.757,370.023 102.263,359.759 106.926 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                        </g>
-                                    </svg>
-                                @endif
-                            </button>
+                        {{-- 1st Row --}}
+                        <div class="flex items-center justify-end">
 
-                            {{-- Batch Dropdown Content --}}
-                            <div id="batchDropdownContent" x-cloak x-show="open" @click.away="open = !open;"
-                                :class="{
-                                    'block': open === true,
-                                    'hidden': open === false,
-                                }"
-                                class="absolute top-7 left-4 z-50 p-2 w-[20.5rem] bg-white border rounded shadow">
-                                {{-- Header / Search Batches / Counter / Filter --}}
-                                <div class="mx-4 mb-2 flex items-center justify-center">
-                                    <span
-                                        class="flex items-center rounded text-blue-700 bg-blue-100 py-1 px-2 text-xs me-2 select-none">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 me-1.5"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M194.141 24.141 C 160.582 38.874,10.347 106.178,8.003 107.530 C -1.767 113.162,-2.813 128.836,6.116 135.795 C 7.694 137.024,50.784 160.307,101.873 187.535 L 194.761 237.040 200.000 237.040 L 205.239 237.040 298.127 187.535 C 349.216 160.307,392.306 137.024,393.884 135.795 C 402.408 129.152,401.802 113.508,392.805 107.955 C 391.391 107.082,348.750 87.835,298.047 65.183 C 199.201 21.023,200.275 21.448,194.141 24.141 M11.124 178.387 C -0.899 182.747,-4.139 200.673,5.744 208.154 C 7.820 209.726,167.977 295.513,188.465 306.029 C 198.003 310.924,201.997 310.924,211.535 306.029 C 232.023 295.513,392.180 209.726,394.256 208.154 C 404.333 200.526,400.656 181.925,388.342 178.235 C 380.168 175.787,387.662 172.265,289.164 224.847 C 242.057 249.995,202.608 270.919,201.499 271.344 C 199.688 272.039,190.667 267.411,113.316 226.098 C 11.912 171.940,19.339 175.407,11.124 178.387 M9.766 245.797 C -1.277 251.753,-3.565 266.074,5.202 274.365 C 7.173 276.229,186.770 372.587,193.564 375.426 C 197.047 376.881,202.953 376.881,206.436 375.426 C 213.230 372.587,392.827 276.229,394.798 274.365 C 406.493 263.306,398.206 243.873,382.133 244.666 L 376.941 244.922 288.448 292.077 L 199.954 339.231 111.520 292.077 L 23.085 244.922 17.597 244.727 C 13.721 244.590,11.421 244.904,9.766 245.797 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                            </g>
-                                        </svg>
-                                        {{ $this->batchesCount }}</span>
-                                    <div class="relative flex items-center">
-                                        <div
-                                            class="absolute z-50 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                            <svg class="size-3 text-blue-500" aria-hidden="true"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 20 20">
-                                                <path stroke="currentColor" stroke-linecap="round"
-                                                    stroke-linejoin="round" stroke-width="2"
-                                                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                                            </svg>
-                                        </div>
-                                        <input type="text" id="batch-search" maxlength="100" autocomplete="off"
-                                            wire:model.live.debounce.300ms="searchBatches"
-                                            class="duration-200 outline-none ease-in-out ps-6 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="Search for batch numbers">
-                                    </div>
-                                    {{-- Filter Button --}}
-                                    <div x-data="{
-                                        open: false,
-                                        toggle() {
-                                            this.open = !this.open;
-                                        },
-                                    
-                                        selectOption(option) {
-                                            this.type_of_id = option;
-                                            this.toggle(); // Close the dropdown after selecting an option
-                                        }
-                                    }" x-id="['button']" class="relative"
-                                        x-on:click.outside="open = false">
-                                        <!-- Button -->
-                                        <button x-ref="button" x-on:click="open = !open" :aria-expanded="open"
-                                            :aria-controls="$id('button')" type="button"
-                                            class="flex items-center outline-none rounded p-1 ms-2 text-sm font-bold duration-200 ease-in-out border-2 border-blue-700 hover:border-transparent active:border-transparent hover:bg-blue-700 active:bg-blue-900 text-blue-900 hover:text-blue-100 active:text-blue-200 focus:bg-blue-700 focus:text-blue-50 focus:border-transparent">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                height="400" viewBox="0, 0, 400,400">
-                                                <g>
-                                                    <path
-                                                        d="M55.859 51.091 C 37.210 57.030,26.929 76.899,32.690 95.866 C 35.051 103.642,34.376 102.847,97.852 172.610 L 156.250 236.794 156.253 298.670 C 156.256 359.035,156.294 360.609,157.808 363.093 C 161.323 368.857,170.292 370.737,175.953 366.895 C 184.355 361.193,241.520 314.546,242.553 312.549 C 243.578 310.566,243.750 304.971,243.750 273.514 L 243.750 236.794 302.148 172.610 C 365.624 102.847,364.949 103.642,367.310 95.866 C 372.533 78.673,364.634 60.468,348.673 52.908 L 343.359 50.391 201.172 50.243 C 87.833 50.126,58.350 50.298,55.859 51.091 "
-                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                    </path>
-                                                </g>
-                                            </svg>
-                                        </button>
-
-                                        <!-- Panel -->
-                                        <div x-ref="panel" x-show="open" x-transition.origin.top
-                                            :id="$id('button')" style="display: none;"
-                                            class="absolute text-xs left-0 mt-2 h-40 w-40 z-50 rounded bg-blue-50 shadow-lg border border-blue-500">
-                                            {{-- <button type="button" x-on:click="selectOption('e-Card / UMID')"
-                                                    class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
-                                                    e-Card / UMID
-                                                    </button> --}}
-                                            Insert filters here
-                                        </div>
-                                    </div>
-                                </div>
-                                <ul class="px-2 text-sm text-blue-1100 overflow-y-auto h-48 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700"
-                                    aria-labelledby="batchButton">
-                                    @forelse ($this->batches as $key => $batch)
-                                        <li wire:key="batch-{{ $key }}">
-                                            <button type="button" @click="open = !open;"
-                                                wire:loading.class="pointer-events-none"
-                                                wire:click="selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
-                                                class="flex items-center w-full px-1 py-2 text-xs hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
-                                                {{ $batch->batch_num }} / {{ $batch->barangay_name }}
-                                            </button>
-                                        </li>
-                                    @empty
-                                        <li
-                                            class="flex items-center justify-center h-full w-full border rounded bg-gray-50 border-gray-300 text-gray-500">
-                                            <p>Nothing to see here...</p>
-                                        </li>
-                                    @endforelse
-                                </ul>
-                            </div>
-                        </div>
-
-                        {{-- Search Beneficiaries --}}
-                        <div class="me-4 flex items-center justify-end">
-
-                            {{-- Beneficiary Count --}}
-                            <span
-                                class="flex items-center font-medium rounded {{ $this->beneficiarySlots === 0 ? 'text-red-700 bg-red-100 ' : 'text-blue-700 bg-blue-100 ' }} py-1 px-2 text-xs me-2 select-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4 me-1.5"
+                            {{-- Title --}}
+                            <div class="flex flex-1 items-center gap-2 text-blue-900">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -265,41 +159,441 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                     </g>
                                 </svg>
-                                {{ $this->beneficiarySlots }}</span>
+                                <h1 class="font-bold text-base">Beneficiaries</h1>
 
-                            <div class="relative">
-                                <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="size-3 text-blue-500" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                                    </svg>
+                                {{-- Beneficiary Count --}}
+                                <span
+                                    class="{{ $batchId ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700' }} rounded px-2 py-1 text-xs font-medium">
+                                    {{ $batchId ? $this->beneficiarySlots['num_of_beneficiaries'] . ' / ' . $this->beneficiarySlots['slots_allocated'] : 'N / A' }}</span>
+                            </div>
+
+                            {{-- Batches Dropdown --}}
+                            <div class="flex items-center gap-2">
+                                <div x-data="{ open: false }" class="relative flex items-center gap-2 text-blue-900">
+
+                                    {{-- Button --}}
+                                    <button type="button" @click="open = !open;"
+                                        class="{{ $batchId ? 'bg-blue-50 border-blue-700 hover:border-transparent hover:bg-blue-800 active:bg-blue-900 text-blue-700 hover:text-blue-50' : 'border-gray-300 text-gray-300' }} flex items-center gap-2 py-1 px-2 text-sm outline-none font-semibold rounded border duration-200 ease-in-out">
+                                        {{ $this->currentBatch }}
+                                        @if ($batchId)
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                                viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        @else
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M178.125 0.827 C 46.919 16.924,-34.240 151.582,13.829 273.425 C 21.588 293.092,24.722 296.112,36.372 295.146 C 48.440 294.145,53.020 282.130,46.568 268.403 C 8.827 188.106,45.277 89.951,128.125 48.784 C 171.553 27.204,219.595 26.272,266.422 46.100 C 283.456 53.313,294.531 48.539,294.531 33.984 C 294.531 23.508,289.319 19.545,264.116 10.854 C 238.096 1.882,202.941 -2.217,178.125 0.827 M377.734 1.457 C 373.212 3.643,2.843 374.308,1.198 378.295 C -4.345 391.732,9.729 404.747,23.047 398.500 C 28.125 396.117,397.977 25.550,399.226 21.592 C 403.452 8.209,389.945 -4.444,377.734 1.457 M359.759 106.926 C 348.924 111.848,347.965 119.228,355.735 137.891 C 411.741 272.411,270.763 412.875,136.719 356.108 C 120.384 349.190,113.734 349.722,107.773 358.421 C 101.377 367.755,106.256 378.058,119.952 384.138 C 163.227 403.352,222.466 405.273,267.578 388.925 C 375.289 349.893,429.528 225.303,383.956 121.597 C 377.434 106.757,370.023 102.263,359.759 106.926 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                        @endif
+                                    </button>
+
+                                    {{-- Panel --}}
+                                    <div id="batchDropdownContent" x-cloak x-show="open"
+                                        @click.outside="$wire.resetFilter(); open = false;"
+                                        :class="{
+                                            'block': open === true,
+                                            'hidden': open === false,
+                                        }"
+                                        class="absolute top-full right-0 mt-2 z-50 p-2 w-[20.5rem] bg-white border rounded shadow">
+
+                                        {{-- Header / Search Batches / Counter / Filter --}}
+                                        <div class="mb-2 flex w-full items-center justify-center gap-2">
+
+                                            {{-- Batches Count --}}
+                                            <span
+                                                class="flex items-center gap-2 rounded {{ $this->batches->isNotEmpty() ? 'text-blue-900 bg-blue-100' : 'text-red-900 bg-red-100' }} py-1.5 px-2 text-xs select-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                    height="400" viewBox="0, 0, 400,400">
+                                                    <g>
+                                                        <path
+                                                            d="M194.141 24.141 C 160.582 38.874,10.347 106.178,8.003 107.530 C -1.767 113.162,-2.813 128.836,6.116 135.795 C 7.694 137.024,50.784 160.307,101.873 187.535 L 194.761 237.040 200.000 237.040 L 205.239 237.040 298.127 187.535 C 349.216 160.307,392.306 137.024,393.884 135.795 C 402.408 129.152,401.802 113.508,392.805 107.955 C 391.391 107.082,348.750 87.835,298.047 65.183 C 199.201 21.023,200.275 21.448,194.141 24.141 M11.124 178.387 C -0.899 182.747,-4.139 200.673,5.744 208.154 C 7.820 209.726,167.977 295.513,188.465 306.029 C 198.003 310.924,201.997 310.924,211.535 306.029 C 232.023 295.513,392.180 209.726,394.256 208.154 C 404.333 200.526,400.656 181.925,388.342 178.235 C 380.168 175.787,387.662 172.265,289.164 224.847 C 242.057 249.995,202.608 270.919,201.499 271.344 C 199.688 272.039,190.667 267.411,113.316 226.098 C 11.912 171.940,19.339 175.407,11.124 178.387 M9.766 245.797 C -1.277 251.753,-3.565 266.074,5.202 274.365 C 7.173 276.229,186.770 372.587,193.564 375.426 C 197.047 376.881,202.953 376.881,206.436 375.426 C 213.230 372.587,392.827 276.229,394.798 274.365 C 406.493 263.306,398.206 243.873,382.133 244.666 L 376.941 244.922 288.448 292.077 L 199.954 339.231 111.520 292.077 L 23.085 244.922 17.597 244.727 C 13.721 244.590,11.421 244.904,9.766 245.797 "
+                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                        </path>
+                                                    </g>
+                                                </svg>
+                                                {{ $this->batchesCount }}
+                                            </span>
+
+                                            {{-- Search Box --}}
+                                            <div class="relative flex flex-1 items-center">
+                                                <div
+                                                    class="absolute z-50 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+
+                                                    {{-- Loading Icon --}}
+                                                    <svg class="size-3 animate-spin" wire:loading
+                                                        wire:target="searchBatches" xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4">
+                                                        </circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                        </path>
+                                                    </svg>
+
+                                                    {{-- Search Icon --}}
+                                                    <svg class="size-3 text-blue-500" wire:loading.remove
+                                                        wire:target="searchBatches" aria-hidden="true"
+                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 20 20">
+                                                        <path stroke="currentColor" stroke-linecap="round"
+                                                            stroke-linejoin="round" stroke-width="2"
+                                                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                                    </svg>
+                                                </div>
+                                                <input type="text" id="batch-search" maxlength="100"
+                                                    autocomplete="off" wire:model.live.debounce.300ms="searchBatches"
+                                                    class="duration-200 outline-none ease-in-out ps-6 py-1.5 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
+                                                    placeholder="Search for batch numbers">
+                                            </div>
+
+                                            {{-- Filter Button --}}
+                                            <div x-data="{ open: false }" class="relative">
+
+                                                <!-- Button -->
+                                                <button x-ref="button" @click="open = !open" :aria-expanded="open"
+                                                    type="button"
+                                                    class="flex items-center outline-none rounded p-1.5 text-sm font-bold duration-200 ease-in-out bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:bg-blue-700 focus:text-blue-50">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
+                                                        <g>
+                                                            <path
+                                                                d="M55.859 51.091 C 37.210 57.030,26.929 76.899,32.690 95.866 C 35.051 103.642,34.376 102.847,97.852 172.610 L 156.250 236.794 156.253 298.670 C 156.256 359.035,156.294 360.609,157.808 363.093 C 161.323 368.857,170.292 370.737,175.953 366.895 C 184.355 361.193,241.520 314.546,242.553 312.549 C 243.578 310.566,243.750 304.971,243.750 273.514 L 243.750 236.794 302.148 172.610 C 365.624 102.847,364.949 103.642,367.310 95.866 C 372.533 78.673,364.634 60.468,348.673 52.908 L 343.359 50.391 201.172 50.243 C 87.833 50.126,58.350 50.298,55.859 51.091 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
+                                                            </path>
+                                                        </g>
+                                                    </svg>
+                                                </button>
+
+                                                <!-- Panel -->
+                                                <div x-show="open" @click.outside="open = false;"
+                                                    class="absolute flex flex-col flex-1 gap-4 text-xs right-0 mt-2 p-4 z-50 rounded bg-white shadow-lg border border-gray-300">
+
+                                                    {{-- Approval Status --}}
+                                                    <div class="whitespace-nowrap">
+                                                        <h2 class="text-sm font-medium mb-1">
+                                                            Filter for Approval Status
+                                                        </h2>
+                                                        <div x-data="{ approved: $wire.entangle('approvalStatuses.approved'), pending: $wire.entangle('approvalStatuses.pending'), }" class="flex items-center gap-3">
+
+                                                            <label
+                                                                class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                                :class="{
+                                                                    'bg-blue-100 text-blue-700': approved,
+                                                                    'bg-gray-50 text-gray-700': !approved,
+                                                                }"
+                                                                for="approvedStatus">
+                                                                <input id="approvedStatus" type="checkbox"
+                                                                    wire:model="approvalStatuses.approved"
+                                                                    class="size-3 rounded outline-none focus:ring-0"
+                                                                    :class="{
+                                                                        'border-blue-300': approved,
+                                                                        'border-gray-300': !approved,
+                                                                    }">
+                                                                Approved
+                                                            </label>
+
+                                                            <label
+                                                                class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                                :class="{
+                                                                    'bg-blue-100 text-blue-700': pending,
+                                                                    'bg-gray-50 text-gray-700': !pending,
+                                                                }"
+                                                                for="pendingStatus">
+                                                                <input id="pendingStatus" type="checkbox"
+                                                                    wire:model="approvalStatuses.pending"
+                                                                    class="size-3 rounded outline-none focus:ring-0"
+                                                                    :class="{
+                                                                        'border-blue-300': pending,
+                                                                        'border-gray-300': !pending,
+                                                                    }">
+                                                                Pending
+                                                            </label>
+
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Submission Status --}}
+                                                    <div class="whitespace-nowrap">
+                                                        <h2 class="text-sm font-medium mb-1">
+                                                            Filter for Submission Status
+                                                        </h2>
+                                                        <div x-data="{ submitted: $wire.entangle('submissionStatuses.submitted'), encoding: $wire.entangle('submissionStatuses.encoding'), unopened: $wire.entangle('submissionStatuses.unopened'), revalidate: $wire.entangle('submissionStatuses.revalidate') }"
+                                                            class="flex flex-col justify-center gap-2">
+                                                            <div class="flex items-center gap-3">
+
+                                                                <label
+                                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                                    :class="{
+                                                                        'bg-blue-100 text-blue-700': submitted,
+                                                                        'bg-gray-50 text-gray-700': !submitted,
+                                                                    }"
+                                                                    for="submittedStatus">
+                                                                    <input id="submittedStatus" type="checkbox"
+                                                                        wire:model="submissionStatuses.submitted"
+                                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                                        :class="{
+                                                                            'border-blue-300': submitted,
+                                                                            'border-gray-300': !submitted,
+                                                                        }">
+                                                                    Submitted
+                                                                </label>
+
+                                                                <label
+                                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                                    :class="{
+                                                                        'bg-blue-100 text-blue-700': encoding,
+                                                                        'bg-gray-50 text-gray-700': !encoding,
+                                                                    }"
+                                                                    for="encodingStatus">
+                                                                    <input id="encodingStatus" type="checkbox"
+                                                                        wire:model="submissionStatuses.encoding"
+                                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                                        :class="{
+                                                                            'border-blue-300': encoding,
+                                                                            'border-gray-300': !encoding,
+                                                                        }">
+                                                                    Encoding
+                                                                </label>
+
+                                                            </div>
+                                                            <div class="flex items-center gap-3">
+
+                                                                <label
+                                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                                    :class="{
+                                                                        'bg-blue-100 text-blue-700': unopened,
+                                                                        'bg-gray-50 text-gray-700': !unopened,
+                                                                    }"
+                                                                    for="unopenedStatus">
+                                                                    <input id="unopenedStatus" type="checkbox"
+                                                                        wire:model="submissionStatuses.unopened"
+                                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                                        :class="{
+                                                                            'border-blue-300': unopened,
+                                                                            'border-gray-300': !unopened,
+                                                                        }">
+                                                                    Unopened
+                                                                </label>
+
+
+                                                                <label
+                                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                                    :class="{
+                                                                        'bg-blue-100 text-blue-700': revalidate,
+                                                                        'bg-gray-50 text-gray-700': !revalidate,
+                                                                    }"
+                                                                    for="revalidateStatus">
+                                                                    <input id="revalidateStatus" type="checkbox"
+                                                                        wire:model="submissionStatuses.revalidate"
+                                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                                        :class="{
+                                                                            'border-blue-300': revalidate,
+                                                                            'border-gray-300': !revalidate,
+                                                                        }">
+                                                                    Revalidate
+                                                                </label>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Apply Filter Button --}}
+                                                    <span class="w-full flex items-center justify-end">
+                                                        <button @click="$wire.applyFilter(); open = false;"
+                                                            class="w-full flex items-center justify-center px-3 py-1.5 font-bold text-sm rounded bg-blue-700 text-blue-50">APPLY
+                                                            FILTER</button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- List of Batches --}}
+                                        <ul class="px-2 text-sm text-blue-1100 overflow-y-auto h-48 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700"
+                                            aria-labelledby="batchButton">
+                                            @if ($this->batches->isNotEmpty())
+                                                @foreach ($this->batches as $key => $batch)
+                                                    <li wire:key="batch-{{ $key }}">
+                                                        <button type="button" @click="open = !open;"
+                                                            wire:loading.class="pointer-events-none"
+                                                            wire:click="selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
+                                                            class="flex items-center gap-2 w-full px-1 py-2 text-xs hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
+                                                            <span class="text-left">{{ $batch->batch_num }} /
+                                                                {{ $batch->barangay_name }}</span>
+
+                                                            {{-- Approval Status --}}
+                                                            @if ($batch->approval_status === 'approved')
+                                                                <span
+                                                                    class="bg-green-300 text-green-1000 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->approval_status, 0, 1) }}</span>
+                                                            @elseif($batch->approval_status === 'pending')
+                                                                <span
+                                                                    class="bg-amber-300 text-amber-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->approval_status, 0, 1) }}</span>
+                                                            @endif
+
+                                                            {{-- Submission Status --}}
+                                                            @if ($batch->submission_status === 'unopened')
+                                                                <span
+                                                                    class="bg-amber-200 text-amber-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                            @elseif($batch->submission_status === 'encoding')
+                                                                <span
+                                                                    class="bg-sky-200 text-sky-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                            @elseif($batch->submission_status === 'submitted')
+                                                                <span
+                                                                    class="bg-green-200 text-green-1000 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                            @elseif($batch->submission_status === 'revalidate')
+                                                                <span
+                                                                    class="bg-red-200 text-red-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                            @endif
+
+                                                        </button>
+                                                    </li>
+                                                @endforeach
+                                            @else
+                                                <li
+                                                    class="flex flex-col items-center justify-center h-full w-full font-medium border rounded bg-gray-50 border-gray-300 text-gray-500">
+                                                    @if (in_array(false,
+                                                            array_values(array_unique(array_merge($this->filter['approval_status'], $this->filter['submission_status']),
+                                                                    SORT_REGULAR))))
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                            class="size-12 mb-4 text-blue-900 opacity-65"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd"></path>
+                                                            </g>
+                                                        </svg>
+                                                        <p>No batches found.</p>
+                                                        <p>Try adjusting the <span
+                                                                class=" text-blue-900">filters</span>.
+                                                        </p>
+                                                    @elseif ($start !== $defaultStart || $end !== $defaultEnd)
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                            class="size-12 mb-4 text-blue-900 opacity-65"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd"></path>
+                                                            </g>
+                                                        </svg>
+                                                        <p>No batches found.</p>
+                                                        <p>Try adjusting the <span class=" text-blue-900">date
+                                                                range</span>.
+                                                        </p>
+                                                    @endif
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
                                 </div>
-                                <input type="text" id="beneficiary-search" maxlength="100" autocomplete="off"
-                                    @input.debounce.300ms="$wire.searchBeneficiaries = $el.value; $wire.$refresh();"
-                                    class="duration-200 outline-none ease-in-out ps-7 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Search for beneficiaries">
+                            </div>
+                        </div>
+
+                        {{-- 2nd Row --}}
+                        <div class="flex flex-1 w-full items-center">
+
+                            {{-- Special Cases Count | Search | Add --}}
+                            <div class="flex flex-1 w-full items-center gap-2">
+
+                                {{-- Special Cases --}}
+                                <div class="relative flex items-center gap-1 text-xs font-medium">
+                                    <p class="{{ $this->specialCases > 0 ? 'text-amber-900' : 'text-gray-700' }}">
+                                        Special Cases: </p>
+                                    <span
+                                        class="py-1 px-2 rounded {{ $this->specialCases > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700' }} ">{{ $this->specialCases }}</span>
+                                </div>
+
+                                {{-- Search Box --}}
+                                <div class="relative flex flex-1 w-full items-center">
+
+                                    {{-- Search Icon --}}
+                                    <div
+                                        class="{{ is_null($batchId) && empty($batchId) ? 'text-gray-300' : 'text-blue-500' }} absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+
+                                        {{-- Loading Icon --}}
+                                        <svg class="size-3 animate-spin" wire:loading
+                                            wire:target="searchBeneficiaries" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4">
+                                            </circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+
+                                        {{-- Search Icon --}}
+                                        <svg class="size-3" wire:loading.remove wire:target="searchBeneficiaries"
+                                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 20 20">
+                                            <path stroke="currentColor" stroke-linecap="round"
+                                                stroke-linejoin="round" stroke-width="2"
+                                                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                        </svg>
+                                    </div>
+                                    <input @if (is_null($batchId) && empty($batchId)) disabled @endif type="text"
+                                        id="beneficiary-search" maxlength="100" autocomplete="off"
+                                        wire:model.live.debounce.350ms="searchBeneficiaries"
+                                        class="{{ is_null($batchId) && empty($batchId) ? 'placeholder-gray-300  border-gray-300' : 'text-blue-1100 placeholder-blue-500 border-blue-300 bg-blue-50 focus:ring-blue-500 focus:border-blue-500' }} caret-blue-700 w-full ps-6 py-1.5  border outline-none text-xs rounded duration-200 ease-in-out"
+                                        placeholder="Search for beneficiaries">
+                                </div>
+
+                                {{-- Add Button --}}
+                                <button
+                                    @if ($this->beneficiarySlots['slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
+                                    class="flex items-center gap-2 {{ $this->beneficiarySlots['slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'] ? 'bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500' : 'bg-blue-300 text-blue-50' }} rounded px-4 py-1 text-sm font-bold duration-200 ease-in-out">
+                                    ADD
+                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M181.716 13.755 C 102.990 27.972,72.357 125.909,128.773 183.020 C 181.183 236.074,272.696 214.609,295.333 143.952 C 318.606 71.310,256.583 0.235,181.716 13.755 M99.463 202.398 C 60.552 222.138,32.625 260.960,26.197 304.247 C 24.209 317.636,24.493 355.569,26.629 361.939 C 30.506 373.502,39.024 382.022,50.561 385.877 C 55.355 387.479,56.490 387.500,136.304 387.500 L 217.188 387.500 209.475 379.883 C 171.918 342.791,164.644 284.345,192.232 241.338 C 195.148 236.792,195.136 236.719,191.484 236.719 C 169.055 236.719,137.545 223.179,116.259 204.396 L 108.691 197.717 99.463 202.398 M269.531 213.993 C 176.853 234.489,177.153 366.574,269.922 386.007 C 337.328 400.126,393.434 333.977,369.538 268.559 C 355.185 229.265,310.563 204.918,269.531 213.993 M293.788 265.042 C 298.143 267.977,299.417 271.062,299.832 279.675 L 300.199 287.301 307.825 287.668 C 319.184 288.215,324.219 292.002,324.219 300.000 C 324.219 307.998,319.184 311.785,307.825 312.332 L 300.199 312.699 299.832 320.325 C 299.285 331.684,295.498 336.719,287.500 336.719 C 279.502 336.719,275.715 331.684,275.168 320.325 L 274.801 312.699 267.175 312.332 C 255.816 311.785,250.781 307.998,250.781 300.000 C 250.781 292.002,255.816 288.215,267.175 287.668 L 274.801 287.301 275.168 279.675 C 275.715 268.316,279.502 263.281,287.500 263.281 C 290.019 263.281,291.997 263.835,293.788 265.042 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
 
                     {{-- Beneficiaries Table --}}
-                    @if ($this->beneficiaries->isNotEmpty())
+                    @if ($batchId && $this->beneficiaries->isNotEmpty())
                         <div id="beneficiaries-table"
-                            class="relative min-h-[82.5vh] max-h-[82.5vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
+                            class="relative h-[76.25vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
                             <table class="relative w-full text-sm text-left text-blue-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
                                     <tr>
-                                        <th scope="col" class="pr-2 ps-4 py-2">
+                                        <th scope="col" class="absolute h-full w-1 left-0 z-50">
+                                            {{-- Selected Row Indicator --}}
+                                        </th>
+                                        <th scope="col" class="ps-4 pe-2 py-2">
                                             #
                                         </th>
-                                        <th scope="col" class="pr-2 py-2">
+                                        <th scope="col" class="ps-2">
                                             full name
                                         </th>
-                                        <th scope="col" class="pr-2 py-2 text-center">
+                                        <th scope="col" class="ps-2 text-center">
                                             sex
                                         </th>
-                                        <th scope="col" class="pr-2 py-2 text-center">
+                                        <th scope="col" class="ps-2 text-center">
                                             birthdate
                                         </th>
                                     </tr>
@@ -309,22 +603,37 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <tr wire:key="batch-{{ $key }}"
                                             wire:loading.class="pointer-events-none"
                                             wire:click.prevent='selectBeneficiaryRow({{ $key }}, "{{ encrypt($beneficiary->id) }}")'
-                                            class="relative border-b {{ $selectedBeneficiaryRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }} whitespace-nowrap duration-200 ease-in-out cursor-pointer">
-                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium">
+                                            class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer"
+                                            :class="{
+                                                'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                'bg-amber-200 text-amber-900 hover:bg-amber-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                'bg-amber-100 text-amber-700 hover:bg-amber-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                            }">
+                                            <td class="absolute h-full w-1 left-0 z-50"
+                                                :class="{
+                                                    'bg-blue-700': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                    'bg-amber-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                }">
+                                                {{-- Selected Row Indicator --}}
+                                            </td>
+                                            <th scope="row" class="ps-4 pe-2 py-2 font-medium">
                                                 {{ $key + 1 }}
                                             </th>
-                                            <td class="pr-2 py-2">
+                                            <td class="p-2">
                                                 {{ $this->getFullName($key) }}
                                             </td>
-                                            <td class="pr-2 py-2 text-center uppercase">
+                                            <td class="p-2 text-center uppercase">
                                                 {{ $beneficiary->sex }}
                                             </td>
-                                            <td class="pr-2 py-2 text-center">
+                                            <td class="p-2 text-center">
                                                 {{ $beneficiary->birthdate }}
                                             </td>
                                         </tr>
-                                        @if ($loop->last)
-                                            <tr x-data x-intersect.full="$wire.loadMoreBeneficiaries()">
+                                        @if (count($this->beneficiaries) >= 15 && $loop->last)
+                                            <tr x-data x-intersect.once="$wire.loadMoreBeneficiaries()">
 
                                             </tr>
                                         @endif
@@ -334,7 +643,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     @else
                         <div
-                            class="relative bg-white px-4 pb-4 pt-2 h-[82.5vh] min-w-full flex items-center justify-center">
+                            class="relative h-[76.25vh] bg-white px-4 pb-4 pt-2 min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                 @if ($this->batches->isEmpty())
@@ -344,14 +653,27 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         viewBox="0, 0, 400,400">
                                         <g>
                                             <path
-                                                d="M178.125 0.827 C 46.919 16.924,-34.240 151.582,13.829 273.425 C 21.588 293.092,24.722 296.112,36.372 295.146 C 48.440 294.145,53.020 282.130,46.568 268.403 C 8.827 188.106,45.277 89.951,128.125 48.784 C 171.553 27.204,219.595 26.272,266.422 46.100 C 283.456 53.313,294.531 48.539,294.531 33.984 C 294.531 23.508,289.319 19.545,264.116 10.854 C 238.096 1.882,202.941 -2.217,178.125 0.827 M377.734 1.457 C 373.212 3.643,2.843 374.308,1.198 378.295 C -4.345 391.732,9.729 404.747,23.047 398.500 C 28.125 396.117,397.977 25.550,399.226 21.592 C 403.452 8.209,389.945 -4.444,377.734 1.457 M359.759 106.926 C 348.924 111.848,347.965 119.228,355.735 137.891 C 411.741 272.411,270.763 412.875,136.719 356.108 C 120.384 349.190,113.734 349.722,107.773 358.421 C 101.377 367.755,106.256 378.058,119.952 384.138 C 163.227 403.352,222.466 405.273,267.578 388.925 C 375.289 349.893,429.528 225.303,383.956 121.597 C 377.434 106.757,370.023 102.263,359.759 106.926 "
+                                                d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
                                                 stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                         </g>
                                     </svg>
                                     <p>No beneficiaries found.</p>
-                                    <p>Ask your focal to assign a <span class=" text-blue-900">new
-                                            batch</span>.</p>
-                                @elseif ($this->beneficiaries->isEmpty())
+                                    <p class="text-center">Ask your focal to assign a <span class="text-blue-900">new
+                                            batch</span> <br>or <span class="text-blue-900">adjust the date</span>.</p>
+                                @elseif ($this->beneficiaries->isEmpty() && isset($searchBeneficiaries) && !empty($searchBeneficiaries))
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No beneficiaries found.</p>
+                                    <p>Try a different <span class=" text-blue-900">search term</span>.</p>
+                                @elseif ($this->beneficiaries->isEmpty() && !isset($searchBeneficiaries) && empty($searchBeneficiaries))
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -366,315 +688,449 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <p>Try adding a <span class=" text-blue-900">new
                                             beneficiary</span>.</p>
                                 @endif
-
                             </div>
                         </div>
                     @endif
 
-                    {{-- Create Button | Main Modal --}}
-                    {{-- <livewire:focal.batchs.create-project-modal /> --}}
+                    {{-- Add Beneficiaries Modal --}}
+                    <livewire:coordinator.submissions.add-beneficiaries-modal :$batchId />
                 </div>
 
-                {{-- Beneficiary Preview | Special Cases --}}
-                <div class="relative flex flex-col lg:col-span-4 size-full">
-
-                    {{-- Beneficiary Preview --}}
-                    <div class="grid grid-rows-5 h-[55%] w-full rounded bg-white shadow text-xs select-text">
+                {{-- Beneficiary Preview --}}
+                <div class="relative flex flex-col lg:col-span-4 sm:h-[89vh] w-full">
+                    <div class="flex flex-col size-full rounded bg-white shadow text-xs select-text">
 
                         @if ($beneficiaryId)
-                            {{-- Upper --}}
-                            <div class="row-span-3 flex items-start justify-between border-b border-gray-300">
+                            {{-- Whole Thing --}}
+                            <div class="grid grid-cols-11 gap-2 p-4">
 
-                                {{-- ID --}}
-                                <div class="flex flex-col text-blue-1100 ps-2 pt-2">
-                                    <div
-                                        class="bg-blue-100 text-blue-900 border-blue-300 border-dashed border-2 rounded mb-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-32"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M107.422 50.878 C 79.094 54.549,57.713 74.036,51.814 101.563 C 49.620 111.800,49.620 288.200,51.814 298.438 C 57.220 323.662,76.338 342.780,101.563 348.186 C 107.773 349.517,114.149 349.609,200.000 349.609 C 285.851 349.609,292.227 349.517,298.438 348.186 C 323.662 342.780,342.780 323.662,348.186 298.438 C 350.380 288.200,350.380 111.800,348.186 101.563 C 342.861 76.716,324.200 57.775,299.219 51.860 C 292.608 50.294,118.792 49.405,107.422 50.878 M283.372 84.383 C 295.540 85.460,299.847 87.205,306.321 93.679 C 315.819 103.176,316.386 107.330,316.398 167.420 L 316.406 208.669 313.086 206.393 C 290.258 190.744,266.010 193.819,243.963 215.159 C 238.678 220.274,234.240 224.317,234.100 224.144 C 220.448 207.251,185.837 166.529,182.862 163.858 C 168.386 150.865,145.748 148.079,127.547 157.051 C 119.004 161.262,114.813 165.299,98.040 185.480 L 83.984 202.389 83.754 165.062 C 83.406 108.493,84.139 103.218,93.679 93.679 C 99.894 87.463,104.758 85.373,115.176 84.442 C 125.621 83.509,272.912 83.457,283.372 84.383 M227.937 133.924 C 211.002 139.968,213.315 164.176,231.085 166.867 C 241.190 168.397,250.000 160.541,250.000 150.000 C 250.000 137.987,239.004 129.974,227.937 133.924 M156.764 187.447 C 159.428 188.657,164.587 194.405,185.420 219.379 C 212.037 251.287,213.239 252.533,220.736 255.991 C 235.489 262.795,247.798 259.174,264.151 243.218 C 281.729 226.068,285.035 226.261,304.492 245.576 L 316.406 257.403 316.398 265.616 C 316.363 301.864,308.764 313.369,283.372 315.617 C 271.802 316.641,128.198 316.641,116.628 315.617 C 91.083 313.356,83.659 302.019,83.606 265.193 L 83.594 256.558 111.781 222.744 C 144.714 183.237,145.732 182.438,156.764 187.447 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                            </g>
-                                        </svg>
+                                {{-- Left Side --}}
+                                <div
+                                    class="flex flex-col col-span-full sm:col-span-3 items-center text-blue-1100 gap-2">
+
+                                    {{-- Identity Information --}}
+                                    <div class="flex flex-col items-center text-blue-1100">
+                                        {{-- ID Image --}}
+                                        <div
+                                            class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-32 aspect-square">
+
+                                            @if (isset($identity) && !empty($identity))
+                                                <button class="flex items-center justify-center rounded"
+                                                    @click="$wire.viewCredential('identity');">
+                                                    <img class="w-[90%]" src="{{ asset('storage/' . $identity) }}">
+                                                </button>
+                                            @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-[50%]"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                    height="400" viewBox="0, 0, 400,400">
+                                                    <g>
+                                                        <path
+                                                            d="M32.422 11.304 C 31.992 11.457,30.680 11.794,29.507 12.052 C 24.028 13.260,19.531 19.766,19.531 26.487 C 19.531 32.602,20.505 34.096,32.052 45.703 L 42.932 56.641 34.864 64.939 C 15.117 85.248,8.104 102.091,3.189 141.016 C -3.142 191.153,0.379 261.277,10.675 290.108 C 22.673 323.703,54.885 351.747,88.994 358.293 C 140.763 368.227,235.891 369.061,300.224 360.143 C 314.334 358.187,325.014 355.166,333.980 350.595 L 337.882 348.606 356.803 367.237 C 377.405 387.523,378.751 388.534,385.156 388.534 C 396.064 388.534,402.926 378.158,399.161 367.358 C 398.216 364.648,45.323 14.908,41.621 13.013 C 39.365 11.859,33.779 10.821,32.422 11.304 M173.685 26.603 C 149.478 27.530,105.181 31.289,103.940 32.521 C 103.744 32.716,109.721 38.980,117.221 46.441 L 130.859 60.008 143.750 58.937 C 190.711 55.035,239.415 56.114,289.049 62.156 C 323.242 66.318,344.750 80.309,357.596 106.748 C 367.951 128.058,373.239 201.260,367.335 241.563 L 366.797 245.235 356.492 231.797 C 310.216 171.453,298.664 162.344,271.006 164.387 C 260.988 165.127,245.312 170.115,245.313 172.562 C 245.313 173.401,380.320 307.031,381.167 307.031 C 382.090 307.031,388.660 292.643,390.518 286.555 C 403.517 243.958,402.683 139.537,389.046 102.170 C 377.740 71.192,349.876 45.280,318.284 36.368 C 294.697 29.713,221.504 24.771,173.685 26.603 M88.547 101.394 L 98.578 111.490 94.406 113.848 C 74.760 124.952,71.359 153.827,87.859 169.432 C 104.033 184.729,130.241 181.325,141.915 162.410 L 144.731 157.848 146.780 159.342 C 147.906 160.164,161.448 173.480,176.871 188.934 L 204.915 217.032 200.234 222.774 C 194.483 229.829,171.825 260.177,171.304 261.523 C 170.623 263.286,169.872 262.595,162.828 253.726 C 153.432 241.895,140.224 226.635,137.217 224.134 C 126.063 214.861,107.616 213.280,93.162 220.358 C 85.033 224.339,70.072 241.107,47.047 272.044 L 40.234 281.197 39.314 279.023 C 32.914 263.906,28.466 201.412,31.263 165.934 C 34.978 118.821,40.622 102.197,58.912 84.488 L 64.848 78.741 71.682 85.019 C 75.440 88.472,83.030 95.841,88.547 101.394 "
+                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                        </path>
+                                                    </g>
+                                                </svg>
+                                                <p class="font-medium text-xs mt-2">
+                                                    No image uploaded.
+                                                </p>
+                                            @endif
+                                        </div>
+
+                                        {{-- Type of ID --}}
+                                        <p class="font-semibold select-all text-center">
+                                            {{ $this->getIdType }}
+                                        </p>
+
+                                        {{-- ID Number --}}
+                                        <p class="text-center select-all">
+                                            {{ $this->beneficiary->id_number }}
+                                        </p>
                                     </div>
-                                    <p class="font-semibold select-all text-center">
-                                        {{ $this->getIdType }}</p>
-                                    <p class="text-center select-all text-2xs">
-                                        {{ $this->beneficiaries[$selectedBeneficiaryRow]->id_number }}</p>
+
+                                    {{-- Address Information --}}
+                                    <div class="flex flex-col w-full text-blue-1100 gap-1">
+
+                                        {{-- Header --}}
+                                        <p
+                                            class="font-bold text-sm bg-gray-200 text-gray-700 rounded uppercase px-2 py-1">
+                                            address</p>
+
+                                        {{-- Body --}}
+                                        <div class="flex flex-1 flex-col px-2 py-1 gap-2">
+                                            {{-- Province --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    province </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->province }}</span>
+                                            </div>
+
+                                            {{-- City/Municipality --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    city / municipality </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->city_municipality }}</span>
+                                            </div>
+
+                                            {{-- District --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    district </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->district }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Spouse Information --}}
+                                    <div class="flex flex-col w-full text-blue-1100 gap-1">
+
+                                        {{-- Header --}}
+                                        <p
+                                            class="font-bold text-sm bg-gray-200 text-gray-700 rounded uppercase px-2 py-1">
+                                            spouse info</p>
+
+                                        {{-- Body --}}
+                                        <div class="flex flex-1 flex-col px-2 py-1 gap-2">
+
+                                            {{-- Spouse First Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    first name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->spouse_first_name ?? '-' }}</span>
+                                            </div>
+
+                                            {{-- Spouse Middle Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    middle name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->spouse_middle_name ?? '-' }}</span>
+                                            </div>
+
+                                            {{-- Spouse Last Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    last name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->spouse_last_name ?? '-' }}</span>
+                                            </div>
+
+                                            {{-- Spouse Extension Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    ext. name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->spouse_extension_name ?? '-' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {{-- Basic Information --}}
-                                <div class="flex flex-col text-blue-1100 mx-2 mt-1">
+                                {{-- Right Side --}}
+                                <div class="flex col-span-full sm:col-span-8 flex-col text-blue-1100 gap-1">
 
                                     {{-- Header --}}
-                                    <p
-                                        class="font-bold text-sm bg-blue-900 text-blue-50 rounded uppercase m-1 px-2 py-1">
+                                    <p class="font-bold text-sm bg-gray-200 text-gray-700 rounded uppercase px-2 py-1">
                                         basic
                                         information</p>
 
                                     {{-- Body --}}
-                                    {{-- First Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            first name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->first_name }}</p>
-                                    </span>
+                                    <div class="flex flex-1 flex-col px-2 py-1 gap-2">
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- First Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    first name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->first_name }}</span>
+                                            </div>
 
-                                    {{-- Middle Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            middle name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->middle_name ?? '-' }}</p>
-                                    </span>
+                                            {{-- Middle Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    middle name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->middle_name ?? '-' }}
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                    {{-- Last Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            last name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->last_name }}</p>
-                                    </span>
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- Last Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    last name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->last_name }}</span>
+                                            </div>
 
-                                    {{-- Extension Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            extension name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->extension_name ?? '-' }}
-                                        </p>
-                                    </span>
+                                            {{-- Extension Name --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    ext. name </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->extension_name ?? '-' }}
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                    {{-- Birthdate --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            birthdate: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ Carbon\Carbon::parse($this->beneficiaries[$selectedBeneficiaryRow]->birthdate)->format('M. d, Y') }}
-                                        </p>
-                                    </span>
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- Birthdate --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    birthdate </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ Carbon\Carbon::parse($this->beneficiary->birthdate)->format('M. d, Y') }}</span>
+                                            </div>
 
-                                    {{-- Contact Number --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            contact #: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->contact_num }}</p>
-                                    </span>
+                                            {{-- Age --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    age </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->age }}
+                                                </span>
+                                            </div>
 
-                                    {{-- Civil Status --}}
-                                    <span class="select-all flex items-center mx-2">
-                                        <p class="font-semibold text-center capitalize text-blue-1000">
-                                            civil status: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->civil_status }}</p>
-                                    </span>
+                                            {{-- Sex --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    sex </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
+                                                    {{ $this->beneficiary->sex }}</span>
+                                            </div>
+                                        </div>
 
-                                    {{-- Sex --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            sex: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->sex }}</p>
-                                    </span>
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- Civil Status --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    civil status </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
+                                                    {{ $this->beneficiary->civil_status }}</span>
+                                            </div>
 
-                                    {{-- Age --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            age: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->age }}</p>
-                                    </span>
-                                </div>
+                                            {{-- Contact Number --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    contact number </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->contact_num }}
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                {{-- Additional Information --}}
-                                <div class="flex flex-col text-blue-1100 mx-2 mt-1">
-                                    {{-- Header --}}
-                                    <p
-                                        class="font-bold text-sm bg-blue-900 text-blue-50 rounded uppercase m-1 px-2 py-1">
-                                        additional
-                                        information</p>
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- Occupation --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    occupation </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->occupation ?? 'None' }}</span>
+                                            </div>
 
-                                    {{-- Body --}}
-                                    {{-- Occupation --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            occupation: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->occupation ?? 'None' }}
-                                        </p>
-                                    </span>
+                                            {{-- Avg Monthly Income --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium capitalize">
+                                                    avg. monthly income </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    @if ($this->beneficiary->avg_monthly_income === null || $this->beneficiary->avg_monthly_income === 0)
+                                                        {{ '-' }}
+                                                    @else
+                                                        {{ '₱' . number_format($this->beneficiary->avg_monthly_income / 100, 2) }}
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                    {{-- Type of Beneficiary --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center text-blue-1000">
-                                            Type of Beneficiary: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->beneficiary_type }}</p>
-                                    </span>
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- Type of Beneficiary --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium">
+                                                    Type of Beneficiary </p>
 
-                                    {{-- Dependent --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            dependent: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->dependent ?? '-' }}
-                                        </p>
-                                    </span>
+                                                @if ($this->beneficiary->beneficiary_type === 'special case')
+                                                    <button type="button" @click="$wire.viewCredential('special');"
+                                                        class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-amber-100 active:bg-amber-200 text-amber-950 hover:text-amber-700 duration-200 ease-in-out">
+                                                        {{ $this->beneficiary->beneficiary_type }}
 
-                                    {{-- Interested in Self-Employment --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center text-blue-1000">
-                                            Interested in Self-Employment: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->self_employment }}
-                                        </p>
-                                    </span>
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                            class="absolute right-2 size-4"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M181.641 87.979 C 130.328 95.222,89.731 118.794,59.712 158.775 C 35.189 191.436,35.188 208.551,59.709 241.225 C 108.153 305.776,191.030 329.697,264.335 300.287 C 312.216 281.078,358.187 231.954,358.187 200.000 C 358.187 163.027,301.790 109.157,246.875 93.676 C 229.295 88.720,196.611 85.866,181.641 87.979 M214.728 139.914 C 251.924 148.468,272.352 190.837,256.127 225.780 C 234.108 273.202,167.333 273.905,144.541 226.953 C 121.658 179.813,163.358 128.100,214.728 139.914 M188.095 164.017 C 162.140 172.314,153.687 205.838,172.483 225.933 C 192.114 246.920,228.245 238.455,236.261 210.991 C 244.785 181.789,217.066 154.756,188.095 164.017 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd">
+                                                                </path>
+                                                            </g>
+                                                        </svg>
+                                                    </button>
+                                                @else
+                                                    <span
+                                                        class="whitespace-normal rounded px-2 py-0.5 bg-blue-50 text-blue-1000 capitalize select-all">
+                                                        {{ $this->beneficiary->beneficiary_type }}
+                                                    </span>
+                                                @endif
 
-                                    {{-- Avg. Monthly Income --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold capitalize text-center text-blue-1000">
-                                            avg. monthly income: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            @if (
-                                                $this->beneficiaries[$selectedBeneficiaryRow]->avg_monthly_income === null ||
-                                                    $this->beneficiaries[$selectedBeneficiaryRow]->avg_monthly_income === 0)
-                                                -
+                                            </div>
+
+                                            {{-- Dependent --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    dependent </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->dependent ?? '-' }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center whitespace-nowrap justify-between">
+                                            {{-- Interested in Self Employment or Wage Employment --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    interested in self employment or wage employment </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
+                                                    {{ $this->beneficiary->self_employment }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center whitespace-nowrap justify-between">
+                                            {{-- Skills Training --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    skills training </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->skills_training ?? '-' }}
+                                                </span>
+                                            </div>
+
+                                            {{-- e-Payment Account Number --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium">
+                                                    e-Payment Account Number </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
+                                                    {{ $this->beneficiary->e_payment_acc_num ?? '-' }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- is PWD --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    Person w/ Disability </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
+                                                    {{ $this->beneficiary->is_pwd }}</span>
+                                            </div>
+
+                                            {{-- is Senior Citizen --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    Senior Citizen </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
+                                                    {{ $this->beneficiary->is_senior_citizen }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center whitespace-nowrap justify-between gap-2">
+                                            {{-- is PWD --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    Date Added </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
+                                                    {{ \Carbon\Carbon::parse($this->beneficiary->created_at)->format('M d, Y @ h:i:sa') }}</span>
+                                            </div>
+
+                                            {{-- is Senior Citizen --}}
+                                            <div class="flex flex-1 flex-col justify-center">
+                                                <p class="select-all font-medium  capitalize">
+                                                    Last Updated </p>
+                                                <span
+                                                    class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
+                                                    {{ \Carbon\Carbon::parse($this->beneficiary->updated_at)->format('M d, Y @ h:i:sa') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Buttons --}}
+                                    <div class="flex flex-1 px-2 py-1 gap-2">
+                                        <div
+                                            class="relative max-[430px]:flex-col flex flex-1 items-center justify-end gap-2">
+
+                                            {{-- Edit Button --}}
+                                            <button
+                                                @if ($this->batch->approval_status !== 'approved') @click="$wire.openEdit(); $dispatch('openEdit');"
                                             @else
-                                                ₱{{ number_format($this->beneficiaries[$selectedBeneficiaryRow]->avg_monthly_income / 100, 2) }}
-                                            @endif
-                                        </p>
-                                    </span>
+                                            disabled @endif
+                                                class="rounded text-sm font-bold flex flex-1 gap-2 items-center justify-center px-3 py-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:bg-blue-800 focus:ring-2 focus:ring-blue-300 duration-200 ease-in-out">
+                                                EDIT
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                    height="400" viewBox="0, 0, 400,400">
+                                                    <g>
+                                                        <path
+                                                            d="M182.813 38.986 C 123.313 52.113,100.226 125.496,141.415 170.564 C 183.488 216.599,261.606 197.040,276.896 136.644 C 291.453 79.146,240.501 26.259,182.813 38.986 M278.141 204.778 C 272.904 206.868,270.880 210.858,270.342 220.156 L 269.922 227.420 264.768 229.218 C 261.934 230.206,258.146 231.841,256.351 232.849 L 253.088 234.684 248.224 229.884 C 241.216 222.970,235.198 221.459,229.626 225.214 C 221.063 230.985,221.157 239.379,229.884 248.224 L 234.684 253.088 232.849 256.351 C 231.841 258.146,230.206 261.934,229.218 264.768 L 227.420 269.922 220.156 270.313 C 208.989 270.915,204.670 274.219,204.083 282.607 C 203.466 291.419,208.211 295.523,219.675 296.094 L 227.526 296.484 228.868 300.781 C 229.606 303.145,231.177 306.971,232.359 309.285 L 234.508 313.492 230.227 317.879 C 223.225 325.054,221.747 330.343,224.976 336.671 C 229.458 345.458,239.052 345.437,248.076 336.622 L 252.794 332.014 258.233 334.683 C 261.224 336.151,265.133 337.742,266.919 338.218 L 270.167 339.083 270.435 346.830 C 270.818 357.905,274.660 362.505,283.514 362.495 C 292.220 362.485,296.084 357.523,296.090 346.344 L 296.094 339.173 300.586 337.882 C 303.057 337.171,306.997 335.559,309.341 334.298 L 313.605 332.006 318.326 336.618 C 324.171 342.328,325.413 342.969,330.613 342.966 C 344.185 342.956,347.496 329.464,336.652 318.359 L 332.075 313.672 334.421 309.022 C 335.711 306.464,337.308 302.509,337.970 300.233 L 339.173 296.094 346.276 296.094 C 357.566 296.094,362.500 292.114,362.500 283.005 C 362.500 274.700,357.650 270.809,346.830 270.435 L 339.083 270.167 338.218 266.919 C 337.742 265.133,336.151 261.224,334.683 258.233 L 332.014 252.794 336.622 248.076 C 345.259 239.234,345.423 230.021,337.028 225.208 C 330.778 221.625,325.473 222.915,318.356 229.749 L 313.432 234.478 309.255 232.344 C 306.958 231.170,303.145 229.606,300.781 228.868 L 296.484 227.526 296.094 219.675 C 295.460 206.941,288.076 200.814,278.141 204.778 M140.625 220.855 C 91.525 226.114,53.906 267.246,53.906 315.674 C 53.906 333.608,63.031 349.447,77.831 357.207 C 88.240 362.664,85.847 362.500,155.113 362.500 L 217.422 362.500 214.329 360.259 C 202.518 351.704,196.602 335.289,200.309 321.365 L 201.381 317.339 196.198 313.914 C 172.048 297.955,174.729 264.426,201.338 249.629 C 201.430 249.578,200.995 247.619,200.371 245.276 C 198.499 238.241,199.126 229.043,201.981 221.680 C 202.483 220.383,151.436 219.698,140.625 220.855 M290.207 252.760 C 316.765 259.678,323.392 292.263,301.575 308.656 C 283.142 322.507,256.557 311.347,252.282 287.964 C 248.462 267.069,269.646 247.405,290.207 252.760 "
+                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                        </path>
+                                                    </g>
+                                                </svg>
+                                            </button>
 
-                                    {{-- Skills Training --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            skills training: </p>
-                                        <p class="text-center select-all ms-1 capitalize">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->skills_training }}
-                                        </p>
-                                    </span>
-
-                                    {{-- e-Payment Account # --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center text-blue-1000">
-                                            e-Payment Account #: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->e_payment_acc_num ?? '-' }}
-                                        </p>
-                                    </span>
-
-                                    {{-- is PWD --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center text-blue-1000">
-                                            Person w/ Disability: </p>
-                                        <p class="text-center select-all capitalize ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->is_pwd }}
-                                        </p>
-                                    </span>
-
-                                    {{-- is Senior Citizen --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center text-blue-1000">
-                                            Senior Citizen: </p>
-                                        <p class="text-center select-all capitalize ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->is_senior_citizen }}
-                                        </p>
-                                    </span>
-                                </div>
-                            </div>
-
-                            {{-- Lower --}}
-                            <div class="row-span-2 flex items-start justify-start">
-                                {{-- Address --}}
-                                <div class="flex flex-col text-blue-1100 mx-2 mt-1">
-
-                                    {{-- Header --}}
-                                    <p
-                                        class="font-bold text-sm bg-blue-900 text-blue-50 rounded uppercase m-1 px-2 py-1">
-                                        address</p>
-
-                                    {{-- Body --}}
-                                    {{-- Province --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            province: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->province }}
-                                        </p>
-                                    </span>
-
-                                    {{-- City/Municipality --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center text-blue-1000">
-                                            City/Municipality: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->city_municipality }}
-                                        </p>
-                                    </span>
-
-                                    {{-- District --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            district: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->district }}
-                                        </p>
-                                    </span>
-                                </div>
-
-                                {{-- Spouse Information --}}
-                                <div class="flex flex-col text-blue-1100 mx-2 mt-1">
-
-                                    {{-- Header --}}
-                                    <p
-                                        class="font-bold text-sm bg-blue-900 text-blue-50 rounded uppercase m-1 px-2 py-1">
-                                        spouse information</p>
-
-                                    {{-- Body --}}
-                                    {{-- Spouse First Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            spouse first name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->spouse_first_name ?? '-' }}
-                                        </p>
-                                    </span>
-
-                                    {{-- Spouse Middle Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            spouse middle name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->spouse_middle_name ?? '-' }}
-                                        </p>
-                                    </span>
-
-                                    {{-- Spouse Last Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            spouse last name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->spouse_last_name ?? '-' }}
-                                        </p>
-                                    </span>
-
-                                    {{-- Spouse Extension Name --}}
-                                    <span class="flex items-center mx-2">
-                                        <p class="select-all font-semibold text-center capitalize text-blue-1000">
-                                            spouse extension name: </p>
-                                        <p class="text-center select-all ms-1">
-                                            {{ $this->beneficiaries[$selectedBeneficiaryRow]->spouse_extension_name ?? '-' }}
-                                        </p>
-                                    </span>
+                                            {{-- Delete Button --}}
+                                            <button
+                                                @if ($this->batch->approval_status !== 'approved') @click="deleteBeneficiaryModal = !deleteBeneficiaryModal;"
+                                            @else
+                                            disabled @endif
+                                                class="rounded text-sm font-bold flex items-center justify-center p-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:bg-red-800 focus:ring-2 focus:ring-red-300 duration-200 ease-in-out">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                    height="400" viewBox="0, 0, 400,400">
+                                                    <g>
+                                                        <path
+                                                            d="M171.190 38.733 C 151.766 43.957,137.500 62.184,137.500 81.778 L 137.500 87.447 107.365 87.669 L 77.230 87.891 74.213 91.126 C 66.104 99.821,71.637 112.500,83.541 112.500 L 87.473 112.500 87.682 220.117 L 87.891 327.734 90.158 333.203 C 94.925 344.699,101.988 352.414,112.661 357.784 C 122.411 362.689,119.829 362.558,202.364 362.324 L 277.734 362.109 283.203 359.842 C 294.295 355.242,302.136 348.236,307.397 338.226 C 312.807 327.930,312.500 335.158,312.500 218.195 L 312.500 112.500 316.681 112.500 C 329.718 112.500,334.326 96.663,323.445 89.258 C 320.881 87.512,320.657 87.500,291.681 87.500 L 262.500 87.500 262.500 81.805 C 262.500 61.952,248.143 43.817,228.343 38.660 C 222.032 37.016,177.361 37.073,171.190 38.733 M224.219 64.537 C 231.796 68.033,236.098 74.202,237.101 83.008 L 237.612 87.500 200.000 87.500 L 162.388 87.500 162.929 83.008 C 164.214 72.340,170.262 65.279,179.802 63.305 C 187.026 61.811,220.311 62.734,224.219 64.537 M171.905 172.852 C 174.451 174.136,175.864 175.549,177.148 178.095 L 178.906 181.581 178.906 225.000 L 178.906 268.419 177.148 271.905 C 172.702 280.723,160.426 280.705,155.859 271.873 C 154.164 268.596,154.095 181.529,155.785 178.282 C 159.204 171.710,165.462 169.602,171.905 172.852 M239.776 173.257 C 240.888 174.080,242.596 175.927,243.573 177.363 L 245.349 179.972 245.135 225.476 C 244.898 276.021,245.255 272.640,239.728 276.767 C 234.458 280.702,226.069 278.285,222.852 271.905 L 221.094 268.419 221.094 225.000 L 221.094 181.581 222.852 178.095 C 226.079 171.694,234.438 169.304,239.776 173.257 "
+                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                        </path>
+                                                    </g>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         @else
-                            <div
-                                class="rounded relative bg-white p-4 row-span-full min-w-full flex items-center justify-center">
+                            <div class="rounded relative bg-white p-4 h-full w-full flex items-center justify-center">
                                 <div
                                     class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -696,153 +1152,189 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         @endif
                     </div>
 
-                    {{-- Special Cases --}}
-                    <div class="flex flex-col h-[45%] w-full">
-                        <p class="text-base text-amber-950 my-2 font-bold ms-3">Special Cases</p>
-                        @if (false)
-                            {{-- Special Cases Table --}}
-                            <div id="special-cases-table"
-                                class="relative h-[40vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
-                                <table class="relative w-full text-sm text-left text-indigo-1100 whitespace-nowrap">
-                                    <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
-                                        <tr>
-                                            <th scope="col" class="pe-2 ps-4 py-2">
-                                                project #
-                                            </th>
-                                            <th scope="col" class="pr-6 py-2">
-                                                project title
-                                            </th>
-                                            <th scope="col" class="pr-2 py-2 text-center">
-                                                total slots
-                                            </th>
-                                            <th scope="col" class="pr-2 py-2 text-center">
-                                                days of work
-                                            </th>
-                                            <th scope="col" class="px-2 py-2 text-center">
+                    {{-- View Credentials Modal --}}
+                    <livewire:coordinator.submissions.view-credentials-modal :$passedCredentialId />
 
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="relative text-xs">
-                                        @foreach ($this->implementations as $key => $implementation)
-                                            @php
-                                                $encryptedId = Crypt::encrypt($implementation->id);
-                                            @endphp
-                                            <tr wire:key="implementation-{{ $key }}"
-                                                wire:click.prevent='selectImplementationRow({{ $key }}, "{{ $encryptedId }}")'
-                                                class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }}  whitespace-nowrap cursor-pointer">
-                                                <th scope="row" class="pe-2 ps-4 py-2 font-medium">
-                                                    {{ $implementation->project_num }}
-                                                </th>
-                                                <td class="pr-6 py-2">
-                                                    {{ $implementation->project_title }}
-                                                </td>
-                                                <td class="pr-2 py-2 text-center">
-                                                    {{ $implementation->total_slots }}
-                                                </td>
-                                                <td class="pr-2 py-2 text-center">
-                                                    {{ $implementation->days_of_work }}
-                                                </td>
-                                                {{-- Special Cases Dropdown --}}
-                                                <td x-data="iDropdownRotation({{ $key }})" class="py-2 flex">
-                                                    <button @click.stop="handleClick()"
-                                                        id="implementationRowButton-{{ $key }}"
-                                                        data-dropdown-placement="left"
-                                                        data-dropdown-toggle="implementationRowDropdown-{{ $key }}"
-                                                        class="z-0 mx-1 p-1 outline-none rounded duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                            fill="currentColor"
-                                                            :class="{
-                                                                'rotate-0': !isVisible(),
-                                                                'rotate-90': isVisible(),
-                                                            }"
-                                                            class="size-4 transition-transform duration-200 ease-in-out">
-                                                            <path fill-rule="evenodd"
-                                                                d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
-                                                                clip-rule="evenodd" />
-                                                        </svg>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            @if ($this->implementations->count() > 5 && $loop->last)
-                                                <tr x-data x-intersect.full="$wire.loadMoreImplementations();">
+                    {{-- Edit Beneficiary Modal --}}
+                    <livewire:coordinator.submissions.edit-beneficiary-modal :$beneficiaryId />
+                </div>
+            </div>
 
-                                                </tr>
-                                            @endif
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+            {{-- Delete Project Modal --}}
+            <div x-cloak class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50"
+                x-show="deleteBeneficiaryModal">
 
-                            {{-- Special Cases Dropdown Content --}}
-                            @foreach ($this->implementations as $key => $implementation)
-                                <div wire:key="implementationRowDropdown-{{ $key }}"
-                                    id="implementationRowDropdown-{{ $key }}"
-                                    class="absolute z-50 hidden bg-white border rounded-md shadow">
-                                    <ul class="text-sm text-indigo-1100"
-                                        aria-labelledby="implementationRowButton-{{ $key }}">
-                                        <li>
-                                            <a aria-label="{{ __('View Project') }}"
-                                                class="rounded-t-md flex items-center outline-none ring-0 justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
-                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                    height="400" viewBox="0, 0, 400,400">
-                                                    <g>
-                                                        <path
-                                                            d="M196.484 30.192 C 193.112 30.921,90.341 91.036,88.733 93.221 C 87.153 95.366,87.099 96.484,86.719 134.490 L 86.328 173.554 75.781 177.394 C -33.739 217.272,-22.890 302.011,95.768 333.518 L 98.958 334.365 96.759 344.331 C 92.647 362.961,95.217 369.852,106.250 369.785 C 109.346 369.766,162.422 349.406,171.174 344.880 C 176.624 342.062,178.462 332.569,174.580 327.300 C 171.295 322.843,127.874 279.583,125.926 278.827 C 115.728 274.870,110.733 279.883,106.915 297.906 L 104.297 310.265 101.953 309.811 C 89.267 307.353,63.261 296.301,50.195 287.815 C 7.311 259.963,19.068 225.316,79.297 202.054 L 86.328 199.339 86.719 210.412 C 86.956 217.124,87.493 222.155,88.084 223.188 C 90.857 228.032,194.289 287.103,200.000 287.103 C 203.857 287.104,294.205 236.696,308.801 226.401 C 312.664 223.676,313.281 221.391,313.281 209.815 L 313.281 199.241 317.773 200.904 C 419.850 238.702,380.629 302.630,244.766 319.905 C 229.129 321.893,227.054 322.693,224.706 327.642 C 221.919 333.513,223.930 340.377,229.378 343.594 C 237.632 348.466,295.155 337.825,328.450 325.266 C 426.552 288.262,424.383 213.945,324.134 177.371 L 313.672 173.554 313.281 134.490 C 312.840 90.412,313.185 92.724,306.590 89.523 C 304.899 88.702,282.070 75.661,255.859 60.541 C 197.763 27.030,201.731 29.058,196.484 30.192 M237.634 78.266 C 258.615 90.375,275.773 100.482,275.763 100.727 C 275.732 101.488,201.314 144.085,200.016 144.085 C 196.374 144.085,123.224 100.464,124.947 99.320 C 127.149 97.858,198.718 56.371,199.158 56.302 C 199.339 56.273,216.653 66.157,237.634 78.266 M149.688 143.951 L 187.891 166.027 188.092 209.967 C 188.203 234.134,188.063 253.906,187.780 253.906 C 187.497 253.906,170.092 243.986,149.102 231.860 L 110.938 209.814 110.938 165.845 C 110.938 141.661,111.061 121.875,111.211 121.875 C 111.362 121.875,128.676 131.809,149.688 143.951 M289.063 165.858 L 289.063 209.842 250.888 231.874 C 229.893 243.992,212.487 253.906,212.210 253.906 C 211.933 253.906,211.797 234.134,211.908 209.967 L 212.109 166.028 250.353 143.952 C 271.387 131.810,288.701 121.875,288.829 121.875 C 288.958 121.875,289.063 141.668,289.063 165.858 M142.969 329.731 C 142.969 330.434,124.202 337.744,123.696 337.238 C 123.329 336.871,126.469 320.979,127.870 316.114 C 128.254 314.783,142.969 328.053,142.969 329.731 "
-                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                        </path>
-                                                    </g>
-                                                </svg>
-                                                View Project
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a aria-label="{{ __('Modify Project') }}"
-                                                class="rounded-b-md flex items-center outline-none ring-0 justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-7 pe-2"
-                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                    height="400" viewBox="0, 0, 400,400">
-                                                    <g>
-                                                        <path
-                                                            d="M73.654 21.493 C 57.244 25.059,43.944 37.290,38.832 53.516 L 37.109 58.984 37.109 200.000 L 37.109 341.016 38.832 346.484 C 44.001 362.890,57.287 374.996,74.011 378.540 C 78.301 379.449,89.313 379.663,132.452 379.674 L 185.606 379.687 189.089 377.930 C 197.816 373.525,198.464 361.986,190.325 355.908 C 188.207 354.326,187.188 354.290,133.342 353.906 C 71.185 353.463,74.722 353.845,68.479 346.914 C 62.361 340.123,62.891 354.043,62.891 200.000 L 62.891 62.109 64.687 58.462 C 65.675 56.456,68.015 53.403,69.887 51.678 C 76.184 45.873,72.988 46.094,150.881 46.094 L 220.229 46.094 220.466 76.777 L 220.703 107.459 223.261 112.653 C 230.648 127.651,235.336 129.222,273.633 129.529 L 303.906 129.772 303.906 158.334 C 303.906 185.979,303.959 186.991,305.561 189.841 C 310.258 198.199,323.311 198.051,327.941 189.587 C 329.656 186.454,330.450 126.522,328.885 118.359 C 327.048 108.771,326.294 107.889,283.368 65.114 C 241.714 23.606,241.100 23.073,232.650 21.124 C 227.078 19.839,79.693 20.181,73.654 21.493 M267.077 103.726 C 243.712 103.997,246.094 106.362,246.094 82.893 L 246.094 64.465 265.632 83.990 L 285.170 103.516 267.077 103.726 M96.971 103.891 C 86.128 106.520,83.634 120.880,92.931 127.146 L 95.544 128.906 137.434 128.906 L 179.325 128.906 182.129 127.001 C 189.779 121.802,189.297 109.849,181.247 105.120 C 178.324 103.403,103.484 102.312,96.971 103.891 M92.931 164.260 C 85.267 169.425,85.267 180.575,92.931 185.740 L 95.544 187.500 174.920 187.497 C 252.748 187.494,254.347 187.464,256.843 185.942 C 264.551 181.242,264.551 168.758,256.843 164.058 C 254.347 162.536,252.748 162.506,174.920 162.503 L 95.544 162.500 92.931 164.260 M264.844 204.939 C 256.120 206.628,254.875 207.872,249.987 219.775 C 245.390 230.969,243.780 231.875,231.016 230.453 C 216.581 228.844,213.893 230.325,204.750 244.928 C 193.227 263.331,192.908 269.027,202.697 281.565 C 209.871 290.751,209.841 292.493,202.353 302.168 C 192.905 314.377,193.082 318.102,204.018 337.215 C 212.564 352.152,217.046 354.770,230.895 352.910 L 239.989 351.689 243.389 353.742 C 246.413 355.569,247.106 356.574,249.673 362.859 C 255.097 376.137,256.621 377.371,269.563 378.962 C 292.950 381.838,302.199 378.265,308.140 364.063 C 311.296 356.520,311.854 355.692,315.086 353.778 L 318.601 351.696 326.683 352.852 C 342.157 355.064,348.387 350.573,358.197 330.132 C 364.864 316.242,364.674 313.537,356.268 302.585 C 348.565 292.550,348.587 290.936,356.569 280.362 C 365.509 268.520,364.633 261.091,352.126 242.653 C 343.300 229.642,340.951 228.575,325.618 230.617 C 315.060 232.023,312.874 230.627,308.393 219.621 C 304.614 210.342,301.807 206.940,296.772 205.535 C 291.765 204.138,270.986 203.750,264.844 204.939 M94.141 221.871 C 85.580 226.138,84.599 238.340,92.371 243.884 L 94.922 245.703 129.044 245.703 C 162.289 245.703,163.222 245.662,165.324 244.092 C 173.464 238.015,172.816 226.475,164.089 222.070 C 158.952 219.477,99.285 219.307,94.141 221.871 M287.291 236.719 C 290.896 245.459,292.223 247.189,297.090 249.497 C 299.335 250.562,302.500 252.337,304.123 253.442 C 311.171 258.239,313.421 258.547,326.953 256.566 C 330.062 256.110,330.091 256.130,332.733 260.509 L 335.387 264.910 332.946 268.197 C 331.604 270.005,329.236 273.290,327.684 275.497 L 324.862 279.511 324.805 290.732 C 324.738 304.126,324.764 304.223,330.624 311.922 L 335.239 317.985 332.716 322.720 C 330.609 326.672,329.925 327.379,328.573 327.004 C 327.682 326.756,323.262 326.337,318.750 326.073 L 310.547 325.593 306.589 328.335 C 304.413 329.843,300.722 332.034,298.386 333.203 C 292.195 336.302,291.065 337.646,287.461 346.186 L 284.203 353.906 279.168 353.906 L 274.132 353.906 272.441 349.805 C 267.996 339.021,266.240 336.445,261.719 334.082 C 259.355 332.846,255.208 330.421,252.502 328.693 L 247.583 325.550 239.612 326.039 C 235.228 326.307,230.892 326.741,229.978 327.002 C 228.590 327.398,227.913 326.772,225.876 323.213 C 222.786 317.811,222.686 318.423,227.718 311.946 C 233.417 304.611,233.594 303.984,233.591 291.160 C 233.588 278.746,233.645 278.923,226.665 270.030 L 223.070 265.451 225.476 261.046 C 227.717 256.944,228.066 256.651,230.543 256.788 C 246.958 257.696,247.881 257.603,252.459 254.573 C 254.826 253.007,258.535 250.827,260.701 249.729 C 265.917 247.086,267.839 244.636,271.101 236.470 L 273.828 229.645 279.190 229.862 L 284.551 230.078 287.291 236.719 M271.892 271.841 C 258.218 276.561,253.528 294.319,263.025 305.414 C 270.970 314.695,287.426 314.994,295.024 305.994 C 309.248 289.146,292.669 264.669,271.892 271.841 M93.913 280.196 C 84.324 284.971,85.045 299.439,95.080 303.632 C 100.082 305.722,159.760 305.115,164.089 302.930 C 172.816 298.525,173.464 286.986,165.325 280.908 C 162.300 278.648,98.303 278.010,93.913 280.196 "
-                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                        </path>
-                                                    </g>
-                                                </svg>
-                                                Modify Project
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            @endforeach
-                        @else
-                            <div
-                                class="rounded relative bg-white p-4 h-[35vh] min-w-full flex items-center justify-center">
-                                <div
-                                    class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-amber-900 opacity-65"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M27.764 31.055 C 17.988 51.181,17.305 58.177,24.560 63.884 C 35.333 72.358,48.707 63.533,46.309 49.532 C 45.507 44.849,34.777 20.433,33.483 20.346 C 33.208 20.328,30.634 25.146,27.764 31.055 M193.963 32.233 C 185.507 50.066,184.773 53.748,188.391 60.185 C 196.635 74.852,216.718 65.103,212.806 48.333 C 211.812 44.073,200.951 20.318,200.000 20.324 C 199.785 20.325,197.069 25.684,193.963 32.233 M334.201 31.469 C 324.484 52.021,324.056 57.298,331.568 63.894 C 341.996 73.049,356.270 62.685,352.805 48.474 C 351.622 43.620,341.224 20.895,340.021 20.532 C 339.709 20.437,337.090 25.359,334.201 31.469 M88.282 83.318 C 78.208 104.223,77.429 109.478,83.448 115.917 C 93.429 126.591,109.296 117.281,106.338 102.485 C 105.587 98.728,95.524 75.977,93.714 73.943 C 93.388 73.577,90.943 77.795,88.282 83.318 M267.001 86.133 C 257.324 106.588,257.438 114.277,267.492 119.047 C 278.792 124.410,289.236 114.225,286.002 100.996 C 285.105 97.327,274.219 73.509,273.418 73.462 C 273.192 73.448,270.304 79.150,267.001 86.133 M193.136 125.445 C 162.213 150.186,139.844 204.462,139.844 254.750 C 139.844 255.966,140.691 255.758,146.325 253.155 C 178.550 238.267,221.255 238.115,252.988 252.777 C 260.705 256.343,260.378 256.543,259.781 248.633 C 255.519 192.123,237.356 149.841,206.864 125.445 C 199.155 119.276,200.845 119.276,193.136 125.445 M169.531 121.610 C 151.282 124.441,137.513 127.501,134.570 129.382 C 132.855 130.477,132.813 130.843,132.813 144.425 C 132.813 162.138,133.113 161.244,119.377 184.384 C 104.598 209.283,105.466 207.395,105.486 214.610 C 105.512 223.371,107.534 246.925,108.319 247.604 C 108.685 247.921,110.742 248.816,112.891 249.595 C 115.039 250.374,119.102 252.160,121.919 253.564 L 127.041 256.117 127.988 243.662 C 131.701 194.821,147.477 154.390,173.514 126.979 L 179.105 121.094 175.295 121.200 C 173.199 121.259,170.605 121.443,169.531 121.610 M226.390 126.858 C 252.507 154.446,268.285 194.795,271.972 243.427 C 272.490 250.265,272.996 255.969,273.095 256.104 C 273.195 256.239,276.141 254.908,279.643 253.147 C 309.070 238.352,352.729 238.333,381.990 253.104 L 386.950 255.608 386.419 251.046 C 382.904 220.863,362.219 186.558,333.984 164.090 C 314.799 148.824,283.706 132.813,273.244 132.813 C 268.403 132.813,263.464 131.302,259.285 128.544 C 255.010 125.722,240.339 122.493,226.563 121.341 L 220.703 120.851 226.390 126.858 M64.453 165.449 C 37.775 187.782,20.038 216.116,14.518 245.218 C 12.428 256.232,12.172 255.877,19.727 252.407 C 36.721 244.600,46.767 242.578,68.554 242.578 C 78.115 242.578,85.935 242.402,85.933 242.188 C 85.931 241.973,81.329 235.820,75.706 228.516 C 59.275 207.169,59.338 207.647,70.117 185.633 C 78.462 168.591,78.710 167.276,74.381 163.049 C 70.756 159.509,71.871 159.239,64.453 165.449 M293.750 163.689 L 298.047 166.318 300.391 164.112 C 308.092 156.864,316.892 163.235,310.591 171.496 L 308.682 173.999 315.575 181.113 C 322.025 187.769,322.613 188.185,324.718 187.581 C 330.678 185.872,335.037 192.274,331.218 197.129 L 329.624 199.156 331.218 202.281 C 333.276 206.315,333.228 208.023,330.983 210.634 C 327.577 214.594,323.135 213.345,320.206 207.605 C 319.019 205.277,318.341 204.692,317.334 205.124 C 310.314 208.137,304.229 201.180,309.230 195.858 L 310.908 194.072 305.130 188.333 L 299.353 182.594 297.227 184.266 C 291.902 188.454,285.060 182.582,288.272 176.580 C 288.924 175.362,288.501 174.819,285.552 173.091 C 279.835 169.741,278.948 166.244,282.832 162.360 C 285.662 159.530,287.275 159.726,293.750 163.689 M192.969 305.330 C 192.969 360.898,193.039 359.997,188.261 365.794 C 177.222 379.185,156.397 372.308,153.871 354.437 C 152.086 341.811,139.267 343.498,140.005 356.261 C 141.835 387.857,185.789 398.278,202.115 370.986 C 207.036 362.760,207.031 362.826,207.031 306.086 L 207.031 254.688 200.000 254.688 L 192.969 254.688 192.969 305.330 M67.001 326.063 C 60.153 340.571,58.844 345.126,60.140 349.939 C 64.187 364.970,86.719 362.712,86.719 347.274 C 86.719 341.415,75.832 313.601,73.431 313.327 C 73.213 313.302,70.319 319.033,67.001 326.063 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                        </g>
+                <!-- Modal -->
+                <div x-show="deleteBeneficiaryModal" x-trap.noscroll.noautofocus="deleteBeneficiaryModal"
+                    class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+
+                    {{-- The Modal --}}
+                    <div class="relative size-full max-w-xl">
+                        <div class="relative bg-white rounded-md shadow">
+                            <!-- Modal Header -->
+                            <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
+                                <h1 class="text-sm sm:text-base font-semibold text-blue-1100">
+                                    Delete Beneficiary
+                                </h1>
+
+                                {{-- Close Button --}}
+                                <button type="button" @click="$wire.resetPassword(); deleteBeneficiaryModal = false;"
+                                    class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                    <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 14 14">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                     </svg>
-                                    <p>No special cases found.</p>
-                                    <p>Only <span class=" text-amber-900">calamity victims</span> can be listed here.
-                                    </p>
+                                    <span class="sr-only">Close Modal</span>
+                                </button>
+                            </div>
+
+                            <hr class="">
+
+                            {{-- Modal body --}}
+                            <div
+                                class="grid w-full place-items-center pt-5 pb-10 px-3 md:px-16 text-blue-1100 text-xs">
+
+                                <p class="font-medium text-sm mb-2">
+                                    Are you sure about deleting this beneficiary?
+                                </p>
+                                <p class="text-gray-500 text-xs font-semibold mb-4">
+                                    This is action is irreversible
+                                </p>
+
+                                <div class="flex items-center justify-center w-full gap-2">
+                                    <div class="relative">
+                                        <input type="password" id="password_delete" wire:model.blur="password_delete"
+                                            class="flex {{ $errors->has('password_delete') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-blue-300 bg-blue-50' }} rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
+                                            placeholder="Enter your password">
+                                        @error('password_delete')
+                                            <p class="absolute top-full left-0 text-xs text-red-700">
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                    </div>
+                                    <button type="button"
+                                        class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50"
+                                        wire:click="deleteBeneficiary">CONFIRM</button>
                                 </div>
                             </div>
-                        @endif
+                        </div>
                     </div>
+                </div>
+            </div>
 
+            {{-- Approve Submission Modal --}}
+            <div x-cloak>
+                <!-- Modal Backdrop -->
+                <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+                    x-show="approveSubmissionModal">
                 </div>
 
+                <!-- Modal -->
+                <div x-show="approveSubmissionModal" x-trap.noautofocus.noscroll="approveSubmissionModal"
+                    class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
+
+                    {{-- The Modal --}}
+                    <div class="relative w-full max-w-2xl max-h-full">
+                        <div class="relative bg-white rounded-md shadow">
+
+                            <!-- Modal Header -->
+                            <div class="relative flex items-center justify-between py-2 px-4 rounded-t-md">
+                                <h1 class="text-sm sm:text-base font-semibold text-blue-1100">Approve Submission
+                                </h1>
+
+                                <div class="flex items-center justify-center">
+                                    {{-- Loading State for Changes --}}
+                                    <div class="z-50 text-blue-900" wire:loading
+                                        wire:target="password, approveSubmission">
+                                        <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4">
+                                            </circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                    </div>
+
+                                    {{-- Close Modal --}}
+                                    <button type="button"
+                                        @click="$wire.resetPassword(); approveSubmissionModal = false;"
+                                        class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                        <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 14 14">
+                                            <path stroke="currentColor" stroke-linecap="round"
+                                                stroke-linejoin="round" stroke-width="2"
+                                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                        </svg>
+                                        <span class="sr-only">Close Modal</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <hr class="">
+
+                            {{-- Modal body --}}
+                            <div class="grid w-full place-items-center pt-5 pb-10 px-3 md:px-16 text-xs">
+
+                                <p class="mb-2 text-sm font-medium text-blue-1100">Are you sure about approving this
+                                    submission?
+                                </p>
+                                <p class="mb-4 text-xs font-medium text-gray-500">You won't be able to modify this
+                                    batch until it is <span
+                                        class="rounded-full bg-amber-300 text-amber-900 px-2 py-1 font-semibold">PENDING</span>
+                                    again.
+                                </p>
+
+                                <div class="relative flex items-center justify-center w-full gap-2">
+                                    <div class="relative">
+                                        <input type="password" id="password_approve"
+                                            wire:model.blur="password_approve"
+                                            class="flex flex-1 {{ $errors->has('password_approve') ? 'caret-red-900 border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'caret-blue-900 border-blue-300 focus:border-blue-500 bg-blue-50 focus:ring-0' }} rounded outline-none border py-2.5 text-sm select-all duration-200 ease-in-out"
+                                            placeholder="Enter your password">
+                                        @error('password_approve')
+                                            <p class="absolute top-full left-0 mt-1 text-xs text-red-700">
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                    </div>
+                                    <button wire:loading.attr="disabled" wire:target="approveSubmission"
+                                        class="flex items-center justify-center disabled:bg-blue-300 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 py-2.5 px-2 rounded text-sm font-bold duration-200 ease-in-out"
+                                        wire:click="approveSubmission">
+                                        CONFIRM
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+
+    {{-- Alert Bar --}}
+    <div x-data="{
+        successShow: $wire.entangle('showAlert'),
+        successMessage: $wire.entangle('alertMessage'),
+        init() {
+            window.addEventListener('show-alert', () => {
+                setTimeout(() => { $wire.showAlert = false; }, 3000);
+            });
+        },
+    }" x-cloak x-show="successShow"
+        x-transition:enter="transition ease-in-out duration-300 origin-left"
+        x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="origin-left transition ease-in-out duration-500"
+        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90"
+        class="fixed left-6 bottom-6 z-50 flex items-center border bg-blue-200 text-blue-1000 border-blue-300 rounded-lg text-sm sm:text-md font-bold px-4 py-3 select-none"
+        role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current w-4 h-4 mr-2">
+            <path fill-rule="evenodd"
+                d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z"
+                clip-rule="evenodd" />
+        </svg>
+        <p x-text="successMessage"></p>
     </div>
 </div>
 

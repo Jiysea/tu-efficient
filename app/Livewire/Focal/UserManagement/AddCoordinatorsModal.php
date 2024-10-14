@@ -14,9 +14,11 @@ class AddCoordinatorsModal extends Component
 {
     #[Validate]
     public $first_name;
+    #[Validate]
     public $middle_name;
     #[Validate]
     public $last_name;
+    #[Validate]
     public $extension_name;
     #[Validate]
     public $contact_num;
@@ -31,9 +33,79 @@ class AddCoordinatorsModal extends Component
     public function rules()
     {
         return [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'contact_num' => 'required|digits:11|starts_with:09',
+            'first_name' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    elseif (preg_match('~[0-9]+~', $value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+
+                },
+            ],
+            'middle_name' => [
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (preg_match('~[0-9]+~', $value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+                },
+            ],
+            'last_name' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (preg_match('~[0-9]+~', $value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+                },
+            ],
+            'extension_name' => [
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('No illegal characters.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (preg_match('~[0-9]+~', $value)) {
+                        $fail('No numbers.');
+                    }
+                },
+            ],
+            'contact_num' => [
+                'required',
+                function ($attr, $value, $fail) {
+                    if (!preg_match('~[0-9]+~', $value)) {
+                        $fail('Value only accepts numbers.');
+                    }
+                },
+                'starts_with:09',
+                'digits:11',
+            ],
             'email' => 'required|email|unique:users',
             'password' => ['required', Password::min(8)->uncompromised()->mixedCase()->numbers()->symbols()],
             'password_confirmation' => 'required|same:password',
@@ -48,8 +120,8 @@ class AddCoordinatorsModal extends Component
             'last_name.required' => 'Last name is required.',
 
             'contact_num.required' => 'Contact number is required.',
-            'contact_num.digits' => 'Invalid :attribute.',
-            'contact_num.starts_with' => 'Invalid :attribute.',
+            'contact_num.digits' => 'Valid number should be 11 digits.',
+            'contact_num.starts_with' => 'Valid number should start with \'09\'',
 
             'email.required' => 'Email is required.',
             'email.email' => 'Invalid email.',
@@ -83,6 +155,8 @@ class AddCoordinatorsModal extends Component
     {
         $this->validate();
 
+        $this->contact_num = '+63' . substr($this->contact_num, 1);
+
         User::create([
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name,
@@ -94,11 +168,15 @@ class AddCoordinatorsModal extends Component
             'regional_office' => Auth::user()->regional_office,
             'field_office' => Auth::user()->field_office,
             'user_type' => 'coordinator',
-            'last_login' => Carbon::now(),
         ]);
 
         $this->reset();
         $this->dispatch('add-new-coordinator');
+    }
+
+    public function resetCoordinators()
+    {
+        $this->reset();
     }
 
 

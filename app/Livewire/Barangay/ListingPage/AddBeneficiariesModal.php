@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Livewire\Focal\Implementations;
+namespace App\Livewire\Barangay\ListingPage;
 
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
+use App\Services\GenerateActivityLogs;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;
@@ -38,12 +39,10 @@ class AddBeneficiariesModal extends Component
 
     public $includeBirthdate = false;
     public $similarityResults;
-    public $isResults = false;
     public $isResolved = false;
     public $isPerfectDuplicate = false;
     public $isSameImplementation = false;
     public $isIneligible = false;
-    public $expanded = false;
     public $addReasonModal = false;
 
     # ----------------------------------------------
@@ -193,7 +192,7 @@ class AddBeneficiariesModal extends Component
                     }
                 },
             ],
-            'image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
+            'image_file_path' => 'required|image|mimes:png,jpg,jpeg|max:5120',
             'id_number' => 'required',
             'spouse_first_name' => [
                 'exclude_unless:civil_status,Married',
@@ -211,12 +210,22 @@ class AddBeneficiariesModal extends Component
                     }
                 },
             ],
-            'reason_image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
+            'reason_image_file_path' => [
+                'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
+                function ($attr, $value, $fail) {
+                    if (!isset($value) && empty($value) && !$this->isResolved) {
+                        $fail('Case image proof is required.', );
+                    }
+                },
+                'image',
+                'mimes:png,jpg,jpeg',
+                'max:5120',
+            ],
             'image_description' => [
                 'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
                 function ($attr, $value, $fail) {
-                    if (!$this->isResolved) {
-                        $fail('Description must not be left blank.', );
+                    if (!isset($value) && empty($value) && !$this->isResolved) {
+                        $fail('Description must not be left blank.');
                     }
                 },
             ],
@@ -237,6 +246,7 @@ class AddBeneficiariesModal extends Component
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
 
+            'image_file_path.required' => 'An ID proof is required.',
             'image_file_path.image' => 'It should be an image type.',
             'image_file_path.mimes' => 'Image should be in PNG or JPG format.',
             'image_file_path.max' => 'Image size must not exceed 5MB.',
@@ -332,6 +342,8 @@ class AddBeneficiariesModal extends Component
                     'image_file_path' => $file,
                     'for_duplicates' => 'yes',
                 ]);
+
+                GenerateActivityLogs::set_barangay_added_special_case_log($beneficiary->barangay_name, $implementation->project_num, $batch->batch_num, $this->full_name($beneficiary));
             }
 
         });
@@ -345,6 +357,7 @@ class AddBeneficiariesModal extends Component
         $this->similarityResults = null;
         $this->isPerfectDuplicate = false;
         $this->isSameImplementation = false;
+        $this->isIneligible = false;
 
         # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
@@ -377,12 +390,8 @@ class AddBeneficiariesModal extends Component
             }
 
             $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold);
-
             $this->setCheckers($this->similarityResults);
 
-            if (!isset($this->similarityResults)) {
-                $this->expanded = false;
-            }
         }
     }
 
@@ -455,6 +464,7 @@ class AddBeneficiariesModal extends Component
 
     public function updated($property)
     {
+
         if ($property === 'birthdate') {
             if ($this->birthdate) {
                 $choosenDate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
@@ -513,6 +523,24 @@ class AddBeneficiariesModal extends Component
         }
     }
 
+    #[Computed]
+    public function full_name($person)
+    {
+        $full_name = $person->first_name;
+
+        if ($person->middle_name) {
+            $full_name .= ' ' . $person->middle_name;
+        }
+
+        $full_name .= ' ' . $person->last_name;
+
+        if ($person->extension_name) {
+            $full_name .= ' ' . $person->extension_name;
+        }
+
+        return $full_name;
+    }
+
     public function resetBeneficiaries()
     {
         $this->resetExcept(
@@ -535,6 +563,6 @@ class AddBeneficiariesModal extends Component
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
 
-        return view('livewire.focal.implementations.add-beneficiaries-modal');
+        return view('livewire.barangay.listing-page.add-beneficiaries-modal');
     }
 }

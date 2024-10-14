@@ -2,18 +2,18 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, show: false, profileShow: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
-    <livewire:sidebar.focal-bar wire:key="{{ str()->random(50) }}" />
+    <livewire:sidebar.focal-bar />
 
     <div :class="{
         'xl:ml-20': open === false,
         'xl:ml-64': open === true,
     }"
         class="ml-20 xl:ml-64 duration-500 ease-in-out">
-        <div class="p-2 min-h-screen select-none">
+        <div x-data="{ addCoordinatorsModal: false }" class="p-2 min-h-screen select-none">
 
             {{-- Nav Title and Date Dropdown --}}
             <div class="relative flex items-center my-2">
@@ -21,8 +21,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 {{-- Loading State --}}
                 <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
-                    wire:loading.flex wire:target="selectAllRows, updateCoordinators">
-                    <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    wire:loading.flex wire:target="selectedAllRows, updateCoordinators">
+                    <svg class="size-8 me-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4">
@@ -51,40 +51,42 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </svg>
                             <h1 class="font-bold m-2">List of Coordinators</h1>
                             <span class="py-1 px-2 text-xs font-medium text-indigo-700 bg-indigo-100 rounded">
-                                {{ sizeof($users) }}
+                                {{ sizeof($this->users) }}
                             </span>
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">
                             {{-- Loading State --}}
-                            <div class="items-center justify-end z-50 text-indigo-900" wire:loading
-                                wire:target="searchUsers">
-                                <svg class="size-4 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4">
-                                    </circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
-                            </div>
+
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="w-3 h-3 text-indigo-500" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+
+                                    {{-- Loading Icon --}}
+                                    <svg class="size-4 animate-spin" wire:loading wire:target="searchUsers"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Search Icon --}}
+                                    <svg class="size-3 text-indigo-500" wire:loading.remove wire:target="searchUsers"
+                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
                                 <input type="text" id="user-search" maxlength="100"
-                                    @input.debounce.300ms="$wire.searchUsers = $el.value; $wire.searchForUsers();"
+                                    wire:model.live.debounce.300ms="searchUsers"
                                     class="ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Search for coordinators">
                             </div>
-                            <button data-modal-target="add-coordinators-modal"
-                                data-modal-toggle="add-coordinators-modal"
-                                class="flex items-center bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 rounded-md px-4 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 duration-200 ease-in-out">
+                            <button @click="addCoordinatorsModal = !addCoordinatorsModal;"
+                                class="flex items-center bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 rounded-md px-4 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 duration-200 ease-in-out">
                                 ADD COORDINATORS
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -99,7 +101,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                     </div>
 
-                    @if ($users)
+                    @if ($this->users->isNotEmpty())
                         {{-- List of Projects Table --}}
                         <div id="users-table"
                             class="relative min-h-[84vh] max-h-[84vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
@@ -107,75 +109,64 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
                                         <th scope="col" class="pe-2 ps-4 py-2">
-                                            <input id="select-all-checkbox" type="checkbox" value=""
-                                                wire:model.live="selectedAllRows" x-on:click="$wire.selectAllRows()"
-                                                class="size-4 text-indigo-600 bg-indigo-100 border-indigo-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                            <input id="select-all-checkbox" type="checkbox"
+                                                wire:model.live="selectedAllRows"
+                                                class="size-4 text-indigo-600 bg-indigo-100 border-indigo-300 rounded ring-indigo-100 ring-2 focus:ring-indigo-100 focus:ring-2">
                                         </th>
-                                        <th scope="col" class="pr-6 py-2">
+                                        <th scope="col" class="pr-6 py-2 text-sm">
                                             coordinator
                                         </th>
-                                        <th scope="col" class="pr-2 py-2">
+                                        <th scope="col" class="p-2 text-sm">
                                             email
                                         </th>
-                                        <th scope="col" class="pr-2 py-2">
+                                        <th scope="col" class="p-2 text-sm">
                                             contact #
                                         </th>
-                                        <th scope="col" class="pr-2 py-2">
-                                            assignments
+                                        <th scope="col" class="p-2 text-center">
+                                            assignments <br>approved / pending / total
                                         </th>
-                                        <th scope="col" class="pr-2 py-2">
+                                        <th scope="col" class="p-2 text-sm text-center">
                                             last login
                                         </th>
-                                        <th scope="col" class="px-2 py-2 text-center">
+                                        <th scope="col" class="p-2 text-center">
 
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody class="relative text-xs">
-                                    @foreach ($users as $key => $user)
+                                    @foreach ($this->users as $key => $user)
                                         <tr wire:key="user-{{ $key }}"
-                                            class="relative border-b {{ $selectedRows[$key] === true ? 'bg-indigo-100 hover:bg-indigo-200' : 'bg-white hover:bg-indigo-50' }}  whitespace-nowrap duration-200 ease-in-out">
+                                            class="relative border-b {{ in_array($key, $selectedRows) ? 'bg-gray-100 hover:bg-gray-200 text-indigo-900' : 'hover:bg-indigo-50' }} whitespace-nowrap duration-200 ease-in-out">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium text-indigo-1100">
                                                 <input id="user-checkbox-{{ $key }}" type="checkbox"
-                                                    value="{{ $key }}"
-                                                    wire:model.live="selectedRows.{{ $key }}"
+                                                    value="{{ $key }}" wire:model.live="selectedRows"
                                                     class="size-4 text-indigo-600 bg-indigo-100 border-indigo-300 rounded focus:ring-indigo-500 focus:ring-2">
                                             </th>
                                             <td class="pr-6 py-2">
-                                                {{ $this->setFullName($key) }}
+                                                {{ $this->full_name($user) }}
                                             </td>
-                                            <td class="pr-2 py-2">
-                                                {{ $user['email'] }}
+                                            <td class="p-2">
+                                                {{ $user->email }}
                                             </td>
-                                            <td class="pr-2 py-2">
-                                                {{ $user['contact_num'] }}
+                                            <td class="p-2">
+                                                {{ $user->contact_num }}
                                             </td>
-                                            <td class="pr-2 py-2">
-                                                {{ $user['approved_assignments'] }} /
-                                                {{ $user['approved_assignments'] + $user['pending_assignments'] }}
+                                            <td class="p-2 text-center">
+                                                <span
+                                                    class="bg-green-200 text-green-1000 rounded p-1.5 mx-1.5 font-semibold">{{ $user->approved_assignments }}</span>
+                                                /
+                                                <span
+                                                    class="bg-amber-200 text-amber-900 rounded p-1.5 mx-1.5 font-semibold">{{ $user->pending_assignments }}</span>
+                                                /
+                                                <span
+                                                    class="bg-indigo-200 text-indigo-1000 rounded p-1.5 mx-1.5 font-semibold">{{ $user->approved_assignments + $user->pending_assignments }}</span>
                                             </td>
-                                            <td class="pr-2 py-2">
-                                                {{ $user['last_login'] }}
+                                            <td class="p-2 text-center">
+                                                {{ $user->last_login ? \Carbon\Carbon::parse($user->last_login)->format('M d, Y') : 'Never' }}
                                             </td>
                                             {{-- User Dropdown --}}
-                                            <td x-data="userDropdown({{ $key }})" class="py-2 flex">
-                                                <button @click.stop="handleClick()"
-                                                    id="userRowButton-{{ $key }}"
-                                                    data-dropdown-placement="left"
-                                                    data-dropdown-toggle="userRowDropdown-{{ $key }}"
-                                                    class="z-0 mx-1 p-1 font-medium rounded text-indigo-1100 hover:text-indigo-1000 active:text-indigo-900 bg-transparent hover:bg-indigo-200 duration-200 ease-in-out">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                        fill="currentColor"
-                                                        :class="{
-                                                            'rotate-0': !isVisible(),
-                                                            'rotate-90': isVisible(),
-                                                        }"
-                                                        class="w-4 duration-300 ease-in-out">
-                                                        <path fill-rule="evenodd"
-                                                            d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                </button>
+                                            <td class="p-2">
+
                                             </td>
                                         </tr>
                                     @endforeach
@@ -185,7 +176,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
 
                         {{-- User Dropdown Content --}}
-                        @foreach ($users as $key => $user)
+                        {{-- @foreach ($this->users as $key => $user)
                             <div wire:key="userRowDropdown-{{ $key }}"
                                 id="userRowDropdown-{{ $key }}"
                                 class="absolute z-50 hidden bg-white border rounded-md shadow">
@@ -226,7 +217,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </li>
                                 </ul>
                             </div>
-                        @endforeach
+                        @endforeach --}}
                     @else
                         <div
                             class="relative bg-white px-4 pb-4 pt-2 h-[84vh] min-w-full flex items-center justify-center">
@@ -289,29 +280,5 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 initFlowbite();
             }, 1);
         });
-
-        // User Dropdown Shenanigans
-        Alpine.data('userDropdown', (key) => ({
-            dropdown: null,
-
-            init() {
-                // Initialize the dropdown when the Alpine component is initialized
-                this.dropdown = new Dropdown(
-                    document.getElementById(`userRowDropdown-${key}`),
-                    document.getElementById(`userRowButton-${key}`)
-                );
-            },
-            handleClick() {
-
-                if (!this.dropdown) {
-                    this.init();
-                }
-                this.dropdown.toggle();
-            },
-
-            isVisible() {
-                return this.dropdown.isVisible();
-            },
-        }));
     </script>
 @endscript

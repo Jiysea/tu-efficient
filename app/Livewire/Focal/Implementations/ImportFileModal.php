@@ -9,7 +9,6 @@ use App\Models\UserSetting;
 use App\Services\AnnexDGenerator;
 use App\Services\JaccardSimilarity;
 use Illuminate\Support\Facades\Auth;
-use Cache;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Livewire\Attributes\Computed;
@@ -41,14 +40,10 @@ class ImportFileModal extends Component
     public $downloadSampleModal = false;
     public $duplicationThreshold;
     public $isResult = false;
-    public $successResults = [];
-    public $successCounter = 0;
-    public $errorResults = [];
-    public $errorCounter = 0;
-    public $similarityResults = [];
-    public $similarityCounter = 0;
-
-    public $pollCounter = 0;
+    public array $successResults = [];
+    public array $errorResults = [];
+    public array $similarityResults = [];
+    public array $ineligibleResults = [];
 
     # -----------------------------------
 
@@ -70,7 +65,6 @@ class ImportFileModal extends Component
                 'min:1',
                 'lte:' . $this->batch->slots_allocated,
             ],
-
         ];
     }
 
@@ -114,7 +108,6 @@ class ImportFileModal extends Component
 
     public function finishImport()
     {
-
         $this->nextStep();
     }
 
@@ -130,15 +123,13 @@ class ImportFileModal extends Component
         $jobBatch = Bus::batch([
             new ProcessImportSimilarity($filePath, Auth::id(), $this->batch->id, $this->duplicationThreshold),
         ])->catch(function (Batch $batch, Throwable $e) {
-            dump($e->getMessage());
-        })
-            ->dispatch();
+
+        })->dispatch();
 
         $this->jobsBatchId = $jobBatch->id;
 
         $this->nextStep();
     }
-
 
     public function importProgress()
     {
@@ -147,34 +138,96 @@ class ImportFileModal extends Component
         if ($jobBatch->finished()) {
             $this->importing = false;
             $this->importFinished = true;
-            $this->successResults = [];
-            $this->errorResults = [];
-            $this->similarityResults = [];
-            $this->successCounter = 0;
-            $this->errorCounter = 0;
-            $this->similarityCounter = 0;
-            dump(cache("similarity_" . Auth::id()));
+            $this->reset('successResults', 'errorResults', 'similarityResults', 'ineligibleResults');
+
+            # Queries the project number of this editted beneficiary
+            $project_num = Batches::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->where('batches.id', decrypt($this->batchId))
+                ->select([
+                    'implementations.project_num'
+                ])
+                ->first();
+
             foreach (cache("similarity_" . Auth::id()) as $beneficiary) {
 
                 if ($beneficiary['success']) {
                     $this->successResults[] = $beneficiary;
-                    $this->successCounter++;
                 }
 
                 if (array_unique($beneficiary['errors']) !== ["first_name" => null]) {
                     $this->errorResults[] = $beneficiary;
-                    $this->errorCounter++;
                 }
 
-                if ($beneficiary['similarities'] !== null) {
-                    $this->similarityResults[] = $beneficiary;
-                    $this->similarityCounter++;
+                # This will check if the algorithm has found any possible duplicates based on the given threshold
+                if (!is_null($beneficiary['similarities'])) {
+                    # counts how many perfect duplicates encountered from the database
+                    $perfectCounter = 0;
+                    $isSameImplementation = false;
+                    foreach ($beneficiary['similarities'] as $result) {
+
+                        # checks if the result row is a perfect duplicate
+                        if ($result['is_perfect']) {
+                            $perfectCounter++;
+                        }
+
+                        # checks if the result row is in the same project implementation as this editted beneficiary
+                        if (isset($project_num)) {
+                            if ($result['project_num'] === $project_num->project_num && $result['is_perfect']) {
+                                $isSameImplementation = true;
+                            }
+                        }
+                    }
+
+                    # checks if there are already more than 2 perfect duplicates and mark this editted beneficiary as `ineligible`
+                    if ($perfectCounter >= 2 || $isSameImplementation) {
+                        $this->ineligibleResults[] = $beneficiary;
+                    } else {
+                        $this->similarityResults[] = $beneficiary;
+                    }
+
                 }
             }
-            if ($this->pollCounter === 0 && $this->successCounter > 0) {
-                $this->dispatch(event: 'import-success-beneficiaries', count: $this->successCounter);
+            if (sizeof($this->successResults) > 0) {
+                $this->dispatch(event: 'import-success-beneficiaries', count: sizeof($this->successResults));
             }
             $this->reset('file_path');
+        }
+    }
+
+    protected function setCheckers(?array $results)
+    {
+        # Queries the project number of this editted beneficiary
+        $project_num = Batches::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            ->where('batches.id', decrypt($this->batchId))
+            ->select([
+                'implementations.project_num'
+            ])
+            ->first();
+
+        # Checks if there are any results
+        if ($results) {
+
+            # counts how many perfect duplicates encountered from the database
+            $perfectCounter = 0;
+            foreach ($results as $result) {
+
+                # checks if the result row is a perfect duplicate
+                if ($result['is_perfect'] === true) {
+                    $perfectCounter++;
+                }
+
+                # checks if the result row is in the same project implementation as this editted beneficiary
+                if (isset($project_num)) {
+                    if ($result['project_num'] === $project_num->project_num && $result['is_perfect']) {
+                        $this->isSameImplementation = true;
+                    }
+                }
+            }
+
+            # checks if there are already more than 2 perfect duplicates and mark this editted beneficiary as `ineligible`
+            if ($perfectCounter >= 2) {
+                $this->isIneligible = true;
+            }
         }
     }
 

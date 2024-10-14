@@ -1,4 +1,4 @@
-<nav>
+<nav x-data="{ caretRotate: 0, }">
     <!-- Show drawer on certain screen size -->
     {{-- <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button"
         class="xl:hidden absolute inline-flex items-center p-2 mt-2 ms-3 text-sm text-indigo-500 rounded-lg hover:bg-indigo-100 outline-none focus:ring-2 focus:ring-indigo-200">

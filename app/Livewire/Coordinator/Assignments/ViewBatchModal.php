@@ -19,7 +19,7 @@ class ViewBatchModal extends Component
 {
     #[Reactive]
     #[Locked]
-    public $passedId;
+    public $passedBatchId;
     public $accessCodeModal = false;
     public $forceSubmitConfirmationModal = false;
     public $revalidateConfirmationModal = false;
@@ -65,20 +65,24 @@ class ViewBatchModal extends Component
     #[Computed]
     public function batch()
     {
-        $batch = Batch::find(decrypt($this->passedId));
+        if ($this->passedBatchId) {
+            $batch = Batch::find(decrypt($this->passedBatchId));
 
-        return $batch;
+            return $batch;
+        }
     }
 
     #[Computed]
     public function assignments()
     {
-        $assignments = Assignment::where('assignments.batches_id', decrypt($this->passedId))
-            ->join('users', 'users.id', '=', 'assignments.users_id')
-            ->whereNotIn('assignments.users_id', [Auth::id()])
-            ->get();
+        if ($this->passedBatchId) {
+            $assignments = Assignment::where('assignments.batches_id', decrypt($this->passedBatchId))
+                ->join('users', 'users.id', '=', 'assignments.users_id')
+                ->whereNotIn('assignments.users_id', [Auth::id()])
+                ->get();
 
-        return $assignments;
+            return $assignments;
+        }
     }
 
     #[Computed]
@@ -102,21 +106,25 @@ class ViewBatchModal extends Component
     #[Computed]
     public function currentSlots()
     {
-        $currentSlots = Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('batches.id', decrypt($this->passedId))
-            ->count();
+        if ($this->passedBatchId) {
+            $currentSlots = Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
+                ->where('batches.id', decrypt($this->passedBatchId))
+                ->count();
 
-        return $currentSlots;
+            return $currentSlots;
+        }
     }
 
     #[Computed]
     public function accessCode()
     {
-        $accessCode = Code::where('batches_id', decrypt($this->passedId))
-            ->where('is_accessible', 'yes')
-            ->first();
+        if ($this->passedBatchId) {
+            $accessCode = Code::where('batches_id', decrypt($this->passedBatchId))
+                ->where('is_accessible', 'yes')
+                ->first();
 
-        return $accessCode;
+            return $accessCode;
+        }
     }
 
     public function generateCode()
@@ -129,11 +137,11 @@ class ViewBatchModal extends Component
 
         Code::updateOrCreate(
             [
-                'batches_id' => decrypt($this->passedId),
+                'batches_id' => decrypt($this->passedBatchId),
                 'is_accessible' => 'yes',
             ],
             [
-                'batches_id' => decrypt($this->passedId),
+                'batches_id' => decrypt($this->passedBatchId),
                 'access_code' => $this->code,
                 'is_accessible' => 'yes',
             ]
@@ -175,11 +183,11 @@ class ViewBatchModal extends Component
 
         Code::updateOrCreate(
             [
-                'batches_id' => decrypt($this->passedId),
+                'batches_id' => decrypt($this->passedBatchId),
                 'is_accessible' => 'yes',
             ],
             [
-                'batches_id' => decrypt($this->passedId),
+                'batches_id' => decrypt($this->passedBatchId),
                 'access_code' => $this->code,
                 'is_accessible' => 'yes',
             ]

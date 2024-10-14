@@ -193,78 +193,6 @@ class ProcessImportSimilarity implements ShouldQueue
         cache(["similarity_" . $this->users_id => $list], now()->addMinutes(10));
     }
 
-    protected static function insertUniqueRows(array $beneficiary, $batches_id)
-    {
-        $list = $beneficiary;
-
-        if (array_unique($beneficiary['errors']) === ["first_name" => null] && $beneficiary['similarities'] === null) {
-
-            DB::transaction(function () use ($beneficiary, $batches_id) {
-                $batch = Batches::find($batches_id);
-                $implementation = Implementation::find($batch->implementations_id);
-
-                $beneficiaryModel = Beneficiary::create([
-                    'batches_id' => $batches_id,
-                    'first_name' => $beneficiary['first_name'],
-                    'middle_name' => $beneficiary['middle_name'],
-                    'last_name' => $beneficiary['last_name'],
-                    'extension_name' => $beneficiary['extension_name'],
-                    'birthdate' => $beneficiary['birthdate'],
-                    'barangay_name' => $batch->barangay_name,
-                    'contact_num' => $beneficiary['contact_num'],
-                    'occupation' => $beneficiary['occupation'],
-                    'avg_monthly_income' => $beneficiary['avg_monthly_income'],
-                    'city_municipality' => $implementation->city_municipality,
-                    'province' => $implementation->province,
-                    'district' => $implementation->district,
-                    'type_of_id' => $beneficiary['type_of_id'],
-                    'id_number' => $beneficiary['id_number'],
-                    'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
-                    'beneficiary_type' => $beneficiary['beneficiary_type'],
-                    'sex' => $beneficiary['sex'],
-                    'civil_status' => $beneficiary['civil_status'],
-                    'age' => self::beneficiaryAge($beneficiary['birthdate']),
-                    'dependent' => $beneficiary['dependent'],
-                    'self_employment' => $beneficiary['self_employment'],
-                    'skills_training' => $beneficiary['skills_training'],
-                    'is_pwd' => $beneficiary['is_pwd'],
-                    'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                    'spouse_first_name' => $beneficiary['spouse_first_name'],
-                    'spouse_middle_name' => $beneficiary['spouse_middle_name'],
-                    'spouse_last_name' => $beneficiary['spouse_last_name'],
-                    'spouse_extension_name' => $beneficiary['spouse_extension_name'],
-                ]);
-
-                Credential::create([
-                    'beneficiaries_id' => $beneficiaryModel->id,
-                    'image_description' => null,
-                    'image_file_path' => null,
-                    'for_duplicates' => 'no',
-                ]);
-
-            });
-            $list['success'] = true;
-        } else {
-            $list['success'] = false;
-        }
-        return $list;
-    }
-
-    protected static function checkSimilaritiesAndReturn(array $beneficiary, mixed $duplicationThreshold)
-    {
-        $list = $beneficiary;
-
-        if (!self::check_name_errors($beneficiary['errors'])) {
-
-            $list['similarities'] = JaccardSimilarity::getResults($beneficiary['first_name'], $beneficiary['middle_name'], $beneficiary['last_name'], $beneficiary['extension_name'], $beneficiary['birthdate'], $duplicationThreshold);
-
-        } else {
-            $list['similarities'] = false;
-        }
-
-        return $list;
-    }
-
     protected static function validateAndReturn(array $beneficiary)
     {
         $list = $beneficiary;
@@ -325,17 +253,13 @@ class ProcessImportSimilarity implements ShouldQueue
 
         # Average Monthly Income
         $errors = '';
-        if (isset($beneficiary['avg_monthly_income']) && (self::required_unless($beneficiary['avg_monthly_income'], $beneficiary['occupation'], null))) {
+        if (isset($beneficiary['avg_monthly_income']) && empty(self::required_unless($beneficiary['avg_monthly_income'], $beneficiary['occupation'], null))) {
             $errors .= self::required_unless($beneficiary['avg_monthly_income'], $beneficiary['occupation'], null);
-            if (self::check_if_has_comma($beneficiary['avg_monthly_income'])) {
-                $errors .= self::is_negative($beneficiary['avg_monthly_income']);
-                $errors .= self::is_money_integer($beneficiary['avg_monthly_income']);
-                $beneficiary['avg_monthly_income'] = MoneyFormat::unmask($beneficiary['avg_monthly_income']);
-            } else {
-                $avg_monthly_income = MoneyFormat::mask(intval($beneficiary['avg_monthly_income']));
-                $errors .= self::is_negative($avg_monthly_income);
-                $errors .= self::is_money_integer($avg_monthly_income);
-                $beneficiary['avg_monthly_income'] = MoneyFormat::unmask($avg_monthly_income);
+            $errors .= self::is_negative($beneficiary['avg_monthly_income']);
+            $errors .= self::is_money_integer($beneficiary['avg_monthly_income']);
+            dump($beneficiary['avg_monthly_income'], MoneyFormat::unmask($beneficiary['avg_monthly_income']));
+            if (empty($errors)) {
+                $list['avg_monthly_income'] = MoneyFormat::unmask($beneficiary['avg_monthly_income']);
             }
         }
         if (!isset($errors) || empty($errors))
@@ -405,6 +329,78 @@ class ProcessImportSimilarity implements ShouldQueue
             $errors = null;
         $list['errors']['spouse_extension_name'] = $errors;
 
+        return $list;
+    }
+
+    protected static function checkSimilaritiesAndReturn(array $beneficiary, mixed $duplicationThreshold)
+    {
+        $list = $beneficiary;
+
+        if (!self::check_name_errors($beneficiary['errors'])) {
+
+            $list['similarities'] = JaccardSimilarity::getResults($beneficiary['first_name'], $beneficiary['middle_name'], $beneficiary['last_name'], $beneficiary['extension_name'], $beneficiary['birthdate'], $duplicationThreshold);
+
+        } else {
+            $list['similarities'] = false;
+        }
+
+        return $list;
+    }
+
+    protected static function insertUniqueRows(array $beneficiary, $batches_id)
+    {
+        $list = $beneficiary;
+
+        if (array_unique($beneficiary['errors']) === ["first_name" => null] && $beneficiary['similarities'] === null) {
+
+            DB::transaction(function () use ($beneficiary, $batches_id) {
+                $batch = Batches::find($batches_id);
+                $implementation = Implementation::find($batch->implementations_id);
+
+                $beneficiaryModel = Beneficiary::create([
+                    'batches_id' => $batches_id,
+                    'first_name' => $beneficiary['first_name'],
+                    'middle_name' => $beneficiary['middle_name'],
+                    'last_name' => $beneficiary['last_name'],
+                    'extension_name' => $beneficiary['extension_name'],
+                    'birthdate' => $beneficiary['birthdate'],
+                    'barangay_name' => $batch->barangay_name,
+                    'contact_num' => $beneficiary['contact_num'],
+                    'occupation' => $beneficiary['occupation'],
+                    'avg_monthly_income' => $beneficiary['avg_monthly_income'],
+                    'city_municipality' => $implementation->city_municipality,
+                    'province' => $implementation->province,
+                    'district' => $implementation->district,
+                    'type_of_id' => $beneficiary['type_of_id'],
+                    'id_number' => $beneficiary['id_number'],
+                    'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
+                    'beneficiary_type' => $beneficiary['beneficiary_type'],
+                    'sex' => $beneficiary['sex'],
+                    'civil_status' => $beneficiary['civil_status'],
+                    'age' => self::beneficiaryAge($beneficiary['birthdate']),
+                    'dependent' => $beneficiary['dependent'],
+                    'self_employment' => $beneficiary['self_employment'],
+                    'skills_training' => $beneficiary['skills_training'],
+                    'is_pwd' => $beneficiary['is_pwd'],
+                    'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+                    'spouse_first_name' => $beneficiary['spouse_first_name'],
+                    'spouse_middle_name' => $beneficiary['spouse_middle_name'],
+                    'spouse_last_name' => $beneficiary['spouse_last_name'],
+                    'spouse_extension_name' => $beneficiary['spouse_extension_name'],
+                ]);
+
+                Credential::create([
+                    'beneficiaries_id' => $beneficiaryModel->id,
+                    'image_description' => null,
+                    'image_file_path' => null,
+                    'for_duplicates' => 'no',
+                ]);
+
+            });
+            $list['success'] = true;
+        } else {
+            $list['success'] = false;
+        }
         return $list;
     }
 
@@ -527,15 +523,6 @@ class ProcessImportSimilarity implements ShouldQueue
             return 'The value should be a valid amount.';
         }
         return '';
-    }
-
-    static function check_if_has_comma($data)
-    {
-        if (!ctype_digit((string) $data)) {
-            return true;
-        }
-
-        return false;
     }
 
     static function check_name_errors($errors)

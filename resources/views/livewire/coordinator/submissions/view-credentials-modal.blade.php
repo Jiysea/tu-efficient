@@ -11,7 +11,7 @@
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                     <span class="flex items-center justify-center">
-                        <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
+                        <h1 class="text-sm sm:text-base font-semibold text-blue-1100">
                             @if ($type === 'special')
                                 View Special Case
                             @elseif($type === 'identity')
@@ -21,7 +21,7 @@
                     </span>
                     <div class="flex items-center justify-center">
                         {{-- Loading State for Changes --}}
-                        <div class="z-50 text-indigo-900" wire:loading>
+                        <div class="z-50 text-blue-900" wire:loading>
                             <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -35,7 +35,7 @@
 
                         {{-- Close Button --}}
                         <button type="button" @click="$wire.resetViewCredentials(); viewCredentialsModal = false;"
-                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -51,14 +51,14 @@
                 {{-- Modal body --}}
                 @if ($passedCredentialId)
                     @if ($type === 'special')
-                        <div class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
+                        <div class="pt-5 pb-6 px-3 md:px-12 text-blue-1100 text-xs">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
 
                                 {{-- Case Proof --}}
                                 <div class="relative col-span-full sm:col-span-1">
                                     <div class="flex flex-col items-start">
                                         <div class="flex items-center">
-                                            <p class="inline mb-1 font-medium text-indigo-1100">
+                                            <p class="inline mb-1 font-medium text-blue-1100">
                                                 Case Proof
                                             </p>
                                         </div>
@@ -66,13 +66,13 @@
                                         {{-- ID Picture --}}
                                         @if ($this->credentials->image_file_path)
                                             <button type="button" @click="viewImageModal = !viewImageModal;"
-                                                class="relative flex items-center justify-center col-span-1 bg-indigo-50 w-[90%] aspect-square rounded overflow-hidden group">
+                                                class="relative flex items-center justify-center col-span-1 bg-blue-50 w-[90%] aspect-square rounded overflow-hidden group">
 
                                                 <img src="{{ asset('storage/' . $this->credentials->image_file_path) }}"
                                                     class="size-[95%] rounded" alt="ID Picture">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg"
-                                                    class="absolute bottom-0 right-0 size-6 p-1 rounded-tl ease-in-out duration-200 text-indigo-1100 group-hover:text-indigo-900"
+                                                    class="absolute bottom-0 right-0 size-6 p-1 rounded-tl ease-in-out duration-200 text-blue-1100 group-hover:text-blue-900"
                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                     height="400" viewBox="0, 0, 400,400">
                                                     <g>
@@ -85,7 +85,7 @@
                                             </button>
                                         @else
                                             <div
-                                                class="relative flex flex-1 flex-col items-center justify-center col-span-1 bg-indigo-50 w-[90%] aspect-square rounded">
+                                                class="relative flex flex-1 flex-col items-center justify-center col-span-1 bg-blue-50 w-[90%] aspect-square rounded">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                     class="size-28 rounded text-gray-400"
@@ -110,11 +110,11 @@
                                 <div
                                     class="relative flex flex-col justify-between col-span-full sm:col-span-2 size-full">
                                     <div class="flex flex-col h-full">
-                                        <p class="mb-1 font-medium text-indigo-1100">
+                                        <p class="mb-1 font-medium text-blue-1100">
                                             Description
                                         </p>
                                         <div
-                                            class="h-full flex flex-1 text-xs rounded w-full p-2 bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600 select-all">
+                                            class="h-full flex flex-1 text-xs rounded w-full p-2 bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600 select-all">
                                             {{ $this->credentials->image_description }}
                                         </div>
                                     </div>
@@ -122,14 +122,14 @@
                             </div>
                         </div>
                     @elseif($type === 'identity')
-                        <div class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
+                        <div class="pt-5 pb-6 px-3 md:px-12 text-blue-1100 text-xs">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
 
                                 {{-- Proof of Identity --}}
                                 <div class="relative col-span-full sm:col-span-1">
                                     <div class="flex flex-col items-start">
                                         <div class="flex items-center">
-                                            <p class="inline mb-1 font-medium text-indigo-1100">
+                                            <p class="inline mb-1 font-medium text-blue-1100">
                                                 Proof of Identity
                                             </p>
                                         </div>
@@ -137,13 +137,13 @@
                                         {{-- ID Picture --}}
                                         @if ($this->credentials->image_file_path)
                                             <button type="button" @click="viewImageModal = !viewImageModal;"
-                                                class="relative flex items-center justify-center col-span-1 bg-indigo-50 w-[90%] aspect-square rounded overflow-hidden group">
+                                                class="relative flex items-center justify-center col-span-1 bg-blue-50 w-[90%] aspect-square rounded overflow-hidden group">
 
                                                 <img src="{{ asset('storage/' . $this->credentials->image_file_path) }}"
                                                     class="size-[95%] rounded" alt="ID Picture">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg"
-                                                    class="absolute bottom-0 right-0 size-6 p-1 rounded-tl ease-in-out duration-200 text-indigo-1100 group-hover:text-indigo-900"
+                                                    class="absolute bottom-0 right-0 size-6 p-1 rounded-tl ease-in-out duration-200 text-blue-1100 group-hover:text-blue-900"
                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                     height="400" viewBox="0, 0, 400,400">
                                                     <g>
@@ -156,7 +156,7 @@
                                             </button>
                                         @else
                                             <div
-                                                class="relative flex flex-1 flex-col items-center justify-center col-span-1 bg-indigo-50 w-[90%] aspect-square rounded">
+                                                class="relative flex flex-1 flex-col items-center justify-center col-span-1 bg-blue-50 w-[90%] aspect-square rounded">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                     class="size-28 rounded text-gray-400"
@@ -180,20 +180,20 @@
                                 {{-- ID Information --}}
                                 <div class="relative flex flex-col col-span-full sm:col-span-2 size-full gap-4">
                                     <div class="flex flex-1 flex-col">
-                                        <p class="mb-1 font-medium text-indigo-1100">
+                                        <p class="mb-1 font-medium text-blue-1100">
                                             Type of ID
                                         </p>
                                         <div
-                                            class="flex flex-1 font-medium text-sm rounded w-full p-2.5 bg-indigo-50 text-indigo-700 select-all">
+                                            class="flex flex-1 font-medium text-sm rounded w-full p-2.5 bg-blue-50 text-blue-700 select-all">
                                             {{ $this->idInformation->type_of_id }}
                                         </div>
                                     </div>
                                     <div class="flex flex-1 flex-col">
-                                        <p class="mb-1 font-medium text-indigo-1100">
+                                        <p class="mb-1 font-medium text-blue-1100">
                                             ID Number
                                         </p>
                                         <div
-                                            class="flex flex-1 font-medium text-sm rounded w-full p-2.5 bg-indigo-50 text-indigo-700 select-all">
+                                            class="flex flex-1 font-medium text-sm rounded w-full p-2.5 bg-blue-50 text-blue-700 select-all">
                                             {{ $this->idInformation->id_number }}
                                         </div>
                                     </div>
@@ -215,7 +215,7 @@
 
                             {{-- Close Button --}}
                             <button type="button" @click="viewImageModal = false;"
-                                class="absolute flex items-center justify-center top-0 right-0 m-4 outline-none text-indigo-50 hover:bg-indigo-50 hover:text-indigo-800 rounded size-8 duration-300 ease-in-out">
+                                class="absolute flex items-center justify-center top-0 right-0 m-4 outline-none text-blue-50 hover:bg-blue-50 hover:text-blue-800 rounded size-8 duration-300 ease-in-out">
                                 <svg class="size-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                     fill="none" viewBox="0 0 14 14">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

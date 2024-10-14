@@ -11,7 +11,8 @@
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                     <span class="flex items-center justify-center">
-                        <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">View Beneficiary
+                        <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
+                            {{ $editMode ? 'Edit Beneficiary' : 'View Beneficiary' }}
                         </h1>
 
                     </span>
@@ -52,22 +53,38 @@
                             @if ($editMode)
 
                                 {{-- Similarity Results --}}
-                                <div x-data="{ expanded: false, addReasonModal: $wire.entangle('addReasonModal'), isResults: $wire.entangle('isResults') }" x-init="$watch('isResults', value => {
-                                    if (expanded == true && value == false) {
-                                        expanded = false;
-                                    }
-                                });"
-                                    class="relative col-span-full mb-2">
-
-                                    @if ($isResults && !$isOriginal)
+                                <div x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }" class="relative col-span-full mb-2">
+                                    @if (isset($similarityResults))
                                         <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
                                             :class="{
+                                                // A Perfect Duplicate && Unresolved Duplication Issue
                                                 'border-red-300 bg-red-50 text-red-900': {{ json_encode($isPerfectDuplicate && !$isResolved) }},
+                                                // A Possible Duplicate
                                                 'border-amber-300 bg-amber-50 text-amber-900': {{ json_encode(!$isPerfectDuplicate && !$isResolved) }},
+                                                // When a Perfect Duplicate is Resolved
                                                 'border-green-300 bg-green-50 text-green-900': {{ json_encode($isResolved) }},
                                             }">
 
-                                            @if ($isPerfectDuplicate && !$isResolved)
+                                            {{-- If Inputted Beneficiary is on the same implementation --}}
+                                            @if ($isSameImplementation)
+                                                <p class="inline mx-2">You cannot enter the same beneficiary on the same
+                                                    implementation.
+                                                    <button type="button" @click="expanded = ! expanded"
+                                                        class="underline underline-offset-2 font-bold">Show possible
+                                                        duplicates</button>
+                                                </p>
+
+                                                {{-- If the beneificary applied more than twice (2) already --}}
+                                            @elseif($isIneligible)
+                                                <p class="inline mx-2">This beneficiary
+                                                    has already applied more than twice (2) this year.
+                                                    <button type="button" @click="expanded = ! expanded"
+                                                        class="underline underline-offset-2 font-bold">Show possible
+                                                        duplicates</button>
+                                                </p>
+
+                                                {{-- Perfect Duplicate --}}
+                                            @elseif ($isPerfectDuplicate && !$isResolved)
                                                 <p class="inline mx-2">This beneficiary
                                                     has
                                                     already
@@ -79,23 +96,29 @@
                                                         duplicates</button>
                                                 </p>
 
-                                                @if (!$isSpecialCase && $beneficiary_type === 'Special Case')
+                                                {{-- Not a Special Case Edit && Set beneficiary_type as 'Special Case' --}}
+                                                @if (strtolower($beneficiary_type) === 'special case')
                                                     <button type="button" @click="addReasonModal = !addReasonModal"
                                                         class="px-2 py-1 rounded font-bold text-xs {{ $isPerfectDuplicate ? ' bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50' : ' bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50' }}">
                                                         ADD REASON
                                                     </button>
-                                                @elseif (!$isSpecialCase && !$isResolved)
+
+                                                    {{-- Not a Special Case Edit && Set beneficiary_type as 'Special Case' --}}
+                                                @elseif (strtolower($beneficiary_type) !== 'special case')
                                                     <p class="inline mx-2">Not a mistake? Change the
                                                         Type of Beneficiary to
                                                         <strong class="underline underline-offset-2">Special
                                                             Case</strong>
                                                     </p>
                                                 @endif
+
+                                                {{-- Possible Duplicate --}}
                                             @elseif (!$isPerfectDuplicate && !$isResolved)
                                                 <p class="inline mx-2">There are
                                                     possible
                                                     duplicates found
                                                     associated with this name.
+
                                                     <button type="button" @click="expanded = ! expanded"
                                                         class="underline underline-offset-2 font-bold">Show
                                                         possible duplicates</button>
@@ -111,24 +134,13 @@
                                                 <button type="button" @click="addReasonModal = !addReasonModal"
                                                     class="px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
                                                     REASON</button>
-                                            @elseif($isSpecialCase)
-                                                <p class="inline mx-2">This beneficiary
-                                                    has
-                                                    already
-                                                    been listed twice (2) and now ineligible to apply anymore this
-                                                    year.
-                                                    <button type="button" @click="expanded = ! expanded"
-                                                        class="underline underline-offset-2 font-bold">Show past
-                                                        records & possible duplicates</button>
-                                                </p>
                                             @endif
                                         </div>
-
 
                                         {{-- TABLE AREA --}}
                                         <div x-show="expanded"
                                             class="relative min-h-56 max-h-56 rounded border text-xs mt-2 overflow-x-auto overflow-y-auto scrollbar-thin 
-                                            border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                                    border-indigo-300 text-indigo-1100 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                                             <table class="relative w-full text-sm text-left select-auto">
                                                 <thead
                                                     class="text-xs z-20 uppercase sticky top-0 whitespace-nowrap bg-indigo-500 text-indigo-50">
@@ -616,13 +628,13 @@
                                                 }"
                                             class="absolute left-0 mt-2 w-full z-50 rounded bg-indigo-50 shadow-lg border border-indigo-500">
                                             <button type="button"
-                                                @click="open = !open; beneficiary_type = 'Underemployed'; $wire.$refresh();"
+                                                @click="open = !open; $wire.set('beneficiary_type', 'Underemployed');"
                                                 class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
                                                 Underemployed
                                             </button>
-                                            @if ($isResults && !$isOriginal)
+                                            @if (isset($similarityResults) && $isPerfectDuplicate && !$isSameImplementation && !$isIneligible)
                                                 <button type="button"
-                                                    @click="open = !open; beneficiary_type = 'Special Case'; $wire.$refresh();"
+                                                    @click="open = !open; $wire.set('beneficiary_type', 'Special Case');"
                                                     class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
                                                     Special Case
                                                 </button>
@@ -728,7 +740,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Average Monthly Income --}}
+                                {{-- Avg Monthly Income --}}
                                 <div x-data="{ occ: $wire.entangle('occupation') }" class="relative mb-4 pb-1">
                                     <label for="avg_monthly_income"
                                         class="block mb-1  font-medium text-indigo-1100 ">Average
@@ -1301,9 +1313,9 @@
                                         <span
                                             class="flex flex-1 items-center justify-between text-sm rounded p-2.5 font-medium"
                                             :class="{
-                                                'capitalize bg-amber-50 text-amber-700': {{ json_encode($key === 'Type of Beneficiary' && $info === 'special case') }},
-                                                'capitalize bg-indigo-50 text-indigo-700': {{ json_encode($key === 'Type of Beneficiary' && $info === 'underemployed') }},
-                                                'bg-indigo-50 text-indigo-700': {{ json_encode($key !== 'Type of Beneficiary') }},
+                                                'bg-amber-50 text-amber-700': {{ json_encode($key === 'Type of Beneficiary' && strtolower($info) === 'special case') }},
+                                                'bg-indigo-50 text-indigo-700': {{ json_encode(($key === 'Type of Beneficiary' && strtolower($info) !== 'special case') || $key !== 'Type of Beneficiary') }},
+                                            
                                             }">
                                             <p>{{ $info }}</p>
 
@@ -1325,7 +1337,7 @@
                                                 </button>
                                             @endif
 
-                                            @if ($key === 'Type of Beneficiary' && $info === 'special case')
+                                            @if ($key === 'Type of Beneficiary' && strtolower($info) === 'special case')
                                                 {{-- View Button --}}
                                                 <button type="button" wire:click="viewCredential('special')"
                                                     class="p-0.5 rounded bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50">
@@ -1455,178 +1467,110 @@
                         </div>
                     </div>
 
-                    {{-- Confirm Beneficiary Type Change Modal --}}
-                    <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-                        x-show="confirmTypeChangeModal">
 
-                        <!-- Modal -->
-                        <div x-show="confirmTypeChangeModal" x-trap.noreturn.noautofocus="confirmTypeChangeModal"
-                            class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
-
-                            {{-- The Modal --}}
-                            <div class="relative size-full max-w-3xl">
-                                <div class="relative bg-white rounded-md shadow">
-                                    <!-- Modal Header -->
-                                    <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
-                                        <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
-                                            Delete Beneficiary
-                                        </h1>
-
-                                        {{-- Close Button --}}
-                                        <button type="button"
-                                            @if ($confirmChangeType === 'beneficiary_type') @click="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
-                                            @elseif($confirmChangeType === 'birthdate')
-                                                @click="$wire.set('birthdate', '{{ \Carbon\Carbon::parse($this->beneficiary->birthdate)->format('m-d-Y') }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                            @elseif($confirmChangeType === 'first_name')
-                                                @click="$wire.set('first_name', '{{ $this->beneficiary->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                            @elseif($confirmChangeType === 'middle_name')
-                                                @click="$wire.setFieldName('middle_name'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                            @elseif($confirmChangeType === 'last_name')
-                                                @click="$wire.set('last_name', '{{ $this->beneficiary->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                            @elseif($confirmChangeType === 'extension_name') 
-                                                @click="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" @endif
-                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
-                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 14 14">
-                                                <path stroke="currentColor" stroke-linecap="round"
-                                                    stroke-linejoin="round" stroke-width="2"
-                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                            </svg>
-                                            <span class="sr-only">Close Modal</span>
-                                        </button>
-                                    </div>
-
-                                    <hr class="">
-
-                                    {{-- Modal body --}}
-                                    <div
-                                        class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100">
-
-                                        @if ($confirmChangeType === 'beneficiary_type')
-                                            <p class="font-medium text-sm mb-1">
-                                                Changing the beneficiary type to "Underemployed" would also clear out
-                                                the
-                                                case
-                                                proof.
-                                            </p>
-                                            <p class="font-medium text-sm  mb-4">
-                                                Are you sure about this? <span class="text-gray-500">(This is action is
-                                                    irreversible)</span>
-                                            </p>
-                                            <div class="flex items-center justify-center w-full gap-4">
-                                                <button type="button"
-                                                    @click="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-gray-500 hover:border-indigo-800 active:border-indigo-900 text-gray-500 hover:text-indigo-800 active:bg-indigo-900">NO</button>
-                                                <button type="button"
-                                                    @click="$wire.resetSpecialCase(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">YES</button>
-                                            </div>
-                                        @elseif($confirmChangeType === 'birthdate')
-                                            <p class="font-medium text-sm mb-1">
-                                                Changing the birthdate would also clear out
-                                                the
-                                                case
-                                                proof.
-                                            </p>
-                                            <p class="font-medium text-sm  mb-4">
-                                                Are you sure about this? <span class="text-gray-500">(This is action is
-                                                    irreversible)</span>
-                                            </p>
-                                            <div class="flex items-center justify-center w-full gap-4">
-                                                <button type="button"
-                                                    @click="$wire.set('birthdate', '{{ \Carbon\Carbon::parse($this->beneficiary->birthdate)->format('m-d-Y') }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-gray-500 hover:border-indigo-800 active:border-indigo-900 text-gray-500 hover:text-indigo-800 active:bg-indigo-900">NO</button>
-                                                <button type="button"
-                                                    @click="$wire.resetSpecialCase(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">YES</button>
-                                            </div>
-                                        @elseif($confirmChangeType === 'first_name')
-                                            <p class="font-medium text-sm mb-1">
-                                                Changing the first name would also clear out
-                                                the
-                                                case
-                                                proof.
-                                            </p>
-                                            <p class="font-medium text-sm  mb-4">
-                                                Are you sure about this? <span class="text-gray-500">(This is action is
-                                                    irreversible)</span>
-                                            </p>
-                                            <div class="flex items-center justify-center w-full gap-4">
-                                                <button type="button"
-                                                    @click="$wire.set('first_name', '{{ $this->beneficiary->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-gray-500 hover:border-indigo-800 active:border-indigo-900 text-gray-500 hover:text-indigo-800 active:bg-indigo-900">NO</button>
-                                                <button type="button"
-                                                    @click="$wire.resetSpecialCase(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">YES</button>
-                                            </div>
-                                        @elseif($confirmChangeType === 'middle_name')
-                                            <p class="font-medium text-sm mb-1">
-                                                Changing the middle name would also clear out
-                                                the
-                                                case
-                                                proof.
-                                            </p>
-                                            <p class="font-medium text-sm  mb-4">
-                                                Are you sure about this? <span class="text-gray-500">(This is action is
-                                                    irreversible)</span>
-                                            </p>
-                                            <div class="flex items-center justify-center w-full gap-4">
-                                                <button type="button"
-                                                    @click="$wire.setFieldName('middle_name'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-gray-500 hover:border-indigo-800 active:border-indigo-900 text-gray-500 hover:text-indigo-800 active:bg-indigo-900">NO</button>
-                                                <button type="button"
-                                                    @click="$wire.resetSpecialCase(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">YES</button>
-                                            </div>
-                                        @elseif($confirmChangeType === 'last_name')
-                                            <p class="font-medium text-sm mb-1">
-                                                Changing the last name would also clear out
-                                                the
-                                                case
-                                                proof.
-                                            </p>
-                                            <p class="font-medium text-sm  mb-4">
-                                                Are you sure about this? <span class="text-gray-500">(This is action is
-                                                    irreversible)</span>
-                                            </p>
-                                            <div class="flex items-center justify-center w-full gap-4">
-                                                <button type="button"
-                                                    @click="$wire.set('last_name', '{{ $this->beneficiary->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-gray-500 hover:border-indigo-800 active:border-indigo-900 text-gray-500 hover:text-indigo-800 active:bg-indigo-900">NO</button>
-                                                <button type="button"
-                                                    @click="$wire.resetSpecialCase(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">YES</button>
-                                            </div>
-                                        @elseif($confirmChangeType === 'extension_name')
-                                            <p class="font-medium text-sm mb-1">
-                                                Changing the extension name would also clear out
-                                                the
-                                                case
-                                                proof.
-                                            </p>
-                                            <p class="font-medium text-sm  mb-4">
-                                                Are you sure about this? <span class="text-gray-500">(This is action is
-                                                    irreversible)</span>
-                                            </p>
-                                            <div class="flex items-center justify-center w-full gap-4">
-                                                <button type="button"
-                                                    @click="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-gray-500 hover:border-indigo-800 active:border-indigo-900 text-gray-500 hover:text-indigo-800 active:bg-indigo-900">NO</button>
-                                                <button type="button"
-                                                    @click="$wire.resetSpecialCase(); confirmTypeChangeModal = false;"
-                                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">YES</button>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 @endif
 
                 {{-- View Credentials Modal --}}
                 <livewire:focal.implementations.view-credentials-modal :$passedCredentialId />
 
+                {{-- Confirm Beneficiary Type Change Modal --}}
+                <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
+                    x-show="confirmTypeChangeModal">
+
+                    <!-- Modal -->
+                    <div x-show="confirmTypeChangeModal" x-trap.noreturn.noautofocus="confirmTypeChangeModal"
+                        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+
+                        {{-- The Modal --}}
+                        <div class="">
+                            <div class="relative bg-white rounded-md shadow">
+                                <!-- Modal Header -->
+                                <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
+                                    <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
+                                        Delete Beneficiary
+                                    </h1>
+
+                                    {{-- Close Button --}}
+                                    <button type="button"
+                                        @if ($confirmChangeType === 'beneficiary_type') @click="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
+                                    @elseif($confirmChangeType === 'birthdate')
+                                        @click="$wire.set('birthdate', '{{ \Carbon\Carbon::parse($this->beneficiary->birthdate)->format('m-d-Y') }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                    @elseif($confirmChangeType === 'first_name')
+                                        @click="$wire.set('first_name', '{{ $this->beneficiary->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                    @elseif($confirmChangeType === 'middle_name')
+                                        @click="$wire.setFieldName('middle_name'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                    @elseif($confirmChangeType === 'last_name')
+                                        @click="$wire.set('last_name', '{{ $this->beneficiary->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                    @elseif($confirmChangeType === 'extension_name') 
+                                        @click="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" @endif
+                                        class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                        <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 14 14">
+                                            <path stroke="currentColor" stroke-linecap="round"
+                                                stroke-linejoin="round" stroke-width="2"
+                                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                        </svg>
+                                        <span class="sr-only">Close Modal</span>
+                                    </button>
+                                </div>
+
+                                <hr class="">
+
+                                {{-- Modal body --}}
+                                <div class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100">
+
+                                    <p class="font-medium text-sm mb-4">
+                                        @if ($confirmChangeType === 'beneficiary_type')
+                                            Are you sure about changing the beneficiary type?
+                                        @elseif($confirmChangeType === 'birthdate')
+                                            Are you sure about changing the birthdate?
+                                        @elseif($confirmChangeType === 'first_name')
+                                            Are you sure about changing the first name?
+                                        @elseif($confirmChangeType === 'middle_name')
+                                            Are you sure about changing the middle name?
+                                        @elseif($confirmChangeType === 'last_name')
+                                            Are you sure about changing the last name?
+                                        @elseif($confirmChangeType === 'extension_name')
+                                            Are you sure about changing the extension name?
+                                        @endif
+                                    </p>
+                                    <p class="font-medium text-xs text-gray-500 mb-2">
+                                        This would clear out the case proof and you cannot undo this action.
+                                    </p>
+
+                                    <div class="flex items-center justify-center w-full gap-2">
+                                        <button type="button"
+                                            class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-gray-500 hover:border-indigo-800 active:border-indigo-900 text-gray-500 hover:text-indigo-800 active:text-indigo-50 active:bg-indigo-900"
+                                            @if ($confirmChangeType === 'beneficiary_type') @click="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
+                                                
+                                        @elseif($confirmChangeType === 'birthdate')
+                                            
+                                                @click="$wire.set('birthdate', '{{ \Carbon\Carbon::parse($this->beneficiary->birthdate)->format('m-d-Y') }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                                
+                                        @elseif($confirmChangeType === 'first_name')
+                                           
+                                                @click="$wire.set('first_name', '{{ $this->beneficiary->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                                
+                                        @elseif($confirmChangeType === 'middle_name')
+                                            
+                                                @click="$wire.setFieldName('middle_name'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                                
+                                        @elseif($confirmChangeType === 'last_name')
+                                             
+                                                @click="$wire.set('last_name', '{{ $this->beneficiary->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                                                 
+                                        @elseif($confirmChangeType === 'extension_name')
+                                                
+                                            @click="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" @endif>NO</button>
+                                        <button type="button"
+                                            @click="$wire.revokeSpecialCase(); confirmTypeChangeModal = false;"
+                                            class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">YES</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

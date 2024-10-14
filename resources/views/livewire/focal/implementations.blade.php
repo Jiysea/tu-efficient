@@ -2,7 +2,7 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, show: false, trapCreate: false, trapAdd: false, profileShow: false, rotation: 0, caretRotate: 0, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
@@ -166,6 +166,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <table class="relative w-full text-sm text-left text-indigo-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
+                                        <th scope="col" class="absolute h-full w-1 left-0 z-50">
+                                            {{-- Selected Row Indicator --}}
+                                        </th>
                                         <th scope="col" class="pe-2 ps-4 py-2">
                                             project #
                                         </th>
@@ -190,6 +193,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             wire:target="selectImplementationRow"
                                             wire:click.prevent='selectImplementationRow({{ $key }}, "{{ encrypt($implementation->id) }}")'
                                             class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} whitespace-nowrap cursor-pointer">
+                                            <td class="absolute h-full w-1 left-0 z-50"
+                                                :class="{
+                                                    'bg-indigo-700': {{ json_encode($selectedImplementationRow === $key) }},
+                                                    '': {{ json_encode($selectedImplementationRow !== $key) }},
+                                                }">
+                                                {{-- Selected Row Indicator --}}
+                                            </td>
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
                                                 {{ $implementation->project_num }}
                                             </th>
@@ -311,6 +321,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <table class="relative w-full text-sm text-left text-indigo-1100">
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
+                                        <th scope="col" class="absolute h-full w-1 left-0 z-50">
+                                            {{-- Selected Row Indicator --}}
+                                        </th>
                                         <th scope="col" class="ps-4 py-2">
                                             barangay
                                         </th>
@@ -331,17 +344,24 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             wire:loading.class="pointer-events-none" wire:target="selectBatchRow"
                                             wire:click='selectBatchRow({{ $key }}, "{{ encrypt($batch->id) }}")'
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-200' : ' hover:bg-gray-50' }}">
+                                            <td class="absolute h-full w-1 left-0 z-50"
+                                                :class="{
+                                                    'bg-indigo-700': {{ json_encode($selectedBatchRow === $key) }},
+                                                    '': {{ json_encode($selectedBatchRow !== $key) }},
+                                                }">
+                                                {{-- Selected Row Indicator --}}
+                                            </td>
                                             <th scope="row" class="z-0 ps-4 py-2 font-medium">
                                                 {{ $batch->barangay_name }}
                                             </th>
                                             <td class="px-2 py-2 text-center">
                                                 {{ $batch->current_slots . ' / ' . $batch->slots_allocated }}
                                             </td>
-                                            <td class="py-2">
-                                                <p
-                                                    class="px-1 py-1 text-xs rounded font-semibold uppercase {{ $batch->approval_status === 'approved' ? 'bg-green-300 text-green-950' : 'bg-amber-300 text-amber-950' }}  text-center">
+                                            <td class="py-2 text-center">
+                                                <span
+                                                    class="px-3 py-1 text-xs rounded-full font-semibold uppercase {{ $batch->approval_status === 'approved' ? 'bg-green-300 text-green-1000' : 'bg-amber-300 text-amber-900' }}">
                                                     {{ $batch->approval_status }}
-                                                </p>
+                                                </span>
                                             </td>
                                             <td class="py-1 ps-2">
                                                 <button @click.stop="$wire.viewBatch('{{ encrypt($batch->id) }}');"
@@ -448,24 +468,31 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="col-span-1 mx-2 flex items-center justify-end">
+
                             {{-- Loading State --}}
-                            <div class="items-center justify-end z-50 text-indigo-900" wire:loading
-                                wire:target="searchBeneficiaries">
-                                <svg class="size-4 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4">
-                                    </circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
+                            <div class="items-center justify-end z-50 text-indigo-900">
+
                             </div>
+
+                            {{-- Search Box --}}
                             <div class="relative me-2">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+
+                                    {{-- Loading Icon --}}
+                                    <svg class="size-4 animate-spin" wire:loading wire:target="searchBeneficiaries"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Search Icon --}}
                                     <svg class="size-3 {{ $beneficiarySlots['num_of_beneficiaries'] ? 'text-indigo-800' : 'text-zinc-400' }}"
-                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 20 20">
+                                        wire:loading.remove wire:target="searchBeneficiaries" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
@@ -519,6 +546,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <thead
                                     class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0 whitespace-nowrap">
                                     <tr>
+                                        <th scope="col" class="absolute h-full w-1 left-0 z-50">
+                                            {{-- Selected Row Indicator --}}
+                                        </th>
                                         <th scope="col" class="pe-2 ps-4 py-2">
                                             #
                                         </th>
@@ -595,10 +625,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="text-xs divide-y">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        <tr wire:key="beneficiary-{{ $key }}"
-                                            wire:loading.class="pointer-events-none"
-                                            wire:target="selectBeneficiaryRow"
-                                            wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}')"
+                                        <tr wire:key="beneficiary-{{ $key }}" {{-- wire:loading.class="pointer-events-none"
+                                            wire:target="selectBeneficiaryRow" --}}
+                                            @click="$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}');"
+                                            @dblClick="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
                                             class="relative divide-x whitespace-nowrap cursor-pointer"
                                             :class="{
                                                 'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
@@ -607,6 +637,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 'bg-amber-100 text-amber-700 hover:bg-amber-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                             
                                             }">
+                                            <td class="absolute h-full w-1 left-0 z-50"
+                                                :class="{
+                                                    'bg-indigo-700': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
+                                                    'bg-amber-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                }">
+                                                {{-- Selected Row Indicator --}}
+                                            </td>
                                             <th scope="row"
                                                 class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium">
                                                 {{ $key + 1 }}
@@ -648,11 +687,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $beneficiary->occupation ?? '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
-                                                @if ($beneficiary->avg_monthly_income === null || $beneficiary->avg_monthly_income === 0)
-                                                    -
-                                                @else
-                                                    ₱{{ number_format($beneficiary->avg_monthly_income / 100, 2) }}
-                                                @endif
+                                                {{ !is_null($beneficiary->avg_monthly_income) || intval($beneficiary->avg_monthly_income) !== 0 ? '₱' . \App\Services\MoneyFormat::mask(intval($beneficiary->avg_monthly_income)) : '-' }}
                                             </td>
                                             <td class="px-2 border-r border-gray-200">
                                                 {{ $beneficiary->e_payment_acc_num ?? '-' }}
@@ -809,6 +844,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         </div>
     </div>
 
+    {{-- Alert Bar --}}
     <div x-data="{
         successShow: $wire.entangle('showAlert'),
         successMessage: $wire.entangle('alertMessage'),

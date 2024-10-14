@@ -244,11 +244,12 @@ class Implementations extends Component
                         }
                         $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
                     } else {
-                        # Otherwise, search by first, middle, or last name
+                        # Otherwise, search by first, middle, last or extension name
                         $q->where(function ($query) {
                             $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
                                 ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
-                                ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
+                                ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                                ->orWhere('beneficiaries.extension_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
                         });
                     }
                 })

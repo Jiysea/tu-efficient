@@ -5,14 +5,19 @@ namespace App\Livewire\Coordinator;
 use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
+use App\Models\Credential;
 use App\Models\UserSetting;
+use DB;
+use Hash;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Storage;
 
 #[Layout('layouts.app')]
 #[Title('Submissions | TU-Efficient')]
@@ -22,15 +27,30 @@ class Submissions extends Component
     public $beneficiaryId;
     #[Locked]
     public $batchId;
+    #[Locked]
+    public $passedCredentialId;
+    public $batchNumPrefix;
+    public $showAlert = false;
+    public $alertMessage = '';
+    public $identity;
+    public $special;
+    public $addBeneficiariesModal = false;
+    public $editBeneficiaryModal = false;
+    public $deleteBeneficiaryModal = false;
+    public $viewCredentialsModal = false;
+    public $approveSubmissionModal = false;
+
+    # --------------------------------------------------------------------------
+
     public $defaultBatches_on_page = 15;
     public $defaultBeneficiaries_on_page = 30;
     public $batches_on_page = 15;
     public $beneficiaries_on_page = 30;
     public $selectedBatchRow = -1;
     public $selectedBeneficiaryRow = -1;
+    public $selectedSpecialCaseRow = -1;
     public $searchBeneficiaries;
     public $searchBatches;
-    public $batchNumPrefix;
 
     # ------------------------------------------
 
@@ -38,6 +58,59 @@ class Submissions extends Component
     public $end;
     public $defaultStart;
     public $defaultEnd;
+    public $approvalStatuses = [
+        'approved' => false,
+        'pending' => true,
+    ];
+
+    public $submissionStatuses = [
+        'submitted' => true,
+        'encoding' => true,
+        'unopened' => true,
+        'revalidate' => true,
+    ];
+
+    public array $filter = [];
+
+    # ------------------------------------------
+
+    #[Validate]
+    public $password_approve;
+    #[Validate]
+    public $password_delete;
+
+    # ------------------------------------------
+
+    public function rules()
+    {
+        return [
+            'password_approve' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, Auth::user()->password)) {
+                        $fail('Wrong password.');
+                    }
+                },
+            ],
+
+            'password_delete' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, Auth::user()->password)) {
+                        $fail('Wrong password.');
+                    }
+                },
+            ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'password_approve.required' => 'This field is required.',
+            'password_delete.required' => 'This field is required.',
+        ];
+    }
 
     #[On('start-change')]
     public function setStartDate($value)
@@ -50,11 +123,14 @@ class Submissions extends Component
         $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
         if ($this->batches->isNotEmpty()) {
-            $this->batchId = $this->batches[0]->id;
+            $this->batchId = encrypt($this->batches[0]->id);
         } else {
             $this->batchId = null;
+            $this->searchBatches = null;
+            $this->searchBeneficiaries = null;
         }
 
+        $this->beneficiaryId = null;
         $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
 
@@ -73,11 +149,14 @@ class Submissions extends Component
         $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
         if ($this->batches->isNotEmpty()) {
-            $this->batchId = $this->batches[0]->id;
+            $this->batchId = encrypt($this->batches[0]->id);
         } else {
             $this->batchId = null;
+            $this->searchBatches = null;
+            $this->searchBeneficiaries = null;
         }
 
+        $this->beneficiaryId = null;
         $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
 
@@ -88,7 +167,10 @@ class Submissions extends Component
     public function selectBatchRow($key, $encryptedId)
     {
         $this->selectedBatchRow = $key;
-        $this->batchId = decrypt($encryptedId);
+        $this->batchId = $encryptedId;
+        $this->beneficiaryId = null;
+        $this->selectedBeneficiaryRow = -1;
+        $this->searchBeneficiaries = null;
         $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
         $this->dispatch('init-reload')->self();
@@ -100,32 +182,101 @@ class Submissions extends Component
         if ($this->selectedBeneficiaryRow === $key) {
             $this->selectedBeneficiaryRow = -1;
             $this->beneficiaryId = null;
+
+            $this->identity = null;
+            $this->special = null;
+
         } else {
             $this->selectedBeneficiaryRow = $key;
-            $this->beneficiaryId = decrypt($encryptedId);
+            $this->beneficiaryId = $encryptedId;
+
+            $this->identity = null;
+            $this->special = null;
+
+            foreach ($this->credentials as $credential) {
+                if ($credential->for_duplicates === 'no') {
+                    $this->identity = $credential->image_file_path;
+                } elseif ($credential->for_duplicates === 'yes') {
+                    $this->special = $credential->image_file_path;
+                }
+            }
         }
 
         $this->dispatch('init-reload')->self();
     }
 
+    public function openEdit()
+    {
+        $this->editBeneficiaryModal = true;
+    }
+
+    public function viewCredential($type)
+    {
+        if ($type === 'identity') {
+
+            foreach ($this->credentials as $credential) {
+                if ($credential->for_duplicates === 'no') {
+                    $this->passedCredentialId = encrypt($credential->id);
+                    $this->viewCredentialsModal = true;
+                }
+            }
+
+        } elseif ($type === 'special') {
+
+            foreach ($this->credentials as $credential) {
+                if ($credential->for_duplicates === 'yes') {
+                    $this->passedCredentialId = encrypt($credential->id);
+                    $this->viewCredentialsModal = true;
+                }
+            }
+        }
+    }
+
+    public function applyFilter()
+    {
+        $this->filter = [
+            'approval_status' => $this->approvalStatuses,
+            'submission_status' => $this->submissionStatuses,
+        ];
+    }
+
+    public function resetFilter()
+    {
+        $this->approvalStatuses = $this->filter['approval_status'];
+        $this->submissionStatuses = $this->filter['submission_status'];
+    }
+
     #[Computed]
     public function batches()
     {
+        $approvalStatuses = array_keys(array_filter($this->filter['approval_status']));
+        $submissionStatuses = array_keys(array_filter($this->filter['submission_status']));
+
         $batches = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
             ->where('assignments.users_id', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
+            ->when(!empty($approvalStatuses), function ($q) use ($approvalStatuses) {
+                $q->whereIn('batches.approval_status', $approvalStatuses);
+            })
+            ->when(!empty($submissionStatuses), function ($q) use ($submissionStatuses) {
+                $q->whereIn('batches.submission_status', $submissionStatuses);
+            })
             ->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
             ->select(
                 [
                     'batches.id',
                     'batches.batch_num',
                     'batches.barangay_name',
+                    'batches.approval_status',
+                    'batches.submission_status'
                 ]
             )
             ->groupBy([
                 'batches.id',
                 'batches.batch_num',
                 'batches.barangay_name',
+                'batches.approval_status',
+                'batches.submission_status'
             ])
             ->orderBy('batches.id', 'desc')
             ->get();
@@ -136,19 +287,104 @@ class Submissions extends Component
     #[Computed]
     public function beneficiaries()
     {
-        $coordinatorUserId = Auth::user()->id;
+        if ($this->batchId) {
+            $beneficiaries = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+                ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+                ->where('assignments.users_id', Auth::id())
+                ->where('batches.id', decrypt($this->batchId))
+                ->when($this->searchBeneficiaries, function ($q) {
 
-        $beneficiaries = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
-            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('assignments.users_id', $coordinatorUserId)
-            ->where('batches.id', $this->batchId)
-            ->select([
-                'beneficiaries.*',
-            ])
-            ->take($this->beneficiaries_on_page)
-            ->get();
+                    # Check if the search field starts with '#' and filter by contact number
+                    if (str_contains($this->searchBeneficiaries, '#')) {
+                        $searchValue = trim(str_replace('#', '', $this->searchBeneficiaries));
 
-        return $beneficiaries;
+                        if (strpos($searchValue, '0') === 0) {
+                            $searchValue = substr($searchValue, 1);
+                        }
+                        $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
+                    } else {
+                        # Otherwise, search by first, middle, last or extension name
+                        $q->where(function ($query) {
+                            $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                                ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                                ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                                ->orWhere('beneficiaries.extension_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
+                        });
+                    }
+
+                })
+                ->select([
+                    'beneficiaries.*',
+                ])
+                ->take($this->beneficiaries_on_page)
+                ->get();
+
+            return $beneficiaries;
+        }
+
+        return null;
+    }
+
+    #[Computed]
+    public function batch()
+    {
+        if ($this->batchId) {
+            $batch = Batch::find(decrypt($this->batchId));
+            return $batch;
+        }
+
+        return null;
+    }
+
+    #[Computed]
+    public function beneficiary()
+    {
+        if ($this->beneficiaryId) {
+            $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
+            return $beneficiary;
+        }
+
+        return null;
+    }
+
+    #[Computed]
+    public function specialCases()
+    {
+        if ($this->batchId) {
+            $special_cases = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+                ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+                ->where('assignments.users_id', Auth::id())
+                ->where('batches.id', decrypt($this->batchId))
+                ->when($this->searchBeneficiaries, function ($q) {
+
+                    # Check if the search field starts with '#' and filter by contact number
+                    if (str_contains($this->searchBeneficiaries, '#')) {
+                        $searchValue = trim(str_replace('#', '', $this->searchBeneficiaries));
+
+                        if (strpos($searchValue, '0') === 0) {
+                            $searchValue = substr($searchValue, 1);
+                        }
+                        $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
+                    } else {
+                        # Otherwise, search by first, middle, last or extension name
+                        $q->where(function ($query) {
+                            $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                                ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                                ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                                ->orWhere('beneficiaries.extension_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
+                        });
+                    }
+
+                })
+                ->where('beneficiaries.beneficiary_type', 'special case')
+                ->select([
+                    'beneficiaries.*',
+                ])
+                ->count();
+            return $special_cases;
+        }
+
+        return 0;
     }
 
     #[Computed]
@@ -158,32 +394,41 @@ class Submissions extends Component
 
         if ($this->beneficiaryId) {
 
-            if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'PWD')) {
+            if (str_contains($this->beneficiary->type_of_id, 'PWD')) {
                 $type_of_id = 'PWD ID';
-            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'COMELEC')) {
+            } else if (str_contains($this->beneficiary->type_of_id, 'COMELEC')) {
                 $type_of_id = 'Voter\'s ID';
-            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'PhilID')) {
+            } else if (str_contains($this->beneficiary->type_of_id, 'PhilID')) {
                 $type_of_id = 'PhilID';
-            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, '4Ps')) {
+            } else if (str_contains($this->beneficiary->type_of_id, '4Ps')) {
                 $type_of_id = '4Ps ID';
-            } else if (str_contains($this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id, 'IBP')) {
+            } else if (str_contains($this->beneficiary->type_of_id, 'IBP')) {
                 $type_of_id = 'IBP ID';
             } else {
-                $type_of_id = $this->beneficiaries[$this->selectedBeneficiaryRow]->type_of_id;
+                $type_of_id = $this->beneficiary->type_of_id;
             }
 
         }
 
         return $type_of_id;
     }
+
     #[Computed]
     public function batchesCount()
     {
-        $coordinatorUserId = Auth::user()->id;
+        $approvalStatuses = array_keys(array_filter($this->filter['approval_status']));
+        $submissionStatuses = array_keys(array_filter($this->filter['submission_status']));
 
         $batchesCount = Assignment::join('batches', 'batches.id', '=', 'assignments.batches_id')
-            ->where('assignments.users_id', $coordinatorUserId)
+            ->where('assignments.users_id', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
+            ->when(!empty($approvalStatuses), function ($q) use ($approvalStatuses) {
+                $q->whereIn('batches.approval_status', $approvalStatuses);
+            })
+            ->when(!empty($submissionStatuses), function ($q) use ($submissionStatuses) {
+                $q->whereIn('batches.submission_status', $submissionStatuses);
+            })
+            ->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
             ->count();
 
         return $batchesCount;
@@ -192,19 +437,27 @@ class Submissions extends Component
     #[Computed]
     public function beneficiarySlots()
     {
-        $beneficiarySlots = 0;
+        if ($this->batchId) {
 
-        if ($this->batches->isNotEmpty()) {
+            $batch = Batch::where('id', decrypt($this->batchId))
+                ->first();
 
-            $totalCount = Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
-                ->where('batches.id', $this->batchId)
+            $totalSlots = $batch->slots_allocated;
+
+            $totalBeneficiaries = Beneficiary::where('beneficiaries.batches_id', decrypt($this->batchId))
                 ->count();
 
-            $beneficiarySlots = $totalCount;
 
+            return [
+                'slots_allocated' => $totalSlots ?? 0,
+                'num_of_beneficiaries' => $totalBeneficiaries,
+            ];
         }
 
-        return $beneficiarySlots;
+        return [
+            'slots_allocated' => 0,
+            'num_of_beneficiaries' => 0,
+        ];
     }
 
     #[Computed]
@@ -213,7 +466,7 @@ class Submissions extends Component
         $currentBatch = null;
 
         if ($this->batchId) {
-            $currentBatch = Batch::where('id', $this->batchId)
+            $currentBatch = Batch::where('id', decrypt($this->batchId))
                 ->first()->batch_num;
         } else if ($this->batches->isNotEmpty()) {
             $currentBatch = Batch::where('id', $this->batches[0]->id)
@@ -223,6 +476,17 @@ class Submissions extends Component
         }
 
         return $currentBatch;
+    }
+
+    #[Computed]
+    public function credentials()
+    {
+        if ($this->beneficiaryId) {
+            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+                ->get();
+
+            return $credentials;
+        }
     }
 
     # this loads the beneficiaries to take more after scrolling to the bottom on the table list
@@ -256,6 +520,95 @@ class Submissions extends Component
         return $full_name;
     }
 
+    public function approveSubmission()
+    {
+        $this->validateOnly(field: 'password_approve');
+        $this->authorize('approve-submission-coordinator', decrypt($this->batchId));
+
+        $this->approveSubmissionModal = false;
+        unset($this->batches);
+    }
+
+    #[On('add-beneficiaries')]
+    public function saveBeneficiaries()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->beneficiaryId = null;
+
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Beneficiary added successfully!';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[On('edit-beneficiary')]
+    public function editBeneficiary()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->showAlert = true;
+        $this->alertMessage = 'Beneficiary successfully updated!';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    public function deleteBeneficiary()
+    {
+        $this->validateOnly('password_delete');
+        $this->authorize('delete-beneficiary-coordinator', decrypt($this->beneficiaryId));
+
+        DB::transaction(function () {
+            $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
+            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+                ->get();
+
+            foreach ($credentials as $credential) {
+                Storage::delete($credential->image_file_path);
+                $credential->delete();
+            }
+            $beneficiary->delete();
+
+            $dateTimeFromEnd = $this->end;
+            $value = substr($dateTimeFromEnd, 0, 10);
+
+            $choosenDate = date('Y-m-d', strtotime($value));
+            $currentTime = date('H:i:s', strtotime(now()));
+            $this->end = $choosenDate . ' ' . $currentTime;
+
+            $this->beneficiaryId = null;
+            $this->selectedBeneficiaryRow = -1;
+
+            $this->showAlert = true;
+            $this->alertMessage = 'Successfully deleted a beneficiary!';
+            $this->dispatch('show-alert');
+            $this->dispatch('init-reload')->self();
+
+        });
+
+        $this->deleteBeneficiaryModal = false;
+        $this->reset('password_delete');
+        $this->resetValidation('password_delete');
+    }
+
+    public function resetPassword()
+    {
+        $this->reset('password_approve', 'password_delete');
+        $this->resetValidation(['password_approve', 'password_delete']);
+    }
+
     # batchId and coordinatorId will only be NOT null when the user clicks `View List` from the assignments page
     public function mount($batchId = null, $coordinatorId = null)
     {
@@ -269,15 +622,20 @@ class Submissions extends Component
             }
         }
 
+        $this->filter = [
+            'approval_status' => $this->approvalStatuses,
+            'submission_status' => $this->submissionStatuses,
+        ];
+
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
         $this->end = date('Y-m-d H:i:s', strtotime(now()));
 
         if ($batchId !== null) {
-            $this->batchId = decrypt($batchId);
+            $this->batchId = $batchId;
         } elseif ($this->batches->isEmpty()) {
             $this->batchId = null;
         } else {
-            $this->batchId = $this->batches[0]->id;
+            $this->batchId = encrypt($this->batches[0]->id);
         }
 
         $settings = UserSetting::where('users_id', Auth::id())
@@ -288,6 +646,7 @@ class Submissions extends Component
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
 
     }
+
     public function render()
     {
         return view('livewire.coordinator.submissions');

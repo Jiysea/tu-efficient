@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Code;
@@ -44,6 +45,33 @@ class AppServiceProvider extends ServiceProvider
                 ->first();
 
             if ($implementation->users_id === $user->id) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('approve-submission-coordinator', function (User $user, Batch $batch) {
+            $assignments = Assignment::join('batches', first: 'assignments.batches_id', second: 'batches.id')
+                ->where('batches.id', $batch->id)
+                ->where('assignments.users_id', $user->id)
+                ->first();
+
+            if (isset($assignments)) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('delete-beneficiary-coordinator', function (User $user, Beneficiary $beneficiary) {
+            $assignments = Assignment::join('batches', first: 'assignments.batches_id', second: 'batches.id')
+                ->join('beneficiaries', first: 'beneficiaries.batches_id', second: 'batches.id')
+                ->where('beneficiaries.id', $beneficiary->id)
+                ->where('assignments.users_id', $user->id)
+                ->first();
+
+            if (isset($assignments)) {
                 return true;
             } else {
                 return false;

@@ -1,16 +1,8 @@
 <div wire:ignore.self id="download-options-alert" data-modal-backdrop="static" tabindex="-1" aria-hidden="true"
     class="hidden backdrop-brightness-50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-2 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div x-data="{
-        init() {
-            window.addEventListener('download-options-confirmed', () => {
-                const modal = FlowbiteInstances.getInstance('Modal', 'download-options-alert');
-                trapDownload = false;
-                modal.hide();
-            });
-        },
-    }" class="relative p-4 w-full max-w-2xl max-h-full">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
         <!-- Modal content -->
-        <div x-trap="trapDownload" class="relative bg-white rounded-md shadow">
+        <div class="relative bg-white rounded-md shadow">
             <!-- Modal header -->
             <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                 <h1 class="text-lg font-semibold text-blue-1100 ">
@@ -31,9 +23,8 @@
                             </path>
                         </svg>
                     </div>
-                    <button type="button" @click="trapDownload=false"
-                        class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out"
-                        data-modal-toggle="download-options-alert">
+                    <button type="button" @click=""
+                        class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -63,7 +54,7 @@
                 </div>
 
                 <div class="flex items-center justify-center space-x-4 mb-4">
-                    <button type="button" @click="trapDownload=false"
+                    <button type="button" @click=""
                         class="text-base font-bold px-2 py-1 outline-none text-blue-900 hover:text-blue-50 border border-blue-900 hover:border-transparent hover:bg-blue-800 active:bg-blue-900 rounded text-center duration-200 ease-in-out"
                         data-modal-toggle="download-options-alert">
                         BACK
