@@ -98,7 +98,7 @@ class ViewBeneficiary extends Component
     #[Validate]
     public $image_description;
     #[Validate]
-    public $password;
+    public $password_delete;
     public $saved_image_path;
     public $reason_saved_image_path;
 
@@ -235,7 +235,7 @@ class ViewBeneficiary extends Component
                     }
                 },
             ],
-            'password' => [
+            'password_delete' => [
                 'required',
                 function ($attribute, $value, $fail) {
                     if (!Hash::check($value, Auth::user()->password)) {
@@ -267,7 +267,7 @@ class ViewBeneficiary extends Component
             'reason_image_file_path.image' => 'Case proof must be an image type.',
             'reason_image_file_path.mimes' => 'It must be in PNG or JPG format.',
             'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
-            'password.required' => 'This field is required.',
+            'password_delete.required' => 'This field is required.',
         ];
     }
 
@@ -714,7 +714,7 @@ class ViewBeneficiary extends Component
 
     public function deleteBeneficiary()
     {
-        $this->validateOnly('password');
+        $this->validateOnly('password_delete');
         $this->authorize('delete-beneficiary-focal');
 
         # if the batch where this beneficiary belongs to is approved,
@@ -1044,6 +1044,12 @@ class ViewBeneficiary extends Component
     public function resetViewBeneficiary()
     {
         $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold');
+    }
+
+    public function resetPassword()
+    {
+        $this->reset('password_delete');
+        $this->resetValidation(['password_delete']);
     }
 
     public function mount()

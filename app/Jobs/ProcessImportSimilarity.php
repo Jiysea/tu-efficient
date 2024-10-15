@@ -104,29 +104,39 @@ class ProcessImportSimilarity implements ShouldQueue
         $batch = Batches::find($this->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
 
-        foreach ($worksheet->getRowIterator(13, $maxDataRow - 16) as $keyRow => $row) {
+        foreach ($worksheet->getRowIterator(13, $maxDataRow - 16) as $row) {
             if ($row->isEmpty(startColumn: 'A', endColumn: 'AB')) {
                 continue;
             }
-
-            // $beneficiary['sheet_row'] = $row->getRowIndex();
 
             foreach ($row->getCellIterator('A', 'AB') as $keyCell => $cell) {
 
                 # Trims the cell value and removes extra whitespaces, then add it to the array
                 $value = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $cell->getValue())));
 
-                if (in_array($keyCell, ['C', 'E', 'N', 'P', 'T', 'V', 'X', 'Y', 'Z', 'AA', 'AB'])) {
+                # The Sheet Row from the file assigned as a unique identifier for these temporary beneficiaries
+                if ($keyCell === 'A') {
+                    $value = $row->getRowIndex();
+                }
+
+                # Values that are empty, null, or `-` will be assigned as `null` to uniform the data
+                elseif (in_array($keyCell, ['C', 'E', 'N', 'P', 'T', 'V', 'X', 'Y', 'Z', 'AA', 'AB'])) {
                     if (!isset($value) || empty($value) || $value === '-') {
                         $value = null;
                     }
-                } elseif (in_array($keyCell, ['U', 'W'])) {
+                }
+
+                # Interested in Self Employment && Person with Disability values that are empty or null will be assigned with `no` as default
+                elseif (in_array($keyCell, ['U', 'W'])) {
                     if (in_array(strtolower($value), ['no', 'yes'])) {
                         $value = strtolower($value);
                     } else {
                         $value = 'no';
                     }
-                } elseif ($keyCell === 'Q') {
+                }
+
+                # Uniforming the Sex values
+                elseif ($keyCell === 'Q') {
                     if (in_array(strtolower($value), ['male', 'female'])) {
                         $value = strtolower($value);
                     } elseif (strtolower($value) === 'm') {
@@ -136,7 +146,10 @@ class ProcessImportSimilarity implements ShouldQueue
                     } else {
                         $value = null;
                     }
-                } elseif ($keyCell === 'R') {
+                }
+
+                # Uniforming the Civil Status values
+                elseif ($keyCell === 'R') {
                     if (in_array(strtolower($value), ['single', 'married', 'divorced', 'separated', 'widowed'])) {
                         $value = strtolower($value);
                     } elseif (strtolower($value) === 's') {
@@ -152,11 +165,24 @@ class ProcessImportSimilarity implements ShouldQueue
                     } else {
                         $value = null;
                     }
-                } elseif ($keyCell === 'S') {
+                }
+
+                # The age value (will not be used)
+                elseif ($keyCell === 'S') {
                     $value = $cell->getCalculatedValue();
-                } elseif ($keyCell === 'O') {
-                    $value = strtolower($value);
-                } elseif ($keyCell === 'G') {
+                }
+
+                # Type of Beneficiary value will be defaulted as `underemployed`
+                elseif ($keyCell === 'O') {
+                    if (!isset($value) || empty($value) || $value === '-') {
+                        $value = 'underemployed';
+                    } else {
+                        $value = strtolower($value);
+                    }
+                }
+
+                # Project Location Values assigned based on the selected batch in `Implementations` page
+                elseif ($keyCell === 'G') {
                     $value = $batch->barangay_name;
                 } elseif ($keyCell === 'H') {
                     $value = $implementation->city_municipality;
@@ -257,7 +283,7 @@ class ProcessImportSimilarity implements ShouldQueue
             $errors .= self::required_unless($beneficiary['avg_monthly_income'], $beneficiary['occupation'], null);
             $errors .= self::is_negative($beneficiary['avg_monthly_income']);
             $errors .= self::is_money_integer($beneficiary['avg_monthly_income']);
-            dump($beneficiary['avg_monthly_income'], MoneyFormat::unmask($beneficiary['avg_monthly_income']));
+            
             if (empty($errors)) {
                 $list['avg_monthly_income'] = MoneyFormat::unmask($beneficiary['avg_monthly_income']);
             }

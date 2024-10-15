@@ -108,25 +108,24 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">
 
-                            {{-- Loading State --}}
-                            <div class="items-center justify-end z-50 text-indigo-900" wire:loading
-                                wire:target="searchProjects">
-                                <svg class="size-4 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4">
-                                    </circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
-                            </div>
-
                             <div class="relative me-2">
 
-                                {{-- Search Icon --}}
-                                <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="size-3 {{ $this->implementations->isNotEmpty() || $searchProjects ? 'text-indigo-800' : 'text-zinc-400' }}"
+                                <div
+                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->implementations->isNotEmpty() || $searchProjects ? 'text-indigo-800' : 'text-zinc-400' }}">
+
+                                    {{-- Loading Icon --}}
+                                    <svg class="size-4 animate-spin" wire:loading wire:target="searchProjects"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Search Icon --}}
+                                    <svg class="size-3" wire:loading.remove wire:target="searchProjects"
                                         aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -212,7 +211,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <td class="pr-2 py-2 text-center">
                                                 {{ $implementation->days_of_work }}
                                             </td>
-                                            {{-- Implementation Triple Dots --}}
                                             <td class="py-1">
                                                 <button type="button"
                                                     @click.stop="$wire.viewProject('{{ encrypt($implementation->id) }}');"
@@ -476,7 +474,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                             {{-- Search Box --}}
                             <div class="relative me-2">
-                                <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                <div
+                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $beneficiarySlots['num_of_beneficiaries'] ? 'text-indigo-800' : 'text-zinc-400' }}">
 
                                     {{-- Loading Icon --}}
                                     <svg class="size-4 animate-spin" wire:loading wire:target="searchBeneficiaries"
@@ -490,9 +489,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
 
                                     {{-- Search Icon --}}
-                                    <svg class="size-3 {{ $beneficiarySlots['num_of_beneficiaries'] ? 'text-indigo-800' : 'text-zinc-400' }}"
-                                        wire:loading.remove wire:target="searchBeneficiaries" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                    <svg class="size-3" wire:loading.remove wire:target="searchBeneficiaries"
+                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
@@ -571,6 +570,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             contact #
                                         </th>
                                         <th scope="col" class="px-2 py-2">
+                                            type of id
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
+                                            id number
+                                        </th>
+                                        <th scope="col" class="px-2 py-2">
                                             sex
                                         </th>
                                         <th scope="col" class="px-2 py-2">
@@ -580,10 +585,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             age
                                         </th>
                                         <th scope="col" class="px-2 py-2">
-                                            Senior Citizen
+                                            senior citizen
                                         </th>
                                         <th scope="col" class="px-2 py-2">
-                                            PWD
+                                            pwd
                                         </th>
                                         <th scope="col" class="px-2 py-2">
                                             occupation
@@ -623,13 +628,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="text-xs divide-y">
+                                <tbody class="text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
                                         <tr wire:key="beneficiary-{{ $key }}" {{-- wire:loading.class="pointer-events-none"
                                             wire:target="selectBeneficiaryRow" --}}
                                             @click="$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}');"
                                             @dblClick="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
-                                            class="relative divide-x whitespace-nowrap cursor-pointer"
+                                            class="relative border-b divide-x whitespace-nowrap cursor-pointer"
                                             :class="{
                                                 'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
                                                 'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
@@ -646,71 +651,76 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
-                                            <th scope="row"
-                                                class="pe-2 border-r border-gray-200 ps-4 py-2 font-medium">
+                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium">
                                                 {{ $key + 1 }}
                                             </th>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->first_name }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->middle_name ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->last_name }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->extension_name ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ \Carbon\Carbon::parse($beneficiary->birthdate)->format('M d, Y') }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->contact_num }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200 capitalize">
+                                            <td class="px-2 ">
+                                                {{ $beneficiary->type_of_id }}
+                                            </td>
+                                            <td class="px-2 ">
+                                                {{ $beneficiary->id_number }}
+                                            </td>
+                                            <td class="px-2  capitalize">
                                                 {{ $beneficiary->sex }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200 capitalize">
+                                            <td class="px-2  capitalize">
                                                 {{ $beneficiary->civil_status }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->age }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200 capitalize">
+                                            <td class="px-2  capitalize">
                                                 {{ $beneficiary->is_senior_citizen }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200 capitalize">
+                                            <td class="px-2  capitalize">
                                                 {{ $beneficiary->is_pwd }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->occupation ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ !is_null($beneficiary->avg_monthly_income) || intval($beneficiary->avg_monthly_income) !== 0 ? '₱' . \App\Services\MoneyFormat::mask(intval($beneficiary->avg_monthly_income)) : '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->e_payment_acc_num ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200 capitalize">
+                                            <td class="px-2  capitalize">
                                                 {{ $beneficiary->beneficiary_type }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->dependent ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200 capitalize">
+                                            <td class="px-2  capitalize">
                                                 {{ $beneficiary->self_employment }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200 capitalize">
+                                            <td class="px-2  capitalize">
                                                 {{ $beneficiary->skills_training ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->spouse_first_name ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->spouse_middle_name ?? '-' }}
                                             </td>
-                                            <td class="px-2 border-r border-gray-200">
+                                            <td class="px-2 ">
                                                 {{ $beneficiary->spouse_last_name ?? '-' }}
                                             </td>
                                             <td class="px-2">

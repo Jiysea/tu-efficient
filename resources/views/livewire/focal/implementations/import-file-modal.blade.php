@@ -7,7 +7,7 @@
         <div class="size-full max-w-5xl">
 
             <!-- Modal content -->
-            <div class="relative bg-white rounded-md shadow">
+            <div x-data="{ downloadSampleModal: $wire.entangle('downloadSampleModal') }" class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
@@ -19,7 +19,7 @@
 
                         {{-- Loading State --}}
                         <div class="flex items-center justify-center me-4 z-50 text-indigo-900" wire:loading
-                            wire:target="validateFile">
+                            wire:target="validateFile, clearFiles, cancelUpload">
                             <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -216,203 +216,127 @@
 
                 {{-- Modal Content --}}
                 @if ($step === 1)
+                    <div class="flex flex-col items-center justify-center w-full p-4 md:p-5">
 
-                    <!-- Modal Body -->
-                    <div x-data="{ downloadSampleModal: $wire.entangle('downloadSampleModal') }" class="p-4 md:p-5">
-                        <p class="text-center whitespace-nowrap w-full text-red-500 z-10 h-2 mb-4 text-xs">
-                            @error('file_path')
-                                {{ $message }}
-                            @enderror
-                        </p>
+                        <div class="flex flex-col items-center justify-center w-3/4">
+                            <p class="text-center whitespace-nowrap w-full text-red-500 z-10 h-2 mb-4 text-xs">
+                                @error('file_path')
+                                    {{ $message }}
+                                @enderror
+                            </p>
 
-                        {{-- File Dropzone --}}
-                        <div x-data="{
-                            uploading: false,
-                            progress: 0,
-                        }" x-on:livewire-upload-start="uploading = true"
-                            x-on:livewire-upload-finish="uploading = false; progress = 0;"
-                            x-on:livewire-upload-cancel="uploading = false"
-                            x-on:livewire-upload-error="uploading = false;"
-                            x-on:livewire-upload-progress="progress = $event.detail.progress;"
-                            class="relative flex flex-col items-center justify-center">
-                            {{-- Loading Black BG --}}
-                            <div x-show="uploading"
-                                class="absolute flex items-center justify-center rounded w-1/2 h-full z-50 cursor-wait">
-                                <div class="absolute inset-0 bg-black opacity-10 rounded size-full z-50">
-                                    {{-- Darkness... --}}
-                                </div>
-                            </div>
-
-                            <!-- Progress Bar && Loading Icon -->
-                            <div x-show="uploading" class="absolute flex items-center justify-center w-2/6 z-40">
-                                <div class="w-full bg-gray-300 rounded-lg h-2">
-                                    <div class=" h-full bg-indigo-500 rounded-lg"
-                                        x-bind:style="'width: ' + progress + '%'">
+                            {{-- File Dropzone --}}
+                            <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true"
+                                x-on:livewire-upload-finish="uploading = false; progress = 0;"
+                                x-on:livewire-upload-cancel="uploading = false"
+                                x-on:livewire-upload-error="uploading = false;"
+                                x-on:livewire-upload-progress="progress = $event.detail.progress;"
+                                class="relative flex flex-col items-center w-full justify-center">
+                                {{-- Loading Black BG --}}
+                                <div x-show="uploading"
+                                    class="absolute flex items-center justify-center rounded w-full h-full z-50 cursor-wait">
+                                    <div class="absolute inset-0 bg-black opacity-10 rounded size-full z-50">
+                                        {{-- Darkness... --}}
                                     </div>
                                 </div>
-                                <svg class="ms-2 size-5 text-indigo-900 animate-spin"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4">
-                                    </circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
-                            </div>
 
-                            <label for="file_path"
-                                class="flex flex-col items-center justify-center w-1/2 h-32 border-dashed rounded border-2
+                                <!-- Progress Bar && Loading Icon -->
+                                <div x-show="uploading" class="absolute flex items-center justify-center w-2/6 z-40">
+                                    <div class="w-full bg-gray-300 rounded-lg h-2">
+                                        <div class=" h-full bg-indigo-500 rounded-lg"
+                                            x-bind:style="'width: ' + progress + '%'">
+                                        </div>
+                                    </div>
+                                    <svg class="ms-2 size-5 text-indigo-900 animate-spin"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                </div>
+
+                                <label for="file_path"
+                                    class="flex flex-col items-center justify-center w-full h-32 border-dashed rounded border-2
                                 {{ $errors->has('file_path')
                                     ? 'bg-red-50 text-red-500 border-red-300'
                                     : 'text-gray-500 hover:text-indigo-500 bg-gray-50 hover:bg-indigo-50
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-gray-300 hover:border-indigo-300' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-gray-300 hover:border-indigo-300' }}
                                 duration-500 ease-in-out cursor-pointer">
 
-                                <div class="relative flex flex-col items-center justify-center py-6">
-                                    {{-- Default Preview --}}
-                                    <svg class="size-8 mb-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 20 16">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
-                                    </svg>
-                                    <p class="mb-2 text-xs "><span class="font-semibold">Click to
-                                            upload</span> or drag and drop</p>
-                                    <p class="text-xs ">XLSX or CSV</p>
-                                </div>
-                                <input id="file_path" wire.loading.attr="disabled" wire:model="file_path"
-                                    type="file" accept=".xlsx, .csv" class="hidden" />
-                            </label>
-
-                            {{-- Cancel (X) button --}}
-                            <span x-show="uploading" class="absolute top-2 right-[26%] inline-flex z-50">
-                                <button class="text-gray-500 hover:text-indigo-900 duration-200 ease-in-out"
-                                    type="button" @click="$wire.cancelUpload('file_path');"><svg class="size-3"
-                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 14 14">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                    </svg>
-                                </button>
-                            </span>
-                        </div>
-
-                        {{-- Download Desc --}}
-                        <p class="text-center w-full text-gray-500 z-10 h-6 mt-4 text-sm">
-                            Please use the
-                            <button type="button" @click="downloadSampleModal = !downloadSampleModal;"
-                                class="text-indigo-700 hover:text-indigo-800 active:text-indigo-1000 
-                            font-medium underline underline-offset-2 decoration-transparent hover:decoration-indigo-800 
-                            active:decoration-indigo-1000 duration-200 ease-in-out">
-                                sample format
-                            </button>
-                            for uploading files to avoid unnecessary errors.
-                        </p>
-
-                        {{-- Download Sample Format Modal --}}
-
-                        <div x-cloak x-show="downloadSampleModal"
-                            class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto  backdrop-blur-sm z-50">
-
-                            <!-- Modal -->
-                            <div x-show="downloadSampleModal" x-trap.noscroll="downloadSampleModal"
-                                class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
-
-                                <div class="relative size-full max-w-2xl">
-                                    <!-- Modal content -->
-                                    <div class="relative bg-white rounded-md shadow">
-                                        <!-- Modal header -->
-                                        <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
-                                            <h1 class="text-lg font-semibold text-indigo-1100 ">
-                                                Download Annex D Format
-                                            </h1>
-
-                                            <div class="flex items-center justify-center">
-                                                {{-- Loading State --}}
-                                                <div class="flex items-center justify-start me-4 z-50 text-indigo-900"
-                                                    wire:loading wire:target="export">
-                                                    <svg class="size-7 animate-spin"
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12"
-                                                            r="10" stroke="currentColor" stroke-width="4">
-                                                        </circle>
-                                                        <path class="opacity-75" fill="currentColor"
-                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                        </path>
-                                                    </svg>
-                                                </div>
-                                                <button type="button" @click="downloadSampleModal = false;"
-                                                    class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
-                                                    <svg class="size-3" aria-hidden="true"
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 14 14">
-                                                        <path stroke="currentColor" stroke-linecap="round"
-                                                            stroke-linejoin="round" stroke-width="2"
-                                                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                                    </svg>
-                                                    <span class="sr-only">Close modal</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <hr class="">
-
-                                        <!-- Modal Body -->
-                                        <div class="flex flex-col items-center p-4 md:p-5">
-                                            <div class="grid grid-cols-1 my-4 text-xs w-full place-items-center">
-                                                <div class="w-full relative mb-4 px-4 pb-1">
-                                                    <label for="slots_allocated"
-                                                        class="block mb-1 font-medium text-sm text-indigo-1100">How
-                                                        many slots
-                                                        you
-                                                        want to generate?</label>
-                                                    <input type="number" inputmode="numeric" id="slots_allocated"
-                                                        wire:model.live="slots_allocated" autocomplete="off"
-                                                        class="text-xs border w-full p-2.5 rounded {{ $errors->has('slots_allocated') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
-                                                        placeholder="0">
-                                                    @error('slots_allocated')
-                                                        <p
-                                                            class="ms-3 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
-                                                            {{ $message }}</p>
-                                                    @enderror
-                                                </div>
-                                            </div>
-
-                                            {{-- Modal Footer --}}
-                                            <div class="w-1/2 flex items-center justify-center gap-4 mb-4">
-                                                <button type="button" wire:click="export"
-                                                    class="flex flex-1 items-center justify-center text-base font-bold px-2 py-1 outline-none text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 rounded text-center duration-200 ease-in-out">
-                                                    CONFIRM
-                                                </button>
-                                            </div>
-                                        </div>
+                                    <div class="relative flex flex-col items-center justify-center py-6">
+                                        {{-- Default Preview --}}
+                                        <svg class="size-8 mb-4" aria-hidden="true"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                            <path stroke="currentColor" stroke-linecap="round"
+                                                stroke-linejoin="round" stroke-width="2"
+                                                d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                        </svg>
+                                        <p class="mb-2 text-xs "><span class="font-semibold">Click to
+                                                upload</span> or drag and drop</p>
+                                        <p class="text-xs ">XLSX or CSV</p>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
+                                    <input id="file_path" wire.loading.attr="disabled" wire:model="file_path"
+                                        type="file" accept=".xlsx, .csv" class="hidden" />
+                                </label>
 
-                        {{-- File Preview --}}
-                        <div class="relative flex flex-col items-center justify-start mt-4 h-40">
-                            @if ($file_path && !$errors->has('file_path'))
-                                <span
-                                    class="flex justify-between items-center z-50 text-sm p-2 w-1/2 rounded-md bg-gray-50 hover:bg-indigo-50 text-gray-500 hover:text-indigo-500 border border-gray-500 hover:border-indigo-500 duration-500 ease-in-out">
-                                    {{ $file_path->getClientOriginalName() }}
-
-                                    {{-- X button --}}
-                                    <button type="button" @click="$wire.clearFiles();"
-                                        class="outline-none text-gray-500 hover:text-indigo-900 ms-4 inline-flex justify-center items-center duration-200 ease-in-out"
-                                        data-modal-toggle="import-modal">
-                                        <svg class="size-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 14 14">
+                                {{-- Cancel (X) button --}}
+                                <span x-show="uploading" class="absolute top-2 right-2 inline-flex z-50">
+                                    <button class="text-gray-500 hover:text-indigo-900 duration-200 ease-in-out"
+                                        type="button" @click="$wire.cancelUpload('file_path');"><svg class="size-3"
+                                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 14 14">
                                             <path stroke="currentColor" stroke-linecap="round"
                                                 stroke-linejoin="round" stroke-width="2"
                                                 d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                         </svg>
                                     </button>
                                 </span>
-                            @endif
+                            </div>
+
+                            <div class="flex flex-col items-center justify-center w-full">
+                                {{-- Download Desc --}}
+                                <p class="text-center w-full text-gray-500 z-10 mt-4 text-sm">
+                                    Please use the
+                                    <button type="button" @click="downloadSampleModal = !downloadSampleModal;"
+                                        class="text-indigo-700 hover:text-indigo-800 active:text-indigo-1000 
+                            font-medium underline underline-offset-2 decoration-transparent hover:decoration-indigo-800 
+                            active:decoration-indigo-1000 duration-200 ease-in-out">
+                                        sample format
+                                    </button>
+                                    for uploading files to avoid unnecessary errors.
+                                </p>
+
+                                <p class="w-full text-center mt-2 text-xs text-gray-500">Take note that the system
+                                    will
+                                    <strong>disregard the project location</strong> of the format
+                                    and will assign these values to your selected batch accordingly.
+                                </p>
+                            </div>
+
+                            {{-- File Preview --}}
+                            <div class="relative flex flex-col items-center justify-start w-full mt-4 h-40">
+                                @if ($file_path && !$errors->has('file_path'))
+                                    <span
+                                        class="flex justify-between items-center font-medium rounded-md shadow z-50 text-xs p-2 w-full bg-gray-200 hover:bg-indigo-200 text-gray-500 hover:text-indigo-900 duration-200 ease-in-out">
+                                        {{ $file_path->getClientOriginalName() }}
+
+                                        {{-- X button --}}
+                                        <button type="button" @click="$wire.clearFiles();"
+                                            class="outline-none text-gray-500 hover:text-indigo-900 p-2 inline-flex justify-center items-center duration-200 ease-in-out"
+                                            data-modal-toggle="import-modal">
+                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                        </button>
+                                    </span>
+                                @endif
+                            </div>
                         </div>
 
                         {{-- Modal Footer --}}
@@ -421,7 +345,7 @@
 
                                 {{-- Next Button --}}
                                 <button type="submit" wire:loading.attr="disabled" wire:target="nextStep"
-                                    class="flex items-center justify-center px-3 py-1 font-bold bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 rounded"
+                                    class="flex items-center justify-center px-3 py-1 font-bold bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 rounded duration-200 ease-in-out"
                                     wire:click="validateFile">
                                     NEXT
 
@@ -1017,7 +941,7 @@
                                                             {{ $result['is_pwd'] }}
                                                         </td>
                                                         <td class="p-2 font-medium">
-                                                            {{ $result['dependent'] }}
+                                                            {{ $result['dependent'] ?? '-' }}
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -1144,6 +1068,88 @@
                         </div>
                     </div>
                 @endif
+
+                {{-- Edit Beneficiary Modal --}}
+                <livewire.focal.implementations.edit-beneficiary-modal :$selectedSheetIndex />
+
+                {{-- Download Sample Format Modal --}}
+                <div x-cloak x-show="downloadSampleModal"
+                    class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto  backdrop-blur-sm z-50">
+
+                    <!-- Modal -->
+                    <div x-show="downloadSampleModal" x-trap.noscroll="downloadSampleModal"
+                        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+
+                        <div class="relative size-full max-w-2xl">
+                            <!-- Modal content -->
+                            <div class="relative bg-white rounded-md shadow">
+                                <!-- Modal header -->
+                                <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
+                                    <h1 class="text-lg font-semibold text-indigo-1100 ">
+                                        Download Annex D Format
+                                    </h1>
+
+                                    <div class="flex items-center justify-center">
+                                        {{-- Loading State --}}
+                                        <div class="flex items-center justify-start me-4 z-50 text-indigo-900"
+                                            wire:loading wire:target="export">
+                                            <svg class="size-7 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4">
+                                                </circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                        <button type="button" @click="downloadSampleModal = false;"
+                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
+                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                            <span class="sr-only">Close modal</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr class="">
+
+                                <!-- Modal Body -->
+                                <div class="flex flex-col items-center p-4 md:p-5">
+                                    <div class="grid grid-cols-1 my-4 text-xs w-full place-items-center">
+                                        <div class="w-full relative mb-4 px-4 pb-1">
+                                            <label for="slots_allocated"
+                                                class="block mb-1 font-medium text-sm text-indigo-1100">How
+                                                many slots
+                                                you
+                                                want to generate?</label>
+                                            <input type="number" inputmode="numeric" id="slots_allocated"
+                                                wire:model.live="slots_allocated" autocomplete="off"
+                                                class="text-xs border w-full p-2.5 rounded {{ $errors->has('slots_allocated') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
+                                                placeholder="0">
+                                            @error('slots_allocated')
+                                                <p class="ms-3 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
+                                                    {{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    {{-- Modal Footer --}}
+                                    <div class="w-1/2 flex items-center justify-center gap-4 mb-4">
+                                        <button type="button" wire:click="export"
+                                            class="flex flex-1 items-center justify-center text-base font-bold px-2 py-1 outline-none text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 rounded text-center duration-200 ease-in-out">
+                                            CONFIRM
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

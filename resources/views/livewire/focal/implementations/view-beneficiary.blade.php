@@ -1434,24 +1434,28 @@
                                     <div
                                         class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
                                         @if ($this->projectInformation->approval_status === 'approved')
-                                            <p class="font-medium text-sm mb-5">
+                                            <p class="font-medium text-sm mb-2">
                                                 Are you sure about archiving this beneficiary?
                                             </p>
+                                            <p class="text-gray-500 text-xs font-semibold mb-4">
+                                                You could restore this beneficiary back from the Archives page
+                                            </p>
                                         @else
-                                            <p class="font-medium text-sm mb-1">
+                                            <p class="font-medium text-sm mb-2">
                                                 Are you sure about deleting this beneficiary?
                                             </p>
-                                            <p class="text-gray-500 text-sm mb-4">
-                                                (This is action is irreversible)
+                                            <p class="text-gray-500 text-xs font-semibold mb-4">
+                                                This is action is irreversible
                                             </p>
                                         @endif
 
-                                        <div class="flex items-center justify-center w-full gap-4">
+                                        <div class="flex items-center justify-center w-full gap-2">
                                             <div class="relative me-2">
-                                                <input type="password" id="password" wire:model.blur="password"
-                                                    class="flex {{ $errors->has('password') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 bg-indigo-50' }} rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
+                                                <input type="password" id="password_delete"
+                                                    wire:model.blur="password_delete"
+                                                    class="flex {{ $errors->has('password_delete') ? 'border-red-300 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} focus:ring-0 rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
                                                     placeholder="Enter your password">
-                                                @error('password')
+                                                @error('password_delete')
                                                     <p class="absolute top-full left-0 text-xs text-red-700">
                                                         {{ $message }}
                                                     </p>
