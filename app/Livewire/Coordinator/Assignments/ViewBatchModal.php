@@ -150,9 +150,9 @@ class ViewBatchModal extends Component
         if ($this->batch->submission_status === 'unopened') {
             $this->batch->submission_status = 'encoding';
             $this->batch->save();
-        }
 
-        $this->dispatch('refreshAfterOpening');
+            $this->dispatch('refreshAfterOpening', message: 'Batch opened for encoding!');
+        }
     }
 
     public function forceSubmitOrResolve()
@@ -167,7 +167,7 @@ class ViewBatchModal extends Component
         $this->batch->save();
 
 
-        $this->dispatch('refreshAfterOpening');
+        $this->dispatch('refreshAfterOpening', message: 'Batch has been submitted forcibly!');
         $this->forceSubmitConfirmationModal = false;
     }
 
@@ -196,7 +196,7 @@ class ViewBatchModal extends Component
         $this->batch->submission_status = 'revalidate';
         $this->batch->save();
 
-        $this->dispatch('refreshAfterOpening');
+        $this->dispatch('refreshAfterOpening', 'Batch reopened for revalidation!');
 
         $this->accessCodeModal = true;
         $this->revalidateConfirmationModal = false;

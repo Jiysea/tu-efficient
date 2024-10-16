@@ -1,7 +1,9 @@
 <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewBatchModal">
 
     <!-- Modal -->
-    <div x-data="{ accessCodeModal: $wire.entangle('accessCodeModal'), forceSubmitConfirmationModal: $wire.entangle('forceSubmitConfirmationModal'), revalidateConfirmationModal: $wire.entangle('revalidateConfirmationModal') }" x-show="viewBatchModal" x-trap.noscroll="viewBatchModal"
+    <div x-data="{ accessCodeModal: $wire.entangle('accessCodeModal'), 
+                    forceSubmitConfirmationModal: $wire.entangle('forceSubmitConfirmationModal'), 
+                    revalidateConfirmationModal: $wire.entangle('revalidateConfirmationModal') }" x-show="viewBatchModal" x-trap.noscroll="viewBatchModal"
         class="min-h-screen p-4 flex items-center justify-center overflow-y-auto z-50 select-none">
 
         @if ($passedBatchId)

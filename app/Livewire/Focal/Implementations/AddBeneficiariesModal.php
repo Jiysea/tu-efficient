@@ -215,7 +215,7 @@ class AddBeneficiariesModal extends Component
             'image_description' => [
                 'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
                 function ($attr, $value, $fail) {
-                    if (!$this->isResolved) {
+                    if (!isset($value) && empty($value) && !$this->isResolved) {
                         $fail('Description must not be left blank.', );
                     }
                 },

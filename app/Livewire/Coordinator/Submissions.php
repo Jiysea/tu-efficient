@@ -523,7 +523,8 @@ class Submissions extends Component
     public function approveSubmission()
     {
         $this->validateOnly(field: 'password_approve');
-        $this->authorize('approve-submission-coordinator', decrypt($this->batchId));
+        $batch = Batch::find(decrypt($this->batchId));
+        $this->authorize('approve-submission-coordinator', $batch);
 
         $this->approveSubmissionModal = false;
         unset($this->batches);
@@ -568,15 +569,19 @@ class Submissions extends Component
     public function deleteBeneficiary()
     {
         $this->validateOnly('password_delete');
-        $this->authorize('delete-beneficiary-coordinator', decrypt($this->beneficiaryId));
+        $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
+        $this->authorize('delete-beneficiary-coordinator', $beneficiary);
 
-        DB::transaction(function () {
-            $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
+        DB::transaction(function () use ($beneficiary) {
+
             $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
                 ->get();
 
             foreach ($credentials as $credential) {
-                Storage::delete($credential->image_file_path);
+                if (isset($credential->image_file_path)) {
+                    Storage::delete($credential->image_file_path);
+                }
+
                 $credential->delete();
             }
             $beneficiary->delete();

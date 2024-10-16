@@ -35,6 +35,8 @@ class Assignments extends Component
     public $beneficiaries_on_page = 30;
     public $selectedBatchRow = -1;
     public $searchBatches;
+    public $showAlert = false;
+    public $alertMessage = '';
 
     # --------------------------------------------------------------------------
 
@@ -316,10 +318,15 @@ class Assignments extends Component
     }
 
     #[On('refreshAfterOpening')]
-    public function refreshAfterOpening()
+    public function refreshAfterOpening($message)
     {
         unset($this->batches);
         unset($this->accessCode);
+
+        $this->showAlert = true;
+        $this->alertMessage = $message;
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
     }
 
     public function mount()

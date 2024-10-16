@@ -26,7 +26,7 @@ class EditBeneficiaryModal extends Component
 
     #[Reactive]
     #[Locked]
-    public $beneficiaryId;
+    public $selectedSheetIndex;
     #[Locked]
     public $maxDate;
     #[Locked]

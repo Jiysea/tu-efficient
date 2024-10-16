@@ -52,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('approve-submission-coordinator', function (User $user, Batch $batch) {
-            $assignments = Assignment::join('batches', first: 'assignments.batches_id', second: 'batches.id')
+            $assignments = Assignment::join('batches', 'assignments.batches_id', '=', 'batches.id')
                 ->where('batches.id', $batch->id)
                 ->where('assignments.users_id', $user->id)
                 ->first();
@@ -65,8 +65,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('delete-beneficiary-coordinator', function (User $user, Beneficiary $beneficiary) {
-            $assignments = Assignment::join('batches', first: 'assignments.batches_id', second: 'batches.id')
-                ->join('beneficiaries', first: 'beneficiaries.batches_id', second: 'batches.id')
+            $assignments = Assignment::join('batches', 'assignments.batches_id', '=', 'batches.id')
+                ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
                 ->where('beneficiaries.id', $beneficiary->id)
                 ->where('assignments.users_id', $user->id)
                 ->first();
