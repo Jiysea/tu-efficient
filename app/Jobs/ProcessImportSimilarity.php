@@ -283,7 +283,7 @@ class ProcessImportSimilarity implements ShouldQueue
             $errors .= self::required_unless($beneficiary['avg_monthly_income'], $beneficiary['occupation'], null);
             $errors .= self::is_negative($beneficiary['avg_monthly_income']);
             $errors .= self::is_money_integer($beneficiary['avg_monthly_income']);
-            
+
             if (empty($errors)) {
                 $list['avg_monthly_income'] = MoneyFormat::unmask($beneficiary['avg_monthly_income']);
             }
@@ -377,56 +377,59 @@ class ProcessImportSimilarity implements ShouldQueue
     {
         $list = $beneficiary;
 
-        if (array_unique($beneficiary['errors']) === ["first_name" => null] && $beneficiary['similarities'] === null) {
+        // if (array_unique($beneficiary['errors']) === ["first_name" => null] && $beneficiary['similarities'] === null) {
 
-            DB::transaction(function () use ($beneficiary, $batches_id) {
-                $batch = Batches::find($batches_id);
-                $implementation = Implementation::find($batch->implementations_id);
+        //     DB::transaction(function () use ($beneficiary, $batches_id) {
+        //         $batch = Batches::find($batches_id);
+        //         $implementation = Implementation::find($batch->implementations_id);
 
-                $beneficiaryModel = Beneficiary::create([
-                    'batches_id' => $batches_id,
-                    'first_name' => $beneficiary['first_name'],
-                    'middle_name' => $beneficiary['middle_name'],
-                    'last_name' => $beneficiary['last_name'],
-                    'extension_name' => $beneficiary['extension_name'],
-                    'birthdate' => $beneficiary['birthdate'],
-                    'barangay_name' => $batch->barangay_name,
-                    'contact_num' => $beneficiary['contact_num'],
-                    'occupation' => $beneficiary['occupation'],
-                    'avg_monthly_income' => $beneficiary['avg_monthly_income'],
-                    'city_municipality' => $implementation->city_municipality,
-                    'province' => $implementation->province,
-                    'district' => $implementation->district,
-                    'type_of_id' => $beneficiary['type_of_id'],
-                    'id_number' => $beneficiary['id_number'],
-                    'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
-                    'beneficiary_type' => $beneficiary['beneficiary_type'],
-                    'sex' => $beneficiary['sex'],
-                    'civil_status' => $beneficiary['civil_status'],
-                    'age' => self::beneficiaryAge($beneficiary['birthdate']),
-                    'dependent' => $beneficiary['dependent'],
-                    'self_employment' => $beneficiary['self_employment'],
-                    'skills_training' => $beneficiary['skills_training'],
-                    'is_pwd' => $beneficiary['is_pwd'],
-                    'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                    'spouse_first_name' => $beneficiary['spouse_first_name'],
-                    'spouse_middle_name' => $beneficiary['spouse_middle_name'],
-                    'spouse_last_name' => $beneficiary['spouse_last_name'],
-                    'spouse_extension_name' => $beneficiary['spouse_extension_name'],
-                ]);
+        //         $beneficiaryModel = Beneficiary::create([
+        //             'batches_id' => $batches_id,
+        //             'first_name' => $beneficiary['first_name'],
+        //             'middle_name' => $beneficiary['middle_name'],
+        //             'last_name' => $beneficiary['last_name'],
+        //             'extension_name' => $beneficiary['extension_name'],
+        //             'birthdate' => $beneficiary['birthdate'],
+        //             'barangay_name' => $batch->barangay_name,
+        //             'contact_num' => $beneficiary['contact_num'],
+        //             'occupation' => $beneficiary['occupation'],
+        //             'avg_monthly_income' => $beneficiary['avg_monthly_income'],
+        //             'city_municipality' => $implementation->city_municipality,
+        //             'province' => $implementation->province,
+        //             'district' => $implementation->district,
+        //             'type_of_id' => $beneficiary['type_of_id'],
+        //             'id_number' => $beneficiary['id_number'],
+        //             'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
+        //             'beneficiary_type' => $beneficiary['beneficiary_type'],
+        //             'sex' => $beneficiary['sex'],
+        //             'civil_status' => $beneficiary['civil_status'],
+        //             'age' => self::beneficiaryAge($beneficiary['birthdate']),
+        //             'dependent' => $beneficiary['dependent'],
+        //             'self_employment' => $beneficiary['self_employment'],
+        //             'skills_training' => $beneficiary['skills_training'],
+        //             'is_pwd' => $beneficiary['is_pwd'],
+        //             'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+        //             'spouse_first_name' => $beneficiary['spouse_first_name'],
+        //             'spouse_middle_name' => $beneficiary['spouse_middle_name'],
+        //             'spouse_last_name' => $beneficiary['spouse_last_name'],
+        //             'spouse_extension_name' => $beneficiary['spouse_extension_name'],
+        //         ]);
 
-                Credential::create([
-                    'beneficiaries_id' => $beneficiaryModel->id,
-                    'image_description' => null,
-                    'image_file_path' => null,
-                    'for_duplicates' => 'no',
-                ]);
+        //         Credential::create([
+        //             'beneficiaries_id' => $beneficiaryModel->id,
+        //             'image_description' => null,
+        //             'image_file_path' => null,
+        //             'for_duplicates' => 'no',
+        //         ]);
 
-            });
-            $list['success'] = true;
-        } else {
-            $list['success'] = false;
-        }
+        //     });
+        //     $list['success'] = true;
+        // } else {
+        //     $list['success'] = false;
+        // }
+
+        # TESTING
+        $list['success'] = false;
         return $list;
     }
 

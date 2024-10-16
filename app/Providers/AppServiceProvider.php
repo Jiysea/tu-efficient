@@ -27,24 +27,32 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::define('delete-implementation', function (User $user, Implementation $implementation) {
+        Gate::define('delete-implementation-focal', function (User $user, Implementation $implementation) {
             return $user->id === $implementation->users_id;
         });
 
-        Gate::define('delete-batch', function (User $user, Implementation $implementation, Batch $batch) {
-            if ($batch->implementations_id === $implementation->id) {
-                return $user->id === $implementation->users_id;
+        Gate::define('delete-batch-focal', function (User $user, Batch $batch) {
+            $batch = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->where('batches.implementations_id', $batch->implementations_id)
+                ->where('implementations.users_id', $user->id)
+                ->first();
+
+            if (isset($batch)) {
+                return true;
             } else {
                 return false;
             }
         });
 
-        Gate::define('delete-beneficiary-focal', function (User $user) {
-            $implementation = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-                ->select('implementations.users_id')
+        Gate::define('delete-beneficiary-focal', function (User $user, Beneficiary $beneficiary) {
+
+            $beneficiary = Implementation::join('batches', 'batches.implementations_id', '=', 'implementations.id')
+                ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
+                ->where('beneficiaries.id', $beneficiary->id)
+                ->where('implementations.users_id', $user->id)
                 ->first();
 
-            if ($implementation->users_id === $user->id) {
+            if (isset($beneficiary)) {
                 return true;
             } else {
                 return false;

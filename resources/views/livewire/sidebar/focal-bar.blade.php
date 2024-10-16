@@ -1,31 +1,77 @@
-<nav x-data="{ caretRotate: 0, }">
-    <!-- Show drawer on certain screen size -->
-    {{-- <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button"
-        class="xl:hidden absolute inline-flex items-center p-2 mt-2 ms-3 text-sm text-indigo-500 rounded-lg hover:bg-indigo-100 outline-none focus:ring-2 focus:ring-indigo-200">
-        <span class="sr-only">Open sidebar</span>
-        <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path clip-rule="evenodd" fill-rule="evenodd"
-                d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z">
-            </path>
-        </svg>
-    </button> --}}
+<nav>
+    <!-- Max SM -->
+    <div x-data="{ open: false }" id="sm-sidebar" class="md:hidden">
+        {{-- Collapse Button --}}
+        <button type="button" @click="open = true;"
+            class="flex items-center p-1 duration-200 ease-in-out outline-none rounded bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 focus:ring-2 focus:ring-indigo-500">
+            <span class="sr-only">Open sidebar</span>
+            <svg class="size-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg">
+                <path clip-rule="evenodd" fill-rule="evenodd"
+                    d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z">
+                </path>
+            </svg>
+        </button>
+
+        <div x-cloak x-trap.noscroll="open" @keyup.escape.window="open = false;" @click.self="open = false;"
+            :class="{
+                'scale-0': !open,
+                'scale-100': open,
+            }"
+            class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+            <div x-cloak :class="{
+                'w-0': !open,
+                'w-56': open,
+            }"
+                class="absolute flex flex-col left-0 top-0 z-50 h-full duration-500 ease-in-out p-3.5 select-none bg-indigo-900">
+                <div class="inline-flex items-center gap-2">
+                    {{-- Inner Collapse Button --}}
+                    <button type="button" @click="open = false;"
+                        :class="{
+                            'scale-0': !open,
+                            'scale-100': open,
+                        }"
+                        class="origin-left p-1 duration-500 ease-in-out outline-none rounded bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-900 focus:ring-2 focus:ring-indigo-500">
+                        <span class="sr-only">Open sidebar</span>
+                        <svg class="size-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path clip-rule="evenodd" fill-rule="evenodd"
+                                d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z">
+                            </path>
+                        </svg>
+                    </button>
+
+                    {{-- App Name --}}
+                    <span
+                        :class="{
+                            'scale-0': !open,
+                            'scale-100': open,
+                        }"
+                        class="origin-left text-center text-indigo-50 text-xl font-bold whitespace-nowrap select-none duration-500 ease-in-out">
+                        TU-EFFICIENT</span>
+                </div>
+                {{-- Content --}}
+            </div>
+        </div>
+    </div>
 
     {{-- XL --}}
-    <div id="logo-sidebar"
+    <div x-cloak x-data="{ caretRotate: 0, }" id="logo-sidebar"
         :class="{
-            'w-20': open === false,
-            'w-20 xl:w-64': open === true,
+            'hidden md:block md:w-20': open === false,
+            'hidden md:block md:w-20 xl:w-64': open === true,
         }"
-        class="fixed top-0 left-0 z-40 w-20 xl:w-64 h-full duration-500 ease-in-out select-none" aria-label="Sidebar">
+        class="fixed top-0 left-0 z-40 md:block md:w-20 xl:w-64 h-full duration-500 ease-in-out select-none"
+        aria-label="Sidebar">
 
-        {{-- Sidebar Opener --}}
+        {{-- Sidebar Opener Caret --}}
         <div :class="{
             '-right-3 hidden xl:block': open === true,
             '-right-4 hidden xl:block': open === false,
         }"
             class="absolute hidden xl:block -right-3 my-5 z-10 rounded-full place-items-center bg-white shadow-lg p-1 cursor-pointer">
-            <svg wire:ignore @click="open = !open ; caretRotate += 180" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+            <svg wire:ignore @click="open = !open ; caretRotate += 180" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                 :class="{
                     'size-4 xl:size-5': open === true,
                     'size-4': open === false,

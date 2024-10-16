@@ -321,7 +321,7 @@ class ViewProject extends Component
     {
         $this->validateOnly('password');
         $project = Implementation::find(decrypt($this->passedProjectId));
-        $this->authorize('delete-implementation', $project);
+        $this->authorize('delete-implementation-focal', $project);
         $project->delete();
 
         $this->editMode = false;

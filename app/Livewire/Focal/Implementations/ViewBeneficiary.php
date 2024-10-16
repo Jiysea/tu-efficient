@@ -714,14 +714,13 @@ class ViewBeneficiary extends Component
 
     public function deleteBeneficiary()
     {
-        $this->validateOnly('password_delete');
-        $this->authorize('delete-beneficiary-focal');
+        $beneficiary = Beneficiary::find(decrypt($this->passedBeneficiaryId));
+        $this->authorize('delete-beneficiary-focal', $beneficiary);
 
         # if the batch where this beneficiary belongs to is approved,
         # then we should archive it
-        DB::transaction(function () {
+        DB::transaction(function () use ($beneficiary) {
 
-            $beneficiary = Beneficiary::find(decrypt($this->passedBeneficiaryId));
             $credentials = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
                 ->get();
 
@@ -745,21 +744,24 @@ class ViewBeneficiary extends Component
                 ]);
                 $beneficiary->delete();
 
-                $this->dispatch('archive-beneficiary');
                 $this->resetViewBeneficiary();
+                $this->js('viewBeneficiaryModal = false;');
+                $this->dispatch('archive-beneficiary');
             }
 
             # otherwise, we could just delete it.
             else {
                 foreach ($credentials as $credential) {
-                    if (!is_null($credential->image_file_path)) {
+                    if (isset($credential->image_file_path)) {
                         Storage::delete($credential->image_file_path);
                     }
                     $credential->delete();
                 }
                 $beneficiary->delete();
-                $this->dispatch('delete-beneficiary');
+
                 $this->resetViewBeneficiary();
+                $this->js('viewBeneficiaryModal = false;');
+                $this->dispatch('delete-beneficiary');
             }
         });
     }
@@ -1044,12 +1046,6 @@ class ViewBeneficiary extends Component
     public function resetViewBeneficiary()
     {
         $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold');
-    }
-
-    public function resetPassword()
-    {
-        $this->reset('password_delete');
-        $this->resetValidation(['password_delete']);
     }
 
     public function mount()

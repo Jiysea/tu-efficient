@@ -16,20 +16,19 @@
                         </h1>
 
                     </span>
-                    <div class="flex items-center justify-center">
+                    <div class="flex items-center justify-between gap-4">
+
                         {{-- Loading State for Changes --}}
-                        <div class="z-50 text-indigo-900" wire:loading
-                            wire:target="nameCheck, beneficiary_type, civil_status, birthdate, is_pwd">
-                            <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4">
-                                </circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </div>
+                        <svg class="size-6 text-indigo-900 animate-spin" wire:loading
+                            wire:target="nameCheck, beneficiary_type, civil_status, birthdate, is_pwd"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
 
                         {{-- Close Button --}}
                         <button type="button" @click="$wire.resetViewBeneficiary(); viewBeneficiaryModal = false;"
@@ -1205,8 +1204,8 @@
                             {{-- IF Edit Mode is OFF --}}
                             @if (!$editMode)
 
-                                {{-- Project Number --}}
-                                <div class="relative md:col-span-2 flex flex-col mb-2">
+                                {{-- Project Number OFF --}}
+                                <div class="relative md:col-span-2 flex flex-col mb-4">
                                     <p class="block mb-1 font-medium text-indigo-1100">
                                         Project Number
                                     </p>
@@ -1214,8 +1213,8 @@
                                         class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->projectInformation->project_num }}</span>
                                 </div>
 
-                                {{-- Batch Number --}}
-                                <div class="relative md:col-span-2 flex flex-col mb-2">
+                                {{-- Batch Number OFF --}}
+                                <div class="relative md:col-span-2 flex flex-col mb-4">
                                     <p class="block mb-1 font-medium text-indigo-1100">
                                         Batch Number
                                     </p>
@@ -1224,14 +1223,14 @@
                                 </div>
 
                                 {{-- Edit | Delete Buttons OFF --}}
-                                <div class="flex justify-center items-center">
+                                <div class="flex justify-center items-center gap-4">
                                     <button type="button" wire:loading.attr="disabled" wire:target="toggleEdit"
                                         wire:click.prevent="toggleEdit"
-                                        class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                        class="duration-200 ease-in-out flex flex-1 gap-2 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                         EDIT
 
                                         {{-- Loading Icon --}}
-                                        <svg class="size-4 ms-2 animate-spin" wire:loading wire:target="toggleEdit"
+                                        <svg class="size-4 animate-spin" wire:loading wire:target="toggleEdit"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
                                                 stroke="currentColor" stroke-width="4">
@@ -1257,7 +1256,7 @@
 
                                     {{-- Delete/Trash Button --}}
                                     <button type="button" @click="deleteBeneficiaryModal = !deleteBeneficiaryModal;"
-                                        class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm border border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50">
+                                        class="duration-200 ease-in-out flex shrink items-center justify-center p-2 rounded outline-none font-bold text-sm bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                             viewBox="0, 0, 400,400">
@@ -1403,7 +1402,7 @@
                         x-show="deleteBeneficiaryModal">
 
                         <!-- Modal -->
-                        <div x-show="deleteBeneficiaryModal" x-trap.noscroll.noautofocus="deleteBeneficiaryModal"
+                        <div x-trap.noautofocus.noscroll="deleteBeneficiaryModal"
                             class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
                             {{-- The Modal --}}
@@ -1415,17 +1414,32 @@
                                             Delete Beneficiary
                                         </h1>
 
-                                        {{-- Close Button --}}
-                                        <button type="button" @click="deleteBeneficiaryModal = false;"
-                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
-                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 14 14">
-                                                <path stroke="currentColor" stroke-linecap="round"
-                                                    stroke-linejoin="round" stroke-width="2"
-                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                        <div class="flex items-center justify-between gap-4">
+                                            {{-- Loading Icon --}}
+                                            <svg class="size-6 text-indigo-900 animate-spin" wire:loading
+                                                wire:target="deleteBeneficiary" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4">
+                                                </circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
                                             </svg>
-                                            <span class="sr-only">Close Modal</span>
-                                        </button>
+
+                                            {{-- Close Button --}}
+                                            <button type="button" @click="deleteBeneficiaryModal = false;"
+                                                class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                <svg class="size-3" aria-hidden="true"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 14 14">
+                                                    <path stroke="currentColor" stroke-linecap="round"
+                                                        stroke-linejoin="round" stroke-width="2"
+                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                </svg>
+                                                <span class="sr-only">Close Modal</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <hr class="">
@@ -1450,28 +1464,23 @@
                                         @endif
 
                                         <div class="flex items-center justify-center w-full gap-2">
-                                            <div class="relative me-2">
-                                                <input type="password" id="password_delete"
-                                                    wire:model.blur="password_delete"
-                                                    class="flex {{ $errors->has('password_delete') ? 'border-red-300 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} focus:ring-0 rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
-                                                    placeholder="Enter your password">
-                                                @error('password_delete')
-                                                    <p class="absolute top-full left-0 text-xs text-red-700">
-                                                        {{ $message }}
-                                                    </p>
-                                                @enderror
-                                            </div>
-                                            <button type="button"
-                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50"
-                                                wire:click.prevent="deleteBeneficiary">CONFIRM</button>
+                                            {{-- Cancel Button --}}
+                                            <button type="button" @click="deleteBeneficiaryModal = false;"
+                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-indigo-700 hover:border-transparent hover:bg-indigo-800 active:bg-indigo-900 text-indigo-700 hover:text-indigo-50 active:text-indigo-50">
+                                                CANCEL
+                                            </button>
+
+                                            {{-- Confirm Button --}}
+                                            <button type="button" wire:click="deleteBeneficiary"
+                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                                CONFIRM
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-
                 @endif
 
                 {{-- View Credentials Modal --}}

@@ -297,7 +297,7 @@ class ViewBatch extends Component
             ->get();
         $batch = Batch::find(decrypt($this->passedBatchId));
 
-        $this->authorize('delete-batch', [$this->implementation, $batch]);
+        $this->authorize('delete-batch-focal', $batch);
 
         foreach ($assignments as $assignment) {
             $assignment->delete();
