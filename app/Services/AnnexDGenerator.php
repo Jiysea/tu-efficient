@@ -379,5 +379,4 @@ class AnnexDGenerator
 
         return $spreadsheet;
     }
-
 }
