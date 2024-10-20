@@ -377,59 +377,59 @@ class ProcessImportSimilarity implements ShouldQueue
     {
         $list = $beneficiary;
 
-        // if (array_unique($beneficiary['errors']) === ["first_name" => null] && $beneficiary['similarities'] === null) {
+        if (array_unique($beneficiary['errors']) === ["first_name" => null] && $beneficiary['similarities'] === null) {
 
-        //     DB::transaction(function () use ($beneficiary, $batches_id) {
-        //         $batch = Batches::find($batches_id);
-        //         $implementation = Implementation::find($batch->implementations_id);
+            DB::transaction(function () use ($beneficiary, $batches_id) {
+                $batch = Batches::find($batches_id);
+                $implementation = Implementation::find($batch->implementations_id);
 
-        //         $beneficiaryModel = Beneficiary::create([
-        //             'batches_id' => $batches_id,
-        //             'first_name' => $beneficiary['first_name'],
-        //             'middle_name' => $beneficiary['middle_name'],
-        //             'last_name' => $beneficiary['last_name'],
-        //             'extension_name' => $beneficiary['extension_name'],
-        //             'birthdate' => $beneficiary['birthdate'],
-        //             'barangay_name' => $batch->barangay_name,
-        //             'contact_num' => $beneficiary['contact_num'],
-        //             'occupation' => $beneficiary['occupation'],
-        //             'avg_monthly_income' => $beneficiary['avg_monthly_income'],
-        //             'city_municipality' => $implementation->city_municipality,
-        //             'province' => $implementation->province,
-        //             'district' => $implementation->district,
-        //             'type_of_id' => $beneficiary['type_of_id'],
-        //             'id_number' => $beneficiary['id_number'],
-        //             'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
-        //             'beneficiary_type' => $beneficiary['beneficiary_type'],
-        //             'sex' => $beneficiary['sex'],
-        //             'civil_status' => $beneficiary['civil_status'],
-        //             'age' => self::beneficiaryAge($beneficiary['birthdate']),
-        //             'dependent' => $beneficiary['dependent'],
-        //             'self_employment' => $beneficiary['self_employment'],
-        //             'skills_training' => $beneficiary['skills_training'],
-        //             'is_pwd' => $beneficiary['is_pwd'],
-        //             'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-        //             'spouse_first_name' => $beneficiary['spouse_first_name'],
-        //             'spouse_middle_name' => $beneficiary['spouse_middle_name'],
-        //             'spouse_last_name' => $beneficiary['spouse_last_name'],
-        //             'spouse_extension_name' => $beneficiary['spouse_extension_name'],
-        //         ]);
+                $beneficiaryModel = Beneficiary::create([
+                    'batches_id' => $batches_id,
+                    'first_name' => $beneficiary['first_name'],
+                    'middle_name' => $beneficiary['middle_name'],
+                    'last_name' => $beneficiary['last_name'],
+                    'extension_name' => $beneficiary['extension_name'],
+                    'birthdate' => $beneficiary['birthdate'],
+                    'barangay_name' => $batch->barangay_name,
+                    'contact_num' => $beneficiary['contact_num'],
+                    'occupation' => $beneficiary['occupation'],
+                    'avg_monthly_income' => $beneficiary['avg_monthly_income'],
+                    'city_municipality' => $implementation->city_municipality,
+                    'province' => $implementation->province,
+                    'district' => $implementation->district,
+                    'type_of_id' => $beneficiary['type_of_id'],
+                    'id_number' => $beneficiary['id_number'],
+                    'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
+                    'beneficiary_type' => $beneficiary['beneficiary_type'],
+                    'sex' => $beneficiary['sex'],
+                    'civil_status' => $beneficiary['civil_status'],
+                    'age' => self::beneficiaryAge($beneficiary['birthdate']),
+                    'dependent' => $beneficiary['dependent'],
+                    'self_employment' => $beneficiary['self_employment'],
+                    'skills_training' => $beneficiary['skills_training'],
+                    'is_pwd' => $beneficiary['is_pwd'],
+                    'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+                    'spouse_first_name' => $beneficiary['spouse_first_name'],
+                    'spouse_middle_name' => $beneficiary['spouse_middle_name'],
+                    'spouse_last_name' => $beneficiary['spouse_last_name'],
+                    'spouse_extension_name' => $beneficiary['spouse_extension_name'],
+                ]);
 
-        //         Credential::create([
-        //             'beneficiaries_id' => $beneficiaryModel->id,
-        //             'image_description' => null,
-        //             'image_file_path' => null,
-        //             'for_duplicates' => 'no',
-        //         ]);
+                Credential::create([
+                    'beneficiaries_id' => $beneficiaryModel->id,
+                    'image_description' => null,
+                    'image_file_path' => null,
+                    'for_duplicates' => 'no',
+                ]);
 
-        //     });
-        //     $list['success'] = true;
-        // } else {
-        //     $list['success'] = false;
-        // }
+            });
+            $list['success'] = true;
+        } else {
+            $list['success'] = false;
+        }
 
         # TESTING
-        $list['success'] = false;
+        // $list['success'] = false;
         return $list;
     }
 
@@ -572,55 +572,4 @@ class ProcessImportSimilarity implements ShouldQueue
     }
 
     # End of Some validation rules ------------------------------------------------------------------------
-
-    // public function nameCheck()
-    // {
-    //     # clear out any previous similarity results
-    //     $this->similarityResults = null;
-    //     $this->isPerfectDuplicate = false;
-    //     $this->isSpecialCaseAlready = false;
-    //     $this->isResults = false;
-    //     $this->isSameImplementation = false;
-    //     # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
-    //     if ($this->first_name && $this->last_name && $this->birthdate) {
-
-    //         # double checking again before handing over to the algorithm
-    //         # basically we filter the user input along the way
-    //         $this->first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->first_name)));
-    //         $filteredInputString = $this->first_name;
-    //         $this->validateOnly('first_name');
-
-    //         if ($this->middle_name && $this->middle_name !== '') {
-    //             $this->middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->middle_name)));
-    //             $filteredInputString .= ' ' . $this->middle_name;
-    //             $this->validateOnly('middle_name');
-    //         } else {
-    //             $this->middle_name = null;
-    //         }
-
-    //         $this->last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->last_name)));
-    //         $filteredInputString .= ' ' . $this->last_name;
-    //         $this->validateOnly('last_name');
-
-    //         # checks if there's an extension_name input
-    //         if ($this->extension_name && $this->extension_name !== '') {
-    //             $this->extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->extension_name)));
-    //             $filteredInputString .= ' ' . $this->extension_name;
-    //             $this->validateOnly('extension_name');
-    //         } else {
-    //             $this->extension_name = null;
-    //         }
-
-    //         $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold);
-
-    //         $this->isResults = !is_null($this->similarityResults) ? true : false;
-
-    //         $this->isPerfectDuplicate = $this->findPerfect($this->similarityResults);
-
-    //         $this->isSpecialCaseAlready = $this->findSpecialCase($this->similarityResults);
-
-    //         $this->isExisting($this->similarityResults);
-
-    //     }
-    // }
 }

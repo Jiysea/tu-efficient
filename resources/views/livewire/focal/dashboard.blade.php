@@ -100,7 +100,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 <div class="flex items-center gap-2">
                     <livewire:sidebar.focal-bar />
 
-                    <h1 class="sm:text-xl font-semibold sm:font-bold md:ms-2">Dashboard</h1>
+                    <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">Dashboard</h1>
 
                     {{-- Date Range picker --}}
                     <div id="dashboard-date-range" date-rangepicker datepicker-autohide

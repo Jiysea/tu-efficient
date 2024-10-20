@@ -8,11 +8,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 });">
 
 
-    <div x-data="{ scrollToTop() { document.getElementById('beneficiaries-table').scrollTo({ top: 0, behavior: 'smooth' }); } }"
-        :class="{
-            'md:ml-20': open === false,
-            'md:ml-20 xl:ml-64': open === true,
-        }"
+    <div :class="{
+        'md:ml-20': open === false,
+        'md:ml-20 xl:ml-64': open === true,
+    }"
         class="md:ml-20 xl:ml-64 duration-500 ease-in-out">
 
         <div class="p-2 min-h-screen select-none">
@@ -22,7 +21,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 <livewire:sidebar.focal-bar />
 
-                <h1 class="sm:text-xl font-semibold sm:font-bold md:ms-2">Implementations</h1>
+                <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">Implementations</h1>
 
                 {{-- Date Range picker --}}
                 <div id="implementations-date-range" date-rangepicker datepicker-autohide
@@ -889,47 +888,38 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         const datepickerEnd = document.getElementById('end-date');
 
         datepickerStart.addEventListener('changeDate', function(event) {
-            const implementationsTable = document.getElementById('implementations-table');
-            if (implementationsTable) {
-                implementationsTable.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
-            const beneficiariesTable = document.getElementById('beneficiaries-table');
-            if (beneficiariesTable) {
-                beneficiariesTable.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
-            const batchesTable = document.getElementById('batches-table');
-            if (batchesTable) {
-                batchesTable.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
+            $wire.dispatchSelf('scroll-top-implementations');
+            $wire.dispatchSelf('scroll-top-beneficiaries');
+            $wire.dispatchSelf('scroll-top-batches');
+
             $wire.dispatchSelf('start-change', {
                 value: datepickerStart.value
             });
         });
 
         datepickerEnd.addEventListener('changeDate', function(event) {
-            const implementationsTable = document.getElementById('implementations-table');
-            if (implementationsTable) {
-                implementationsTable.scrollTo({
+
+            $wire.dispatchSelf('scroll-top-implementations');
+            $wire.dispatchSelf('scroll-top-beneficiaries');
+            $wire.dispatchSelf('scroll-top-batches');
+
+            $wire.dispatchSelf('end-change', {
+                value: datepickerEnd.value
+            });
+        });
+
+        $wire.on('scroll-top-implementations', () => {
+            const implementations = document.getElementById('implementations-table');
+            if (implementations) {
+                implementations.scrollTo({
                     top: 0,
                     behavior: 'smooth'
                 });
             }
-            const beneficiariesTable = document.getElementById('beneficiaries-table');
-            if (beneficiariesTable) {
-                beneficiariesTable.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
+
+        });
+
+        $wire.on('scroll-top-batches', () => {
             const batchesTable = document.getElementById('batches-table');
             if (batchesTable) {
                 batchesTable.scrollTo({
@@ -937,9 +927,17 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     behavior: 'smooth'
                 });
             }
-            $wire.dispatchSelf('end-change', {
-                value: datepickerEnd.value
-            });
+        });
+
+        $wire.on('scroll-top-beneficiaries', () => {
+            const beneficiariesTable = document.getElementById('beneficiaries-table');
+            if (beneficiariesTable) {
+                beneficiariesTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+
         });
 
         $wire.on('init-reload', () => {

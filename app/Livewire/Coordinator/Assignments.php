@@ -2,15 +2,11 @@
 
 namespace App\Livewire\Coordinator;
 
-use App\Livewire\Focal\Dashboard;
-use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Code;
-use App\Models\User;
 use App\Models\UserSetting;
 use Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -28,7 +24,6 @@ class Assignments extends Component
     public $passedBatchId;
     public $batchNumPrefix;
     public $viewBatchModal = false;
-    public $batchesCount;
     public $defaultBatches_on_page = 15;
     public $defaultBeneficiaries_on_page = 30;
     public $batches_on_page = 15;
@@ -46,7 +41,7 @@ class Assignments extends Component
     public $defaultEnd;
 
     public $approvalStatuses = [
-        'approved' => true,
+        'approved' => false,
         'pending' => true,
     ];
 
@@ -175,12 +170,13 @@ class Assignments extends Component
         return $beneficiarySlots;
     }
 
-    public function setBatchesCount()
+    #[Computed]
+    public function batchesCount()
     {
         $approvalStatuses = array_keys(array_filter($this->filter['approval_status']));
         $submissionStatuses = array_keys(array_filter($this->filter['submission_status']));
 
-        $this->batchesCount = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+        $batchesCount = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
             ->where('assignments.users_id', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->when(!empty($approvalStatuses), function ($q) use ($approvalStatuses) {
@@ -191,6 +187,7 @@ class Assignments extends Component
             })
             ->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
             ->count();
+        return $batchesCount;
     }
 
     #[Computed]
@@ -356,7 +353,6 @@ class Assignments extends Component
 
     public function render()
     {
-        $this->setBatchesCount();
         return view('livewire.coordinator.assignments');
     }
 }

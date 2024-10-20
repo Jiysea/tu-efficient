@@ -6,18 +6,23 @@
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
-    <livewire:sidebar.focal-bar />
 
     <div :class="{
-        'xl:ml-20': open === false,
-        'xl:ml-64': open === true,
+        'md:ml-20': !open,
+        'md:ml-20 xl:ml-64': open,
     }"
-        class="ml-20 xl:ml-64 duration-500 ease-in-out">
+        class="md:ml-20 xl:ml-64 duration-500 ease-in-out">
 
         <div class="p-2 min-h-screen select-none">
+
             {{-- Page Name && Filter Button --}}
-            <div class="relative flex items-center justify-between my-2 mx-4">
-                <h1 class="text-xl font-bold">Activity Logs</h1>
+            <div class="relative flex items-center justify-between my-2 gap-2">
+
+                <div class="flex items-center gap-2">
+                    <livewire:sidebar.focal-bar />
+
+                    <h1 class="sm:text-xl font-semibold sm:font-bold md:ms-2">Activity Logs</h1>
+                </div>
 
                 <div class="flex items-center justify-end">
                     {{-- Loading State --}}

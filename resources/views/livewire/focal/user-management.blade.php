@@ -2,28 +2,34 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, isAboveBreakpoint: true, addCoordinatorsModal: false }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
-    <livewire:sidebar.focal-bar />
+
 
     <div :class="{
-        'xl:ml-20': open === false,
-        'xl:ml-64': open === true,
+        'md:ml-20': !open,
+        'md:ml-20 xl:ml-64': open,
     }"
-        class="ml-20 xl:ml-64 duration-500 ease-in-out">
-        <div x-data="{ addCoordinatorsModal: false }" class="p-2 min-h-screen select-none">
+        class="md:ml-20 xl:ml-64 duration-500 ease-in-out">
+        <div class="p-2 min-h-screen select-none">
 
             {{-- Nav Title and Date Dropdown --}}
-            <div class="relative flex items-center my-2">
-                <h1 class="text-xl font-bold me-4 ms-3">User Management</h1>
+            <div class="relative flex items-center w-full my-2 gap-2">
 
-                {{-- Loading State --}}
-                <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
-                    wire:loading.flex wire:target="selectedAllRows, updateCoordinators">
-                    <svg class="size-8 me-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24">
+                <div class="flex items-center gap-2">
+                    <livewire:sidebar.focal-bar />
+
+                    <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">User Management</h1>
+
+                </div>
+
+                <div class="flex items-center gap-2 text-indigo-900">
+
+                    {{-- Loading State --}}
+                    <svg class="size-8 animate-spin" wire:loading.flex wire:target="selectedAllRows, updateCoordinators"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4">
                         </circle>
@@ -87,7 +93,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                             <button @click="addCoordinatorsModal = !addCoordinatorsModal;"
                                 class="flex items-center bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 rounded-md px-4 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 duration-200 ease-in-out">
-                                ADD COORDINATORS
+                                <span class="md:block hidden">ADD COORDINATORS</span>
+                                <span class="block md:hidden">ADD</span>
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
@@ -242,12 +249,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     {{-- Create Button | Main Modal --}}
                     <livewire:focal.user-management.add-coordinators-modal />
+
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Sweet Alert --}}
+    {{-- Alert Bar --}}
     <div x-data="{
         successShow: $wire.entangle('showAlert'),
         successMessage: $wire.entangle('alertMessage'),
