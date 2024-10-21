@@ -121,7 +121,7 @@ class ProcessImportSimilarity implements ShouldQueue
 
                 # Values that are empty, null, or `-` will be assigned as `null` to uniform the data
                 elseif (in_array($keyCell, ['C', 'E', 'N', 'P', 'T', 'V', 'X', 'Y', 'Z', 'AA', 'AB'])) {
-                    if (!isset($value) || empty($value) || $value === '-') {
+                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = null;
                     }
                 }
@@ -174,7 +174,7 @@ class ProcessImportSimilarity implements ShouldQueue
 
                 # Type of Beneficiary value will be defaulted as `underemployed`
                 elseif ($keyCell === 'O') {
-                    if (!isset($value) || empty($value) || $value === '-') {
+                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = 'underemployed';
                     } else {
                         $value = strtolower($value);
@@ -211,9 +211,10 @@ class ProcessImportSimilarity implements ShouldQueue
             $list[] = $beneficiary;
         }
 
-        # Maybe try logging into Activity Logs
-        $barangay_name = Batches::find($this->batches_id)->barangay_name;
-        GenerateActivityLogs::set_import_beneficiaries_success_log($this->users_id, $barangay_name, $successCounter);
+        if (in_array($list, ['success' => true])) {
+            $barangay_name = Batches::find($this->batches_id)->barangay_name;
+            GenerateActivityLogs::set_import_beneficiaries_success_log($this->users_id, $barangay_name, $successCounter);
+        }
 
         # End Game
         cache(["similarity_" . $this->users_id => $list], now()->addMinutes(10));

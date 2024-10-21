@@ -77,24 +77,13 @@ class ImportFileModal extends Component
     {
         return [
             'file_path.required' => 'You need to upload a .xlsx or .csv file to proceed.',
-            'file_path.file' => ':attribute should be a valid file.',
-            'file_path.mimes' => ':attribute should be in .xlsx or .csv format.',
-            'slots_allocated.required' => 'Invalid :attribute amount.',
-            'slots_allocated.integer' => ':attribute should be a valid number.',
-            'slots_allocated.min' => ':attribute should be > 0.',
-            'slots_allocated.gte' => ':attribute should be nonnegative.',
-            'slots_allocated.lte' => ':attribute should be less than total.',
-        ];
-    }
-
-    # Validation attribute names for human readability purpose
-    # for example: The project_num should not be empty.
-    # instead of that: The project number should not be empty.
-    public function validationAttributes()
-    {
-        return [
-            'file_path' => 'File',
-            'slots_allocated' => 'Slots',
+            'file_path.file' => 'This should be a valid file.',
+            'file_path.mimes' => 'The file should be in .xlsx or .csv format.',
+            'slots_allocated.required' => 'This field is required.',
+            'slots_allocated.integer' => 'This field should be a valid number.',
+            'slots_allocated.min' => 'This field should be more than 0.',
+            'slots_allocated.gte' => 'This field should be nonnegative.',
+            'slots_allocated.lte' => 'This field should be less than total.',
         ];
     }
 
@@ -119,6 +108,7 @@ class ImportFileModal extends Component
     public function finishImport()
     {
         $this->nextStep();
+
     }
 
     public function validateFile()
@@ -140,6 +130,11 @@ class ImportFileModal extends Component
 
         $this->nextStep();
     }
+
+    // public function testingAlgorithm()
+    // {
+    //     JaccardSimilarity::getResults('Eniggo', 'Sumeragi', 'Lincoln', 'Jr....', '1989-11-20');
+    // }
 
     public function importProgress()
     {
@@ -190,7 +185,7 @@ class ImportFileModal extends Component
                             }
                         }
 
-                        # checks if there are already more than 2 perfect duplicates and mark this editted beneficiary as `ineligible`
+                        # check if there are already more than 2 perfect duplicates and mark this editted beneficiary as `ineligible`
                         if ($perfectCounter >= 2 || $isSameImplementation) {
                             $this->ineligibleResults[] = $beneficiary;
                         } else {
@@ -200,12 +195,15 @@ class ImportFileModal extends Component
                     }
                 }
                 if (sizeof($this->successResults) > 0) {
-                    $this->dispatch(event: 'import-success-beneficiaries', count: sizeof($this->successResults));
+                    // $this->dispatch(event: 'import-success-beneficiaries', count: sizeof($this->successResults));
                 }
             } else {
                 $this->backStep();
             }
             $this->reset('file_path');
+
+            # Notify the User if it's done processing the Import
+            $this->dispatch('finished-importing');
         }
     }
 
@@ -281,8 +279,8 @@ class ImportFileModal extends Component
 
     public function resetImports()
     {
-        if (is_null($this->file_path) || $this->file_path === '') {
-            $this->resetExcept('batchId', '');
+        if ($this->step === 3 && $this->importFinished && (!isset($this->file_path) || empty($this->file_path))) {
+            $this->resetExcept('batchId', 'duplicationThreshold');
         }
     }
 

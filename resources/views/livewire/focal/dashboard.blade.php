@@ -810,7 +810,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <div class="w-full flex flex-col justify-center gap-4">
                                 @if ($exportChoice === 'date_range')
                                     {{-- Date Range picker --}}
-                                    <div id="export-date-range" date-rangepicker datepicker-autohide
+                                    <div id="export-date-range" datepicker-orientation="top" date-rangepicker datepicker-autohide
                                         class="flex items-center gap-1 sm:gap-2 pb-4 text-xs text-indigo-1100">
 
                                         {{-- Start --}}

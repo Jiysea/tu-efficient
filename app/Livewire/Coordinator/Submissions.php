@@ -7,6 +7,8 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\UserSetting;
+use App\Services\Annex;
+use Carbon\Carbon;
 use DB;
 use Hash;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +19,9 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Storage;
 
 #[Layout('layouts.app')]
@@ -29,6 +34,8 @@ class Submissions extends Component
     public $batchId;
     #[Locked]
     public $passedCredentialId;
+    #[Locked]
+    public $exportBatchId;
     public $batchNumPrefix;
     public $showAlert = false;
     public $alertMessage = '';
@@ -39,6 +46,8 @@ class Submissions extends Component
     public $deleteBeneficiaryModal = false;
     public $viewCredentialsModal = false;
     public $approveSubmissionModal = false;
+    public $importFileModal = false;
+    public $showExportModal = false;
 
     # --------------------------------------------------------------------------
 
@@ -51,6 +60,23 @@ class Submissions extends Component
     public $selectedSpecialCaseRow = -1;
     public $searchBeneficiaries;
     public $searchBatches;
+
+    # --------------------------------------------------------------------------
+
+    public $defaultExportStart;
+    public $defaultExportEnd;
+    public $export_start;
+    public $export_end;
+    public $exportFormat = 'xlsx';
+    public array $exportType = [
+        'annex_e1' => true,
+        'annex_e2' => false,
+        'annex_j2' => false,
+        'annex_l' => false,
+        'annex_l_sign' => false,
+    ]; # annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+    public $currentExportBatch;
+    public $searchExportBatch;
 
     # ------------------------------------------
 
@@ -76,8 +102,6 @@ class Submissions extends Component
 
     #[Validate]
     public $password_approve;
-    #[Validate]
-    public $password_delete;
 
     # ------------------------------------------
 
@@ -92,14 +116,8 @@ class Submissions extends Component
                     }
                 },
             ],
-
-            'password_delete' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if (!Hash::check($value, Auth::user()->password)) {
-                        $fail('Wrong password.');
-                    }
-                },
+            'exportBatchId' => [
+                'required'
             ],
         ];
     }
@@ -108,9 +126,117 @@ class Submissions extends Component
     {
         return [
             'password_approve.required' => 'This field is required.',
-            'password_delete.required' => 'This field is required.',
+            'exportBatchId.required' => 'This field is required.',
         ];
     }
+
+    public function showExport()
+    {
+        $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
+
+        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
+        $choosenDate = date('Y-m-d', strtotime($date));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->export_start = $choosenDate . ' ' . $currentTime;
+
+        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
+        $choosenDate = date('Y-m-d', strtotime($date));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->export_end = $choosenDate . ' ' . $currentTime;
+
+        $this->showExportModal = true;
+    }
+
+    public function exportAnnex()
+    {
+        $this->validate([
+            'exportBatchId' => [
+                'required'
+            ],
+        ], [
+            'exportBatchId.required' => 'This field is required.'
+        ]);
+
+        $batch = $this->exportBatch;
+
+        $spreadsheet = new Spreadsheet();
+
+        # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+        $spreadsheet = Annex::export($spreadsheet, $batch, $this->exportType, $this->exportFormat);
+
+        $writer = null;
+        $fileName = null;
+
+        if ($this->exportFormat === 'xlsx') {
+            $writer = new Xlsx($spreadsheet);
+            $fileName = 'TUPAD Annex.xlsx';
+        } elseif ($this->exportFormat === 'csv') {
+            $writer = new Csv($spreadsheet);
+            $fileName = 'TUPAD Annex.csv';
+            $writer->setDelimiter(';');
+            $writer->setEnclosure('"');
+        }
+
+        $filePath = storage_path($fileName);
+        $writer->save($filePath);
+
+        # Download the file
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function selectExportBatchRow($encryptedId)
+    {
+        $this->exportBatchId = $encryptedId;
+    }
+
+    #[Computed]
+    public function exportBatch()
+    {
+        $batch = Batch::find($this->exportBatchId ? decrypt($this->exportBatchId) : null);
+        return $batch;
+    }
+
+    #[Computed]
+    public function exportBatches()
+    {
+        $batches = Batch::whereHas('beneficiary')
+            ->whereHas('assignment', function ($q) {
+                $q->where('users_id', Auth::id());
+            })
+            ->join('assignments', 'batches.id', '=', 'assignments.batches_id')
+            ->where('assignments.users_id', Auth::id())
+            ->when(isset($this->searchExportBatch) && !empty($this->searchExportBatch), function ($q) {
+                $q->where('batches.batch_num', 'LIKE', '%' . $this->searchExportBatch . '%')
+                    ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchExportBatch . '%');
+            })
+            ->whereBetween('batches.created_at', [$this->export_start, $this->export_end])
+            ->latest('batches.updated_at')
+            ->select([
+                'batches.*'
+            ])
+            ->distinct()
+            ->get();
+
+        return $batches;
+    }
+
+    public function resetExport()
+    {
+        $this->reset('exportType', 'exportFormat');
+        $this->resetValidation(['exportBatchId']);
+
+        if ($this->exportBatches->isEmpty()) {
+            $this->exportBatchId = null;
+            $this->currentExportBatch = 'None';
+        } else {
+            $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+        }
+
+    }
+
+    # ------------------------------------------------------------------------------------------------------------------
 
     #[On('start-change')]
     public function setStartDate($value)
@@ -238,6 +364,14 @@ class Submissions extends Component
             'approval_status' => $this->approvalStatuses,
             'submission_status' => $this->submissionStatuses,
         ];
+
+        if ($this->batches->isNotEmpty()) {
+            $this->batchId = encrypt($this->batches[0]->id);
+        } else {
+            $this->batchId = null;
+            $this->searchBatches = null;
+            $this->searchBeneficiaries = null;
+        }
     }
 
     public function resetFilter()
@@ -287,42 +421,39 @@ class Submissions extends Component
     #[Computed]
     public function beneficiaries()
     {
-        if ($this->batchId) {
-            $beneficiaries = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
-                ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-                ->where('assignments.users_id', Auth::id())
-                ->where('batches.id', decrypt($this->batchId))
-                ->when($this->searchBeneficiaries, function ($q) {
+        $beneficiaries = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('assignments.users_id', Auth::id())
+            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
+            ->when($this->searchBeneficiaries, function ($q) {
 
-                    # Check if the search field starts with '#' and filter by contact number
-                    if (str_contains($this->searchBeneficiaries, '#')) {
-                        $searchValue = trim(str_replace('#', '', $this->searchBeneficiaries));
+                # Check if the search field starts with '#' and filter by contact number
+                if (str_contains($this->searchBeneficiaries, '#')) {
+                    $searchValue = trim(str_replace('#', '', $this->searchBeneficiaries));
 
-                        if (strpos($searchValue, '0') === 0) {
-                            $searchValue = substr($searchValue, 1);
-                        }
-                        $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
-                    } else {
-                        # Otherwise, search by first, middle, last or extension name
-                        $q->where(function ($query) {
-                            $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
-                                ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
-                                ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
-                                ->orWhere('beneficiaries.extension_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
-                        });
+                    if (strpos($searchValue, '0') === 0) {
+                        $searchValue = substr($searchValue, 1);
                     }
+                    $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
+                } else {
+                    # Otherwise, search by first, middle, last or extension name
+                    $q->where(function ($query) {
+                        $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                            ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                            ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                            ->orWhere('beneficiaries.extension_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
+                    });
+                }
 
-                })
-                ->select([
-                    'beneficiaries.*',
-                ])
-                ->take($this->beneficiaries_on_page)
-                ->get();
+            })
+            ->select([
+                'beneficiaries.*',
+            ])
+            ->take($this->beneficiaries_on_page)
+            ->get();
 
-            return $beneficiaries;
-        }
+        return $beneficiaries;
 
-        return null;
     }
 
     #[Computed]
@@ -568,7 +699,6 @@ class Submissions extends Component
 
     public function deleteBeneficiary()
     {
-        $this->validateOnly('password_delete');
         $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
         $this->authorize('delete-beneficiary-coordinator', $beneficiary);
 
@@ -604,14 +734,65 @@ class Submissions extends Component
         });
 
         $this->deleteBeneficiaryModal = false;
-        $this->reset('password_delete');
-        $this->resetValidation('password_delete');
+    }
+
+    #[On('finished-importing')]
+    public function finishedImporting()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        if (!$this->importFileModal) {
+            $this->showAlert = true;
+            $this->alertMessage = 'Finished processing your import. Head to the Import tab.';
+            $this->dispatch('show-alert');
+        }
+        $this->dispatch('init-reload')->self();
+    }
+
+    public function updated($prop)
+    {
+        if ($prop === 'defaultExportStart') {
+            $this->validateOnly('defaultExportStart');
+            $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
+            $choosenDate = date('Y-m-d', strtotime($date));
+            $currentTime = date('H:i:s', strtotime(now()));
+            $this->export_start = $choosenDate . ' ' . $currentTime;
+
+            if ($this->exportBatches->isEmpty()) {
+                $this->exportBatchId = null;
+                $this->currentExportBatch = 'None';
+            } else {
+                $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            }
+        }
+
+        if ($prop === 'defaultExportEnd') {
+            $this->validateOnly('defaultExportEnd');
+            $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
+            $choosenDate = date('Y-m-d', strtotime($date));
+            $currentTime = date('H:i:s', strtotime(now()));
+            $this->export_end = $choosenDate . ' ' . $currentTime;
+
+            if ($this->exportBatches->isEmpty()) {
+                $this->exportBatchId = null;
+                $this->currentExportBatch = 'None';
+            } else {
+                $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            }
+        }
     }
 
     public function resetPassword()
     {
-        $this->reset('password_approve', 'password_delete');
-        $this->resetValidation(['password_approve', 'password_delete']);
+        $this->reset('password_approve');
+        $this->resetValidation(['password_approve']);
     }
 
     # batchId and coordinatorId will only be NOT null when the user clicks `View List` from the assignments page
@@ -635,6 +816,15 @@ class Submissions extends Component
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
         $this->end = date('Y-m-d H:i:s', strtotime(now()));
 
+        $this->export_start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
+        $this->export_end = date('Y-m-d H:i:s', strtotime(now()));
+
+        $this->defaultStart = date('m/d/Y', strtotime($this->start));
+        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+
+        $this->defaultExportStart = $this->defaultStart;
+        $this->defaultExportEnd = $this->defaultEnd;
+
         if ($batchId !== null) {
             $this->batchId = $batchId;
         } elseif ($this->batches->isEmpty()) {
@@ -643,12 +833,17 @@ class Submissions extends Component
             $this->batchId = encrypt($this->batches[0]->id);
         }
 
+        if ($this->exportBatches->isEmpty()) {
+            $this->exportBatchId = null;
+            $this->currentExportBatch = 'None';
+        } else {
+            $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+        }
+
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->batchNumPrefix = $settings->get('batch_num_prefix', config('settings.batch_number_prefix'));
-
-        $this->defaultStart = date('m/d/Y', strtotime($this->start));
-        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
 
     }
 

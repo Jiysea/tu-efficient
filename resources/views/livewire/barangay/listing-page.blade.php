@@ -765,7 +765,7 @@
 
                 {{-- The Modal --}}
                 <div class="relative">
-                    <div class="relative bg-white rounded-md shadow">
+                    <div class="relative bg-white rounded-md shadow overflow-hidden">
                         <!-- Modal Header -->
                         <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                             <h1 class="text-sm sm:text-base font-semibold text-green-1100">
@@ -773,7 +773,7 @@
                             </h1>
 
                             {{-- Close Button --}}
-                            <button type="button" @click="$wire.resetConfirm(); deleteBeneficiaryModal = false;"
+                            <button type="button" @click="deleteBeneficiaryModal = false;"
                                 class="outline-none text-green-400 hover:bg-green-200 hover:text-green-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                 <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                     fill="none" viewBox="0 0 14 14">
@@ -797,20 +797,14 @@
                             </p>
 
                             <div class="flex items-center justify-center w-full gap-2">
-                                <div class="relative">
-                                    <input type="text" id="confirm_delete" wire:model.blur="confirm_delete"
-                                        autocomplete="off"
-                                        class="flex {{ $errors->has('confirm_delete') ? 'border-red-300 focus:border-red-500 bg-red-100 text-red-900 placeholder-red-500 focus:ring-0' : 'text-green-1100 border-green-300 bg-green-50 focus:border-green-500 focus:ring-0' }} rounded outline-none border p-2.5 text-sm w-full select-all duration-200 ease-in-out"
-                                        placeholder="Type CONFIRM to continue">
-                                    @error('confirm_delete')
-                                        <p class="absolute top-full left-0 text-xs mt-1 text-red-700">
-                                            {{ $message }}
-                                        </p>
-                                    @enderror
-                                </div>
+                                <button type="button"
+                                    class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-green-700 hover:border-transparent active:border-transparent hover:bg-green-800 active:bg-green-900 text-green-700 hover:text-green-50 active:text-green-50"
+                                    @click="deleteBeneficiaryModal = false;">
+                                    CANCEL
+                                </button>
                                 <button type="button"
                                     class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50"
-                                    @click="$wire.deleteBeneficiary();">
+                                    @click="$wire.deleteBeneficiary(); deleteBeneficiaryModal = false;">
                                     CONFIRM
                                 </button>
                             </div>

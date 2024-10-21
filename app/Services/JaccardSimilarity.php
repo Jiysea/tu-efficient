@@ -103,13 +103,9 @@ class JaccardSimilarity
                 "\\"
             ];
 
-            # It will keep looping until there is no `.` left on the $name
-            while (true) {
-                if (strpos($name, '.') === 0) {
-                    $name = substr($name, 1);
-                } else {
-                    break;
-                }
+            # It will keep looping until there is no more than 1 `.` left on the $name
+            while (substr_count($name, '.') > 1) {
+                $name = rtrim($name, '.') . '.';
             }
 
             # Replace all illegal characters with nothing, and also replace all numbers with nothing
@@ -276,7 +272,7 @@ class JaccardSimilarity
 
         if ($extension_name && $extension_name !== '-' && $extension_name !== '' && !is_null($extension_name)) {
             $extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $extension_name)));
-            $filteredInputString .= ' ' . self::filterIllegalCharacters($extension_name);
+            $filteredInputString .= ' ' . self::filterIllegalCharacters($extension_name, true);
         } else {
             $extension_name = null;
         }
@@ -311,7 +307,6 @@ class JaccardSimilarity
 
                 # then check if it goes over the Threshold
                 if ($coEfficient >= floatval($threshold)) {
-
                     $isPerfectDuplicate = false;
                     $identity_image_file_path = null;
                     $reason_image_file_path = null;

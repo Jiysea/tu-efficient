@@ -1064,7 +1064,7 @@
                                     @if ($civil_status === 'Single') disabled @endif
                                     class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                             
-                            @if ($civil_status === 'Married') {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}
+                            @if ($civil_status === 'Married') {{ $errors->has('spouse_last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}
                             @else
                             bg-gray-200 border-gray-300 text-gray-500 @endif"
                                     placeholder="Type spouse last name">

@@ -55,8 +55,6 @@ class ViewProject extends Component
     public $total_slots;
     #[Validate]
     public $days_of_work;
-    #[Validate]
-    public $password;
 
     # Runs real-time depending on wire:model suffix
     public function rules()
@@ -124,14 +122,6 @@ class ViewProject extends Component
             ],
             'total_slots' => 'required|integer|min:1',
             'days_of_work' => 'required|integer|min:1',
-            'password' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if (!Hash::check($value, Auth::user()->password)) {
-                        $fail('Wrong password.');
-                    }
-                },
-            ]
         ];
     }
 
@@ -153,7 +143,6 @@ class ViewProject extends Component
             'total_slots.min' => 'Total Slots should be > 0.',
             'days_of_work.integer' => 'Days should be a number.',
             'days_of_work.min' => 'Days should be > 0.',
-            'password.required' => 'This field is required.',
         ];
     }
 
@@ -319,7 +308,6 @@ class ViewProject extends Component
 
     public function deleteProject()
     {
-        $this->validateOnly('password');
         $project = Implementation::find(decrypt($this->passedProjectId));
         $this->authorize('delete-implementation-focal', $project);
         $project->delete();

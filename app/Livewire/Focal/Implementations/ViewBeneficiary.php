@@ -8,6 +8,7 @@ use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
+use App\Services\GenerateActivityLogs;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Auth;
@@ -726,27 +727,27 @@ class ViewBeneficiary extends Component
 
             if ($this->projectInformation->approval_status === 'approved') {
 
-                # Archive their credentials first
-                foreach ($credentials as $credential) {
-                    Archive::create([
-                        'last_id' => $credential->id,
-                        'source_table' => 'credentials',
-                        'data' => $credential->toJson(),
-                    ]);
-                    $credential->delete();
-                }
+                // # Archive their credentials first
+                // foreach ($credentials as $credential) {
+                //     Archive::create([
+                //         'last_id' => $credential->id,
+                //         'source_table' => 'credentials',
+                //         'data' => $credential->toJson(),
+                //     ]);
+                //     $credential->delete();
+                // }
 
-                # then archive the Beneficiary record
-                Archive::create([
-                    'last_id' => $beneficiary->id,
-                    'source_table' => 'beneficiaries',
-                    'data' => $beneficiary->toJson(),
-                ]);
-                $beneficiary->delete();
+                // # then archive the Beneficiary record
+                // Archive::create([
+                //     'last_id' => $beneficiary->id,
+                //     'source_table' => 'beneficiaries',
+                //     'data' => $beneficiary->toJson(),
+                // ]);
+                // $beneficiary->delete();
 
-                $this->resetViewBeneficiary();
-                $this->js('viewBeneficiaryModal = false;');
-                $this->dispatch('archive-beneficiary');
+                // $this->resetViewBeneficiary();
+                // $this->js('viewBeneficiaryModal = false;');
+                // $this->dispatch('archive-beneficiary');
             }
 
             # otherwise, we could just delete it.
@@ -757,7 +758,10 @@ class ViewBeneficiary extends Component
                     }
                     $credential->delete();
                 }
+                $old = $beneficiary;
                 $beneficiary->delete();
+
+                GenerateActivityLogs::set_delete_beneficiary_log(Auth::id(), $old, $this->projectInformation->project_num, $this->projectInformation->batch_num);
 
                 $this->resetViewBeneficiary();
                 $this->js('viewBeneficiaryModal = false;');

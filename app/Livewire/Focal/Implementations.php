@@ -41,7 +41,6 @@ class Implementations extends Component
     public $passedBeneficiaryId;
     public $addBeneficiariesModal = false;
     public $viewBeneficiaryModal = false;
-
     public $importFileModal = false;
 
     # ------------------------------------------
@@ -485,25 +484,25 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
-    #[On('import-success-beneficiaries')]
-    public function importSuccessBeneficiaries($count)
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
+    // #[On('import-success-beneficiaries')]
+    // public function importSuccessBeneficiaries($count)
+    // {
+    //     $dateTimeFromEnd = $this->end;
+    //     $value = substr($dateTimeFromEnd, 0, 10);
 
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
+    //     $choosenDate = date('Y-m-d', strtotime($value));
+    //     $currentTime = date('H:i:s', strtotime(now()));
+    //     $this->end = $choosenDate . ' ' . $currentTime;
 
-        $this->beneficiaryId = null;
+    //     $this->beneficiaryId = null;
 
-        $this->selectedBeneficiaryRow = -1;
+    //     $this->selectedBeneficiaryRow = -1;
 
-        $this->showAlert = true;
-        $this->alertMessage = 'Imported ' . $count . ' beneficiaries to the database.';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
+    //     $this->showAlert = true;
+    //     $this->alertMessage = 'Imported ' . $count . ' beneficiaries to the database.';
+    //     $this->dispatch('show-alert');
+    //     $this->dispatch('init-reload')->self();
+    // }
 
     #[On('edit-beneficiary')]
     public function editBeneficiary()
@@ -587,6 +586,24 @@ class Implementations extends Component
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
         $this->viewBeneficiaryModal = false;
+    }
+
+    #[On('finished-importing')]
+    public function finishedImporting()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        if (!$this->importFileModal) {
+            $this->showAlert = true;
+            $this->alertMessage = 'Finished processing your import. Head to the Import tab.';
+            $this->dispatch('show-alert');
+        }
+        $this->dispatch('init-reload')->self();
     }
 
     public function mount()

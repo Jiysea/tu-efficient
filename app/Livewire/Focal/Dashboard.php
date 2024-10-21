@@ -294,6 +294,9 @@ class Dashboard extends Component
 
     public function resetExport()
     {
+        $this->reset('defaultExportStart', 'defaultExportEnd', 'export_start', 'export_end');
+        $this->resetValidation(['defaultExportStart', 'defaultExportEnd', 'exportImplementationId']);
+
         if ($this->exportImplementations->isEmpty()) {
             $this->exportImplementationId = null;
             $this->currentExportImplementation = 'None';
@@ -302,8 +305,6 @@ class Dashboard extends Component
             $this->currentExportImplementation = $this->exportImplementations[0]->project_num;
         }
 
-        $this->reset('defaultExportStart', 'defaultExportEnd');
-        $this->resetValidation(['defaultExportStart', 'defaultExportEnd', 'exportImplementationId']);
     }
 
     #[On('start-change')]
@@ -527,6 +528,14 @@ class Dashboard extends Component
             $choosenDate = date('Y-m-d', strtotime($date));
             $currentTime = date('H:i:s', strtotime(now()));
             $this->export_start = $choosenDate . ' ' . $currentTime;
+
+            if ($this->exportImplementations->isEmpty()) {
+                $this->exportImplementationId = null;
+                $this->currentExportImplementation = 'None';
+            } else {
+                $this->exportImplementationId = encrypt($this->exportImplementations[0]->id);
+                $this->currentExportImplementation = $this->exportImplementations[0]->project_num;
+            }
         }
 
         if ($prop === 'defaultExportEnd') {
@@ -535,6 +544,14 @@ class Dashboard extends Component
             $choosenDate = date('Y-m-d', strtotime($date));
             $currentTime = date('H:i:s', strtotime(now()));
             $this->export_end = $choosenDate . ' ' . $currentTime;
+
+            if ($this->exportImplementations->isEmpty()) {
+                $this->exportImplementationId = null;
+                $this->currentExportImplementation = 'None';
+            } else {
+                $this->exportImplementationId = encrypt($this->exportImplementations[0]->id);
+                $this->currentExportImplementation = $this->exportImplementations[0]->project_num;
+            }
         }
 
         if ($prop === 'exportChoice') {

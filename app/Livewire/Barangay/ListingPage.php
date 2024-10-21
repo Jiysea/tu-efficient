@@ -56,8 +56,6 @@ class ListingPage extends Component
     # --------------------------------------------------------------------------
 
     #[Validate]
-    public $confirm_delete;
-    #[Validate]
     public $confirm_submit;
 
     # --------------------------------------------------------------------------
@@ -66,14 +64,6 @@ class ListingPage extends Component
     public function rules()
     {
         return [
-            'confirm_delete' => [
-                'required',
-                function ($attr, $value, $fail) {
-                    if ($value !== 'CONFIRM') {
-                        $fail('Please type it correctly.');
-                    }
-                },
-            ],
             'confirm_submit' => [
                 'required',
                 function ($attr, $value, $fail) {
@@ -90,7 +80,6 @@ class ListingPage extends Component
     {
         return [
 
-            'confirm_delete.required' => 'This field is required.',
             'confirm_submit.required' => 'This field is required.',
 
         ];
@@ -365,7 +354,6 @@ class ListingPage extends Component
     public function deleteBeneficiary()
     {
         $this->authorizeBeforeExecuting();
-        $this->validateOnly('confirm_delete');
 
         DB::transaction(function () {
 
@@ -374,7 +362,9 @@ class ListingPage extends Component
                 ->get();
             $old = $beneficiary;
             foreach ($credentials as $credential) {
-                Storage::delete($credential->image_file_path);
+                if (isset($credential->image_file_path)) {
+                    Storage::delete($credential->image_file_path);
+                }
                 $credential->delete();
             }
             $beneficiary->delete();
@@ -389,9 +379,6 @@ class ListingPage extends Component
             $this->dispatch('init-reload')->self();
 
         });
-
-        $this->deleteBeneficiaryModal = false;
-        $this->resetConfirm();
     }
 
     public function submitBatch()
@@ -419,8 +406,8 @@ class ListingPage extends Component
 
     public function resetConfirm()
     {
-        $this->reset('confirm_delete', 'confirm_submit');
-        $this->resetValidation(['confirm_delete', 'confirm_submit']);
+        $this->reset('confirm_submit');
+        $this->resetValidation(['confirm_submit']);
     }
 
     public function mount()

@@ -25,7 +25,7 @@ class Summary
         ## Set Page Size to A4
         ## Fit to Width
         ## Not Fit to Height
-        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
         $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
         $sheet->getPageSetup()->setFitToWidth(1);
         $sheet->getPageSetup()->setFitToHeight(0);
@@ -37,9 +37,8 @@ class Summary
         if ($format === 'xlsx') {
             $sheet = self::generate_xlsx($sheet, $information, $data);
         } elseif ($format === 'csv') {
-
+            $sheet = self::generate_csv($sheet, $information);
         }
-
 
         return $spreadsheet;
     }
@@ -342,9 +341,10 @@ class Summary
         return $sheet;
     }
 
-    protected static function generate_csv(Worksheet $sheet)
+    protected static function generate_csv(Worksheet $sheet, array $information)
     {
-        $impColNames = [
+
+        $columnHeaders = [
             'Project Number',
             'Project Title',
             'Province',
@@ -357,7 +357,56 @@ class Summary
             'Purpose',
             'Date Created',
             'Last Updated',
+            'Overall (Male)',
+            'Overall (Female)',
+            'PWDs (Male)',
+            'PWDs (Female)',
+            'Senior Citizens (Male)',
+            'Senior Citizens (Female)',
+            'Barangay Name',
+            'Barangay Overall (Male)',
+            'Barangay Overall (Female)',
+            'Barangay PWDs (Male)',
+            'Barangay PWDs (Female)',
+            'Barangay Senior Citizens (Male)',
+            'Barangay Senior Citizens (Female)',
         ];
+
+        $sheet->setCellValue('A1', implode(';', $columnHeaders));
+
+        $curRow = 2;
+
+        $combinedData = [];
+        foreach ($information as $info) {
+
+
+            foreach ($info['barangays'] as $barangay) {
+
+                $combinedData = [];
+
+                foreach ($info['implementationInformation'] as $implementation) {
+                    $combinedData[] = $implementation;
+                }
+
+                foreach ($info['summaryCount'] as $value) {
+                    $combinedData[] = $value['male'];
+                    $combinedData[] = $value['female'];
+                }
+
+                $combinedData[] = $barangay['barangay_name'];
+                $combinedData[] = $barangay['total_male'];
+                $combinedData[] = $barangay['total_female'];
+                $combinedData[] = $barangay['total_pwd_male'];
+                $combinedData[] = $barangay['total_pwd_female'];
+                $combinedData[] = $barangay['total_senior_male'];
+                $combinedData[] = $barangay['total_senior_female'];
+
+                $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
+                $curRow++;
+            }
+        }
+
+        return $sheet;
     }
 
     protected static function compileData(array $data): array
@@ -387,8 +436,8 @@ class Summary
                 $implementation->total_slots,
                 $implementation->days_of_work,
                 $implementation->purpose,
-                $implementation->created_at,
-                $implementation->updated_at,
+                Carbon::parse($implementation->created_at)->format('F d, Y @ h:i:sa'),
+                Carbon::parse($implementation->updated_at)->format('F d, Y @ h:i:sa'),
             ];
 
             $impCount = Implementation::join('batches', 'batches.implementations_id', '=', 'implementations.id')

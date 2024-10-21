@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+use App\Models\Beneficiary;
 use App\Models\SystemsLog;
 
 class GenerateActivityLogs
@@ -64,9 +65,13 @@ class GenerateActivityLogs
 
     }
 
-    public static function set_delete_beneficiary_log(int $users_id, )
+    public static function set_delete_beneficiary_log(int $users_id, Beneficiary $beneficiary, string $project_num, string $batch_num)
     {
-
+        SystemsLog::factory()->create([
+            'users_id' => $users_id,
+            'log_timestamp' => now(),
+            'description' => 'Deleted ' . self::full_name($beneficiary) . ' from Project: ' . $project_num . ' -> Batch: ' . $batch_num . '',
+        ]);
     }
 
     public static function set_archive_beneficiary_log(int $users_id, )
@@ -108,5 +113,22 @@ class GenerateActivityLogs
             'log_timestamp' => now(),
             'description' => 'A barangay official deleted ' . $full_name . ' from the Brgy. ' . $barangay_name . ' list. (Project: ' . $project_num . ' / Batch: ' . $batch_num . ')',
         ]);
+    }
+
+    protected static function full_name($person)
+    {
+        $full_name = $person->first_name;
+
+        if ($person->middle_name) {
+            $full_name .= ' ' . $person->middle_name;
+        }
+
+        $full_name .= ' ' . $person->last_name;
+
+        if ($person->extension_name) {
+            $full_name .= ' ' . $person->extension_name;
+        }
+
+        return $full_name;
     }
 }
