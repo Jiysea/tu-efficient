@@ -161,7 +161,7 @@ class Implementations extends Component
     {
         $batches = Batch::whereHas('implementation', function ($q) {
             $q->where('users_id', Auth::id());
-            })->whereHas('beneficiary')
+        })->whereHas('beneficiary')
             ->when(isset($this->searchExportBatch) && !empty($this->searchExportBatch), function ($q) {
                 $q->where('batches.batch_num', 'LIKE', '%' . $this->searchExportBatch . '%')
                     ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchExportBatch . '%');
@@ -394,6 +394,17 @@ class Implementations extends Component
         }
     }
 
+    #[Computed]
+    public function specialCasesCount()
+    {
+        $beneficiaries = Implementation::where('implementations.users_id', Auth::id())
+            ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
+            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('batches.id', decrypt($this->batchId))
+            ->where('beneficiary_type', 'special case')
+            ->count();
+        return $beneficiaries;
+    }
     public function checkImplementationTotalSlots()
     {
         $focalUserId = auth()->id();

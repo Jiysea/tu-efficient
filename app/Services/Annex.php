@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Implementation;
 use Carbon\Carbon;
@@ -60,6 +61,14 @@ class Annex
         return $spreadsheet;
     }
 
+    protected static function fetchBeneficiaries(Batch $batch)
+    {
+        $beneficiaries = Beneficiary::where('batches_id', $batch->id)
+            ->orderBy('last_name', 'asc')
+            ->get();
+        return $beneficiaries;
+    }
+
     protected static function annex_d(Worksheet $sheet, mixed $batch, string $exportFormat)
     {
 
@@ -84,8 +93,7 @@ class Annex
             'SIGNATURE',
         ];
 
-        $beneficiaries = Beneficiary::where('batches_id', $batch->id)
-            ->get();
+        $beneficiaries = self::fetchBeneficiaries($batch);
 
         if ($exportFormat === 'xlsx') {
 
@@ -259,8 +267,7 @@ class Annex
             'SIGNATURE',
         ];
 
-        $beneficiaries = Beneficiary::where('batches_id', $batch->id)
-            ->get();
+        $beneficiaries = self::fetchBeneficiaries($batch);
 
         if ($exportFormat === 'xlsx') {
 
@@ -386,8 +393,7 @@ class Annex
         $sheet->getPageSetup()->setFitToWidth(1);
         $sheet->getPageSetup()->setFitToHeight(0);
 
-        $beneficiaries = Beneficiary::where('batches_id', $batch->id)
-            ->get();
+        $beneficiaries = self::fetchBeneficiaries($batch);
         $implementation = Implementation::whereHas('batch', function ($q) use ($batch) {
             $q->where('batches.implementations_id', $batch->implementations_id);
         })
@@ -503,8 +509,7 @@ class Annex
         $sheet->getPageSetup()->setFitToWidth(1);
         $sheet->getPageSetup()->setFitToHeight(0);
 
-        $beneficiaries = Beneficiary::where('batches_id', $batch->id)
-            ->get();
+        $beneficiaries = self::fetchBeneficiaries($batch);
         $implementation = Implementation::whereHas('batch', function ($q) use ($batch) {
             $q->where('batches.implementations_id', $batch->implementations_id);
         })
@@ -862,8 +867,7 @@ class Annex
         $sheet->getPageSetup()->setFitToWidth(1);
         $sheet->getPageSetup()->setFitToHeight(0);
 
-        $beneficiaries = Beneficiary::where('batches_id', $batch->id)
-            ->get();
+        $beneficiaries = self::fetchBeneficiaries($batch);
         $implementation = Implementation::whereHas('batch', function ($q) use ($batch) {
             $q->where('batches.implementations_id', $batch->implementations_id);
         })
