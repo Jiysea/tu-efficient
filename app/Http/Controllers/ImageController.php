@@ -34,6 +34,6 @@ class ImageController extends Controller
             return response()->file($path);
         }
 
-        return abort(403, 'Unauthorized Access');
+        abort(403, 'Unauthorized Access');
     }
 }
