@@ -149,10 +149,9 @@ class ViewProject extends Component
     #[Computed]
     public function implementation()
     {
-        if ($this->passedProjectId) {
-            $implementation = Implementation::find(decrypt($this->passedProjectId));
-            return $implementation;
-        }
+        $implementation = Implementation::find($this->passedProjectId ? decrypt($this->passedProjectId) : null);
+        return $implementation;
+
     }
 
     # Gets all the provinces according to the authenticated user's (focal) regional office

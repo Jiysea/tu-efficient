@@ -540,7 +540,7 @@ class ViewBatch extends Component
     public function implementation()
     {
         if ($this->passedBatchId) {
-            $implementation = Implementation::find($this->batch->implementations_id);
+            $implementation = Implementation::find($this->batch?->implementations_id);
             return $implementation;
         }
     }
@@ -548,10 +548,8 @@ class ViewBatch extends Component
     #[Computed]
     public function batch()
     {
-        if ($this->passedBatchId) {
-            $batch = Batch::find(decrypt($this->passedBatchId));
-            return $batch;
-        }
+        $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        return $batch;
     }
 
     #[Computed]
@@ -662,7 +660,7 @@ class ViewBatch extends Component
         # View Batch Modal
         $this->checkEmpty();
 
-        if ($this->passedBatchId) {
+        if ($this->batch) {
             $this->liveUpdateRemainingSlots();
         }
 

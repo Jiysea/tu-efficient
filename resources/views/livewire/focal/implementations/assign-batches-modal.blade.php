@@ -85,13 +85,18 @@
                             </div>
 
                             {{-- Batch Number --}}
-                            <div class="relative col-span-5 sm:col-span-2 mb-4">
-                                <label for="batch_num" class="block mb-1  font-medium text-indigo-1100 ">Batch
-                                    Number <span class="text-red-700 font-normal text-xs">*</span><span
-                                        class="text-gray-500 ms-2">prefix:
-                                        {{ substr($batchNumPrefix ?? config('settings.batch_number_prefix'), 0, strlen($batchNumPrefix ?? config('settings.batch_number_prefix')) - 1) }}</span></label>
-                                <input type="number" id="batch_num" wire:model.blur="batch_num" autocomplete="off"
-                                    class="text-xs {{ $errors->has('batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full p-2.5 duration-200 ease-in-out"
+                            <div class="relative flex flex-col col-span-5 sm:col-span-2 mb-4">
+                                <label for="batch_num"
+                                    class="relative flex items-center justify-between mb-1 font-medium text-indigo-1100 ">Batch
+                                    Number
+                                    <span
+                                        class="absolute -z-0 -top-1 right-0 bg-indigo-100 font-medium text-indigo-700 rounded px-2 pt-1 pb-2">prefix:
+                                        <strong>{{ substr($batchNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($batchNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong>
+                                    </span>
+                                </label>
+                                <input disabled type="number" id="batch_num" wire:model.blur="batch_num"
+                                    autocomplete="off"
+                                    class="text-xs z-10 disabled:bg-gray-50 disabled:placeholder-gray-700 disabled:text-gray-700 disabled:border-gray-300 {{ $errors->has('batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border block rounded w-full p-2.5 duration-200 ease-in-out"
                                     placeholder="Type batch number">
                                 @error('batch_num')
                                     <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">

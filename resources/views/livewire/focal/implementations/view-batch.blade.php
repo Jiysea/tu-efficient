@@ -157,7 +157,7 @@
                                             Barangay
                                         </p>
                                         <span
-                                            class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch->barangay_name }}</span>
+                                            class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->barangay_name }}</span>
                                     @endif
                                 </div>
 
@@ -409,7 +409,7 @@
                                         Batch Number
                                     </p>
                                     <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch->batch_num }}</span>
+                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->batch_num }}</span>
                                 </div>
 
                                 {{-- City/Municipality OFF --}}
@@ -418,13 +418,13 @@
                                         City/Municipality
                                     </p>
                                     <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->implementation->city_municipality }}</span>
+                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->implementation?->city_municipality }}</span>
                                 </div>
 
                                 {{-- Edit/Delete Buttons OFF --}}
                                 <div x-data="{ deleteBatchModal: $wire.entangle('deleteBatchModal') }" class="flex justify-center items-center">
                                     <button type="button" wire:loading.attr="disabled" wire:target="toggleEditBatch"
-                                        @if ($this->batch->approval_status !== 'approved') wire:click.prevent="toggleEditBatch" @else disabled @endif
+                                        @if ($this->batch?->approval_status !== 'approved') wire:click.prevent="toggleEditBatch" @else disabled @endif
                                         class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm disabled:border disabled:cursor-not-allowed disabled:border-gray-500 disabled:bg-gray-100 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                         EDIT
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ms-2"
@@ -511,7 +511,9 @@
                                                             </button>
                                                             <button type="button"
                                                                 @click="$wire.deleteBatch(); deleteBatchModal = false;"
-                                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">CONFIRM</button>
+                                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                                                CONFIRM
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -526,7 +528,7 @@
                                         District
                                     </p>
                                     <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->implementation->district }}</span>
+                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->implementation?->district }}</span>
                                 </div>
 
                                 {{-- Barangay OFF --}}
@@ -535,7 +537,7 @@
                                         Barangay
                                     </p>
                                     <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch->barangay_name }}</span>
+                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->barangay_name }}</span>
                                 </div>
 
                                 {{-- Slots OFF --}}
@@ -544,7 +546,7 @@
                                         Alloted Slots
                                     </p>
                                     <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch->slots_allocated }}</span>
+                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->slots_allocated }}</span>
                                 </div>
 
                                 {{-- Assigned Coordinators OFF --}}
@@ -574,7 +576,7 @@
                                         </p>
                                         <span
                                             class="flex flex-1 ms-2 text-xs rounded px-2 py-1 bg-indigo-50 text-indigo-700 font-medium">
-                                            {{ date('M d, Y @ h:i:s a', strtotime($this->batch->created_at)) }}</span>
+                                            {{ date('M d, Y @ h:i:s a', strtotime($this->batch?->created_at)) }}</span>
                                     </div>
 
                                     <div class="flex flex-1 items-center justify-center">
@@ -583,7 +585,7 @@
                                         </p>
                                         <span
                                             class="flex flex-1 ms-2 text-xs rounded px-2 py-1 bg-indigo-50 text-indigo-700 font-medium">
-                                            {{ date('M d, Y @ h:i:s a', strtotime($this->batch->updated_at)) }}</span>
+                                            {{ date('M d, Y @ h:i:s a', strtotime($this->batch?->updated_at)) }}</span>
                                     </div>
                                 </div>
                             @endif

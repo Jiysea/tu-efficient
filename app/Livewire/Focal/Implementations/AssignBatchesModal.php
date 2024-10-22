@@ -138,6 +138,21 @@ class AssignBatchesModal extends Component
         ];
     }
 
+    protected function generateBatchNum()
+    {
+        $code = null;
+        do {
+            $code = '';
+            for ($a = 0; $a < 6; $a++) {
+                $code .= fake()->randomElement(['#']);
+            }
+
+            $this->batch_num = fake()->bothify($code);
+
+        } while (Batch::where('batch_num', $this->batchNumPrefix . $this->batch_num)->exists());
+
+    }
+
     # triggers when clicking the `ADD BATCH` button which adds the user input
     # to the temporary batch list table for saving later.
     public function addBatchRow()
@@ -518,6 +533,7 @@ class AssignBatchesModal extends Component
             'totalSlots',
         );
 
+        $this->generateBatchNum();
         $this->resetValidation();
     }
 
@@ -528,6 +544,7 @@ class AssignBatchesModal extends Component
             ->pluck('value', 'key');
         $this->batchNumPrefix = $settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
         $this->setCoordinator();
+        $this->generateBatchNum();
     }
 
     public function render()

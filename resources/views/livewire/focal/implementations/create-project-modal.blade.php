@@ -54,14 +54,15 @@
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
                             <label for="project_num"
                                 class="relative flex items-center justify-between mb-1 font-medium text-indigo-1100 ">Project
-                                Number <span class="text-red-700 font-normal text-xs">*</span>
+                                Number
                                 <span
                                     class="absolute -top-1 right-0 bg-indigo-100 font-medium text-indigo-700 rounded px-2 pt-1 pb-2">prefix:
                                     <strong>{{ substr($projectNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($projectNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong>
                                 </span>
                             </label>
-                            <input type="number" id="project_num" autocomplete="off" wire:model.blur="project_num"
-                                class="text-xs z-10 duration-200 {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
+                            <input disabled type="number" id="project_num" autocomplete="off"
+                                wire:model.blur="project_num"
+                                class="text-xs z-10 duration-200 disabled:bg-gray-50 disabled:placeholder-gray-700 disabled:text-gray-700 disabled:border-gray-300 {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
                                 placeholder="Type project number">
                             @error('project_num')
                                 <p class="text-red-500 z-10 text-xs mt-1">
@@ -198,14 +199,19 @@
 
                         {{-- Province --}}
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
-                            <label for="province" class="block mb-1 font-medium text-indigo-1100 ">Province</label>
-                            <select id="province" autocomplete="off" wire:model.live="province"
+                            {{-- <label for="province" class="block mb-1 font-medium text-indigo-1100 ">Province</label> --}}
+                            {{-- <select id="province" autocomplete="off" wire:model.live="province"
                                 class="text-xs duration-200 {{ $errors->has('province') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                                 @foreach ($this->provinces as $province)
                                     <option>{{ $province }}
                                     </option>
                                 @endforeach
-                            </select>
+                            </select> --}}
+                            <p class="block mb-1 font-medium text-indigo-1100 ">Province</p>
+                            <div
+                                class="text-xs border rounded block w-full p-2.5 bg-gray-50 border-gray-300 text-gray-700">
+                                {{ $province }}
+                            </div>
                             @error('province')
                                 <p class="text-red-500 z-10 text-xs mt-1">
                                     {{ $message }}</p>
@@ -214,15 +220,20 @@
 
                         {{-- City/Municipality --}}
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
-                            <label for="city_municipality" class="block mb-1 font-medium text-indigo-1100 ">
-                                City/Municipality</label>
-                            <select id="city_municipality" autocomplete="off" wire:model.live="city_municipality"
+                            {{-- <label for="city_municipality" class="block mb-1 font-medium text-indigo-1100 ">
+                                City/Municipality</label> --}}
+                            {{-- <select id="city_municipality" autocomplete="off" wire:model.live="city_municipality"
                                 wire:key="{{ $province }}"
                                 class="text-xs duration-200 {{ $errors->has('city_municipality') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                                 @foreach ($this->cities_municipalities as $city_municipality)
                                     <option>{{ $city_municipality }}</option>
                                 @endforeach
-                            </select>
+                            </select> --}}
+                            <p class="block mb-1 font-medium text-indigo-1100 ">City/Municipality</p>
+                            <div
+                                class="text-xs border rounded block w-full p-2.5 bg-gray-50 border-gray-300 text-gray-700">
+                                {{ $city_municipality }}
+                            </div>
                             @error('city_municipality')
                                 <p class="text-red-500 z-10 text-xs mt-1">
                                     {{ $message }}</p>
@@ -234,7 +245,7 @@
                             <label for="district" class="block mb-1  font-medium text-indigo-1100 ">District</label>
                             <select id="district" autocomplete="off" wire:model.live="district"
                                 wire:key="{{ $district }}"
-                                class="text-xs duration-200 {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
+                                class="text-xs duration-200 cursor-pointer {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                                 @foreach ($this->districts as $district)
                                     <option>{{ $district }}</option>
                                 @endforeach
@@ -250,7 +261,7 @@
                             <label for="purpose" class="block mb-1  font-medium text-indigo-1100 ">Purpose of
                                 Project <span class="text-red-700 font-normal text-xs">*</span></label>
                             <select id="purpose" autocomplete="off" wire:model.blur="purpose"
-                                class="text-xs duration-200 {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
+                                class="text-xs duration-200 cursor-pointer {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                                 <option value="">Select a purpose...</option>
                                 <option>DUE TO DISPLACEMENT/DISADVANTAGE</option>
                             </select>

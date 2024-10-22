@@ -723,8 +723,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none">
 
             {{-- The Modal --}}
-            <div class="w-full">
-                <div class="relative grid place-self-center w-full min-w-xl max-w-xl bg-white rounded-md shadow">
+            <div class="flex items-center justify-center w-full">
+                <div class="relative w-full min-w-xl max-w-xl bg-white rounded-md shadow">
                     <!-- Modal Header -->
                     <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                         <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
@@ -762,7 +762,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     <hr class="">
 
                     {{-- Modal body --}}
-                    <div class="w-full grid place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
+                    <div class="w-full pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
 
                         <div class="flex flex-col items-center justify-center w-full gap-4">
 
@@ -810,7 +810,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <div class="w-full flex flex-col justify-center gap-4">
                                 @if ($exportChoice === 'date_range')
                                     {{-- Date Range picker --}}
-                                    <div id="export-date-range" datepicker-orientation="top" date-rangepicker datepicker-autohide
+                                    <div id="export-date-range" datepicker-orientation="top" date-rangepicker
+                                        datepicker-autohide
                                         class="flex items-center gap-1 sm:gap-2 pb-4 text-xs text-indigo-1100">
 
                                         {{-- Start --}}

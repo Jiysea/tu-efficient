@@ -129,6 +129,29 @@ class CreateProjectModal extends Component
         ];
     }
 
+    protected function generateProjectNum()
+    {
+        $code = null;
+        do {
+            $code = '';
+            for ($a = 0; $a < 6; $a++) {
+                $code .= fake()->randomElement(['#']);
+            }
+
+            $this->project_num = fake()->bothify($code);
+
+        } while (Implementation::where('project_num', $this->projectNumPrefix . $this->project_num)->exists());
+
+    }
+
+    public function setLocationFields()
+    {
+        if (strtolower(Auth::user()->field_office) === 'davao city') {
+            $this->province = 'Davao del Sur';
+            $this->city_municipality = 'Davao City';
+        }
+    }
+
     # a livewire action executes after clicking the `Create Project` button
     public function saveProject()
     {
@@ -224,8 +247,11 @@ class CreateProjectModal extends Component
             'budget_amount',
             'total_slots',
             'days_of_work',
+            'minimum_wage',
             'isAutoComputeEnabled',
         );
+
+        $this->generateProjectNum();
 
         $this->resetValidation();
         $this->province = $this->provinces[0];
@@ -244,6 +270,9 @@ class CreateProjectModal extends Component
         $this->province = $this->provinces[0];
         $this->city_municipality = $this->cities_municipalities[0];
         $this->district = $this->districts[0];
+
+        $this->generateProjectNum();
+        $this->setLocationFields();
     }
 
     public function render()
