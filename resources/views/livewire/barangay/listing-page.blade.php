@@ -308,7 +308,8 @@
                                         @if (isset($identity) && !empty($identity))
                                             <button class="flex items-center justify-center rounded"
                                                 @click="$wire.viewCredential('identity');">
-                                                <img class="w-[90%]" src="{{ asset('storage/' . $identity) }}">
+                                                <img class="w-[90%]"
+                                                    src="{{ route('credentials.baranagay.show', ['filename' => $identity, 'access_code' => $this->accessCode ? decrypt($this->accessCode) : null]) }}">
                                             </button>
                                         @else
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-[50%]"
