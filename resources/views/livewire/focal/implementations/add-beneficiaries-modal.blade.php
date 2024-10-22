@@ -741,7 +741,9 @@
                         <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
                             <div class="flex items-center">
                                 <label for="dependent"
-                                    class="block mb-1 font-medium text-indigo-1100 ">Dependent</label>
+                                    class="block mb-1 font-medium text-indigo-1100 ">Dependent
+                                    <span class="text-red-700 font-normal text-xs">*</span>
+                                </label>
                                 <p class="block mb-1 ms-2 text-gray-500 ">(must be 18+ years old)</p>
                             </div>
                             <input type="text" id="dependent" autocomplete="off" wire:model.blur="dependent"

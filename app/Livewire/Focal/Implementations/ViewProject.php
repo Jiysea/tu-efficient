@@ -62,7 +62,6 @@ class ViewProject extends Component
         return [
             'project_num' => [
                 'required',
-                'integer',
                 function ($attribute, $value, $fail) {
                     // Check for uniqueness of the prefixed value in the database
                     $exists = DB::table('implementations')
@@ -138,7 +137,6 @@ class ViewProject extends Component
             'minimum_wage.required' => 'This field is required.',
             'total_slots.required' => 'This field is required.',
             'days_of_work.required' => 'This field is required.',
-            'project_num.integer' => 'Project Number should be a number.',
             'total_slots.integer' => 'Total Slots should be a number.',
             'total_slots.min' => 'Total Slots should be > 0.',
             'days_of_work.integer' => 'Days should be a number.',
@@ -203,7 +201,6 @@ class ViewProject extends Component
             [
                 'project_num' => [
                     'required',
-                    'integer',
                     function ($attribute, $value, $fail) {
                         // Check for uniqueness of the prefixed value in the database
                         $exists = DB::table('implementations')
@@ -274,7 +271,6 @@ class ViewProject extends Component
                 'minimum_wage.required' => 'This field is required.',
                 'total_slots.required' => 'This field is required.',
                 'days_of_work.required' => 'This field is required.',
-                'project_num.integer' => 'Project Number should be a number.',
                 'total_slots.integer' => 'Total Slots should be a number.',
                 'total_slots.min' => 'Total Slots should be > 0.',
                 'days_of_work.integer' => 'Days should be a number.',

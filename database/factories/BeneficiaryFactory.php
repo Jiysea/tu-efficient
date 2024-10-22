@@ -51,7 +51,6 @@ class BeneficiaryFactory extends Factory
             'Customer services',
         ]);
 
-
         return [
             'batches_id' => 1,
             'first_name' => $first_name,
@@ -1621,12 +1620,12 @@ class BeneficiaryFactory extends Factory
             $pickedFirstNames .= ' ' . $firstNames;
         }
 
-        return $pickedFirstNames;
+        return strtoupper($pickedFirstNames);
     }
 
     protected function getLastName()
     {
-        return fake()->randomElement([
+        $name = fake()->randomElement([
             'Abad',
             'Abalos',
             'Abdullah',
@@ -1915,11 +1914,12 @@ class BeneficiaryFactory extends Factory
             'Zamora',
             'Zapanta',
         ]);
+        return strtoupper($name);
     }
 
     protected function getMiddleName()
     {
-        return fake()->optional(0.85)->randomElement([
+        $name = fake()->optional(0.85)->randomElement([
             'Abad',
             'Abalos',
             'Abdullah',
@@ -2208,11 +2208,13 @@ class BeneficiaryFactory extends Factory
             'Zamora',
             'Zapanta',
         ]);
+        return $name ? strtoupper($name) : null;
     }
 
     protected function getSuffix()
     {
-        return fake()->optional(0.1)->randomElement(['I', 'II', 'III', 'IV', 'Sr.', 'Jr.']);
+        $name = fake()->optional(0.1)->randomElement(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'Sr', 'Jr']);
+        return $name ? strtoupper($name) : null;
     }
 
     protected function getOccupation()

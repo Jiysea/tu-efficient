@@ -277,6 +277,8 @@ class JaccardSimilarity
             $extension_name = null;
         }
 
+        $filteredInputString = strtoupper($filteredInputString);
+
         # fetch all the potential duplicating names from the database
         $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $middle_name, $extension_name);
 

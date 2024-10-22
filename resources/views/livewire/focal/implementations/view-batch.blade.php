@@ -48,21 +48,22 @@
                 {{-- Modal body --}}
                 @if ($passedBatchId)
                     <form wire:submit.prevent="editBatch" class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
                             {{-- Edit Mode is ON --}}
                             @if ($editMode)
 
                                 {{-- Batch Number --}}
-                                <div class="flex flex-1 flex-col relative mb-4">
-
-                                    <label for="view_batch_num" class="block mb-1  font-medium text-indigo-1100 ">Batch
-                                        Number <span class="text-red-700 font-normal text-xs">*</span>
-                                        <span class="text-gray-500 ms-2">prefix:
-                                            <strong>{{ substr($batchNumPrefix ?? config('settings.batch_number_prefix'), 0, strlen($batchNumPrefix ?? config('settings.batch_number_prefix')) - 1) }}</strong></span></label>
-                                    <input type="text" id="view_batch_num" autocomplete="off"
+                                <div class="relative flex flex-1 flex-col mb-4">
+                                    <label for="view_batch_num" class="flex items-center justify-between mb-1 font-medium text-indigo-1100 ">Batch
+                                        Number <span class="absolute -z-0 -top-1 right-0 bg-indigo-100 font-medium text-indigo-700 rounded px-2 pt-1 pb-2">prefix:
+                                            <strong>{{ substr($batchNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($batchNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong>
+                                        </span>
+                                    </label>
+                                    <input disabled type="text" id="view_batch_num" autocomplete="off"
                                         wire:model.blur="view_batch_num"
-                                        class="text-xs duration-200 {{ $errors->has('view_batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
+                                        class="text-xs z-10 duration-200 disabled:bg-gray-50 disabled:placeholder-gray-700 disabled:text-gray-700 disabled:border-gray-300 {{ $errors->has('view_batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
+
                                         placeholder="Type project number">
                                     @error('view_batch_num')
                                         <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
@@ -315,12 +316,12 @@
                                     </button>
 
                                     {{-- Toast Area --}}
-                                    <div class="flex flex-1 flex-col overflow-auto">
+                                    <div class="relative flex flex-1 flex-col overflow-auto">
                                         <p class="block mb-1 text-indigo-1100 font-medium">
                                             Assigned Coordinators
                                         </p>
                                         <span
-                                            class="flex flex-1 py-1 overflow-x-scroll rounded border border-indigo-300 scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                                            class="flex flex-1 py-1 overflow-x-scroll rounded border {{ $errors->has('view_assigned_coordinators') ? 'border-red-300 bg-red-50 scrollbar-track-red-50 scrollbar-thumb-red-700' : 'border-indigo-300 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700'}} scrollbar-thin">
 
                                             {{-- A Toast of Coordinators --}}
                                             @foreach ($view_assigned_coordinators as $key => $assignedCoordinator)
@@ -331,7 +332,7 @@
                                                     {{-- X button --}}
                                                     <button type="button"
                                                         wire:click="removeToastCoordinator({{ $key }})"
-                                                        class="ms-1 text-indigo-1100 hover:text-indigo-900 active:text-indigo-1000 duration-200 ease-in-out">
+                                                        class="ms-1 p-1 text-indigo-1100 hover:text-indigo-900 active:text-indigo-1000 duration-200 ease-in-out">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-2"
                                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                             height="400" viewBox="0, 0, 400,400">
@@ -348,6 +349,12 @@
                                             @endforeach
                                         </span>
                                     </div>
+                                     @error('view_assigned_coordinators')
+                                     <p class="text-red-500 absolute left-16 top-full z-10 mt-1 text-xs">
+                                         {{ $message }}
+                                     </p>
+                                     @enderror
+
                                 </div>
 
                                 {{-- Save & Cancel Buttons --}}

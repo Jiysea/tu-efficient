@@ -6,6 +6,8 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\UserSetting;
+use App\Services\Annex;
+use Carbon\Carbon;
 use Crypt;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,9 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 #[Layout('layouts.app')]
 #[Title('Implementations | TU-Efficient')]
@@ -24,6 +29,8 @@ class Implementations extends Component
     public $implementationId;
     #[Locked]
     public $batchId;
+    #[Locked]
+    public $exportBatchId;
     #[Locked]
     public $beneficiaryId;
 
@@ -42,6 +49,23 @@ class Implementations extends Component
     public $addBeneficiariesModal = false;
     public $viewBeneficiaryModal = false;
     public $importFileModal = false;
+    public $showExportModal = false;
+
+    # -----------------------------------------
+    public $defaultExportStart;
+    public $defaultExportEnd;
+    public $export_start;
+    public $export_end;
+    public $exportFormat = 'xlsx';
+    public array $exportType = [
+        'annex_e1' => true,
+        'annex_e2' => false,
+        'annex_j2' => false,
+        'annex_l' => false,
+        'annex_l_sign' => false,
+    ]; # annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+    public $currentExportBatch;
+    public $searchExportBatch;
 
     # ------------------------------------------
 
@@ -64,6 +88,111 @@ class Implementations extends Component
     public $defaultEnd;
 
     # ------------------------------------------
+
+    public function showExport()
+    {
+        $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
+
+        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
+        $choosenDate = date('Y-m-d', strtotime($date));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->export_start = $choosenDate . ' ' . $currentTime;
+
+        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
+        $choosenDate = date('Y-m-d', strtotime($date));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->export_end = $choosenDate . ' ' . $currentTime;
+
+        $this->showExportModal = true;
+    }
+
+    public function exportAnnex()
+    {
+        $this->validate([
+            'exportBatchId' => [
+                'required'
+            ],
+        ], [
+            'exportBatchId.required' => 'This field is required.'
+        ]);
+
+        $batch = $this->exportBatch;
+
+        $spreadsheet = new Spreadsheet();
+
+        # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+        $spreadsheet = Annex::export($spreadsheet, $batch, $this->exportType, $this->exportFormat);
+
+        $writer = null;
+        $fileName = null;
+
+        if ($this->exportFormat === 'xlsx') {
+            $writer = new Xlsx($spreadsheet);
+            $fileName = 'TUPAD Annex.xlsx';
+        } elseif ($this->exportFormat === 'csv') {
+            $writer = new Csv($spreadsheet);
+            $fileName = 'TUPAD Annex.csv';
+            $writer->setDelimiter(';');
+            $writer->setEnclosure('"');
+        }
+
+        $filePath = storage_path($fileName);
+        $writer->save($filePath);
+
+        # Download the file
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function selectExportBatchRow($encryptedId)
+    {
+        $this->exportBatchId = $encryptedId;
+    }
+
+    #[Computed]
+    public function exportBatch()
+    {
+        $batch = Batch::find($this->exportBatchId ? decrypt($this->exportBatchId) : null);
+        return $batch;
+    }
+
+    #[Computed]
+    public function exportBatches()
+    {
+        $batches = Batch::whereHas('implementation', function ($q) {
+            $q->where('users_id', Auth::id());
+            })->whereHas('beneficiary')
+            ->when(isset($this->searchExportBatch) && !empty($this->searchExportBatch), function ($q) {
+                $q->where('batches.batch_num', 'LIKE', '%' . $this->searchExportBatch . '%')
+                    ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchExportBatch . '%');
+            })
+            ->whereBetween('batches.created_at', [$this->export_start, $this->export_end])
+            ->latest('batches.updated_at')
+            ->select([
+                'batches.*'
+            ])
+            ->distinct()
+            ->get();
+
+        return $batches;
+    }
+
+    public function resetExport()
+    {
+        $this->reset('exportType', 'exportFormat');
+        $this->resetValidation(['exportBatchId']);
+
+        if ($this->exportBatches->isEmpty()) {
+            $this->exportBatchId = null;
+            $this->currentExportBatch = 'None';
+        } else {
+            $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+        }
+
+    }
+
+    # ------------------------------------------------------------------------------------------------------------------
 
     #[On('start-change')]
     public function setStartDate($value)
@@ -329,6 +458,41 @@ class Implementations extends Component
     {
         $this->beneficiaries_on_page += 15;
         $this->dispatch('init-reload')->self();
+    }
+
+    public function updated($prop)
+    {
+        if ($prop === 'defaultExportStart') {
+            $this->validateOnly('defaultExportStart');
+            $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
+            $choosenDate = date('Y-m-d', strtotime($date));
+            $currentTime = date('H:i:s', strtotime(now()));
+            $this->export_start = $choosenDate . ' ' . $currentTime;
+
+            if ($this->exportBatches->isEmpty()) {
+                $this->exportBatchId = null;
+                $this->currentExportBatch = 'None';
+            } else {
+                $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            }
+        }
+
+        if ($prop === 'defaultExportEnd') {
+            $this->validateOnly('defaultExportEnd');
+            $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
+            $choosenDate = date('Y-m-d', strtotime($date));
+            $currentTime = date('H:i:s', strtotime(now()));
+            $this->export_end = $choosenDate . ' ' . $currentTime;
+
+            if ($this->exportBatches->isEmpty()) {
+                $this->exportBatchId = null;
+                $this->currentExportBatch = 'None';
+            } else {
+                $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            }
+        }
     }
 
     #[On('create-project')]
@@ -621,8 +785,22 @@ class Implementations extends Component
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
         $this->end = date('Y-m-d H:i:s', strtotime(now()));
 
+        $this->export_start = $this->start;
+        $this->export_end = $this->end;
+
         $this->defaultStart = date('m/d/Y', strtotime($this->start));
         $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+
+        $this->defaultExportStart = $this->defaultStart;
+        $this->defaultExportEnd = $this->defaultEnd;
+
+        if ($this->exportBatches->isEmpty()) {
+            $this->exportBatchId = null;
+            $this->currentExportBatch = 'None';
+        } else {
+            $this->exportBatchId = encrypt($this->exportBatches[0]->id);
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+        }
     }
 
     public function render()

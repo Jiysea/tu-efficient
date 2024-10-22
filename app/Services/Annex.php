@@ -152,7 +152,8 @@ class Annex
                 # NO
                 $sheet->setCellValue([1, $curRow], $num);
                 # NAME
-                $sheet->setCellValue([2, $curRow], self::full_name($beneficiary));
+                $sheet->getStyle([2, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                $sheet->setCellValue([2, $curRow], self::full_last_first($beneficiary));
                 # ADDRESS
                 $sheet->getStyle([3, $curRow])->getFont()->setSize(sizeInPoints: 9);
                 $sheet->setCellValue([3, $curRow], self::address($beneficiary));
@@ -326,7 +327,8 @@ class Annex
                 # NO
                 $sheet->setCellValue([1, $curRow], $num);
                 # NAME
-                $sheet->setCellValue([2, $curRow], self::full_name($beneficiary));
+                $sheet->getStyle([2, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                $sheet->setCellValue([2, $curRow], self::full_last_first($beneficiary));
                 # ADDRESS
                 $sheet->getStyle([3, $curRow])->getFont()->setSize(sizeInPoints: 9);
                 $sheet->setCellValue([3, $curRow], self::address($beneficiary));
@@ -475,7 +477,8 @@ class Annex
                 # NO
                 $sheet->setCellValue([1, $curRow], $num);
                 # NAME
-                $sheet->setCellValue([2, $curRow], self::full_name($beneficiary));
+                $sheet->getStyle([2, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                $sheet->setCellValue([2, $curRow], self::full_last_first($beneficiary));
 
                 $num++;
                 $curRow++;
@@ -1202,6 +1205,23 @@ class Annex
 
         }
         return $sheet;
+    }
+
+    protected static function full_last_first($person)
+    {
+
+        $full_name = $person->last_name;
+        $full_name .= ', ' . $person->first_name;
+
+        if ($person->middle_name) {
+            $full_name .= ' ' . $person->middle_name;
+        }
+
+        if ($person->extension_name) {
+            $full_name .= ' ' . $person->extension_name;
+        }
+
+        return $full_name;
     }
 
     protected static function full_name($person)

@@ -8,7 +8,7 @@ class GenerateActivityLogs
 {
     public static function set_register_coordinator_log(int $users_id, string $full_name)
     {
-
+        
     }
 
     public static function set_register_partner_log(int $users_id, string $full_name)

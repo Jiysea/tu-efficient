@@ -185,6 +185,23 @@ class AddBeneficiariesModal extends Component
                     }
                 },
             ],
+            'dependent' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (strpbrk($value, $illegal)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    elseif (preg_match('~[0-9]+~', $value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+
+                },
+            ],
             'occupation' => [
                 # hard-coded since `required_unless` is messy with `$money($input)` x-mask
                 function ($attr, $value, $fail) {
@@ -234,6 +251,7 @@ class AddBeneficiariesModal extends Component
             'contact_num.required' => 'Contact number is required.',
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',
+            'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
 
@@ -277,14 +295,50 @@ class AddBeneficiariesModal extends Component
         $batch = Batch::find(decrypt($this->batchId));
         $implementation = Implementation::find($batch->implementations_id);
 
+        if (strtolower($this->middle_name) === 'n/a' || strtolower($this->middle_name) === 'none' || strtolower($this->middle_name) == '-' || empty($this->middle_name)) {
+            $this->middle_name = null;
+        }
+
+        if (strtolower($this->extension_name) === 'n/a' || strtolower($this->extension_name) === 'none' || strtolower($this->extension_name) == '-' || empty($this->extension_name)) {
+            $this->extension_name = null;
+        }
+
+        if (strtolower($this->e_payment_acc_num) === 'n/a' || strtolower($this->e_payment_acc_num) === 'none' || strtolower($this->e_payment_acc_num) == '-' || empty($this->e_payment_acc_num)) {
+            $this->e_payment_acc_num = null;
+        }
+
+        if (strtolower($this->occupation) === 'n/a' || strtolower($this->occupation) === 'none' || strtolower($this->occupation) == '-' || empty($this->occupation)) {
+            $this->occupation = null;
+        }
+
+        if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) === 'none' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
+            $this->skills_training = null;
+        }
+
+        if (strtolower($this->spouse_first_name) === 'n/a' || strtolower($this->spouse_first_name) === 'none' || strtolower($this->spouse_first_name) == '-' || empty($this->spouse_first_name)) {
+            $this->spouse_first_name = null;
+        }
+
+        if (strtolower($this->spouse_middle_name) === 'n/a' || strtolower($this->spouse_middle_name) === 'none' || strtolower($this->spouse_middle_name) == '-' || empty($this->spouse_middle_name)) {
+            $this->spouse_middle_name = null;
+        }
+
+        if (strtolower($this->spouse_last_name) === 'n/a' || strtolower($this->spouse_last_name) === 'none' || strtolower($this->spouse_last_name) == '-' || empty($this->spouse_last_name)) {
+            $this->spouse_last_name = null;
+        }
+
+        if (strtolower($this->spouse_extension_name) === 'n/a' || strtolower($this->spouse_extension_name) === 'none' || strtolower($this->spouse_extension_name) == '-' || empty($this->spouse_extension_name)) {
+            $this->spouse_extension_name = null;
+        }
+
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () use ($batch, $implementation) {
             $beneficiary = Beneficiary::create([
                 'batches_id' => decrypt($this->batchId),
-                'first_name' => $this->first_name,
-                'middle_name' => $this->middle_name ?? null,
-                'last_name' => $this->last_name,
-                'extension_name' => $this->extension_name ?? null,
+                'first_name' => strtoupper($this->first_name),
+                'middle_name' => $this->middle_name ? strtoupper($this->middle_name) : null,
+                'last_name' => strtoupper($this->last_name),
+                'extension_name' => $this->extension_name ? strtoupper($this->extension_name) : null,
                 'birthdate' => $this->birthdate,
                 'barangay_name' => $batch->barangay_name,
                 'contact_num' => $this->contact_num,
@@ -300,21 +354,21 @@ class AddBeneficiariesModal extends Component
                 'sex' => strtolower($this->sex),
                 'civil_status' => strtolower($this->civil_status),
                 'age' => $this->beneficiaryAge($this->birthdate),
-                'dependent' => $this->dependent ?? null,
+                'dependent' => strtoupper($this->dependent),
                 'self_employment' => strtolower($this->self_employment),
                 'skills_training' => $this->skills_training ?? null,
                 'is_pwd' => strtolower($this->is_pwd),
                 'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                'spouse_first_name' => $this->spouse_first_name,
-                'spouse_middle_name' => $this->spouse_middle_name,
-                'spouse_last_name' => $this->spouse_last_name,
-                'spouse_extension_name' => $this->spouse_extension_name,
+                'spouse_first_name' => $this->spouse_first_name ?? null,
+                'spouse_middle_name' => $this->spouse_middle_name ?? null,
+                'spouse_last_name' => $this->spouse_last_name ?? null,
+                'spouse_extension_name' => $this->spouse_extension_name ?? null,
             ]);
 
             $file = null;
 
             if ($this->image_file_path) {
-                $file = $this->image_file_path->store(path: 'credentials');
+                $file = $this->image_file_path->store('credentials');
             }
 
             Credential::create([
@@ -325,7 +379,7 @@ class AddBeneficiariesModal extends Component
             ]);
 
             if ($this->isPerfectDuplicate) {
-                $file = $this->reason_image_file_path->store(path: 'credentials');
+                $file = $this->reason_image_file_path->store('credentials');
                 Credential::create([
                     'beneficiaries_id' => $beneficiary->id,
                     'image_description' => $this->image_description,

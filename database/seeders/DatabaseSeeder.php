@@ -93,7 +93,6 @@ class DatabaseSeeder extends Seeder
         $settingsFocal = [
             'minimum_wage' => config('settings.minimum_wage'),
             'duplication_threshold' => config('settings.duplication_threshold'),
-            'extensive_matching' => config('settings.extensive_matching'),
             'project_number_prefix' => config('settings.project_number_prefix'),
             'batch_number_prefix' => config('settings.batch_number_prefix'),
         ];
@@ -101,7 +100,6 @@ class DatabaseSeeder extends Seeder
         $settingsCoordinator = [
             'minimum_wage' => config('settings.minimum_wage'),
             'duplication_threshold' => config('settings.duplication_threshold'),
-            'extensive_matching' => config('settings.extensive_matching'),
         ];
 
         foreach ($settingsFocal as $key => $setting) {
@@ -220,7 +218,6 @@ class DatabaseSeeder extends Seeder
                 'log_timestamp' => $batch->updated_at,
                 'description' => 'Created an access code for Batch ' . $code->access_code . '.',
             ]);
-
 
             $beneficiaries = Beneficiary::factory($batch->slots_allocated)->create([
                 'batches_id' => $batch->id,

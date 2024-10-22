@@ -53,7 +53,6 @@ class ViewBatch extends Component
             # View Batch Modal
             'view_batch_num' => [
                 'required',
-                'integer',
                 # Checks uniqueness from the `Database`
                 function ($attribute, $value, $fail) {
 

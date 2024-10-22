@@ -47,7 +47,6 @@ class CreateProjectModal extends Component
         return [
             'project_num' => [
                 'required',
-                'integer',
                 function ($attribute, $value, $fail) {
                     # Check for uniqueness of the prefixed value in the database
                     $exists = DB::table('implementations')
