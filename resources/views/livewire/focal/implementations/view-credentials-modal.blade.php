@@ -231,8 +231,9 @@
                                     {{-- Modal Body --}}
                                     <div
                                         class="relative flex items-center justify-center col-span-1 w-[50%] aspect-square rounded">
-                                        <img src="{{ asset('storage/' . $this->credentials->image_file_path) }}"
-                                            class="size-[95%] rounded" alt="ID Picture">
+                                       @if($this->credentials->image_file_path)
+                                       <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}" class="size-[95%] rounded" alt="ID Picture">
+                                       @endif
                                     </div>
                                 </div>
                             </div>

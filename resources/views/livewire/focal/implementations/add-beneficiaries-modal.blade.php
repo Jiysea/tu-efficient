@@ -747,8 +747,13 @@
                                 <p class="block mb-1 ms-2 text-gray-500 ">(must be 18+ years old)</p>
                             </div>
                             <input type="text" id="dependent" autocomplete="off" wire:model.blur="dependent"
-                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600"
+                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{$errors->has('dependent') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600'}}"
                                 placeholder="Type dependent's name">
+                            @error('dependent')
+                                <p class="text-red-500 absolute left-0 top-full text-xs">{{ $message }}
+                                </p>
+                            @enderror
+
                         </div>
 
                         {{-- Interested in Wage Employment or Self-Employment --}}

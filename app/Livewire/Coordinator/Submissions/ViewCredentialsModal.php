@@ -22,7 +22,7 @@ class ViewCredentialsModal extends Component
     {
         if ($this->passedCredentialId) {
             $credentials = Credential::find(decrypt($this->passedCredentialId));
-
+            
             return $credentials;
         }
     }

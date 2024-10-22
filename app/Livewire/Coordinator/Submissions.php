@@ -8,6 +8,7 @@ use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\UserSetting;
 use App\Services\Annex;
+use App\Services\GenerateActivityLogs;
 use Carbon\Carbon;
 use DB;
 use Hash;
@@ -231,7 +232,7 @@ class Submissions extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
         }
 
     }
@@ -395,7 +396,11 @@ class Submissions extends Component
             ->when(!empty($submissionStatuses), function ($q) use ($submissionStatuses) {
                 $q->whereIn('batches.submission_status', $submissionStatuses);
             })
-            ->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
+            ->when(isset($this->searchBatches) && !empty($this->searchBatches), function ($q) {
+                $q->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
+                    ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchBatches . '%');
+            })
+           
             ->select(
                 [
                     'batches.id',
@@ -446,6 +451,7 @@ class Submissions extends Component
                 }
 
             })
+            ->orderBy('beneficiaries.last_name', 'asc')
             ->select([
                 'beneficiaries.*',
             ])
@@ -628,24 +634,18 @@ class Submissions extends Component
     }
 
     #[Computed]
-    public function getFullName($key)
+    public function full_last_first($person)
     {
-        $full_name = null;
 
-        $first = $this->beneficiaries[$key]['first_name'];
-        $middle = $this->beneficiaries[$key]['middle_name'];
-        $last = $this->beneficiaries[$key]['last_name'];
-        $ext = $this->beneficiaries[$key]['extension_name'];
+        $full_name = $person->last_name;
+        $full_name .= ', ' . $person->first_name;
 
-        $full_name = $first;
-        if ($middle) {
-            $full_name .= ' ' . $middle;
+        if ($person->middle_name) {
+            $full_name .= ' ' . $person->middle_name;
         }
 
-        $full_name .= ' ' . $last;
-
-        if ($ext) {
-            $full_name .= ' ' . $ext;
+        if ($person->extension_name) {
+            $full_name .= ' ' . $person->extension_name;
         }
 
         return $full_name;
@@ -657,6 +657,28 @@ class Submissions extends Component
         $batch = Batch::find(decrypt($this->batchId));
         $this->authorize('approve-submission-coordinator', $batch);
 
+        $checkSlots = Batch::whereHas('beneficiary')
+            ->where('batches.id', $batch->id)
+            ->exists();
+
+        if($batch->approval_status !== 'approved' && ($batch->submission_status === 'submitted' || $batch->submission_status === 'unopened') && $checkSlots) {
+
+            $batch->approval_status = 'approved';
+            $batch->submission_status = 'submitted';
+            $batch->save();
+
+            $this->showAlert = true;
+            $this->alertMessage = 'Successfully approved the batch assignment!';
+            $this->dispatch('show-alert');
+
+            GenerateActivityLogs::set_approve_batch(Auth::id(), $batch);
+        } else {
+            $this->showAlert = true;
+            $this->alertMessage = 'Cannot approve batch assignment when it is not submitted';
+            $this->dispatch('show-alert');
+        }
+        
+        $this->dispatch('init-reload')->self();
         $this->approveSubmissionModal = false;
         unset($this->batches);
     }
@@ -768,7 +790,7 @@ class Submissions extends Component
                 $this->currentExportBatch = 'None';
             } else {
                 $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
             }
         }
 
@@ -784,7 +806,7 @@ class Submissions extends Component
                 $this->currentExportBatch = 'None';
             } else {
                 $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
             }
         }
     }
@@ -838,7 +860,7 @@ class Submissions extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
         }
 
         $settings = UserSetting::where('users_id', Auth::id())

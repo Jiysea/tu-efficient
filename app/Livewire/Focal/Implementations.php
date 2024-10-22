@@ -187,7 +187,7 @@ class Implementations extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
         }
 
     }
@@ -381,6 +381,7 @@ class Implementations extends Component
                         });
                     }
                 })
+                ->orderBy('beneficiaries.last_name', 'asc')
                 ->select(
                     [
                         'beneficiaries.*'
@@ -474,7 +475,7 @@ class Implementations extends Component
                 $this->currentExportBatch = 'None';
             } else {
                 $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
             }
         }
 
@@ -490,7 +491,7 @@ class Implementations extends Component
                 $this->currentExportBatch = 'None';
             } else {
                 $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-                $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+                $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
             }
         }
     }
@@ -799,7 +800,7 @@ class Implementations extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num;
+            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
         }
     }
 

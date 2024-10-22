@@ -63,7 +63,7 @@
                                             </p>
                                         </div>
 
-                                        {{-- ID Picture --}}
+                                        {{-- Certificate or Something --}}
                                         @if ($this->credentials->image_file_path)
                                             <button type="button" @click="viewImageModal = !viewImageModal;"
                                                 class="relative flex items-center justify-center col-span-1 bg-blue-50 w-[90%] aspect-square rounded overflow-hidden group">
@@ -231,8 +231,9 @@
                                     {{-- Modal Body --}}
                                     <div
                                         class="relative flex items-center justify-center col-span-1 w-[50%] aspect-square rounded">
-                                        <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}"
-                                            class="size-[95%] rounded" alt="ID Picture">
+                                        @if($this->credentials->image_file_path)
+                                            <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}" class="size-[95%] rounded" alt="ID Picture">
+                                        @endif
                                     </div>
                                 </div>
                             </div>

@@ -562,7 +562,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $key + 1 }}
                                             </th>
                                             <td class="px-2 py-2">
-                                                {{ $this->getFullName($key) }}
+                                                {{ $this->full_last_first($beneficiary) }}
                                             </td>
                                             <td class="px-2 py-2 text-center">
                                                 {{ $beneficiary->birthdate }}

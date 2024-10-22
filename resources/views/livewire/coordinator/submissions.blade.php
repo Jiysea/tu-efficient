@@ -108,7 +108,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </button>
 
                         {{-- Approve Button --}}
-                        <button type="button" @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0 && $this->batch->approval_status !== 'approved') @click="approveSubmissionModal = !approveSubmissionModal;" @else disabled @endif
+                        <button type="button" @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] === $this->beneficiarySlots['slots_allocated'] && $this->batch->approval_status !== 'approved') @click="approveSubmissionModal = !approveSubmissionModal;" @else disabled @endif
+
                             class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-green-50 bg-green-700 hover:bg-green-800 active:bg-green-900">
                             MARK AS APPROVED
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
@@ -142,7 +143,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <h1 class="font-bold text-base">Beneficiaries</h1>
 
                                     {{-- Beneficiary Count --}}
-                                    <span class="{{ $this->batches->isEmpty() || $this->beneficiaries->isEmpty() ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' }} rounded px-2 py-1 text-xs font-medium">
+                                    <span class="rounded px-2 py-1 text-xs font-medium"
+                                        :class="{
+                                            'bg-green-200 text-green-900': {{json_encode($this->beneficiarySlots['num_of_beneficiaries'] === $this->beneficiarySlots['slots_allocated'])}},
+                                            'bg-amber-100 text-amber-700': {{json_encode($this->beneficiarySlots['num_of_beneficiaries'] > 0 && $this->beneficiarySlots['num_of_beneficiaries'] < $this->beneficiarySlots['slots_allocated'])}},
+                                            'bg-red-100 text-red-700': {{json_encode($this->batches->isEmpty() || $this->beneficiaries->isEmpty())}},
+                                        }">
                                         {{ $this->batches->isNotEmpty() ? $this->beneficiarySlots['num_of_beneficiaries'] . ' / ' . $this->beneficiarySlots['slots_allocated'] : 'N / A' }}</span>
                                 </div>
 
@@ -415,11 +421,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                 {{-- Barangay --}}
                                 <div class="flex flex-1 items-center gap-2 {{$this->batch ? 'text-blue-900' : 'text-red-900'}} ">
-                                    <h1 class="font-bold text-xs">{{ $this->batch ? 'Barangay ' . $this->batch->barangay_name : 'No Batch Choosen'}}</h1>
+                                    <span class="font-medium text-xs rounded px-2 py-1 bg-blue-100 text-blue-700">{{ $this->batch ? 'Barangay ' . $this->batch->barangay_name : 'No Batch Choosen'}}</span>
                                 </div>
-
                             </div>
-
 
                             {{-- 3rd Row --}}
                             <div class="flex flex-1 w-full items-center">
@@ -476,7 +480,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                         {{-- Beneficiaries Table --}}
                         @if ($this->beneficiaries->isNotEmpty())
-                        <div id="beneficiaries-table" class="relative h-[76.25vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
+                        <div id="beneficiaries-table" class="relative h-[72.9vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
                             <table class="relative w-full text-sm text-left text-blue-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
                                     <tr>
@@ -517,7 +521,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             {{ $key + 1 }}
                                         </th>
                                         <td class="p-2">
-                                            {{ $this->getFullName($key) }}
+                                            {{ $this->full_last_first($beneficiary) }}
+
                                         </td>
                                         <td class="p-2 text-center uppercase">
                                             {{ $beneficiary->sex }}
@@ -536,7 +541,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </table>
                         </div>
                         @else
-                        <div class="relative h-[76.25vh] bg-white px-4 pb-4 pt-2 min-w-full flex items-center justify-center">
+                        <div class="relative h-[72.9vh] bg-white px-4 pb-4 pt-2 min-w-full flex items-center justify-center">
                             <div class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                 @if (isset($searchBeneficiaries) && !empty($searchBeneficiaries))
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-20 mb-4 text-blue-900 opacity-65" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
@@ -1309,7 +1314,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                         @if ($this->exportBatches->isNotEmpty())
                                                         @foreach ($this->exportBatches as $key => $batch)
                                                         <li wire:key={{ $key }}>
-                                                            <button type="button" wire:click="selectExportBatchRow('{{ encrypt($batch->id) }}')" @click="show= !show; currentBatch = '{{ $batch->batch_num }}'" wire:loading.attr="disabled" aria-label="{{ __('Batch') }}" class="w-full whitespace-nowrap flex items-center gap-2 px-4 py-2 text-blue-1100 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out">
+                                                            <button type="button" wire:click="selectExportBatchRow('{{ encrypt($batch->id) }}')" @click="show= !show; currentBatch = '{{ $batch->batch_num . ' / ' . $batch->barangay_name }}'" wire:loading.attr="disabled" aria-label="{{ __('Batch') }}" class="w-full whitespace-nowrap flex items-center gap-2 px-4 py-2 text-blue-1100 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out">
+
                                                                 <span class="text-left">{{ $batch->batch_num }}
                                                                     / {{ $batch->barangay_name }}
                                                                 </span>

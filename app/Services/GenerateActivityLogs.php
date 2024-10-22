@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\SystemsLog;
 
@@ -77,6 +78,17 @@ class GenerateActivityLogs
     public static function set_archive_beneficiary_log(int $users_id, )
     {
 
+    }
+
+    # Coordinators -------------------------------------------------------------------------------------------------------------------
+
+    public static function set_approve_batch(int $users_id, Batch $batch)
+    {
+        SystemsLog::factory()->create([
+            'users_id' => $users_id,
+            'log_timestamp' => now(),
+            'description' => 'A coordinator approved batch ' . $batch->batch_num . ' / Brgy. : ' . $batch->barangay_name . '',
+        ]);
     }
 
     public static function set_barangay_submit_log(string $barangay_name, string $project_num, string $batch_num, int $added_count, int $slots_allocated, int $special_cases)

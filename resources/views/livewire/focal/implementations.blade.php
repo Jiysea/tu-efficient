@@ -1073,7 +1073,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                             @if ($this->exportBatches->isNotEmpty())
                                                             @foreach ($this->exportBatches as $key => $batch)
                                                             <li wire:key={{ $key }}>
-                                                                <button type="button" wire:click="selectExportBatchRow('{{ encrypt($batch->id) }}')" @click="show= !show; currentBatch = '{{ $batch->batch_num }}'" wire:loading.attr="disabled" aria-label="{{ __('Batch') }}" class="w-full whitespace-nowrap flex items-center gap-2 px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
+                                                                <button type="button" wire:click="selectExportBatchRow('{{ encrypt($batch->id) }}')" @click="show= !show; currentBatch = '{{ $batch->batch_num . ' / ' . $batch->barangay_name }}'" wire:loading.attr="disabled" aria-label="{{ __('Batch') }}" class="w-full whitespace-nowrap flex items-center gap-2 px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
+
                                                                     <span class="text-left">{{ $batch->batch_num }}
                                                                         / {{ $batch->barangay_name }}
                                                                     </span>

@@ -14,7 +14,7 @@
         {{-- App Name | Submission Type | Submit Button --}}
         <div class="relative flex items-center justify-between mb-2">
             <div class="flex items-center justify-between">
-
+                
                 <img class="rounded-lg object-contain drop-shadow size-11 ms-3 duration-500 ease-in-out select-none"
                     src="{{ asset('assets/b_logo.png') }}" alt="TU-Efficient Barangay logo">
                 <h1 class="text-3xl font-bold ms-3 text-green-900 drop-shadow">TU-EFFICIENT</h1>
@@ -309,7 +309,7 @@
                                             <button class="flex items-center justify-center rounded"
                                                 @click="$wire.viewCredential('identity');">
                                                 <img class="w-[90%]"
-                                                    src="{{ route('credentials.baranagay.show', ['filename' => $identity, 'access_code' => $this->accessCode ? decrypt($this->accessCode) : null]) }}">
+                                                    src="{{ route('credentials.baranagay.show', ['filename' => $identity]) }}">
                                             </button>
                                         @else
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-[50%]"

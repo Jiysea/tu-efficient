@@ -52,7 +52,8 @@ Route::middleware('auth')->group(function () {
 
 // For barangay officials (access code user)
 Route::get('/barangay/listing', ListingPage::class)->name('barangay.index');
-Route::get('/credentials/{filename}{access_code}', [ImageController::class, 'showImage'])
+
+Route::get('/credentials/{filename}', [ImageController::class, 'showImage'])
     ->where('filename', '.*')
     ->name('credentials.baranagay.show');
 

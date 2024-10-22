@@ -189,7 +189,7 @@ class AddBeneficiariesModal extends Component
                 'required',
                 # Check if the name has illegal characters
                 function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
 
                     # throws validation errors whenever it detects illegal characters on names
                     if (strpbrk($value, $illegal)) {

@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -782,14 +783,17 @@ class Annex
 
             # SUM of Total Amount
             $sheet->getRowDimension($curRow)->setRowHeight(25.5);
-            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $sheet->mergeCells([1, $curRow, $maxCol - 1, $curRow]);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setWrapText(true);
-            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()->setSize(8);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()->setSize(11);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()->setBold(true);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()->setName('Arial');
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow + 10])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-            $sheet->setCellValueExplicit([1, $curRow], '=SUM(P' . $startCurRow . ':N' . $curRow - 1 . ')', DataType::TYPE_FORMULA);
+            $sheet->setCellValue([1, $curRow], 'Total: ');
+            $sheet->setCellValueExplicit([16, $curRow], '=SUM(P' . $startCurRow . ':N' . $curRow - 1 . ')', DataType::TYPE_FORMULA);
+            $sheet->getStyle([16, $curRow])->getNumberFormat()->setFormatCode('#,##0.00');
             $curRow++;
 
             $sheet->getRowDimension($curRow)->setRowHeight(height: 15);
@@ -1142,14 +1146,17 @@ class Annex
 
             # SUM of Total Amount
             $sheet->getRowDimension($curRow)->setRowHeight(25.5);
-            $sheet->mergeCells([1, $curRow, $maxCol - 1, $curRow]);
+            $sheet->mergeCells([1, $curRow, $maxCol - 2, $curRow]);
             $sheet->getStyle([1, $curRow, $maxCol - 1, $curRow])->getAlignment()->setWrapText(true);
-            $sheet->getStyle([1, $curRow, $maxCol - 1, $curRow])->getFont()->setSize(8);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()->setSize(11);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()->setBold(true);
             $sheet->getStyle([1, $curRow, $maxCol - 1, $curRow])->getFont()->setName('Arial');
             $sheet->getStyle([1, $curRow, $maxCol - 1, $curRow])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $sheet->getStyle([1, $curRow, $maxCol - 1, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $sheet->getStyle([1, $curRow, $maxCol - 1, $curRow + 10])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-            $sheet->setCellValueExplicit([1, $curRow], '=SUM(P' . $startCurRow . ':N' . $curRow - 1 . ')', DataType::TYPE_FORMULA);
+            $sheet->setCellValue([1, $curRow], 'Total: ');
+            $sheet->setCellValueExplicit([16, $curRow], '=SUM(P' . $startCurRow . ':N' . $curRow - 1 . ')', DataType::TYPE_FORMULA);
+            $sheet->getStyle([16, $curRow])->getNumberFormat()->setFormatCode('#,##0.00');
             $curRow++;
 
             $sheet->getRowDimension($curRow)->setRowHeight(height: 15);

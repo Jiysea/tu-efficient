@@ -204,13 +204,11 @@ class Assignments extends Component
                 'beneficiaries.birthdate',
                 'beneficiaries.contact_num'
             ])
-            ->orderBy('beneficiaries.id')
+            ->orderBy('beneficiaries.last_name', 'asc')
             ->take($this->beneficiaries_on_page)
             ->get();
 
         return $beneficiaries;
-
-
     }
 
     #[Computed]
@@ -266,24 +264,18 @@ class Assignments extends Component
     }
 
     #[Computed]
-    public function getFullName($key)
+    public function full_last_first($person)
     {
-        $full_name = null;
 
-        $first = $this->beneficiaries[$key]['first_name'];
-        $middle = $this->beneficiaries[$key]['middle_name'];
-        $last = $this->beneficiaries[$key]['last_name'];
-        $ext = $this->beneficiaries[$key]['extension_name'];
+        $full_name = $person->last_name;
+        $full_name .= ', ' . $person->first_name;
 
-        $full_name = $first;
-        if ($middle) {
-            $full_name .= ' ' . $middle;
+        if ($person->middle_name) {
+            $full_name .= ' ' . $person->middle_name;
         }
 
-        $full_name .= ' ' . $last;
-
-        if ($ext) {
-            $full_name .= ' ' . $ext;
+        if ($person->extension_name) {
+            $full_name .= ' ' . $person->extension_name;
         }
 
         return $full_name;

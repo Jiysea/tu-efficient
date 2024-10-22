@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ImageController extends Controller
 {
-    public function showImage($filename, $access_code = null)
+    public function showImage($filename)
     {
         if (auth()->check()) {
             # Path to the image in storage
@@ -21,7 +21,9 @@ class ImageController extends Controller
             # Return the file as a response
             return response()->file($path);
 
-        } elseif (isset($access_code) && Code::where('access_code', $access_code)->where('is_accessible', 'yes')->exists()) {
+        } 
+        
+        if (session('code') && Code::where('access_code', decrypt(session('code')))->where('is_accessible', 'yes')->exists()) {
             # Path to the image in storage
             $path = storage_path('app/' . $filename);
 
@@ -34,6 +36,6 @@ class ImageController extends Controller
             return response()->file($path);
         }
 
-        abort(403, 'Unauthorized Access');
+        return abort(403, 'Unauthorized Access');
     }
 }
