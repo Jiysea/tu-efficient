@@ -786,7 +786,8 @@ class Implementations extends Component
 
     public function mount()
     {
-        if (Auth::user()->user_type !== 'focal') {
+        $user = Auth::user();
+        if ($user->user_type !== 'focal' || $user->isOngoingVerification()) {
             $this->redirectIntended();
         }
 

@@ -4,6 +4,7 @@ namespace App\Livewire\Focal;
 
 use App\Models\Batch;
 use App\Models\Implementation;
+use App\Models\User;
 use App\Services\Annex;
 use App\Services\Summary;
 use Carbon\Carbon;
@@ -561,7 +562,8 @@ class Dashboard extends Component
 
     public function mount()
     {
-        if (Auth::user()->user_type !== 'focal') {
+        $user = Auth::user();
+        if ($user->user_type !== 'focal' || $user->isOngoingVerification()) {
             $this->redirectIntended();
         }
         $this->summaryUrl = url('/print-summary');

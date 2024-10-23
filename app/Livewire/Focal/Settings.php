@@ -63,9 +63,10 @@ class Settings extends Component
 
     public function mount()
     {
-        if (Auth::user()->user_type === 'focal') {
+        $user = Auth::user();
+        if (Auth::user()->user_type === 'focal' || $user->isOngoingVerification()) {
             $this->user_type = 'focal';
-        } else if (Auth::user()->user_type === 'coordinator') {
+        } else if ($user->user_type === 'coordinator' || $user->isOngoingVerification()) {
             $this->user_type = 'coordinator';
         } else {
             $this->redirectIntended();

@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::table('users', function (Blueprint $table) {
             $table->timestamp('mobile_verified_at')->nullable(); // Timestamp when verified
+            $table->boolean('ongoing_verification')->default(false);
         });
     }
 
@@ -21,7 +22,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['mobile_verified_at']);
+            $table->dropColumn(['mobile_verified_at', 'ongoing_verification']);
         });
     }
 };

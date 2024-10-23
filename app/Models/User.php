@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\MustVerifyMobile;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -30,6 +29,7 @@ class User extends Authenticatable
         'last_login',
         'email_verified_at',
         'mobile_verified_at',
+        'ongoing_verification',
     ];
 
     public function systems_log()
@@ -59,7 +59,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'mobile_verify_code'
     ];
 
     /**
@@ -75,8 +74,8 @@ class User extends Authenticatable
     }
 
     // Check if the user is phone verified
-    public function isPhoneVerified()
+    public function isOngoingVerification()
     {
-        return !is_null($this->mobile_verified_at);
+        return $this->ongoing_verification === 1 ? true : false;
     }
 }

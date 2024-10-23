@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'vonage' => [
+        'key' => env('VONAGE_KEY'),
+        'secret' => env('VONAGE_SECRET'),
+        'application_id' => env('VONAGE_APPLICATION_ID'),
+    ]
+
 ];

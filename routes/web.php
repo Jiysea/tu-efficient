@@ -22,7 +22,7 @@ Route::get('/', Login::class)->name('login');
 
 # -------------------------------------
 
-Route::middleware(['auth', 'verify.mobile'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     # For Focal pages
     Route::get('/focal/dashboard', Dashboard::class)->name('focal.dashboard');
@@ -46,7 +46,7 @@ Route::middleware(['auth', 'verify.mobile'])->group(function () {
         return view('pages/print-summary', $information);
     })->name('focal.print-summary');
 
-    Route::get('/verify-contact', VerifyContactNumber::class)->name('verify-contact');
+    Route::get('/verify-contact', VerifyContactNumber::class)->name('verify.contact');
 });
 
 // For barangay officials (access code user)

@@ -400,7 +400,7 @@ class Submissions extends Component
                 $q->where('batches.batch_num', 'LIKE', $this->batchNumPrefix . '%' . $this->searchBatches . '%')
                     ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchBatches . '%');
             })
-           
+
             ->select(
                 [
                     'batches.id',
@@ -661,7 +661,7 @@ class Submissions extends Component
             ->where('batches.id', $batch->id)
             ->exists();
 
-        if($batch->approval_status !== 'approved' && ($batch->submission_status === 'submitted' || $batch->submission_status === 'unopened') && $checkSlots) {
+        if ($batch->approval_status !== 'approved' && ($batch->submission_status === 'submitted' || $batch->submission_status === 'unopened') && $checkSlots) {
 
             $batch->approval_status = 'approved';
             $batch->submission_status = 'submitted';
@@ -677,7 +677,7 @@ class Submissions extends Component
             $this->alertMessage = 'Cannot approve batch assignment when it is not submitted';
             $this->dispatch('show-alert');
         }
-        
+
         $this->dispatch('init-reload')->self();
         $this->approveSubmissionModal = false;
         unset($this->batches);
@@ -820,7 +820,8 @@ class Submissions extends Component
     # batchId and coordinatorId will only be NOT null when the user clicks `View List` from the assignments page
     public function mount($batchId = null, $coordinatorId = null)
     {
-        if (Auth::user()->user_type !== 'coordinator') {
+        $user = Auth::user();
+        if ($user->user_type !== 'coordinator' || $user->isOngoingVerification()) {
             $this->redirectIntended();
         }
 

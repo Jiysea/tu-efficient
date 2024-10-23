@@ -3,12 +3,20 @@
 </x-slot>
 
 <div class="relative flex flex-col px-12 py-12 items-center sm:max-h-screen md:px-12 lg:px-24 lg:py-24 select-none">
+
+    {{-- White Box --}}
     <div class="flex justify-center items-center text-center bg-indigo-100 rounded-2xl sm:max-w-2xl sm:w-full">
+
+        {{-- Partition the Logo and Login --}}
         <div class="flex flex-col sm:grid items-center justify-center sm:grid-cols-2 size-full">
+
+            {{-- Left Side Logo --}}
             <div class="pt-6 px-6 pb-2 sm:py-6 sm:ps-6 sm:pe-1 flex items-center justify-center size-2/5 sm:size-full">
                 <img class="drop-shadow sm:drop-shadow-xl h-[85%]" src="{{ asset('assets/f_logo.png') }}"
                     alt="TU-Efficient | Focal Logo">
             </div>
+
+            {{-- Contents --}}
             <div class="w-full px-6 py-3">
 
                 <div class="mt-1 text-center sm:mt-5">
@@ -124,6 +132,8 @@
 
         </div>
     </div>
+
+    {{-- Footer --}}
     <div class="relative flex flex-col items-center justify-center pt-10">
         <p class="text-center font text-indigo-50 text-sm px-2 pb-3">
             In partnership with DOLE. All rights reserved. 2024

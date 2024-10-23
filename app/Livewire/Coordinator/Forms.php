@@ -101,7 +101,8 @@ class Forms extends Component
 
     public function mount()
     {
-        if (Auth::user()->user_type !== 'coordinator') {
+        $user = Auth::user();
+        if ($user->user_type !== 'coordinator' || $user->isOngoingVerification()) {
             $this->redirectIntended();
         }
 

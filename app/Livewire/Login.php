@@ -66,10 +66,14 @@ class Login extends Component
 
             session()->regenerate();
 
-            if (strtolower(Auth::user()->user_type) === 'focal') {
+            $user = Auth::user();
+            if (!$user->isOngoingVerification()) {
+                Auth::user()->update(['ongoing_verification' => 1]);
+                // $user->save();
+                $this->redirectRoute('verify.contact');
+            }
 
-                # does some magic with csrf stuffs
-                // $this->dispatch('sessionRegenerated', csrf_token());
+            if (strtolower(Auth::user()->user_type) === 'focal') {
 
                 # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
                 session()->flash('heads-up', Auth::user()->last_login);
@@ -112,10 +116,15 @@ class Login extends Component
     public function mount()
     {
         if (Auth::check()) {
-            if (Auth::user()->user_type === 'focal')
-                return redirect()->route('focal.dashboard');
-            else if (Auth::user()->user_type === 'coordinator')
-                return redirect()->route('coordinator.assignments');
+            $user = Auth::user();
+            if ($user->isOngoingVerification()) {
+                $this->redirectRoute('verify.contact');
+            } else {
+                if (Auth::user()->user_type === 'focal')
+                    return redirect()->route('focal.dashboard');
+                else if (Auth::user()->user_type === 'coordinator')
+                    return redirect()->route('coordinator.assignments');
+            }
         } else {
             if (session('code')) {
                 session()->invalidate();
