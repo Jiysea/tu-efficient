@@ -30,10 +30,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/focal/archives', Archives::class)->name('focal.archives');
     Route::get('/focal/activity-logs', ActivityLogs::class)->name('focal.activity-logs');
 
-    Route::get('/credentials/{filename}', [ImageController::class, 'showImage'])
-        ->where('filename', '.*')
-        ->name('credentials.show');
-
     # For Coordinator pages
     Route::get('/coordinator/assignments', Assignments::class)->name('coordinator.assignments');
     Route::get('/coordinator/submissions/{batchId?}', Submissions::class)->name('coordinator.submissions');
