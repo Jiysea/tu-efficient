@@ -17,38 +17,38 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class Annex
 {
 
-    public static function export(Spreadsheet $spreadsheet, mixed $batch, array $exportType, string $exportFormat): Spreadsheet
+    public static function export(Spreadsheet $spreadsheet, mixed $batch, array|string $exportType, string $exportFormat): Spreadsheet
     {
         # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
-        if ($exportType['annex_e1']) {
+        if ((is_array($exportType) && !empty($exportType['annex_e1'])) || $exportType === 'annex_e1') {
             $sheet1 = new Worksheet($spreadsheet, 'ANNEX E-1 - COS');
             $spreadsheet->addSheet($sheet1);
             $sheet1->getTabColor()->setRGB('FF0000'); // Red tab color
             $sheet1 = self::annex_e1($sheet1, $batch, $exportFormat);
         }
 
-        if ($exportType['annex_e2']) {
+        if ((is_array($exportType) && !empty($exportType['annex_e2'])) || $exportType === 'annex_e2') {
             $sheet2 = new Worksheet($spreadsheet, 'ANNEX E-2 - COS(co-partner)');
             $spreadsheet->addSheet($sheet2);
             $sheet2->getTabColor()->setRGB('FF0000'); // Red tab color
             $sheet2 = self::annex_e2($sheet2, $batch, $exportFormat);
         }
 
-        if ($exportType['annex_j2']) {
+        if ((is_array($exportType) && !empty($exportType['annex_j2'])) || $exportType === 'annex_j2') {
             $sheet3 = new Worksheet($spreadsheet, 'ANNEX J-2 - Attendance Sheet');
             $spreadsheet->addSheet($sheet3);
             $sheet3->getTabColor()->setRGB('4472C4'); // Blue tab color
             $sheet3 = self::annex_j2($sheet3, $batch, $exportFormat);
         }
 
-        if ($exportType['annex_l']) {
+        if ((is_array($exportType) && !empty($exportType['annex_l'])) || $exportType === 'annex_l') {
             $sheet4 = new Worksheet($spreadsheet, 'ANNEX L - Payroll');
             $spreadsheet->addSheet($sheet4);
             $sheet4->getTabColor()->setRGB('70AD47'); // Green tab color
             $sheet4 = self::annex_l($sheet4, $batch, $exportFormat);
         }
 
-        if ($exportType['annex_l_sign']) {
+        if ((is_array($exportType) && !empty($exportType['annex_l_sign'])) || $exportType === 'annex_l_sign') {
             $sheet5 = new Worksheet($spreadsheet, 'ANNEX L - Payroll with Sign');
             $spreadsheet->addSheet($sheet5);
             $sheet5->getTabColor()->setRGB('70AD47'); // Green tab color
@@ -244,6 +244,25 @@ class Annex
 
         } elseif ($exportFormat === 'csv') {
 
+            $sheet->setCellValue('A1', implode(';', $columnHeaders));
+
+            $curRow = 2;
+
+            $combinedData = [];
+
+            $count = 1;
+            foreach ($beneficiaries as $beneficiary) {
+                    $combinedData = [];
+                    $combinedData[] = $count;
+                    $combinedData[] = self::full_last_first($beneficiary);
+                    $combinedData[] = self::address($beneficiary);
+                    $combinedData[] = '';
+
+                    $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
+                    $curRow++;
+                    $count++;
+            }
+
         }
 
         return $sheet;
@@ -376,7 +395,24 @@ class Annex
             $sheet->setCellValue([3, $curRow], 'IMSD Head');
 
         } elseif ($exportFormat === 'csv') {
+            $sheet->setCellValue('A1', implode(';', $columnHeaders));
 
+            $curRow = 2;
+
+            $combinedData = [];
+
+            $count = 1;
+            foreach ($beneficiaries as $beneficiary) {
+                $combinedData = [];
+                $combinedData[] = $count;
+                $combinedData[] = self::full_last_first($beneficiary);
+                $combinedData[] = self::address($beneficiary);
+                $combinedData[] = '';
+
+                $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
+                $curRow++;
+                $count++;
+            }
         }
 
         return $sheet;
@@ -406,13 +442,20 @@ class Annex
         $maxCol = 2;
 
         $daysHeader = [];
+        $columnHeaders = [
+            'No.',
+            'Name',
+        ];
 
         $maxCol++;
 
         for ($day = 1; $day <= $implementation->days_of_work; $day++) {
             $daysHeader[] = 'Day ' . $day;
+            $columnHeaders[] = 'Day ' . $day;
             $maxCol++;
         }
+
+        $columnHeaders[] = 'Signature of Coordinator';
 
         if ($exportFormat === 'xlsx') {
 
@@ -491,9 +534,31 @@ class Annex
                 $curRow++;
             }
 
-
         } elseif ($exportFormat === 'csv') {
 
+            $sheet->setCellValue('A1', implode(';', $columnHeaders));
+
+            $curRow = 2;
+
+            $combinedData = [];
+
+            $count = 1;
+            foreach ($beneficiaries as $beneficiary) {
+                $combinedData = [];
+
+                $combinedData[] = $count;
+                $combinedData[] = self::full_last_first($beneficiary);
+
+                for ($day = 1; $day <= $implementation->days_of_work; $day++) {
+                    $combinedData[] = '';
+                }
+
+                $combinedData[] = '';
+
+                $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
+                $curRow++;
+                $count++;
+            }
         }
         return $sheet;
     }
@@ -851,7 +916,36 @@ class Annex
             $curRow++;
 
         } elseif ($exportFormat === 'csv') {
+            $sheet->setCellValue('A1', implode(';', $columnHeaders));
 
+            $curRow = 2;
+
+            $combinedData = [];
+
+            $count = 1;
+            foreach ($beneficiaries as $beneficiary) {
+                $combinedData = [];
+
+                $combinedData[] = $count;
+                $combinedData[] = $beneficiary->first_name;
+                $combinedData[] = $beneficiary->middle_name ?? '-';
+                $combinedData[] = $beneficiary->last_name;
+                $combinedData[] = $beneficiary->extension_name ?? '-';
+                $combinedData[] = '';
+                $combinedData[] = strtoupper($beneficiary->barangay_name);
+                $combinedData[] = strtoupper($beneficiary->city_municipality);
+                $combinedData[] = strtoupper($beneficiary->province);
+                $combinedData[] = "0" . substr($beneficiary->contact_num, 3);
+                $combinedData[] = strtoupper(substr($beneficiary->sex, 0, 1));
+                $combinedData[] = Carbon::parse($beneficiary->birthdate)->format('Y/m/d');
+                $combinedData[] = $implementation->days_of_work;
+                $combinedData[] = MoneyFormat::mask($implementation->minimum_wage);
+                $combinedData[] = MoneyFormat::mask($implementation->days_of_work * $implementation->minimum_wage);
+
+                $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
+                $curRow++;
+                $count++;
+            }
         }
         return $sheet;
     }
@@ -1213,7 +1307,38 @@ class Annex
             $curRow++;
 
         } elseif ($exportFormat === 'csv') {
+            $sheet->setCellValue('A1', implode(';', $columnHeaders));
 
+            $curRow = 2;
+
+            $combinedData = [];
+
+            $count = 1;
+            foreach ($beneficiaries as $beneficiary) {
+                $combinedData = [];
+
+                $combinedData[] = $count;
+                $combinedData[] = $beneficiary->first_name;
+                $combinedData[] = $beneficiary->middle_name ?? '-';
+                $combinedData[] = $beneficiary->last_name;
+                $combinedData[] = $beneficiary->extension_name ?? '-';
+                $combinedData[] = '';
+                $combinedData[] = strtoupper($beneficiary->barangay_name);
+                $combinedData[] = strtoupper($beneficiary->city_municipality);
+                $combinedData[] = strtoupper($beneficiary->province);
+                $combinedData[] = "0" . substr($beneficiary->contact_num, 3);
+                $combinedData[] = strtoupper(substr($beneficiary->sex, 0, 1));
+                $combinedData[] = Carbon::parse($beneficiary->birthdate)->format('Y/m/d');
+                $combinedData[] = $implementation->days_of_work;
+                $combinedData[] = MoneyFormat::mask($implementation->minimum_wage);
+                $combinedData[] = MoneyFormat::mask($implementation->days_of_work * $implementation->minimum_wage);
+
+                $combinedData[] = '';
+
+                $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
+                $curRow++;
+                $count++;
+            }
         }
         return $sheet;
     }

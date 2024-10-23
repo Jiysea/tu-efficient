@@ -14,6 +14,7 @@ use App\Livewire\Focal\Settings;
 use App\Livewire\Focal\UserManagement;
 use App\Livewire\Login;
 use App\Livewire\Login\FocalCoordinatorForm;
+use App\Livewire\VerifyContactNumber;
 use Illuminate\Support\Facades\Route;
 
 # Landing page
@@ -21,7 +22,7 @@ Route::get('/', Login::class)->name('login');
 
 # -------------------------------------
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verify.mobile'])->group(function () {
 
     # For Focal pages
     Route::get('/focal/dashboard', Dashboard::class)->name('focal.dashboard');
@@ -44,6 +45,8 @@ Route::middleware('auth')->group(function () {
         $information = session('print-summary-information');
         return view('pages/print-summary', $information);
     })->name('focal.print-summary');
+
+    Route::get('/verify-contact', VerifyContactNumber::class)->name('verify-contact');
 });
 
 // For barangay officials (access code user)

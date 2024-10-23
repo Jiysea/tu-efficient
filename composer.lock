@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fdbfd0db7f2b9dabf3c14637c5472285",
+    "content-hash": "a3baf030881034d25c273ccf35ed6df7",
     "packages": [
         {
             "name": "brick/math",
@@ -1525,6 +1525,75 @@
                 "source": "https://github.com/laravel/tinker/tree/v2.9.0"
             },
             "time": "2024-01-04T16:10:04+00:00"
+        },
+        {
+            "name": "laravel/vonage-notification-channel",
+            "version": "v3.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/vonage-notification-channel.git",
+                "reference": "b553cca2f2955c146f97b7c5684e08b19450940a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/vonage-notification-channel/zipball/b553cca2f2955c146f97b7c5684e08b19450940a",
+                "reference": "b553cca2f2955c146f97b7c5684e08b19450940a",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/notifications": "^8.0|^9.0|^10.0|^11.0",
+                "illuminate/support": "^8.0|^9.0|^10.0|^11.0",
+                "php": "^8.0",
+                "vonage/client-core": "^4.0.4"
+            },
+            "require-dev": {
+                "guzzlehttp/guzzle": "^7.2",
+                "mockery/mockery": "^1.0",
+                "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^9.0|^10.4"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Illuminate\\Notifications\\VonageChannelServiceProvider"
+                    ],
+                    "aliases": {
+                        "Vonage": "Illuminate\\Notifications\\Facades\\Vonage"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Illuminate\\Notifications\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Vonage Notification Channel for laravel.",
+            "keywords": [
+                "laravel",
+                "nexmo",
+                "notifications",
+                "vonage"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/vonage-notification-channel/issues",
+                "source": "https://github.com/laravel/vonage-notification-channel/tree/v3.3.0"
+            },
+            "time": "2024-01-15T15:48:22+00:00"
         },
         {
             "name": "lcobucci/clock",
@@ -6324,21 +6393,21 @@
         },
         {
             "name": "vonage/client",
-            "version": "4.0.0",
+            "version": "4.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Vonage/vonage-php-sdk.git",
-                "reference": "9a21c83fee90e5da410146b965383bebccfc93b0"
+                "reference": "ba15633a9e8db681f770d06ebc049cd06fce4e01"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Vonage/vonage-php-sdk/zipball/9a21c83fee90e5da410146b965383bebccfc93b0",
-                "reference": "9a21c83fee90e5da410146b965383bebccfc93b0",
+                "url": "https://api.github.com/repos/Vonage/vonage-php-sdk/zipball/ba15633a9e8db681f770d06ebc049cd06fce4e01",
+                "reference": "ba15633a9e8db681f770d06ebc049cd06fce4e01",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "^7.0",
-                "php": "~8.0 || ~8.1 || ~8.2",
+                "php": "~8.1 || ~8.2 || ~8.3",
                 "vonage/client-core": "^4.0"
             },
             "type": "library",
@@ -6377,9 +6446,9 @@
             "support": {
                 "email": "devrel@vonage.com",
                 "issues": "https://github.com/Vonage/vonage-php-sdk/issues",
-                "source": "https://github.com/Vonage/vonage-php-sdk/tree/4.0.0"
+                "source": "https://github.com/Vonage/vonage-php-sdk/tree/4.1.1"
             },
-            "time": "2023-01-16T11:02:48+00:00"
+            "time": "2024-09-26T10:32:17+00:00"
         },
         {
             "name": "vonage/client-core",
@@ -8761,5 +8830,5 @@
         "php": "^8.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }

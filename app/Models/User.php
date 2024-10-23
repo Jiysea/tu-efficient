@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\MustVerifyMobile;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -28,7 +28,8 @@ class User extends Authenticatable
         'field_office',
         'user_type',
         'last_login',
-        'email_verified_at'
+        'email_verified_at',
+        'mobile_verified_at',
     ];
 
     public function systems_log()
@@ -58,7 +59,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        // 'remember_token',
+        'mobile_verify_code'
     ];
 
     /**
@@ -69,8 +70,13 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-
             'password' => 'hashed',
         ];
+    }
+
+    // Check if the user is phone verified
+    public function isPhoneVerified()
+    {
+        return !is_null($this->mobile_verified_at);
     }
 }

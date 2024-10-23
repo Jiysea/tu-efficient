@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Middleware\CoordinatorRoleMiddleware;
-use App\Http\Middleware\FocalRoleMiddleware;
+use App\Http\Middleware\EnsureMobileIsVerifiedMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,10 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // $middleware->alias([
-        //     'focal.role' => FocalRoleMiddleware::class,
-        //     'coordinator.role' => CoordinatorRoleMiddleware::class
-        // ]);
+        // $middleware->use(EnsureMobileIsVerifiedMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
