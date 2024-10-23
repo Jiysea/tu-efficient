@@ -55,7 +55,7 @@ Route::get('/barangay/listing', ListingPage::class)->name('barangay.index');
 
 Route::get('/credentials/{filename}', [ImageController::class, 'showImage'])
     ->where('filename', '.*')
-    ->name('credentials.baranagay.show');
+    ->name('credentials.show');
 
 // --------------------------------------
 
