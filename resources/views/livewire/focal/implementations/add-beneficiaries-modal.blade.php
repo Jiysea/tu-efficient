@@ -339,8 +339,7 @@
                                                                     <div class="flex items-center">
                                                                         <p
                                                                             class="inline mb-1 font-medium text-indigo-1100">
-                                                                            Case Proof <span
-                                                                                class="text-red-700 font-normal text-xs">*</span>
+                                                                            Case Proof <span class="text-gray-500">(optional)</span>
                                                                         </p>
                                                                     </div>
 

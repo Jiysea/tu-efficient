@@ -20,11 +20,10 @@ class ViewCredentialsModal extends Component
     #[Computed]
     public function credentials()
     {
-        if ($this->passedCredentialId) {
-            $credentials = Credential::find(decrypt($this->passedCredentialId));
-            
-            return $credentials;
-        }
+        $credentials = Credential::find($this->passedCredentialId ? decrypt($this->passedCredentialId) : null);
+
+        return $credentials;
+
     }
 
     #[Computed]
@@ -48,7 +47,7 @@ class ViewCredentialsModal extends Component
 
     public function render()
     {
-        if ($this->passedCredentialId) {
+        if ($this->passedCredentialId && $this->credentials) {
             if ($this->credentials->for_duplicates === 'yes') {
                 $this->type = 'special';
             } elseif ($this->credentials->for_duplicates === 'no') {
