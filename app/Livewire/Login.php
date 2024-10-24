@@ -66,12 +66,12 @@ class Login extends Component
 
             session()->regenerate();
 
-            $user = Auth::user();
-            if (!$user->isOngoingVerification()) {
-                Auth::user()->update(['ongoing_verification' => 1]);
-                // $user->save();
-                $this->redirectRoute('verify.contact');
-            }
+            // $user = Auth::user();
+            // if (!$user->isOngoingVerification()) {
+            //     Auth::user()->update(['ongoing_verification' => 1]);
+            //     // $user->save();
+            //     $this->redirectRoute('verify.contact');
+            // }
 
             if (strtolower(Auth::user()->user_type) === 'focal') {
 

@@ -753,7 +753,7 @@ class ViewBeneficiary extends Component
             # otherwise, we could just delete it.
             else {
                 foreach ($credentials as $credential) {
-                    if (isset($credential->image_file_path)) {
+                    if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
                         Storage::delete($credential->image_file_path);
                     }
                     $credential->delete();

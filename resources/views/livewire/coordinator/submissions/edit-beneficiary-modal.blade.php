@@ -386,7 +386,7 @@
                                                                                 @else
                                                                                     {{-- Show the saved image from the database --}}
                                                                                     <img class="size-[95%]"
-                                                                                        src="{{ asset('storage/' . $reason_saved_image_path) }}">
+                                                                                        src="{{ route('credentials.show', ['filename' => $reason_saved_image_path]) }}">
                                                                                 @endif
                                                                                 {{-- Default --}}
                                                                             @else
@@ -874,12 +874,11 @@
                                             {{-- Preview --}}
                                             @if ($saved_image_path || ($image_file_path && !$errors->has('image_file_path')))
                                                 @if (is_object($image_file_path))
-                                                    <img class="w-28"
-                                                        src="{{ $image_file_path->temporaryUrl() }}">
+                                                    <img class="w-28" src="{{ $image_file_path->temporaryUrl() }}">
                                                 @else
                                                     {{-- Show the saved image from the database --}}
                                                     <img class="w-28"
-                                                        src="{{ asset('storage/' . $saved_image_path) }}">
+                                                        src="{{ route('credentials.show', ['filename' => $saved_image_path]) }}">
                                                 @endif
                                                 {{-- Default --}}
                                             @else

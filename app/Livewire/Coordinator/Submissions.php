@@ -730,7 +730,7 @@ class Submissions extends Component
                 ->get();
 
             foreach ($credentials as $credential) {
-                if (isset($credential->image_file_path)) {
+                if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
                     Storage::delete($credential->image_file_path);
                 }
 
