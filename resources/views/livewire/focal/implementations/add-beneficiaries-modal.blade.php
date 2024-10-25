@@ -10,8 +10,10 @@
 
                 <!-- Modal header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
-                    <h1 class="text-lg font-semibold text-indigo-1100 ">
-                        Add New Beneficiaries
+                    <h1 class="text-sm md:text-lg font-semibold text-indigo-1100 ">
+                        Add New Beneficiaries in
+                        {{ $this->batch?->barangay_name }}
+                        <span class="text-gray-500">{{ ' (' . $this->batch?->batch_num . ')' }}</span>
                     </h1>
                     <div class="flex items-center justify-center">
                         {{-- Loading State for Changes --}}
@@ -68,7 +70,8 @@
                                         <p class="inline mx-2">You cannot enter the same beneficiary on the same
                                             implementation.
                                             <button type="button" @click="expanded = ! expanded"
-                                                class="underline underline-offset-2 font-bold">Show possible
+                                                class="outline-none underline underline-offset-2 font-bold">Show
+                                                possible
                                                 duplicates</button>
                                         </p>
 
@@ -77,7 +80,8 @@
                                         <p class="inline mx-2">This beneficiary
                                             has already applied more than twice (2) this year.
                                             <button type="button" @click="expanded = ! expanded"
-                                                class="underline underline-offset-2 font-bold">Show possible
+                                                class="outline-none underline underline-offset-2 font-bold">Show
+                                                possible
                                                 duplicates</button>
                                         </p>
 
@@ -90,7 +94,8 @@
                                             database this
                                             year.
                                             <button type="button" @click="expanded = ! expanded"
-                                                class="underline underline-offset-2 font-bold">Show possible
+                                                class="outline-none underline underline-offset-2 font-bold">Show
+                                                possible
                                                 duplicates</button>
                                         </p>
 
@@ -113,7 +118,7 @@
                                             duplicates found
                                             associated with this name.
                                             <button type="button" @click="expanded = ! expanded"
-                                                class="underline underline-offset-2 font-bold">Show
+                                                class="outline-none underline underline-offset-2 font-bold">Show
                                                 possible duplicates</button>
                                         </p>
 
@@ -122,12 +127,12 @@
                                         <p class="inline mx-2">Possible
                                             duplication is resolved.
                                             <button type="button" @click="expanded = ! expanded"
-                                                class="underline underline-offset-2 font-bold">Show
+                                                class="outline-none underline underline-offset-2 font-bold">Show
                                                 possible duplicates</button>
                                         </p>
 
                                         <button type="button" @click="addReasonModal = !addReasonModal"
-                                            class="px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
+                                            class="outline-none px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
                                             REASON</button>
                                     @endif
                                 </div>
@@ -207,40 +212,155 @@
                                                         {{ $result['batch_num'] }}
                                                     </td>
                                                     <td class="px-2 py-2">
-                                                        <span
-                                                            class="{{ $first_name === $result['first_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        <span data-popover-target="first-{{ $key }}"
+                                                            data-popover-trigger="hover"
+                                                            class="{{ strtoupper($first_name) === $result['first_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} z-50 rounded py-0.5 px-1.5">
                                                             {{ $result['first_name'] }}
                                                         </span>
+                                                        <div data-popover id="first-{{ $key }}"
+                                                            role="tooltip"
+                                                            class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                                                <p>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-red-500"></span>
+                                                                    <span>Exactly the same as input</span>
+                                                                </div>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-amber-500"></span>
+                                                                    <span>Not the
+                                                                        same as input</span>
+                                                                </div>
+                                                                </p>
+                                                            </div>
+                                                            <div data-popper-arrow></div>
+                                                        </div>
                                                     </td>
                                                     <td class="px-2 py-2">
-                                                        <span
-                                                            class="{{ ($middle_name === $result['middle_name'] && !is_null($middle_name)) || ($middle_name === $result['middle_name'] && $middle_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        <span data-popover-target="middle-{{ $key }}"
+                                                            data-popover-trigger="hover"
+                                                            class="{{ (strtoupper($middle_name) === $result['middle_name'] && !isset($middle_name)) || (strtoupper($middle_name) === $result['middle_name'] && empty($middle_name)) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['middle_name'] ?? '-' }}
                                                         </span>
+                                                        <div data-popover id="middle-{{ $key }}"
+                                                            role="tooltip"
+                                                            class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                                                <p>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-red-500"></span>
+                                                                    <span>Exactly the same as input</span>
+                                                                </div>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-amber-500"></span>
+                                                                    <span>Not the
+                                                                        same as input</span>
+                                                                </div>
+                                                                </p>
+                                                            </div>
+                                                            <div data-popper-arrow></div>
+                                                        </div>
                                                     </td>
                                                     <td class="px-2 py-2">
-                                                        <span
-                                                            class="{{ $last_name === $result['last_name'] ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        <span data-popover-target="last-{{ $key }}"
+                                                            data-popover-trigger="hover"
+                                                            class="{{ $last_name === $result['last_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['last_name'] }}
                                                         </span>
+                                                        <div data-popover id="last-{{ $key }}"
+                                                            role="tooltip"
+                                                            class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                                                <p>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-red-500"></span>
+                                                                    <span>Exactly the same as input</span>
+                                                                </div>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-amber-500"></span>
+                                                                    <span>Not the
+                                                                        same as input</span>
+                                                                </div>
+                                                                </p>
+                                                            </div>
+                                                            <div data-popper-arrow></div>
+                                                        </div>
                                                     </td>
                                                     <td class="px-2 py-2">
-                                                        <span
-                                                            class="{{ ($extension_name === $result['extension_name'] && !is_null($extension_name)) || ($extension_name === $result['extension_name'] && $extension_name !== '') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                        <span data-popover-target="ext-{{ $key }}"
+                                                            data-popover-trigger="hover"
+                                                            class="{{ (strtoupper($extension_name) === $result['extension_name'] && !isset($extension_name)) || (strtoupper($extension_name) === $result['extension_name'] && empty($extension_name)) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['extension_name'] ?? '-' }}
                                                         </span>
+                                                        <div data-popover id="ext-{{ $key }}" role="tooltip"
+                                                            class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                                                <p>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-red-500"></span>
+                                                                    <span>Exactly the same as input</span>
+                                                                </div>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-amber-500"></span>
+                                                                    <span>Not the
+                                                                        same as input</span>
+                                                                </div>
+                                                                </p>
+                                                            </div>
+                                                            <div data-popper-arrow></div>
+                                                        </div>
                                                     </td>
                                                     <td class="px-2 py-2">
-                                                        <span
-                                                            class="{{ \Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                            {{ $result['birthdate'] }}
+                                                        <span data-popover-target="birthdate-{{ $key }}"
+                                                            data-popover-trigger="hover"
+                                                            class="{{ \Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
                                                         </span>
+                                                        <div data-popover id="birthdate-{{ $key }}"
+                                                            role="tooltip"
+                                                            class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                                                <p>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-red-500"></span>
+                                                                    <span>Exactly the same as input</span>
+                                                                </div>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-amber-500"></span>
+                                                                    <span>Not the
+                                                                        same as input</span>
+                                                                </div>
+                                                                </p>
+                                                            </div>
+                                                            <div data-popper-arrow></div>
+                                                        </div>
                                                     </td>
                                                     <td class="px-2 py-2">
                                                         {{ $result['contact_num'] }}
                                                     </td>
                                                     <td class="px-2 py-2">
-                                                        {{ $result['barangay_name'] }}
+                                                        <span data-popover-target="barangay-{{ $key }}"
+                                                            data-popover-trigger="hover"
+                                                            class="{{ $this->batch?->barangay_name === $result['barangay_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            {{ $result['barangay_name'] }}
+                                                        </span>
+                                                        <div data-popover id="barangay-{{ $key }}"
+                                                            role="tooltip"
+                                                            class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                                                <p>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-red-500"></span>
+                                                                    <span>Same barangay</span>
+                                                                </div>
+                                                                <div class="flex items-center gap-2"><span
+                                                                        class="p-1.5 bg-amber-500"></span>
+                                                                    <span>Different barangay</span>
+                                                                </div>
+                                                                </p>
+                                                            </div>
+                                                            <div data-popper-arrow></div>
+                                                        </div>
                                                     </td>
                                                     <td class="px-2 py-2 capitalize">
                                                         {{ $result['sex'] }}
@@ -339,7 +459,8 @@
                                                                     <div class="flex items-center">
                                                                         <p
                                                                             class="inline mb-1 font-medium text-indigo-1100">
-                                                                            Case Proof <span class="text-gray-500">(optional)</span>
+                                                                            Case Proof <span
+                                                                                class="text-gray-500">(optional)</span>
                                                                         </p>
                                                                     </div>
 
@@ -428,9 +549,9 @@
                                                                 class="relative flex flex-col justify-between col-span-full sm:col-span-2 pb-4">
                                                                 <div class="flex flex-col">
                                                                     <label for="image_description"
-                                                                        class="block mb-1 font-medium text-indigo-1100 ">Description
-                                                                        <span
-                                                                            class="text-red-700 font-normal text-xs">*</span></label>
+                                                                        class="relative block mb-1 font-medium text-indigo-1100 ">
+                                                                        <span class="relative">Description <span
+                                                                                class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span></label>
                                                                     <textarea type="text" id="image_description" autocomplete="off" wire:model.blur="image_description"
                                                                         maxlength="255" rows="4"
                                                                         class="resize-none h-full text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('image_description') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
@@ -462,8 +583,10 @@
 
                         {{-- First Name --}}
                         <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
-                            <label for="first_name" class="block mb-1 font-medium text-indigo-1100 ">First Name <span
-                                    class="text-red-700 font-normal text-xs">*</span></label>
+                            <label for="first_name" class="block mb-1 font-medium text-indigo-1100">
+                                <span class="relative">First Name <span
+                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                            </label>
                             <input type="text" id="first_name" autocomplete="off" wire:model.blur="first_name"
                                 @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
@@ -488,8 +611,9 @@
 
                         {{-- Last Name --}}
                         <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="last_name" class="block mb-1  font-medium text-indigo-1100 ">Last Name <span
-                                    class="text-red-700 font-normal text-xs">*</span></label>
+                            <label for="last_name" class="block mb-1  font-medium text-indigo-1100 ">
+                                <span class="relative">Last Name <span
+                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span></label>
                             <input type="text" id="last_name" autocomplete="off" wire:model.blur="last_name"
                                 @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
@@ -515,8 +639,9 @@
 
                         {{-- Birthdate --}}
                         <div x-data="{ birthdate: $wire.entangle('birthdate') }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="birthdate" class="block mb-1  font-medium text-indigo-1100 ">Birthdate <span
-                                    class="text-red-700 font-normal text-xs">*</span></label>
+                            <label for="birthdate" class="block mb-1  font-medium text-indigo-1100 ">
+                                <span class="relative">Birthdate <span
+                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span></label>
                             <div class="absolute start-0 bottom-3.5 flex items-center ps-3 pointer-events-none">
                                 <svg class="size-4 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'text-red-700' : 'text-indigo-900' }}"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -538,8 +663,10 @@
 
                         {{-- Contact Number --}}
                         <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="contact_num" class="block mb-1 font-medium text-indigo-1100 ">Contact
-                                Number <span class="text-red-700 font-normal text-xs">*</span></label>
+                            <label for="contact_num" class="block mb-1 font-medium text-indigo-1100 ">
+                                <span class="relative">Contact Number <span
+                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                            </label>
                             <div class="relative">
                                 <div
                                     class="text-xs outline-none absolute inset-y-0 px-2 rounded-l flex items-center justify-center text-center duration-200 ease-in-out pointer-events-none {{ $errors->has('contact_num') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-indigo-700 text-indigo-50' }}">
@@ -618,9 +745,11 @@
 
                         {{-- Occupation --}}
                         <div x-data="{ avg: $wire.entangle('avg_monthly_income') }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="occupation" class="block mb-1  font-medium text-indigo-1100 ">Occupation <span
-                                    x-show="avg" class="text-red-700 font-normal text-xs">*</span></label>
-                            <input type="text" id="occupation" autocomplete="off" wire:model.live="occupation"
+                            <label for="occupation" class="block mb-1  font-medium text-indigo-1100 ">
+                                <span class="relative">Occupation <span
+                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                            </label>
+                            <input type="text" id="occupation" autocomplete="off" wire:model.blur="occupation"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('occupation') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="Type occupation">
                             @error('occupation')
@@ -713,10 +842,10 @@
 
                         {{-- Average Monthly Income --}}
                         <div x-data="{ occ: $wire.entangle('occupation') }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="avg_monthly_income" class="block mb-1  font-medium text-indigo-1100 ">Average
-                                Monthly
-                                Income <span x-show="occ"
-                                    class="text-red-700 font-normal text-xs">*</span></label></label>
+                            <label for="avg_monthly_income" class="block mb-1  font-medium text-indigo-1100 ">
+                                <span class="relative">Average Monthly Income <span
+                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                            </label>
                             <div class="relative">
                                 <div
                                     class="text-sm duration-200 ease-in-out absolute inset-y-0 px-3 rounded-l flex items-center justify-center text-center pointer-events-none {{ $errors->has('avg_monthly_income') ? ' bg-red-400 text-red-900 border border-red-500' : 'bg-indigo-700 text-indigo-50' }}">
@@ -726,7 +855,8 @@
                                     </p>
                                 </div>
                                 <input x-mask:dynamic="$money($input)" type="text" min="0"
-                                    autocomplete="off" id="avg_monthly_income" wire:model.blur="avg_monthly_income"
+                                    autocomplete="off" id="avg_monthly_income"
+                                    @input="$wire.avg_monthly_income = $el.value;"
                                     class="text-xs outline-none border ps-10 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('avg_monthly_income') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50  border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                     placeholder="0.00">
                             </div>
@@ -739,14 +869,14 @@
                         {{-- Dependent --}}
                         <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
                             <div class="flex items-center">
-                                <label for="dependent"
-                                    class="block mb-1 font-medium text-indigo-1100 ">Dependent
-                                    <span class="text-red-700 font-normal text-xs">*</span>
+                                <label for="dependent" class="block mb-1 font-medium text-indigo-1100 ">
+                                    <span class="relative">Dependent <span
+                                            class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
                                 </label>
-                                <p class="block mb-1 ms-2 text-gray-500 ">(must be 18+ years old)</p>
+                                <p class="block mb-1 ms-3.5 text-gray-500 ">(must be 18+ years old)</p>
                             </div>
                             <input type="text" id="dependent" autocomplete="off" wire:model.blur="dependent"
-                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{$errors->has('dependent') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600'}}"
+                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('dependent') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="Type dependent's name">
                             @error('dependent')
                                 <p class="text-red-500 absolute left-0 top-full text-xs">{{ $message }}
@@ -955,8 +1085,10 @@
 
                             {{-- ID Number --}}
                             <div class="relative col-span-full sm:col-span-3 sm:row-span-1 mb-4 pb-1">
-                                <label for="id_number" class="block mb-1 font-medium text-indigo-1100 ">ID Number
-                                    <span class="text-red-700 font-normal text-xs">*</span></label>
+                                <label for="id_number" class="block mb-1 font-medium text-indigo-1100 ">
+                                    <span class="relative">ID Number <span
+                                            class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                                </label>
                                 <input type="text" id="id_number" autocomplete="off" wire:model.blur="id_number"
                                     class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('id_number') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                     placeholder="Type ID number">
@@ -1025,10 +1157,13 @@
                             {{-- Spouse First Name --}}
                             <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
                                 <label for="spouse_first_name"
-                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
-                                    First Name @if ($civil_status === 'Married')
-                                        <span class="text-red-700 font-normal text-xs ms-0.5">*</span>
-                                    @endif
+                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">
+                                    <span class="relative"> Spouse
+                                        First Name @if ($civil_status === 'Married')
+                                            <span
+                                                class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span>
+                                        @endif
+                                    </span>
                                 </label>
                                 <input type="text" id="spouse_first_name" autocomplete="off"
                                     wire:model.blur="spouse_first_name"
@@ -1060,10 +1195,13 @@
                             {{-- Spouse Last Name --}}
                             <div class="relative flex flex-col col-span-full sm:col-span-2 mb-4 pb-1">
                                 <label for="spouse_last_name"
-                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
-                                    Last Name @if ($civil_status === 'Married')
-                                        <span class="text-red-700 font-normal text-xs ms-0.5">*</span>
-                                    @endif
+                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}"><span
+                                        class="relative"> Spouse
+                                        Last Name @if ($civil_status === 'Married')
+                                            <span
+                                                class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span>
+                                        @endif
+                                    </span>
                                 </label>
                                 <input type="text" id="spouse_last_name" autocomplete="off"
                                     wire:model.blur="spouse_last_name"
@@ -1135,3 +1273,12 @@
         </div>
     </div>
 </div>
+@script
+    <script>
+        $wire.on('init-reload', () => {
+            setTimeout(() => {
+                initFlowbite();
+            }, 1);
+        });
+    </script>
+@endscript

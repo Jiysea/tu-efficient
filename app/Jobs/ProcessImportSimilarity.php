@@ -10,6 +10,7 @@ use App\Models\UserSetting;
 use App\Services\GenerateActivityLogs;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
+use DateTime;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Cache;
@@ -119,10 +120,24 @@ class ProcessImportSimilarity implements ShouldQueue
                     $value = $row->getRowIndex();
                 }
 
+                # For birthdate
+                elseif ($keyCell === 'F') {
+                    $value = self::extract_dateTime($value);
+                }
+
                 # Values that are empty, null, or `-` will be assigned as `null` to uniform the data
-                elseif (in_array($keyCell, ['C', 'E', 'N', 'P', 'T', 'V', 'X', 'Y', 'Z', 'AA', 'AB'])) {
+                elseif (in_array($keyCell, ['N', 'P', 'T', 'X', 'Y', 'Z', 'AA', 'AB'])) {
                     if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = null;
+                    }
+                }
+
+                # For Names
+                elseif (in_array($keyCell, ['B', 'D', 'C', 'E', 'V'])) {
+                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                        $value = null;
+                    } else {
+                        $value = mb_strtoupper($value, "UTF-8");
                     }
                 }
 
@@ -573,4 +588,83 @@ class ProcessImportSimilarity implements ShouldQueue
     }
 
     # End of Some validation rules ------------------------------------------------------------------------
+
+    static function extract_dateTime($message, $returnFormat = 'Y/m/d')
+    {
+        $date_patterns = [
+            // '/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3,8}Z\b/' => 'Y-m-d\TH:i:s.u\Z', // format DATE ISO 8601
+            '/\b\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y-m-d',
+            '/\b\d{4}-(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])\b/' => 'Y-d-m',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-\d{4}\b/' => 'd-m-Y',
+            '/\b(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])-\d{4}\b/' => 'm-d-Y',
+
+            '/\b(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm-d',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])\b/' => 'd-m',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])\b/' => 'd-m',
+            '/\b(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm-d',
+
+
+            '/\b\d{4}\/(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\b/' => 'Y/d/m',
+            '/\b\d{4}\/(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y/m/d',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}\b/' => 'd/m/Y',
+            '/\b(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\/\d{4}\b/' => 'm/d/Y',
+
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\b/' => 'd/m',
+            '/\b(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm/d',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\b/' => 'd/m',
+            '/\b(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm/d',
+
+
+            '/\b\d{4}\.(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y.m.d',
+            '/\b\d{4}\.(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\b/' => 'Y.d.m',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\.\d{4}\b/' => 'd.m.Y',
+            '/\b(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\.\d{4}\b/' => 'm.d.Y',
+
+            '/\b(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm.d',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\b/' => 'd.m',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\b/' => 'd.m',
+            '/\b(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm.d',
+
+        ];
+
+        $time_patterns = [
+            // for 24-hour | hours seconds
+            // '/\b(?:2[0-3]|[01][0-9]):[0-5][0-9](:[0-5][0-9])\.\d{3,6}\b/' => 'H:i:s.u',
+            '/\b(?:2[0-3]|[01][0-9]):[0-5][0-9](:[0-5][0-9])\b/' => 'H:i:s',
+            '/\b(?:2[0-3]|[01][0-9]):[0-5][0-9]\b/' => 'H:i',
+
+            // for 12-hour | hours seconds
+            // '/\b(?:1[012]|0[0-9]):[0-5][0-9](:[0-5][0-9])\.\d{3,6}\b/' => 'h:i:s.u',
+            '/\b(?:1[012]|0[0-9]):[0-5][0-9](:[0-5][0-9])\b/' => 'h:i:s',
+            '/\b(?:1[012]|0[0-9]):[0-5][0-9]\b/' => 'h:i',
+        ];
+
+        $dateTimeStr = null;
+        $dateTimeFormat = null;
+
+        foreach ($date_patterns as $date_pattern => $format) {
+            if (preg_match($date_pattern, $message, $matches)) {
+                $dateTimeFormat = $format;
+                $dateTimeStr = $matches[0];
+                break;
+            }
+        }
+        if ($dateTimeFormat)
+            $dateTimeFormat .= ' ';
+        if ($dateTimeStr)
+            $dateTimeStr .= ' ';
+        foreach ($time_patterns as $time_pattern => $format) {
+            if (preg_match($time_pattern, $message, $matches)) {
+                $dateTimeFormat .= $format;
+                $dateTimeStr .= $matches[0];
+                break;
+            }
+        }
+        if ($dateTimeStr == null || $dateTimeFormat == null) {
+            $d = new DateTime();
+            return $d->format($returnFormat);
+        }
+        $d = DateTime::createFromFormat($dateTimeFormat, $dateTimeStr);
+        return $d->format($returnFormat);
+    }
 }

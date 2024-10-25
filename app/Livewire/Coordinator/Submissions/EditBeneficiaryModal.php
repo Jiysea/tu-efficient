@@ -7,6 +7,7 @@ use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
+use App\Services\Essential;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;
@@ -106,30 +107,29 @@ class EditBeneficiaryModal extends Component
             'first_name' => [
                 'required',
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    elseif (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
+
                 },
             ],
             'middle_name' => [
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
@@ -137,30 +137,28 @@ class EditBeneficiaryModal extends Component
             'last_name' => [
                 'required',
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
             ],
             'extension_name' => [
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value, true)) {
                         $fail('No illegal characters.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('No numbers.');
                     }
                 },
@@ -177,21 +175,40 @@ class EditBeneficiaryModal extends Component
                 'digits:11',
             ],
             'avg_monthly_income' => [
-                'required_unless:occupation,null',
+                'required',
                 function ($attr, $value, $fail) {
-                    if ($this->avg_monthly_income) {
+                    $maximumIncome = UserSetting::where('users_id', Auth::id())->where('key', 'maximum_income')->value('value');
 
-                        if (MoneyFormat::isNegative($value)) {
-                            $fail('The value should be more than 1.');
-                        }
-                        if (!MoneyFormat::isMaskInt($value)) {
-
-                            $fail('The value should be a valid amount.');
-                        }
+                    if (MoneyFormat::isNegative($value)) {
+                        $fail('The value should be more than 1.');
                     }
+                    if (!MoneyFormat::isMaskInt($value)) {
+                        $fail('The value should be a valid amount.');
+                    }
+                    if (MoneyFormat::unmask($value) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
+                        $fail('Maximum amount is ₱' . MoneyFormat::mask($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income'))));
+                    }
+
+                },
+            ],
+            'dependent' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (Essential::hasIllegal($value, false, true)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+
                 },
             ],
             'occupation' => [
+                'required',
                 # hard-coded since `required_unless` is messy with `$money($input)` x-mask
                 function ($attr, $value, $fail) {
                     if ($this->avg_monthly_income && !$value) {
@@ -244,6 +261,9 @@ class EditBeneficiaryModal extends Component
             'contact_num.required' => 'Contact number is required.',
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',
+            'occupation.required' => 'This field is required.',
+            'avg_monthly_income.required' => 'This field is required.',
+            'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
 
@@ -280,30 +300,29 @@ class EditBeneficiaryModal extends Component
                 'first_name' => [
                     'required',
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value)) {
                             $fail('Illegal characters are not allowed.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        elseif (Essential::hasNumber($value)) {
                             $fail('Numbers on names are not allowed.');
                         }
+
                     },
                 ],
                 'middle_name' => [
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value)) {
                             $fail('Illegal characters are not allowed.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        else if (Essential::hasNumber($value)) {
                             $fail('Numbers on names are not allowed.');
                         }
                     },
@@ -311,30 +330,28 @@ class EditBeneficiaryModal extends Component
                 'last_name' => [
                     'required',
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value)) {
                             $fail('Illegal characters are not allowed.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        else if (Essential::hasNumber($value)) {
                             $fail('Numbers on names are not allowed.');
                         }
                     },
                 ],
                 'extension_name' => [
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value, true)) {
                             $fail('No illegal characters.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        else if (Essential::hasNumber($value)) {
                             $fail('No numbers.');
                         }
                     },
@@ -351,21 +368,40 @@ class EditBeneficiaryModal extends Component
                     'digits:11',
                 ],
                 'avg_monthly_income' => [
-                    'required_unless:occupation,null',
+                    'required',
                     function ($attr, $value, $fail) {
-                        if ($this->avg_monthly_income) {
+                        $maximumIncome = UserSetting::where('users_id', Auth::id())->where('key', 'maximum_income')->value('value');
 
-                            if (MoneyFormat::isNegative($value)) {
-                                $fail('The value should be more than 1.');
-                            }
-                            if (!MoneyFormat::isMaskInt($value)) {
-
-                                $fail('The value should be a valid amount.');
-                            }
+                        if (MoneyFormat::isNegative($value)) {
+                            $fail('The value should be more than 1.');
                         }
+                        if (!MoneyFormat::isMaskInt($value)) {
+                            $fail('The value should be a valid amount.');
+                        }
+                        if (MoneyFormat::unmask($value) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
+                            $fail('Maximum amount is ₱' . MoneyFormat::mask($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income'))));
+                        }
+
+                    },
+                ],
+                'dependent' => [
+                    'required',
+                    # Check if the name has illegal characters
+                    function ($attribute, $value, $fail) {
+
+                        # throws validation errors whenever it detects illegal characters on names
+                        if (Essential::hasIllegal($value, false, true)) {
+                            $fail('Illegal characters are not allowed.');
+                        }
+                        # throws validation error whenever the name has a number
+                        else if (Essential::hasNumber($value)) {
+                            $fail('Numbers on names are not allowed.');
+                        }
+
                     },
                 ],
                 'occupation' => [
+                    'required',
                     # hard-coded since `required_unless` is messy with `$money($input)` x-mask
                     function ($attr, $value, $fail) {
                         if ($this->avg_monthly_income && !$value) {
@@ -413,7 +449,9 @@ class EditBeneficiaryModal extends Component
                 'contact_num.required' => 'Contact number is required.',
                 'contact_num.digits' => 'Valid number should be 11 digits.',
                 'contact_num.starts_with' => 'Valid number should start with \'09\'',
-                'avg_monthly_income.required_unless' => 'This field is required.',
+                'occupation.required' => 'This field is required.',
+                'avg_monthly_income.required' => 'This field is required.',
+                'dependent.required' => 'This field is required.',
                 'id_number.required' => 'This field is required.',
 
                 'image_file_path.image' => 'It should be an image type.',
@@ -434,6 +472,42 @@ class EditBeneficiaryModal extends Component
         $this->contact_num = '+63' . substr($this->contact_num, 1);
         $batch = Batch::find($this->beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
+
+        if (strtolower($this->middle_name) === 'n/a' || strtolower($this->middle_name) === 'none' || strtolower($this->middle_name) == '-' || empty($this->middle_name)) {
+            $this->middle_name = null;
+        }
+
+        if (strtolower($this->extension_name) === 'n/a' || strtolower($this->extension_name) === 'none' || strtolower($this->extension_name) == '-' || empty($this->extension_name)) {
+            $this->extension_name = null;
+        }
+
+        if (strtolower($this->e_payment_acc_num) === 'n/a' || strtolower($this->e_payment_acc_num) === 'none' || strtolower($this->e_payment_acc_num) == '-' || empty($this->e_payment_acc_num)) {
+            $this->e_payment_acc_num = null;
+        }
+
+        if (strtolower($this->occupation) === 'n/a' || strtolower($this->occupation) === 'none' || strtolower($this->occupation) == '-' || empty($this->occupation)) {
+            $this->occupation = null;
+        }
+
+        if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) === 'none' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
+            $this->skills_training = null;
+        }
+
+        if (strtolower($this->spouse_first_name) === 'n/a' || strtolower($this->spouse_first_name) === 'none' || strtolower($this->spouse_first_name) == '-' || empty($this->spouse_first_name)) {
+            $this->spouse_first_name = null;
+        }
+
+        if (strtolower($this->spouse_middle_name) === 'n/a' || strtolower($this->spouse_middle_name) === 'none' || strtolower($this->spouse_middle_name) == '-' || empty($this->spouse_middle_name)) {
+            $this->spouse_middle_name = null;
+        }
+
+        if (strtolower($this->spouse_last_name) === 'n/a' || strtolower($this->spouse_last_name) === 'none' || strtolower($this->spouse_last_name) == '-' || empty($this->spouse_last_name)) {
+            $this->spouse_last_name = null;
+        }
+
+        if (strtolower($this->spouse_extension_name) === 'n/a' || strtolower($this->spouse_extension_name) === 'none' || strtolower($this->spouse_extension_name) == '-' || empty($this->spouse_extension_name)) {
+            $this->spouse_extension_name = null;
+        }
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () use ($batch, $implementation) {
@@ -468,8 +542,8 @@ class EditBeneficiaryModal extends Component
                     'birthdate' => $this->birthdate,
                     'barangay_name' => $batch->barangay_name,
                     'contact_num' => $this->contact_num,
-                    'occupation' => $this->occupation ?? null,
-                    'avg_monthly_income' => $this->avg_monthly_income ?? null,
+                    'occupation' => $this->occupation,
+                    'avg_monthly_income' => $this->avg_monthly_income,
                     'city_municipality' => $implementation->city_municipality,
                     'province' => $implementation->province,
                     'district' => $implementation->district,
@@ -480,7 +554,7 @@ class EditBeneficiaryModal extends Component
                     'sex' => strtolower($this->sex),
                     'civil_status' => strtolower($this->civil_status),
                     'age' => $this->beneficiaryAge($this->birthdate),
-                    'dependent' => $this->dependent ?? null,
+                    'dependent' => $this->dependent,
                     'self_employment' => strtolower($this->self_employment),
                     'skills_training' => $this->skills_training ?? null,
                     'is_pwd' => strtolower($this->is_pwd),
@@ -588,6 +662,8 @@ class EditBeneficiaryModal extends Component
             if (!isset($this->similarityResults)) {
                 $this->expanded = false;
             }
+
+            $this->dispatch('init-reload')->self();
         }
     }
 

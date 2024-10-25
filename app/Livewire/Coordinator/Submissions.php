@@ -69,6 +69,7 @@ class Submissions extends Component
     public $export_start;
     public $export_end;
     public $exportFormat = 'xlsx';
+    public $exportTypeCsv = 'annex_e1';
     public array $exportType = [
         'annex_e1' => true,
         'annex_e2' => false,
@@ -163,16 +164,17 @@ class Submissions extends Component
 
         $spreadsheet = new Spreadsheet();
 
-        # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
-        $spreadsheet = Annex::export($spreadsheet, $batch, $this->exportType, $this->exportFormat);
-
         $writer = null;
         $fileName = null;
 
         if ($this->exportFormat === 'xlsx') {
+            # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+            $spreadsheet = Annex::export($spreadsheet, $batch, $this->exportType, $this->exportFormat);
             $writer = new Xlsx($spreadsheet);
             $fileName = 'TUPAD Annex.xlsx';
         } elseif ($this->exportFormat === 'csv') {
+            # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+            $spreadsheet = Annex::export($spreadsheet, $batch, $this->exportTypeCsv, $this->exportFormat);
             $writer = new Csv($spreadsheet);
             $fileName = 'TUPAD Annex.csv';
             $writer->setDelimiter(';');

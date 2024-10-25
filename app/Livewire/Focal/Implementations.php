@@ -7,6 +7,7 @@ use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Annex;
+use App\Services\JaccardSimilarity;
 use Carbon\Carbon;
 use Crypt;
 use Illuminate\Support\Facades\Auth;
@@ -31,8 +32,9 @@ class Implementations extends Component
     public $batchId;
     #[Locked]
     public $exportBatchId;
-    #[Locked]
-    public $beneficiaryId;
+    public $projectNumPrefix;
+    public $duplicationThreshold;
+    public $allSimilarityResults;
 
     # ------------------------------------------
 
@@ -75,14 +77,11 @@ class Implementations extends Component
     public $searchBeneficiaries;
     public $showAlert = false;
     public $alertMessage = '';
-    public $totalImplementations;
     public $implementations_on_page = 15;
     public $beneficiaries_on_page = 15;
     public $selectedImplementationRow = -1;
     public $selectedBatchRow = -1;
     public $selectedBeneficiaryRow = -1;
-    public $remainingBatchSlots;
-    public $beneficiarySlots = [];
     public $start;
     public $end;
     public $defaultStart;
@@ -242,21 +241,21 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
-    public function viewProject(string $implementationId)
+    public function viewProject(string $encryptedId)
     {
-        $this->passedProjectId = $implementationId;
+        $this->passedProjectId = $encryptedId;
         $this->viewProjectModal = true;
     }
 
-    public function viewBatch(string $batchId)
+    public function viewBatch(string $encryptedId)
     {
-        $this->passedBatchId = $batchId;
+        $this->passedBatchId = $encryptedId;
         $this->viewBatchModal = true;
     }
 
-    public function viewBeneficiary(string $beneficiaryId)
+    public function viewBeneficiary(string $encryptedId)
     {
-        $this->passedBeneficiaryId = $beneficiaryId;
+        $this->passedBeneficiaryId = $encryptedId;
         $this->viewBeneficiaryModal = true;
     }
 
@@ -289,21 +288,7 @@ class Implementations extends Component
         }
 
         $this->beneficiaries_on_page = 15;
-        $this->beneficiaryId = null;
         $this->selectedBeneficiaryRow = -1;
-
-        $this->dispatch('init-reload')->self();
-    }
-
-    public function selectBeneficiaryRow($key, $encryptedId)
-    {
-        if ($key === $this->selectedBeneficiaryRow) {
-            $this->selectedBeneficiaryRow = -1;
-            $this->beneficiaryId = null;
-        } else {
-            $this->selectedBeneficiaryRow = $key;
-            $this->beneficiaryId = $encryptedId;
-        }
 
         $this->dispatch('init-reload')->self();
     }
@@ -311,12 +296,9 @@ class Implementations extends Component
     #[Computed]
     public function implementations()
     {
-        $focalUserId = auth()->id();
-        $projectNumPrefix = config('settings.project_number_prefix', 'XII-DCFO-');
-
-        $implementations = Implementation::where('users_id', $focalUserId)
+        $implementations = Implementation::where('users_id', Auth::id())
             ->whereBetween('created_at', [$this->start, $this->end])
-            ->where('project_num', 'LIKE', $projectNumPrefix . '%' . $this->searchProjects . '%')
+            ->where('project_num', 'LIKE', $this->projectNumPrefix . '%' . $this->searchProjects . '%')
             ->latest('updated_at')
             ->take($this->implementations_on_page)
             ->get();
@@ -327,73 +309,82 @@ class Implementations extends Component
     #[Computed]
     public function implementation()
     {
-        if ($this->implementationId) {
-            $implementation = Implementation::find(decrypt($this->implementationId));
-            return $implementation;
-        }
+        $implementation = Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
+        return $implementation;
     }
 
     #[Computed]
     public function batches()
     {
-        if ($this->implementationId) {
-            $batches = Implementation::where('implementations.users_id', Auth::id())
-                ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
-                ->leftJoin('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-                ->where('implementations.id', decrypt($this->implementationId))
-                ->select([
-                    'batches.id',
-                    'batches.barangay_name',
-                    'batches.slots_allocated',
-                    DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots'),
-                    DB::raw('batches.approval_status AS approval_status')
-                ])
-                ->groupBy('batches.id', 'barangay_name', 'slots_allocated', 'approval_status')
-                ->orderBy('batches.id', 'desc')
-                ->get();
+        $batches = Implementation::where('implementations.users_id', Auth::id())
+            ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
+            ->leftJoin('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('implementations.id', $this->implementationId ? decrypt($this->implementationId) : null)
+            ->select([
+                'batches.id',
+                'batches.barangay_name',
+                'batches.slots_allocated',
+                DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots'),
+                DB::raw('batches.approval_status AS approval_status')
+            ])
+            ->groupBy('batches.id', 'barangay_name', 'slots_allocated', 'approval_status')
+            ->orderBy('batches.id', 'desc')
+            ->get();
 
-            return $batches;
-        }
+        return $batches;
+
     }
 
     #[Computed]
     public function beneficiaries()
     {
-        if ($this->batchId) {
-            $beneficiaries = Implementation::where('implementations.users_id', Auth::id())
-                ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
-                ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-                ->where('batches.id', decrypt($this->batchId))
-                ->when($this->searchBeneficiaries, function ($q) {
-                    # Check if the search field starts with '#' and filter by contact number
-                    if (str_contains($this->searchBeneficiaries, '#')) {
-                        $searchValue = trim(str_replace('#', '', $this->searchBeneficiaries));
+        $beneficiaries = Implementation::where('implementations.users_id', Auth::id())
+            ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
+            ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
+            ->when($this->searchBeneficiaries, function ($q) {
+                # Check if the search field starts with '#' and filter by contact number
+                if (str_contains($this->searchBeneficiaries, '#')) {
+                    $searchValue = trim(str_replace('#', '', $this->searchBeneficiaries));
 
-                        if (strpos($searchValue, '0') === 0) {
-                            $searchValue = substr($searchValue, 1);
-                        }
-                        $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
-                    } else {
-                        # Otherwise, search by first, middle, last or extension name
-                        $q->where(function ($query) {
-                            $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
-                                ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
-                                ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
-                                ->orWhere('beneficiaries.extension_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
-                        });
+                    if (strpos($searchValue, '0') === 0) {
+                        $searchValue = substr($searchValue, 1);
                     }
-                })
-                ->orderBy('beneficiaries.last_name', 'asc')
-                ->select(
-                    [
-                        'beneficiaries.*'
-                    ],
-                )
-                ->take($this->beneficiaries_on_page)
-                ->get();
+                    $q->where('beneficiaries.contact_num', 'LIKE', '%' . $searchValue . '%');
+                } else {
+                    # Otherwise, search by first, middle, last or extension name
+                    $q->where(function ($query) {
+                        $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                            ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                            ->orWhere('beneficiaries.last_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
+                            ->orWhere('beneficiaries.extension_name', 'LIKE', '%' . $this->searchBeneficiaries . '%');
+                    });
+                }
+            })
+            ->orderBy('beneficiaries.last_name', 'asc')
+            ->select(
+                [
+                    'beneficiaries.*'
+                ],
+            )
+            ->take($this->beneficiaries_on_page)
+            ->get();
 
-            return $beneficiaries;
+        return $beneficiaries;
+
+    }
+
+    #[Computed]
+    public function nameCheck($person)
+    {
+        $results = null;
+
+        if ($this->beneficiaries->isNotEmpty()) {
+            $results = JaccardSimilarity::isOverThreshold($person, $this->duplicationThreshold);
         }
+
+        $this->dispatch('init-reload')->self();
+        return $results;
     }
 
     #[Computed]
@@ -402,64 +393,54 @@ class Implementations extends Component
         $beneficiaries = Implementation::where('implementations.users_id', Auth::id())
             ->join('batches', 'implementations.id', '=', 'batches.implementations_id')
             ->join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('batches.id', decrypt($this->batchId))
+            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
             ->where('beneficiary_type', 'special case')
             ->count();
         return $beneficiaries;
     }
-    public function checkImplementationTotalSlots()
-    {
-        $focalUserId = auth()->id();
 
-        $this->totalImplementations = Implementation::where('users_id', $focalUserId)
+    #[Computed]
+    public function totalImplementations()
+    {
+        return Implementation::where('users_id', Auth::id())
             ->whereBetween('created_at', [$this->start, $this->end])
             ->count();
     }
 
-    public function checkBatchRemainingSlots()
+    #[Computed]
+    public function remainingBatchSlots()
     {
-        if ($this->implementationId) {
+        $remainingBatchSlots = $this->implementationId ? $this->implementation->total_slots : null;
 
-            $this->remainingBatchSlots = $this->implementation->total_slots;
+        $batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            ->where('implementations.users_id', Auth::id())
+            ->where('implementations.id', $this->implementationId ? decrypt($this->implementationId) : null)
+            ->select('batches.slots_allocated')
+            ->get();
 
-            $batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-                ->where('implementations.users_id', Auth::id())
-                ->where('implementations.id', decrypt($this->implementationId))
-                ->select('batches.slots_allocated')
-                ->orderBy('batches.id', 'desc')
-                ->get();
-
-            foreach ($batchesCount as $batch) {
-                $this->remainingBatchSlots -= $batch->slots_allocated;
-            }
-        } else {
-            $this->remainingBatchSlots = null;
+        foreach ($batchesCount as $batch) {
+            $remainingBatchSlots -= $batch?->slots_allocated;
         }
+        return $remainingBatchSlots;
     }
 
-    public function checkBeneficiarySlots()
+    #[Computed]
+    public function beneficiarySlots()
     {
-        if ($this->batchId) {
+        $batch = Batch::where('id', $this->batchId ? decrypt($this->batchId) : null)
+            ->first();
 
-            $batch = Batch::where('id', decrypt($this->batchId))
-                ->first();
+        $beneficiarySlots = $batch?->slots_allocated;
 
-            $this->beneficiarySlots = $batch->slots_allocated;
+        $beneficiaryCount = Beneficiary::where('batches_id', $this->batchId ? decrypt($this->batchId) : null)
+            ->count();
 
-            $beneficiaryCount = Beneficiary::where('batches_id', decrypt($this->batchId))
-                ->count();
+        $beneficiarySlots = [
+            'batch_slots_allocated' => $batch?->slots_allocated,
+            'num_of_beneficiaries' => $beneficiaryCount
+        ];
 
-            $this->beneficiarySlots = [
-                'batch_slots_allocated' => $batch->slots_allocated,
-                'num_of_beneficiaries' => $beneficiaryCount
-            ];
-
-        } else {
-            $this->beneficiarySlots = [
-                'batch_slots_allocated' => null,
-                'num_of_beneficiaries' => null
-            ];
-        }
+        return $beneficiarySlots;
     }
 
     public function loadMoreImplementations()
@@ -564,7 +545,6 @@ class Implementations extends Component
         $this->passedProjectId = null;
         $this->implementationId = null;
         $this->batchId = null;
-        $this->beneficiaryId = null;
 
         $this->selectedImplementationRow = -1;
         $this->selectedBatchRow = -1;
@@ -589,7 +569,6 @@ class Implementations extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
 
         $this->batchId = null;
-        $this->beneficiaryId = null;
 
         $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
@@ -629,7 +608,6 @@ class Implementations extends Component
 
         $this->passedBatchId = null;
         $this->batchId = null;
-        $this->beneficiaryId = null;
 
         $this->selectedBatchRow = -1;
         $this->selectedBeneficiaryRow = -1;
@@ -652,8 +630,6 @@ class Implementations extends Component
         $currentTime = date('H:i:s', strtotime(now()));
         $this->end = $choosenDate . ' ' . $currentTime;
 
-        $this->beneficiaryId = null;
-
         $this->selectedBeneficiaryRow = -1;
 
         $this->showAlert = true;
@@ -671,8 +647,6 @@ class Implementations extends Component
     //     $choosenDate = date('Y-m-d', strtotime($value));
     //     $currentTime = date('H:i:s', strtotime(now()));
     //     $this->end = $choosenDate . ' ' . $currentTime;
-
-    //     $this->beneficiaryId = null;
 
     //     $this->selectedBeneficiaryRow = -1;
 
@@ -709,7 +683,6 @@ class Implementations extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
 
         $this->passedBeneficiaryId = null;
-        $this->beneficiaryId = null;
 
         $this->selectedBeneficiaryRow = -1;
 
@@ -732,7 +705,6 @@ class Implementations extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
 
         $this->passedBeneficiaryId = null;
-        $this->beneficiaryId = null;
 
         $this->selectedBeneficiaryRow = -1;
 
@@ -755,7 +727,6 @@ class Implementations extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
 
         $this->passedBeneficiaryId = null;
-        $this->beneficiaryId = null;
 
         $this->selectedBeneficiaryRow = -1;
 
@@ -795,6 +766,7 @@ class Implementations extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
+        $this->duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold')));
 
         # Setting default dates in the datepicker
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
@@ -820,11 +792,6 @@ class Implementations extends Component
 
     public function render()
     {
-        # Check slots && Empty
-        $this->checkImplementationTotalSlots();
-        $this->checkBatchRemainingSlots();
-        $this->checkBeneficiarySlots();
-
         return view('livewire.focal.implementations');
     }
 }

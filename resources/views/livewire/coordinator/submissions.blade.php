@@ -1112,11 +1112,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- Export Summary Modal --}}
                 <div x-cloak>
                     <!-- Modal Backdrop -->
-                    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="showExportModal">
+                    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+                        x-show="showExportModal">
                     </div>
 
                     <!-- Modal -->
-                    <div x-show="showExportModal" x-trap.noautofocus.noscroll="showExportModal" class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none">
+                    <div x-show="showExportModal" x-trap.noautofocus.noscroll="showExportModal"
+                        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none">
 
                         {{-- The Modal --}}
                         <div class="flex items-center justify-center w-full max-w-3xl">
@@ -1130,17 +1132,28 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <div class="flex items-center justify-end gap-2">
 
                                         {{-- Loading State --}}
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-blue-900 animate-spin" wire:loading wire:target="exportAnnex, showExport, exportFormat, defaultExportStart, defaultExportEnd, selectExportBatchRow" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            class="size-6 text-blue-900 animate-spin" wire:loading
+                                            wire:target="exportAnnex, showExport, exportFormat, defaultExportStart, defaultExportEnd, selectExportBatchRow"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4">
                                             </circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                             </path>
                                         </svg>
 
                                         {{-- Close Button --}}
-                                        <button type="button" @click="$wire.resetExport(); showExportModal = false;" class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
-                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                        <button type="button"
+                                            @click="$wire.resetExport(); showExportModal = false;"
+                                            class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                            <svg class="size-3" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                             </svg>
                                             <span class="sr-only">Close Modal</span>
                                         </button>
@@ -1150,41 +1163,100 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <hr class="">
 
                                 {{-- Modal body --}}
-                                <div class="w-full flex flex-col items-center justify-center gap-4 pt-5 pb-6 px-3 md:px-12 text-blue-1100 text-xs">
+                                <div
+                                    class="w-full flex flex-col items-center justify-center gap-4 pt-5 pb-6 px-3 md:px-12 text-blue-1100 text-xs">
 
                                     {{-- Annex Type --}}
                                     <div class="relative w-full flex items-center gap-2">
                                         <span class="text-sm font-medium whitespace-nowrap">Annex Type:</span>
                                         <div class="flex flex-col gap-2">
-                                            <span class="flex items-center flex-wrap gap-2">
-                                                {{-- Annex E-1 (COS) --}}
-                                                <label for="annex_e1" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e1'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
-                                                    Annex E-1 (COS)
-                                                    <input type="checkbox" class="hidden absolute inset-0" id="annex_e1" wire:model.live="exportType.annex_e1">
-                                                </label>
-                                                {{-- Annex E-2 (COS - Co-Partner) --}}
-                                                <label for="annex_e2" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e2'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
-                                                    Annex E-2 (COS - Co-Partner)
-                                                    <input type="checkbox" class="hidden absolute inset-0" id="annex_e2" wire:model.live="exportType.annex_e2">
-                                                </label>
-                                                {{-- Annex J-2 (Attendance Sheet) --}}
-                                                <label for="annex_j2" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_j2'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
-                                                    Annex J-2 (Attendance Sheet)
-                                                    <input type="checkbox" class="hidden absolute inset-0" id="annex_j2" wire:model.live="exportType.annex_j2">
-                                                </label>
-                                            </span>
-                                            <span class="flex items-center flex-wrap gap-2">
-                                                {{-- Annex L (Payroll) --}}
-                                                <label for="annex_l" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
-                                                    Annex L (Payroll)
-                                                    <input type="checkbox" class="hidden absolute inset-0" id="annex_l" wire:model.live="exportType.annex_l">
-                                                </label>
-                                                {{-- Annex L (Payroll w/ Sign) --}}
-                                                <label for="annex_l_sign" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l_sign'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
-                                                    Annex L (Payroll w/ Sign)
-                                                    <input type="checkbox" class="hidden absolute inset-0" id="annex_l_sign" wire:model.live="exportType.annex_l_sign">
-                                                </label>
-                                            </span>
+                                            @if ($exportFormat === 'xlsx')
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex E-1 (COS) --}}
+                                                    <label for="annex_e1"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e1'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex E-1 (COS)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_e1" wire:model.live="exportType.annex_e1">
+                                                    </label>
+                                                    {{-- Annex E-2 (COS - Co-Partner) --}}
+                                                    <label for="annex_e2"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e2'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex E-2 (COS - Co-Partner)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_e2" wire:model.live="exportType.annex_e2">
+                                                    </label>
+                                                    {{-- Annex J-2 (Attendance Sheet) --}}
+                                                    <label for="annex_j2"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_j2'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex J-2 (Attendance Sheet)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_j2" wire:model.live="exportType.annex_j2">
+                                                    </label>
+                                                </span>
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex L (Payroll) --}}
+                                                    <label for="annex_l"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex L (Payroll)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_l" wire:model.live="exportType.annex_l">
+                                                    </label>
+                                                    {{-- Annex L (Payroll w/ Sign) --}}
+                                                    <label for="annex_l_sign"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l_sign'] ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex L (Payroll w/ Sign)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_l_sign"
+                                                            wire:model.live="exportType.annex_l_sign">
+                                                    </label>
+                                                </span>
+                                            @elseif($exportFormat === 'csv')
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex E-1 (COS) --}}
+                                                    <label for="annex_e1_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e1' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex E-1 (COS)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_e1_csv" value="annex_e1"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                    {{-- Annex E-2 (COS - Co-Partner) --}}
+                                                    <label for="annex_e2_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e2' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex E-2 (COS - Co-Partner)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_e2_csv" value="annex_e2"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                    {{-- Annex J-2 (Attendance Sheet) --}}
+                                                    <label for="annex_j2_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_j2' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex J-2 (Attendance Sheet)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_j2_csv" value="annex_j2"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                </span>
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex L (Payroll) --}}
+                                                    <label for="annex_l_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex L (Payroll)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_l_csv" value="annex_l"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                    {{-- Annex L (Payroll w/ Sign) --}}
+                                                    <label for="annex_l_sign_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l_sign' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                                        Annex L (Payroll w/ Sign)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_l_sign_csv" value="annex_l_sign"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
 
@@ -1192,14 +1264,18 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <div class="relative w-full flex items-center gap-2">
                                         <span class="text-sm font-medium">File Format:</span>
                                         {{-- XLSX --}}
-                                        <label for="xlsx-radio" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'xlsx' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
+                                        <label for="xlsx-radio"
+                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'xlsx' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
                                             XLSX
-                                            <input type="radio" class="hidden absolute inset-0" id="xlsx-radio" value="xlsx" wire:model.live="exportFormat">
+                                            <input type="radio" class="hidden absolute inset-0" id="xlsx-radio"
+                                                value="xlsx" wire:model.live="exportFormat">
                                         </label>
                                         {{-- CSV --}}
-                                        <label for="csv-radio" class="relative duration-200 ease-in-out cursor-not-allowed whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'csv' ? 'bg-blue-700 text-blue-50' : 'bg-gray-50 text-gray-300' }}">
+                                        <label for="csv-radio"
+                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'csv' ? 'bg-blue-700 text-blue-50' : 'bg-gray-200 text-gray-500' }}">
                                             CSV
-                                            <input type="radio" disabled class="hidden absolute inset-0" id="csv-radio" value="csv" wire:model.live="exportFormat">
+                                            <input type="radio" class="hidden absolute inset-0" id="csv-radio"
+                                                value="csv" wire:model.live="exportFormat">
                                         </label>
                                     </div>
 
@@ -1208,23 +1284,37 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     {{-- Body --}}
                                     <div class="w-full flex flex-col justify-center gap-4">
                                         {{-- Date Range --}}
-                                        <div id="export-date-range" datepicker-orientation="top" date-rangepicker datepicker-autohide class="flex items-center gap-1 sm:gap-2 pb-4 text-xs text-blue-1100">
+                                        <div id="export-date-range" datepicker-orientation="top" date-rangepicker
+                                            datepicker-autohide
+                                            class="flex items-center gap-1 sm:gap-2 pb-4 text-xs text-blue-1100">
 
                                             {{-- Start --}}
                                             <span class="text-sm font-medium">Filter Date:</span>
                                             <div class="relative">
-                                                <span class="absolute {{ $errors->has('defaultExportStart') ? 'text-red-900' : 'text-blue-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
+                                                <span
+                                                    class="absolute {{ $errors->has('defaultExportStart') ? 'text-red-900' : 'text-blue-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="size-3.5 sm:size-5"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
                                                         <g>
-                                                            <path d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 " stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                            <path
+                                                                d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
                                                             </path>
                                                         </g>
                                                     </svg>
                                                 </span>
-                                                <input id="export-start-date" name="start" type="text" @change-date.camel="$wire.set('defaultExportStart', $el.value);" wire:model="defaultExportStart" value="{{ $defaultExportStart }}" class="border {{ $errors->has('defaultExportStart') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-500 focus:border-blue-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8" placeholder="Select date start">
+                                                <input id="export-start-date" name="start" type="text"
+                                                    @change-date.camel="$wire.set('defaultExportStart', $el.value);"
+                                                    wire:model="defaultExportStart"
+                                                    value="{{ $defaultExportStart }}"
+                                                    class="border {{ $errors->has('defaultExportStart') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-500 focus:border-blue-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
+                                                    placeholder="Select date start">
                                                 @error('defaultExportStart')
-                                                <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
-                                                    {{ $message }}</p>
+                                                    <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
+                                                        {{ $message }}</p>
                                                 @enderror
                                             </div>
 
@@ -1232,18 +1322,30 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                             {{-- End --}}
                                             <div class="relative">
-                                                <span class="absolute {{ $errors->has('defaultExportEnd') ? 'text-red-900' : 'text-blue-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
+                                                <span
+                                                    class="absolute {{ $errors->has('defaultExportEnd') ? 'text-red-900' : 'text-blue-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="size-3.5 sm:size-5"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
                                                         <g>
-                                                            <path d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 " stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                            <path
+                                                                d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
                                                             </path>
                                                         </g>
                                                     </svg>
                                                 </span>
-                                                <input id="export-end-date" name="end" type="text" @change-date.camel="$wire.set('defaultExportEnd', $el.value);" wire:model="defaultExportEnd" value="{{ $defaultExportEnd }}" class="border {{ $errors->has('defaultExportEnd') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-500 focus:border-blue-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8" placeholder="Select date end">
+                                                <input id="export-end-date" name="end" type="text"
+                                                    @change-date.camel="$wire.set('defaultExportEnd', $el.value);"
+                                                    wire:model="defaultExportEnd"
+                                                    value="{{ $defaultExportEnd }}"
+                                                    class="border {{ $errors->has('defaultExportEnd') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-500 focus:border-blue-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
+                                                    placeholder="Select date end">
                                                 @error('defaultExportEnd')
-                                                <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
-                                                    {{ $message }}</p>
+                                                    <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
+                                                        {{ $message }}</p>
                                                 @enderror
                                             </div>
                                         </div>
@@ -1258,29 +1360,42 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <div x-data="{ show: false, currentBatch: $wire.entangle('currentExportBatch') }" class="relative z-30">
 
                                                 {{-- Button --}}
-                                                <button type="button" @click="show = !show;" class="flex items-center justify-between w-64 sm:w-96 gap-2 border-2 outline-none text-xs font-semibold px-2 py-1 rounded
-                                                    disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
-                                                    bg-blue-100 hover:bg-blue-800 active:bg-blue-900 
-                                                    text-blue-700 hover:text-blue-50 active:text-blue-50
-                                                    border-blue-700 hover:border-transparent active:border-transparent duration-200 ease-in-out">
+                                                <button type="button" @click="show = !show;"
+                                                    class="flex items-center justify-between w-64 sm:w-96 gap-2 border-2 outline-none text-xs font-semibold px-2 py-1 rounded
+                                                disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
+                                                bg-blue-100 hover:bg-blue-800 active:bg-blue-900 
+                                                text-blue-700 hover:text-blue-50 active:text-blue-50
+                                                border-blue-700 hover:border-transparent active:border-transparent duration-200 ease-in-out">
 
                                                     <span x-text="currentBatch"></span>
 
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3 rotate-180">
-                                                        <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                        fill="currentColor" class="size-3 rotate-180">
+                                                        <path fill-rule="evenodd"
+                                                            d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                            clip-rule="evenodd" />
                                                     </svg>
                                                 </button>
 
                                                 {{-- Content --}}
-                                                <div x-show="show" @click.away="show = false; $wire.set('searchExportBatch', null);" class="absolute -left-20 sm:inset-x-0 bottom-full p-3 mb-2 w-96 text-blue-1100 bg-white shadow-lg border border-blue-100 rounded text-xs">
+                                                <div x-show="show"
+                                                    @click.away="show = false; $wire.set('searchExportBatch', null);"
+                                                    class="absolute -left-20 sm:inset-x-0 bottom-full p-3 mb-2 w-96 text-blue-1100 bg-white shadow-lg border border-blue-100 rounded text-xs">
 
                                                     {{-- Batches Count | Search Bar --}}
                                                     <div class="flex items-center w-full gap-2">
                                                         {{-- Batches Count --}}
-                                                        <span class="flex items-center gap-2 rounded {{ $this->exportBatches->isNotEmpty() ? 'text-blue-900 bg-blue-100' : 'text-red-900 bg-red-100' }} py-1.5 px-2 text-xs select-none">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
+                                                        <span
+                                                            class="flex items-center gap-2 rounded {{ $this->exportBatches->isNotEmpty() ? 'text-blue-900 bg-blue-100' : 'text-red-900 bg-red-100' }} py-1.5 px-2 text-xs select-none">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                                                xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                width="400" height="400"
+                                                                viewBox="0, 0, 400,400">
                                                                 <g>
-                                                                    <path d="M194.141 24.141 C 160.582 38.874,10.347 106.178,8.003 107.530 C -1.767 113.162,-2.813 128.836,6.116 135.795 C 7.694 137.024,50.784 160.307,101.873 187.535 L 194.761 237.040 200.000 237.040 L 205.239 237.040 298.127 187.535 C 349.216 160.307,392.306 137.024,393.884 135.795 C 402.408 129.152,401.802 113.508,392.805 107.955 C 391.391 107.082,348.750 87.835,298.047 65.183 C 199.201 21.023,200.275 21.448,194.141 24.141 M11.124 178.387 C -0.899 182.747,-4.139 200.673,5.744 208.154 C 7.820 209.726,167.977 295.513,188.465 306.029 C 198.003 310.924,201.997 310.924,211.535 306.029 C 232.023 295.513,392.180 209.726,394.256 208.154 C 404.333 200.526,400.656 181.925,388.342 178.235 C 380.168 175.787,387.662 172.265,289.164 224.847 C 242.057 249.995,202.608 270.919,201.499 271.344 C 199.688 272.039,190.667 267.411,113.316 226.098 C 11.912 171.940,19.339 175.407,11.124 178.387 M9.766 245.797 C -1.277 251.753,-3.565 266.074,5.202 274.365 C 7.173 276.229,186.770 372.587,193.564 375.426 C 197.047 376.881,202.953 376.881,206.436 375.426 C 213.230 372.587,392.827 276.229,394.798 274.365 C 406.493 263.306,398.206 243.873,382.133 244.666 L 376.941 244.922 288.448 292.077 L 199.954 339.231 111.520 292.077 L 23.085 244.922 17.597 244.727 C 13.721 244.590,11.421 244.904,9.766 245.797 " stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                                    <path
+                                                                        d="M194.141 24.141 C 160.582 38.874,10.347 106.178,8.003 107.530 C -1.767 113.162,-2.813 128.836,6.116 135.795 C 7.694 137.024,50.784 160.307,101.873 187.535 L 194.761 237.040 200.000 237.040 L 205.239 237.040 298.127 187.535 C 349.216 160.307,392.306 137.024,393.884 135.795 C 402.408 129.152,401.802 113.508,392.805 107.955 C 391.391 107.082,348.750 87.835,298.047 65.183 C 199.201 21.023,200.275 21.448,194.141 24.141 M11.124 178.387 C -0.899 182.747,-4.139 200.673,5.744 208.154 C 7.820 209.726,167.977 295.513,188.465 306.029 C 198.003 310.924,201.997 310.924,211.535 306.029 C 232.023 295.513,392.180 209.726,394.256 208.154 C 404.333 200.526,400.656 181.925,388.342 178.235 C 380.168 175.787,387.662 172.265,289.164 224.847 C 242.057 249.995,202.608 270.919,201.499 271.344 C 199.688 272.039,190.667 267.411,113.316 226.098 C 11.912 171.940,19.339 175.407,11.124 178.387 M9.766 245.797 C -1.277 251.753,-3.565 266.074,5.202 274.365 C 7.173 276.229,186.770 372.587,193.564 375.426 C 197.047 376.881,202.953 376.881,206.436 375.426 C 213.230 372.587,392.827 276.229,394.798 274.365 C 406.493 263.306,398.206 243.873,382.133 244.666 L 376.941 244.922 288.448 292.077 L 199.954 339.231 111.520 292.077 L 23.085 244.922 17.597 244.727 C 13.721 244.590,11.421 244.904,9.766 245.797 "
+                                                                        stroke="none" fill="currentColor"
+                                                                        fill-rule="evenodd">
                                                                     </path>
                                                                 </g>
                                                             </svg>
@@ -1288,92 +1403,148 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                         </span>
 
                                                         {{-- Search Bar --}}
-                                                        <div class="relative flex flex-1 items-center justify-center py-1 text-blue-700">
+                                                        <div
+                                                            class="relative flex flex-1 items-center justify-center py-1 text-blue-700">
 
                                                             {{-- Icons --}}
-                                                            <div class="absolute flex items-center justify-center left-2">
+                                                            <div
+                                                                class="absolute flex items-center justify-center left-2">
                                                                 {{-- Loading State --}}
-                                                                <svg class="size-4 animate-spin duration-200 ease-in-out pointer-events-none" wire:loading wire:target="searchExportBatch" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                                                                <svg class="size-4 animate-spin duration-200 ease-in-out pointer-events-none"
+                                                                    wire:loading wire:target="searchExportBatch"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    fill="none" viewBox="0 0 24 24">
+                                                                    <circle class="opacity-25" cx="12"
+                                                                        cy="12" r="10"
+                                                                        stroke="currentColor" stroke-width="4">
                                                                     </circle>
-                                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                                    <path class="opacity-75" fill="currentColor"
+                                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                                                     </path>
                                                                 </svg>
 
                                                                 {{-- Search Icon --}}
-                                                                <svg class="size-4 duration-200 ease-in-out pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" wire:loading.remove wire:target="searchExportBatch" fill="currentColor">
-                                                                    <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
+                                                                <svg class="size-4 duration-200 ease-in-out pointer-events-none"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 24 24" wire:loading.remove
+                                                                    wire:target="searchExportBatch"
+                                                                    fill="currentColor">
+                                                                    <path fill-rule="evenodd"
+                                                                        d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+                                                                        clip-rule="evenodd" />
                                                                 </svg>
                                                             </div>
 
                                                             {{-- Search Bar --}}
-                                                            <input id="searchExportBatch" wire:model.live.debounce.350ms="searchExportBatch" type="text" autocomplete="off" class="rounded w-full ps-8 py-1.5 text-xs text-blue-1100 border-blue-200 hover:placeholder-blue-500 hover:border-blue-500 focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none duration-200 ease-in-out" placeholder="Search batch number">
+                                                            <input id="searchExportBatch"
+                                                                wire:model.live.debounce.350ms="searchExportBatch"
+                                                                type="text" autocomplete="off"
+                                                                class="rounded w-full ps-8 py-1.5 text-xs text-blue-1100 border-blue-200 hover:placeholder-blue-500 hover:border-blue-500 focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none duration-200 ease-in-out"
+                                                                placeholder="Search batch number">
                                                         </div>
                                                     </div>
-                                                    <ul class="mt-2 text-xs overflow-y-auto h-40 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
+                                                    <ul
+                                                        class="mt-2 text-xs overflow-y-auto h-40 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
                                                         @if ($this->exportBatches->isNotEmpty())
-                                                        @foreach ($this->exportBatches as $key => $batch)
-                                                        <li wire:key={{ $key }}>
-                                                            <button type="button" wire:click="selectExportBatchRow('{{ encrypt($batch->id) }}')" @click="show= !show; currentBatch = '{{ $batch->batch_num . ' / ' . $batch->barangay_name }}'" wire:loading.attr="disabled" aria-label="{{ __('Batch') }}" class="w-full whitespace-nowrap flex items-center gap-2 px-4 py-2 text-blue-1100 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out">
+                                                            @foreach ($this->exportBatches as $key => $batch)
+                                                                <li wire:key={{ $key }}>
+                                                                    <button type="button"
+                                                                        wire:click="selectExportBatchRow('{{ encrypt($batch->id) }}')"
+                                                                        @click="show= !show; currentBatch = '{{ $batch->batch_num . ' / ' . $batch->barangay_name }}'"
+                                                                        wire:loading.attr="disabled"
+                                                                        aria-label="{{ __('Batch') }}"
+                                                                        class="w-full whitespace-nowrap flex items-center gap-2 px-4 py-2 text-blue-1100 hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out">
 
-                                                                <span class="text-left">{{ $batch->batch_num }}
-                                                                    / {{ $batch->barangay_name }}
-                                                                </span>
+                                                                        <span
+                                                                            class="text-left">{{ $batch->batch_num }}
+                                                                            / {{ $batch->barangay_name }}
+                                                                        </span>
 
-                                                                {{-- Approval Status --}}
-                                                                @if ($batch->approval_status === 'approved')
-                                                                <span class="bg-green-300 text-green-1000 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->approval_status, 0, 1) }}</span>
-                                                                @elseif($batch->approval_status === 'pending')
-                                                                <span class="bg-amber-300 text-amber-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->approval_status, 0, 1) }}</span>
-                                                                @endif
+                                                                        {{-- Approval Status --}}
+                                                                        @if ($batch->approval_status === 'approved')
+                                                                            <span
+                                                                                class="bg-green-300 text-green-1000 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->approval_status, 0, 1) }}</span>
+                                                                        @elseif($batch->approval_status === 'pending')
+                                                                            <span
+                                                                                class="bg-amber-300 text-amber-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->approval_status, 0, 1) }}</span>
+                                                                        @endif
 
-                                                                {{-- Submission Status --}}
-                                                                @if ($batch->submission_status === 'unopened')
-                                                                <span class="bg-amber-200 text-amber-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
-                                                                @elseif($batch->submission_status === 'encoding')
-                                                                <span class="bg-sky-200 text-sky-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
-                                                                @elseif($batch->submission_status === 'submitted')
-                                                                <span class="bg-green-200 text-green-1000 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
-                                                                @elseif($batch->submission_status === 'revalidate')
-                                                                <span class="bg-red-200 text-red-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
-                                                                @endif
-                                                            </button>
-                                                        </li>
-                                                        @endforeach
+                                                                        {{-- Submission Status --}}
+                                                                        @if ($batch->submission_status === 'unopened')
+                                                                            <span
+                                                                                class="bg-amber-200 text-amber-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                                        @elseif($batch->submission_status === 'encoding')
+                                                                            <span
+                                                                                class="bg-sky-200 text-sky-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                                        @elseif($batch->submission_status === 'submitted')
+                                                                            <span
+                                                                                class="bg-green-200 text-green-1000 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                                        @elseif($batch->submission_status === 'revalidate')
+                                                                            <span
+                                                                                class="bg-red-200 text-red-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
+                                                                        @endif
+                                                                    </button>
+                                                                </li>
+                                                            @endforeach
                                                         @else
-                                                        <div class="flex flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
-                                                            @if (isset($searchExportBatch) && !empty($searchExportBatch))
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-12 mb-4 text-blue-900 opacity-65" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
-                                                                <g>
-                                                                    <path d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 " stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                                                </g>
-                                                            </svg>
-                                                            <p>No batches found.</p>
-                                                            <p>Maybe try a different <span class=" text-blue-900">search
-                                                                    term</span>?
-                                                            </p>
-                                                            @elseif ($export_start !== $defaultExportStart || $export_end !== $defaultExportEnd)
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-12 mb-4 text-blue-900 opacity-65" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
-                                                                <g>
-                                                                    <path d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 " stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                                                </g>
-                                                            </svg>
-                                                            <p>No batches found.</p>
-                                                            <p>Try adjusting the <span class=" text-blue-900">filter
-                                                                    date</span>.
-                                                            </p>
-                                                            @else
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-12 mb-4 text-blue-900 opacity-65" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400" viewBox="0, 0, 400,400">
-                                                                <g>
-                                                                    <path d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 " stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                                                </g>
-                                                            </svg>
-                                                            <p>No batches found.</p>
-                                                            <p>Ask your focal to <span class=" text-blue-900">assign
-                                                                    a batch</span> for you.
-                                                            </p>
-                                                            @endif
-                                                        </div>
+                                                            <div
+                                                                class="flex flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
+                                                                @if (isset($searchExportBatch) && !empty($searchExportBatch))
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        class="size-12 mb-4 text-blue-900 opacity-65"
+                                                                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                        width="400" height="400"
+                                                                        viewBox="0, 0, 400,400">
+                                                                        <g>
+                                                                            <path
+                                                                                d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                                                stroke="none" fill="currentColor"
+                                                                                fill-rule="evenodd"></path>
+                                                                        </g>
+                                                                    </svg>
+                                                                    <p>No batches found.</p>
+                                                                    <p>Maybe try a different <span
+                                                                            class=" text-blue-900">search
+                                                                            term</span>?
+                                                                    </p>
+                                                                @elseif ($export_start !== $defaultExportStart || $export_end !== $defaultExportEnd)
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        class="size-12 mb-4 text-blue-900 opacity-65"
+                                                                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                        width="400" height="400"
+                                                                        viewBox="0, 0, 400,400">
+                                                                        <g>
+                                                                            <path
+                                                                                d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                                                stroke="none" fill="currentColor"
+                                                                                fill-rule="evenodd"></path>
+                                                                        </g>
+                                                                    </svg>
+                                                                    <p>No batches found.</p>
+                                                                    <p>Try adjusting the <span
+                                                                            class=" text-blue-900">filter
+                                                                            date</span>.
+                                                                    </p>
+                                                                @else
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        class="size-12 mb-4 text-blue-900 opacity-65"
+                                                                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                        width="400" height="400"
+                                                                        viewBox="0, 0, 400,400">
+                                                                        <g>
+                                                                            <path
+                                                                                d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                                                stroke="none" fill="currentColor"
+                                                                                fill-rule="evenodd"></path>
+                                                                        </g>
+                                                                    </svg>
+                                                                    <p>No batches found.</p>
+                                                                    <p>Ask your focal to <span
+                                                                            class=" text-blue-900">assign
+                                                                            a batch</span> for you.
+                                                                    </p>
+                                                                @endif
+                                                            </div>
                                                         @endif
                                                     </ul>
                                                 </div>
@@ -1385,7 +1556,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <div class="flex items-center justify-end w-full gap-4">
 
                                             {{-- Confirm Button --}}
-                                            <button type="button" @if ($this->exportBatches->isNotEmpty() && in_array(true, $exportType, true) === true) wire:click="exportAnnex"
+                                            <button type="button"
+                                                @if ($this->exportBatches->isNotEmpty() && in_array(true, $exportType, true) === true) wire:click="exportAnnex"
                                                 @else
                                                 disabled @endif
                                                 class="duration-200 ease-in-out flex items-center justify-center px-3 py-2 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">CONFIRM</button>

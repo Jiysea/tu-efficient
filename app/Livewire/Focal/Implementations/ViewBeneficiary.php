@@ -892,10 +892,9 @@ class ViewBeneficiary extends Component
     #[Computed]
     public function batch()
     {
-        if ($this->passedBeneficiaryId) {
-            $batch = Batch::find($this->beneficiary->batches_id);
-            return $batch;
-        }
+        $batch = Batch::find($this->beneficiary->batches_id);
+        return $batch;
+
     }
 
     #[Computed]

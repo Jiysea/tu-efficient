@@ -104,14 +104,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="hidden sm:inline-block ms-2 font-bold">List of Projects</h1>
-                            <h1 class="max-[460px]:hidden ms-2 font-bold text-sm sm:hidden">Projects</h1>
+                            <h1 class="hidden lg:inline-block ms-2 font-bold">List of Projects</h1>
+                            <h1 class="max-[460px]:hidden ms-2 font-bold text-sm lg:hidden">Projects</h1>
                             <span
-                                class="{{ $totalImplementations ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700 ' }} rounded ms-2 px-2 py-1 font-medium text-xs">{{ $totalImplementations ?? 0 }}</span>
+                                class="{{ $this->totalImplementations ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700 ' }} rounded ms-2 px-2 py-1 font-medium text-xs">{{ $this->totalImplementations ?? 0 }}</span>
                         </div>
 
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
-                        <div class="mx-2 flex items-center justify-end">
+                        <div class="relative mx-2 flex items-center justify-end">
 
                             <div class="relative me-2">
 
@@ -144,10 +144,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     @input.debounce.300ms="$wire.searchProjects = $el.value; $wire.$refresh();"
                                     class="{{ $this->implementations->isNotEmpty() || $searchProjects
                                         ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
-                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full"
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1.5 sm:py-1 text-2xs sm:text-xs border rounded w-full"
                                     placeholder="Search for project numbers">
                             </div>
-                            <button @click="createProjectModal = !createProjectModal;"
+                            <button data-popover-target="create-btn" data-popover-trigger="hover"
+                                @click="createProjectModal = !createProjectModal;"
                                 class="flex items-center bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 rounded-md px-4 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 duration-200 ease-in-out">
                                 CREATE
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ml-2"
@@ -160,6 +161,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                             </button>
+                            <div data-popover id="create-btn" role="tooltip"
+                                class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                    <p>
+                                        Create an Implementation Project
+                                    </p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
                         </div>
                     </div>
 
@@ -190,11 +200,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="relative text-xs">
+                                <tbody x-data="{ dblClicked: false }" class="relative text-xs">
                                     @foreach ($this->implementations as $key => $implementation)
                                         <tr wire:key="implementation-{{ $key }}"
+                                            @click="$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}');"
                                             @dblclick="$wire.viewProject('{{ encrypt($implementation->id) }}')"
-                                            @click.debounce.200ms="$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}')"
                                             class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} whitespace-nowrap cursor-pointer">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
@@ -225,10 +235,49 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">
                                                         <g>
-                                                            <path
-                                                                d="M167.400 18.185 C 150.115 28.164,135.964 36.599,135.955 36.930 C 135.915 38.323,147.648 57.404,148.429 57.216 C 148.900 57.102,160.542 50.510,174.301 42.567 C 188.059 34.624,199.643 28.125,200.041 28.125 C 200.440 28.125,212.028 34.632,225.791 42.584 C 239.555 50.536,251.180 57.128,251.623 57.232 C 252.414 57.418,263.978 38.646,264.019 37.109 C 264.044 36.180,201.493 -0.010,199.916 0.021 C 199.317 0.033,184.686 8.207,167.400 18.185 M142.401 86.929 C 110.936 105.075,85.184 120.098,85.174 120.313 C 85.143 120.997,198.778 186.328,200.000 186.328 C 201.235 186.328,314.854 121.022,314.829 120.326 C 314.814 119.917,200.604 53.894,199.959 53.921 C 199.767 53.929,173.866 68.783,142.401 86.929 M58.398 81.093 L 26.563 99.553 26.563 136.886 L 26.563 174.219 38.672 174.219 L 50.781 174.219 50.810 143.945 L 50.838 113.672 74.715 100.000 C 87.847 92.480,99.600 85.725,100.833 84.988 L 103.075 83.647 97.045 73.096 C 93.729 67.293,90.840 62.565,90.625 62.589 C 90.410 62.613,75.908 70.940,58.398 81.093 M302.976 73.087 L 296.967 83.612 304.633 88.095 C 308.849 90.561,320.594 97.324,330.731 103.125 L 349.164 113.672 349.191 143.945 L 349.219 174.219 361.328 174.219 L 373.438 174.219 373.438 136.877 L 373.438 99.536 341.715 81.213 C 324.268 71.136,309.766 62.817,309.489 62.727 C 309.211 62.636,306.280 67.299,302.976 73.087 M73.438 206.912 L 73.437 273.198 130.484 306.130 C 161.859 324.243,187.701 339.063,187.910 339.063 C 188.119 339.063,188.200 309.121,188.090 272.525 L 187.891 205.987 131.283 173.306 C 100.149 155.331,74.397 140.625,74.057 140.625 C 73.716 140.625,73.438 170.454,73.438 206.912 M268.735 173.317 L 212.109 206.009 211.910 272.536 C 211.800 309.125,211.893 339.063,212.117 339.063 C 212.341 339.063,238.183 324.248,269.543 306.142 L 326.563 273.221 326.563 206.923 C 326.563 170.459,326.292 140.625,325.961 140.625 C 325.631 140.625,299.879 155.336,268.735 173.317 M26.563 263.100 L 26.562 300.418 58.699 318.984 C 76.375 329.195,90.906 337.450,90.991 337.329 C 91.077 337.208,93.834 332.442,97.120 326.737 L 103.093 316.364 100.842 315.018 C 99.603 314.278,87.848 307.520,74.719 300.000 L 50.847 286.328 50.814 256.055 L 50.781 225.781 38.672 225.781 L 26.563 225.781 26.563 263.100 M349.191 256.055 L 349.164 286.328 330.731 296.875 C 320.594 302.676,308.845 309.442,304.623 311.911 L 296.947 316.400 302.912 326.755 C 306.193 332.450,308.944 337.210,309.025 337.334 C 309.106 337.457,323.632 329.207,341.305 319.000 L 373.438 300.442 373.438 263.111 L 373.438 225.781 361.328 225.781 L 349.219 225.781 349.191 256.055 M144.483 347.811 C 142.675 350.949,140.012 355.495,138.566 357.915 C 137.120 360.334,135.945 362.619,135.955 362.993 C 135.975 363.819,198.595 400.000,200.004 400.000 C 201.551 400.000,264.043 363.774,264.019 362.891 C 263.978 361.354,252.414 342.582,251.623 342.768 C 251.180 342.872,239.555 349.464,225.791 357.416 C 212.028 365.368,200.441 371.875,200.043 371.875 C 199.471 371.875,174.329 357.579,151.035 344.008 L 147.772 342.107 144.483 347.811 "
-                                                                stroke="none" fill="currentColor"
-                                                                fill-rule="evenodd">
+                                                            <path d=" M167.400 18.185 C 150.115 28.164,135.964
+                                            36.599,135.955 36.930 C 135.915 38.323,147.648 57.404,148.429 57.216 C
+                                            148.900 57.102,160.542 50.510,174.301 42.567 C 188.059 34.624,199.643
+                                            28.125,200.041 28.125 C 200.440 28.125,212.028 34.632,225.791 42.584 C
+                                            239.555 50.536,251.180 57.128,251.623 57.232 C 252.414 57.418,263.978
+                                            38.646,264.019 37.109 C 264.044 36.180,201.493 -0.010,199.916 0.021 C
+                                            199.317 0.033,184.686 8.207,167.400 18.185 M142.401 86.929 C 110.936
+                                            105.075,85.184 120.098,85.174 120.313 C 85.143 120.997,198.778
+                                            186.328,200.000 186.328 C 201.235 186.328,314.854 121.022,314.829 120.326 C
+                                            314.814 119.917,200.604 53.894,199.959 53.921 C 199.767 53.929,173.866
+                                            68.783,142.401 86.929 M58.398 81.093 L 26.563 99.553 26.563 136.886 L 26.563
+                                            174.219 38.672 174.219 L 50.781 174.219 50.810 143.945 L 50.838 113.672
+                                            74.715 100.000 C 87.847 92.480,99.600 85.725,100.833 84.988 L 103.075 83.647
+                                            97.045 73.096 C 93.729 67.293,90.840 62.565,90.625 62.589 C 90.410
+                                            62.613,75.908 70.940,58.398 81.093 M302.976 73.087 L 296.967 83.612 304.633
+                                            88.095 C 308.849 90.561,320.594 97.324,330.731 103.125 L 349.164 113.672
+                                            349.191 143.945 L 349.219 174.219 361.328 174.219 L 373.438 174.219 373.438
+                                            136.877 L 373.438 99.536 341.715 81.213 C 324.268 71.136,309.766
+                                            62.817,309.489 62.727 C 309.211 62.636,306.280 67.299,302.976 73.087 M73.438
+                                            206.912 L 73.437 273.198 130.484 306.130 C 161.859 324.243,187.701
+                                            339.063,187.910 339.063 C 188.119 339.063,188.200 309.121,188.090 272.525 L
+                                            187.891 205.987 131.283 173.306 C 100.149 155.331,74.397 140.625,74.057
+                                            140.625 C 73.716 140.625,73.438 170.454,73.438 206.912 M268.735 173.317 L
+                                            212.109 206.009 211.910 272.536 C 211.800 309.125,211.893 339.063,212.117
+                                            339.063 C 212.341 339.063,238.183 324.248,269.543 306.142 L 326.563 273.221
+                                            326.563 206.923 C 326.563 170.459,326.292 140.625,325.961 140.625 C 325.631
+                                            140.625,299.879 155.336,268.735 173.317 M26.563 263.100 L 26.562 300.418
+                                            58.699 318.984 C 76.375 329.195,90.906 337.450,90.991 337.329 C 91.077
+                                            337.208,93.834 332.442,97.120 326.737 L 103.093 316.364 100.842 315.018 C
+                                            99.603 314.278,87.848 307.520,74.719 300.000 L 50.847 286.328 50.814 256.055
+                                            L 50.781 225.781 38.672 225.781 L 26.563 225.781 26.563 263.100 M349.191
+                                            256.055 L 349.164 286.328 330.731 296.875 C 320.594 302.676,308.845
+                                            309.442,304.623 311.911 L 296.947 316.400 302.912 326.755 C 306.193
+                                            332.450,308.944 337.210,309.025 337.334 C 309.106 337.457,323.632
+                                            329.207,341.305 319.000 L 373.438 300.442 373.438 263.111 L 373.438 225.781
+                                            361.328 225.781 L 349.219 225.781 349.191 256.055 M144.483 347.811 C 142.675
+                                            350.949,140.012 355.495,138.566 357.915 C 137.120 360.334,135.945
+                                            362.619,135.955 362.993 C 135.975 363.819,198.595 400.000,200.004 400.000 C
+                                            201.551 400.000,264.043 363.774,264.019 362.891 C 263.978 361.354,252.414
+                                            342.582,251.623 342.768 C 251.180 342.872,239.555 349.464,225.791 357.416 C
+                                            212.028 365.368,200.441 371.875,200.043 371.875 C 199.471 371.875,174.329
+                                            357.579,151.035 344.008 L 147.772 342.107 144.483 347.811 " stroke="none"
+                                                                fill="currentColor" fill-rule="evenodd">
                                                             </path>
                                                         </g>
                                                     </svg>
@@ -291,16 +340,17 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <h1 class="max-[460px]:hidden ms-2 font-bold text-sm sm:text-base">Batches</h1>
                         </div>
                         {{-- Assign Button --}}
-                        <div class="mx-2 flex items-center">
-                            @if ($remainingBatchSlots || $remainingBatchSlots === 0)
+                        <div class="relative mx-2 flex items-center">
+                            @if ($this->remainingBatchSlots || $this->remainingBatchSlots === 0)
                                 <p class="text-xs text-indigo-1100 capitalize font-light me-1">unallocated slots:</p>
                                 <div
-                                    class="{{ $remainingBatchSlots > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700' }} rounded-md py-1 px-2 text-xs me-2">
-                                    {{ $remainingBatchSlots }}</div>
+                                    class="{{ $this->remainingBatchSlots > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700' }} rounded-md py-1 px-2 text-xs me-2">
+                                    {{ $this->remainingBatchSlots }}</div>
                             @endif
-                            <button @if (!$remainingBatchSlots || $remainingBatchSlots === null || $remainingBatchSlots === 0) disabled @endif
+                            <button data-popover-target="assign-btn" data-popover-trigger="hover"
+                                @if (!$this->remainingBatchSlots || $this->remainingBatchSlots === null || $this->remainingBatchSlots === 0) disabled @endif
                                 @if ($implementationId) @click="assignBatchesModal = !assignBatchesModal;" @endif
-                                class="flex items-center rounded-md px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $remainingBatchSlots > 0 ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }}">
+                                class="flex items-center rounded-md px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $this->remainingBatchSlots > 0 ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }}">
                                 ASSIGN
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0, 0, 400,400">
@@ -311,6 +361,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                             </button>
+                            <div data-popover id="assign-btn" role="tooltip"
+                                class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                    <p>
+                                        Assign Batches to Coordinators
+                                    </p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
                         </div>
                     </div>
 
@@ -344,7 +403,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     @foreach ($this->batches as $key => $batch)
                                         <tr wire:key="batch-{{ $key }}"
                                             @dblclick="$wire.viewBatch('{{ encrypt($batch->id) }}')"
-                                            @click.debounce.200ms="$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
+                                            @click="$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-200' : ' hover:bg-gray-50' }}">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
@@ -449,7 +508,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 {{-- List of Beneficiaries --}}
                 <div x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), viewBeneficiaryModal: $wire.entangle('viewBeneficiaryModal'), importFileModal: $wire.entangle('importFileModal'), showExportModal: $wire.entangle('showExportModal') }" class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
 
-
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
                         <div class="inline-flex items-center my-2 col-span-1 text-indigo-900">
@@ -462,31 +520,28 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="hidden sm:inline-block ms-2 font-bold">List of Beneficiaries</h1>
-                            <h1 class="max-[500px]:hidden ms-2 font-bold text-sm sm:hidden">Beneficiaries</h1>
+                            <h1 class="hidden lg:inline-block ms-2 font-bold">List of Beneficiaries</h1>
+                            <h1 class="max-[500px]:hidden ms-2 font-bold text-sm lg:hidden">Beneficiaries</h1>
 
                             <span
                                 class="{{ $batchId ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700' }} rounded px-2 py-1 ms-2 text-xs font-medium">
-                                {{ $batchId ? ($beneficiarySlots['num_of_beneficiaries'] ?? 0) . ' / ' . $beneficiarySlots['batch_slots_allocated'] : 'N / A' }}</span>
+                                {{ $batchId ? ($this->beneficiarySlots['num_of_beneficiaries'] ?? 0) . ' / ' . $this->beneficiarySlots['batch_slots_allocated'] : 'N / A' }}</span>
                             @if ($batchId)
-                                <h2 class="ms-2 font-medium text-xs text-indigo-1100">Special Cases: </h2><span
+                                <h2 class="hidden lg:block ms-2 font-medium text-xs text-indigo-1100">Special Cases:
+                                </h2><span
                                     class="{{ $this->specialCasesCount !== 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500' }} rounded px-2 py-1 ms-2 text-xs font-medium">
                                     {{ $this->specialCasesCount }}
                                 </span>
                             @endif
                         </div>
+
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
-                        <div class="col-span-1 ms-2 flex flex-1 items-center justify-end gap-2">
+                        <div class="col-span-1 px-2 flex flex-1 items-center justify-end gap-2">
 
-                            {{-- Loading State --}}
-                            <div class="items-center justify-end z-50 text-indigo-900">
-
-                            </div>
-
-                            {{-- Search Box --}}
+                            {{-- Search Input Bar --}}
                             <div class="relative">
                                 <div
-                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $beneficiarySlots['num_of_beneficiaries'] ? 'text-indigo-800' : 'text-zinc-400' }}">
+                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->beneficiarySlots['num_of_beneficiaries'] ? 'text-indigo-800' : 'text-zinc-400' }}">
 
                                     {{-- Loading Icon --}}
                                     <svg class="size-4 animate-spin" wire:loading wire:target="searchBeneficiaries"
@@ -508,20 +563,19 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </div>
                                 <input type="text" id="beneficiary-search" maxlength="100" autocomplete="off"
-                                    @if (!$beneficiarySlots['num_of_beneficiaries']) disabled @endif
+                                    @if (!$this->beneficiarySlots['num_of_beneficiaries']) disabled @endif
                                     @input.debounce.300ms="$wire.searchBeneficiaries = $el.value; $wire.$refresh();"
-                                    class="{{ $beneficiarySlots['num_of_beneficiaries']
+                                    class="{{ $this->beneficiarySlots['num_of_beneficiaries']
                                         ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
-                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full "
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} duration-200 ease-in-out ps-7 py-1.5 sm:py-1 text-2xs sm:text-xs border rounded w-full "
                                     placeholder="Search for beneficiaries">
                             </div>
 
-                            <button
-                                @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) @click="importFileModal = !importFileModal;" @else disabled @endif
-                                class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
+                            {{-- Import Button --}}
+                            <button type="button" data-popover-target="import-btn" data-popover-trigger="hover"
+                                @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) @click="importFileModal = !importFileModal;" @else disabled @endif
+                                class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 rounded-md px-2 py-1 text-sm font-bold duration-200 ease-in-out">
 
-
-                                <p class="hidden sm:block">IMPORT</p>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
@@ -532,12 +586,21 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                             </button>
+                            <div data-popover id="import-btn" role="tooltip"
+                                class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                <div class="flex flex-col text-xs font-semibold p-2 gap-1">
+                                    <p>
+                                        Import Beneficiaries <br>with a Sample Format
+                                    </p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
 
                             {{-- Export Button --}}
-                            <button type="button"
+                            <button type="button" data-popover-target="export-btn" data-popover-trigger="hover"
                                 @if ($this->exportBatches->isNotEmpty() && $selectedBatchRow !== -1) @click="showExportModal = !showExportModal;" @else disabled @endif
-                                class="duration-200 ease-in-out flex items-center gap-2 justify-center px-4 py-1 rounded-md text-xs sm:text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900">
-                                <p class="hidden sm:block">EXPORT</p>
+                                class="duration-200 ease-in-out flex items-center gap-2 justify-center px-2 py-1 rounded-md text-xs sm:text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900">
+
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
@@ -548,14 +611,21 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                             </button>
+                            <div data-popover id="export-btn" role="tooltip"
+                                class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                <div class="flex flex-col text-xs font-semibold p-2 gap-1">
+                                    <p>
+                                        Export Beneficiaries <br>to Annex Files
+                                    </p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
 
+                            {{-- Add Button --}}
+                            <button type="button" data-popover-target="add-btn" data-popover-trigger="hover"
+                                @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
+                                class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 rounded-md px-2 py-1 text-sm font-bold duration-200 ease-in-out">
 
-                            <button
-                                @if ($batchId && $beneficiarySlots['batch_slots_allocated'] > $beneficiarySlots['num_of_beneficiaries']) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
-                                class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 rounded-md px-4 py-1 text-sm font-bold duration-200 ease-in-out">
-
-
-                                <p class="hidden sm:block">ADD</p>
                                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
@@ -566,6 +636,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                             </button>
+                            <div data-popover id="add-btn" role="tooltip"
+                                class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                <div class="flex flex-col text-xs font-semibold p-2 gap-1">
+                                    <p>
+                                        Add Beneficiaries Manually
+                                    </p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
                         </div>
                     </div>
 
@@ -662,9 +741,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        <tr wire:key="beneficiary-{{ $key }}" {{-- wire:loading.class="pointer-events-none"
-                                            wire:target="selectBeneficiaryRow" --}}
-                                            @click.debounce.200ms="$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}');"
+                                        <tr wire:key="beneficiary-{{ $key }}" {{-- @if ($this->nameCheck($beneficiary)[$key]['coEfficient'] * 100 > $duplicationThreshold) data-popover-target="beneficiary-pop-{{ $key }}"
+                                            data-popover-trigger="hover" @endif --}}
                                             @dblClick="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
                                             class="relative border-b divide-x whitespace-nowrap cursor-pointer"
                                             :class="{
@@ -788,6 +866,28 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <tr x-data x-intersect.full.once="$wire.loadMoreBeneficiaries()">
                                             </tr>
                                         @endif
+
+                                        {{--
+                                        @if ($this->nameCheck($beneficiary)[$key]['coEfficient'] * 100 > $duplicationThreshold)
+                                            <div data-popover id="value" role="tooltip"
+                                                class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                <div class="flex flex-col text-xs font-medium p-2 gap-1">
+                                                    <p>
+                                                    <div class="flex items-center gap-2"><span
+                                                            class="p-1.5 bg-red-500"></span>
+                                                        <span>Exactly the same as input</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2"><span
+                                                            class="p-1.5 bg-amber-500"></span>
+                                                        <span>Not the
+                                                            same as input</span>
+                                                    </div>
+                                                    </p>
+                                                </div>
+                                                <div data-popper-arrow></div>
+                                            </div>
+                                        @endif
+                                        --}}
                                     @endforeach
                                 </tbody>
                             </table>
@@ -941,80 +1041,92 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <div class="relative w-full flex items-center gap-2">
                                             <span class="text-sm font-medium whitespace-nowrap">Annex Type:</span>
                                             <div class="flex flex-col gap-2">
-                                                @if($exportFormat === 'xlsx')
-                                                <span class="flex items-center flex-wrap gap-2">
-                                                    {{-- Annex E-1 (COS) --}}
-                                                    <label for="annex_e1"
-                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e1'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex E-1 (COS)
-                                                        <input type="checkbox" class="hidden absolute inset-0"
-
-                                                            id="annex_e1" wire:model.live="exportType.annex_e1">
-                                                    </label>
-                                                    {{-- Annex E-2 (COS - Co-Partner) --}}
-                                                    <label for="annex_e2"
-                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e2'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex E-2 (COS - Co-Partner)
-                                                        <input type="checkbox" class="hidden absolute inset-0"
-
-                                                            id="annex_e2" wire:model.live="exportType.annex_e2">
-                                                    </label>
-                                                    {{-- Annex J-2 (Attendance Sheet) --}}
-                                                    <label for="annex_j2"
-                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_j2'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex J-2 (Attendance Sheet)
-                                                        <input type="checkbox" class="hidden absolute inset-0"
-
-                                                            id="annex_j2" wire:model.live="exportType.annex_j2">
-                                                    </label>
-                                                </span>
-                                                <span class="flex items-center flex-wrap gap-2">
-                                                    {{-- Annex L (Payroll) --}}
-                                                    <label for="annex_l"
-                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex L (Payroll)
-                                                        <input type="checkbox" class="hidden absolute inset-0"
-                                                            id="annex_l" wire:model.live="exportType.annex_l">
-                                                    </label>
-                                                    {{-- Annex L (Payroll w/ Sign) --}}
-                                                    <label for="annex_l_sign"
-                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l_sign'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex L (Payroll w/ Sign)
-                                                        <input type="checkbox" class="hidden absolute inset-0"
-                                                            id="annex_l_sign"
-                                                            wire:model.live="exportType.annex_l_sign">
-                                                    </label>
-                                                </span>
+                                                @if ($exportFormat === 'xlsx')
+                                                    <span class="flex items-center flex-wrap gap-2">
+                                                        {{-- Annex E-1 (COS) --}}
+                                                        <label for="annex_e1"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e1'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex E-1 (COS)
+                                                            <input type="checkbox" class="hidden absolute inset-0"
+                                                                id="annex_e1" wire:model.live="exportType.annex_e1">
+                                                        </label>
+                                                        {{-- Annex E-2 (COS - Co-Partner) --}}
+                                                        <label for="annex_e2"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e2'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex E-2 (COS - Co-Partner)
+                                                            <input type="checkbox" class="hidden absolute inset-0"
+                                                                id="annex_e2" wire:model.live="exportType.annex_e2">
+                                                        </label>
+                                                        {{-- Annex J-2 (Attendance Sheet) --}}
+                                                        <label for="annex_j2"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_j2'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex J-2 (Attendance Sheet)
+                                                            <input type="checkbox" class="hidden absolute inset-0"
+                                                                id="annex_j2" wire:model.live="exportType.annex_j2">
+                                                        </label>
+                                                    </span>
+                                                    <span class="flex items-center flex-wrap gap-2">
+                                                        {{-- Annex L (Payroll) --}}
+                                                        <label for="annex_l"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex L (Payroll)
+                                                            <input type="checkbox" class="hidden absolute inset-0"
+                                                                id="annex_l" wire:model.live="exportType.annex_l">
+                                                        </label>
+                                                        {{-- Annex L (Payroll w/ Sign) --}}
+                                                        <label for="annex_l_sign"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l_sign'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex L (Payroll w/ Sign)
+                                                            <input type="checkbox" class="hidden absolute inset-0"
+                                                                id="annex_l_sign"
+                                                                wire:model.live="exportType.annex_l_sign">
+                                                        </label>
+                                                    </span>
                                                 @elseif($exportFormat === 'csv')
-                                                <span class="flex items-center flex-wrap gap-2">
-                                                    {{-- Annex E-1 (COS) --}}
-                                                    <label for="annex_e1_csv" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e1' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex E-1 (COS)
-                                                        <input type="radio" class="hidden absolute inset-0" id="annex_e1_csv" value="annex_e1" wire:model.live="exportTypeCsv">
-                                                    </label>
-                                                    {{-- Annex E-2 (COS - Co-Partner) --}}
-                                                    <label for="annex_e2_csv" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e2' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex E-2 (COS - Co-Partner)
-                                                        <input type="radio" class="hidden absolute inset-0" id="annex_e2_csv" value="annex_e2" wire:model.live="exportTypeCsv">
-                                                    </label>
-                                                    {{-- Annex J-2 (Attendance Sheet) --}}
-                                                    <label for="annex_j2_csv" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_j2' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex J-2 (Attendance Sheet)
-                                                        <input type="radio" class="hidden absolute inset-0" id="annex_j2_csv" value="annex_j2" wire:model.live="exportTypeCsv">
-                                                    </label>
-                                                </span>
-                                                <span class="flex items-center flex-wrap gap-2">
-                                                    {{-- Annex L (Payroll) --}}
-                                                    <label for="annex_l_csv" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex L (Payroll)
-                                                        <input type="radio" class="hidden absolute inset-0" id="annex_l_csv" value="annex_l" wire:model.live="exportTypeCsv">
-                                                    </label>
-                                                    {{-- Annex L (Payroll w/ Sign) --}}
-                                                    <label for="annex_l_sign_csv" class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l_sign' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                        Annex L (Payroll w/ Sign)
-                                                        <input type="radio" class="hidden absolute inset-0" id="annex_l_sign_csv" value="annex_l_sign" wire:model.live="exportTypeCsv">
-                                                    </label>
-                                                </span>
+                                                    <span class="flex items-center flex-wrap gap-2">
+                                                        {{-- Annex E-1 (COS) --}}
+                                                        <label for="annex_e1_csv"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e1' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex E-1 (COS)
+                                                            <input type="radio" class="hidden absolute inset-0"
+                                                                id="annex_e1_csv" value="annex_e1"
+                                                                wire:model.live="exportTypeCsv">
+                                                        </label>
+                                                        {{-- Annex E-2 (COS - Co-Partner) --}}
+                                                        <label for="annex_e2_csv"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e2' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex E-2 (COS - Co-Partner)
+                                                            <input type="radio" class="hidden absolute inset-0"
+                                                                id="annex_e2_csv" value="annex_e2"
+                                                                wire:model.live="exportTypeCsv">
+                                                        </label>
+                                                        {{-- Annex J-2 (Attendance Sheet) --}}
+                                                        <label for="annex_j2_csv"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_j2' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex J-2 (Attendance Sheet)
+                                                            <input type="radio" class="hidden absolute inset-0"
+                                                                id="annex_j2_csv" value="annex_j2"
+                                                                wire:model.live="exportTypeCsv">
+                                                        </label>
+                                                    </span>
+                                                    <span class="flex items-center flex-wrap gap-2">
+                                                        {{-- Annex L (Payroll) --}}
+                                                        <label for="annex_l_csv"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex L (Payroll)
+                                                            <input type="radio" class="hidden absolute inset-0"
+                                                                id="annex_l_csv" value="annex_l"
+                                                                wire:model.live="exportTypeCsv">
+                                                        </label>
+                                                        {{-- Annex L (Payroll w/ Sign) --}}
+                                                        <label for="annex_l_sign_csv"
+                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l_sign' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                            Annex L (Payroll w/ Sign)
+                                                            <input type="radio" class="hidden absolute inset-0"
+                                                                id="annex_l_sign_csv" value="annex_l_sign"
+                                                                wire:model.live="exportTypeCsv">
+                                                        </label>
+                                                    </span>
                                                 @endif
                                             </div>
                                         </div>
@@ -1033,8 +1145,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             <label for="csv-radio"
                                                 class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'csv' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
                                                 CSV
-                                                <input type="radio" class="hidden absolute inset-0"
-                                                    id="csv-radio" value="csv" wire:model.live="exportFormat">
+                                                <input type="radio" class="hidden absolute inset-0" id="csv-radio"
+                                                    value="csv" wire:model.live="exportFormat">
                                             </label>
                                         </div>
 
@@ -1328,7 +1440,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

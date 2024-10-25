@@ -95,11 +95,15 @@ class DatabaseSeeder extends Seeder
             'duplication_threshold' => config('settings.duplication_threshold'),
             'project_number_prefix' => config('settings.project_number_prefix'),
             'batch_number_prefix' => config('settings.batch_number_prefix'),
+            'senior_age_threshold' => config('settings.senior_age_threshold'),
+            'maximum_income' => config('settings.maximum_income'),
         ];
 
         $settingsCoordinator = [
             'minimum_wage' => config('settings.minimum_wage'),
             'duplication_threshold' => config('settings.duplication_threshold'),
+            'senior_age_threshold' => config('settings.senior_age_threshold'),
+            'maximum_income' => config('settings.maximum_income'),
         ];
 
         foreach ($settingsFocal as $key => $setting) {

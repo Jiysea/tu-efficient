@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Models\Beneficiary;
 use App\Models\Credential;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class JaccardSimilarity
 {
@@ -48,6 +49,34 @@ class JaccardSimilarity
         return $ngrams;
     }
 
+    protected static function dirtyFullname($first, $middle, $last, $ext)
+    {
+        $first = Essential::trimmer($first);
+        $fullName = $first;
+
+        if (!empty($middle) && $middle !== '-' && $middle !== '' && isset($middle)) {
+            $middle = Essential::trimmer($middle);
+            $fullName .= ' ' . $middle;
+        } else {
+            $middle = null;
+        }
+
+        $last = Essential::trimmer($last);
+        $fullName .= ' ' . $last;
+
+        # Filter the whole name (no extension_name) if in case there's illegal characters 
+        $fullName = self::filterIllegalCharacters($fullName);
+
+        if ($ext && $ext !== '-' && $ext !== '' && !is_null($ext)) {
+            $ext = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $ext)));
+            $fullName .= ' ' . self::filterIllegalCharacters($ext, true);
+        } else {
+            $ext = null;
+        }
+
+        return $fullName;
+    }
+
     protected static function fullName($person, $middle, $ext)
     {
         $fullName = $person['first_name'];
@@ -62,6 +91,55 @@ class JaccardSimilarity
         }
 
         return $fullName;
+    }
+
+    protected static function filteredFullName($personFromDatabase, $first, $middle, $last, $ext)
+    {
+        $first = Essential::trimmer($first);
+        $filteredInputString = $first;
+
+        if (!empty($middle) && $middle !== '-' && $middle !== '' && isset($middle) && isset($personFromDatabase->middle_name)) {
+            $middle = Essential::trimmer($middle);
+            $filteredInputString .= ' ' . $middle;
+        } else {
+            $middle = null;
+        }
+
+        $last = Essential::trimmer($last);
+        $filteredInputString .= ' ' . $last;
+
+        # Filter the whole name (no extension_name) if in case there's illegal characters 
+        $filteredInputString = self::filterIllegalCharacters($filteredInputString);
+
+        if ($ext && $ext !== '-' && $ext !== '' && !is_null($ext)) {
+            $ext = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $ext)));
+            $filteredInputString .= ' ' . self::filterIllegalCharacters($ext, true);
+        } else {
+            $ext = null;
+        }
+
+        return $filteredInputString;
+    }
+
+    protected static function personFullName($person)
+    {
+
+        $filteredInputString = Essential::trimmer($person->first_name);
+
+        if (isset($person->middle_name)) {
+            $filteredInputString .= ' ' . Essential::trimmer($person->middle_name);
+        }
+
+        $filteredInputString .= ' ' . Essential::trimmer($person->last_name);
+
+        # Filter the whole name (no extension_name) if in case there's illegal characters 
+        $filteredInputString = self::filterIllegalCharacters($filteredInputString);
+
+        if (isset($person->extension_name)) {
+            $filteredInputString .= ' ' . self::filterIllegalCharacters(Essential::trimmer($person->last_name), true);
+        }
+
+        return $filteredInputString;
     }
 
     protected static function filterIllegalCharacters(string $name, bool $is_ext = false)
@@ -128,7 +206,6 @@ class JaccardSimilarity
                 ")",
                 "+",
                 "=",
-                "-",
                 "[",
                 "]",
                 "'",
@@ -254,33 +331,12 @@ class JaccardSimilarity
     {
         # initialize the $results var so it would return null if there's no similarities
         $results = [];
-        $first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $first_name)));
-        $filteredInputString = $first_name;
 
-        if ($middle_name && $middle_name !== '-' && $middle_name !== '' && !is_null($middle_name)) {
-            $middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $middle_name)));
-            $filteredInputString .= ' ' . $middle_name;
-        } else {
-            $middle_name = null;
-        }
-
-        $last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $last_name)));
-        $filteredInputString .= ' ' . $last_name;
-
-        # Filter the whole name (no extension_name) if in case there's illegal characters 
-        $filteredInputString = self::filterIllegalCharacters($filteredInputString);
-
-        if ($extension_name && $extension_name !== '-' && $extension_name !== '' && !is_null($extension_name)) {
-            $extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $extension_name)));
-            $filteredInputString .= ' ' . self::filterIllegalCharacters($extension_name, true);
-        } else {
-            $extension_name = null;
-        }
-
-        $filteredInputString = strtoupper($filteredInputString);
+        # this var is only used to prefetch names from the database
+        $dirtyFullName = strtoupper(self::dirtyFullname($first_name, $middle_name, $last_name, $extension_name));
 
         # fetch all the potential duplicating names from the database
-        $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $middle_name, $extension_name);
+        $beneficiariesFromDatabase = self::prefetchNames($dirtyFullName, $middle_name, $extension_name);
 
         if (ctype_digit((string) $threshold)) {
 
@@ -301,6 +357,10 @@ class JaccardSimilarity
             # this is where it checks the similarities
             foreach ($beneficiariesFromDatabase as $beneficiary) {
                 $count++;
+
+                # Filters the input string to check if the beneficiary from database has a middle name or not
+                $filteredInputString = mb_strtoupper(self::filteredFullName($beneficiary, $first_name, $middle_name, $last_name, $extension_name), "UTF-8");
+
                 # gets the full name of the beneficiary
                 $beneficiaryFromDatabase = self::fullName($beneficiary, $middle_name, $extension_name);
 
@@ -325,11 +385,8 @@ class JaccardSimilarity
                         }
                     }
 
-                    # If the name & birthdate are exactly the same, then it's considered a Perfect Duplicate
-                    if (
-                        intval($coEfficient) === 100
-                        && Carbon::parse($birthdate)->format('Y-m-d') == Carbon::parse($beneficiary->birthdate)->format('Y-m-d')
-                    ) {
+                    # If the names are exactly the same, then it's considered a Perfect Duplicate
+                    if (intval($coEfficient) === 100) {
                         $isPerfectDuplicate = true;
                     }
 
@@ -341,7 +398,7 @@ class JaccardSimilarity
                         'middle_name' => $beneficiary->middle_name,
                         'last_name' => $beneficiary->last_name,
                         'extension_name' => $beneficiary->extension_name,
-                        'birthdate' => Carbon::parse($beneficiary->birthdate)->format('M d, Y'),
+                        'birthdate' => $beneficiary->birthdate,
                         'barangay_name' => $beneficiary->barangay_name,
                         'contact_num' => $beneficiary->contact_num,
                         'occupation' => $beneficiary->occupation,
@@ -457,10 +514,7 @@ class JaccardSimilarity
                     }
 
                     # If the name & birthdate are exactly the same, then it's considered a Perfect Duplicate
-                    if (
-                        intval($coEfficient) === 100
-                        && Carbon::parse($birthdate)->format('Y-m-d') == Carbon::parse($beneficiary->birthdate)->format('Y-m-d')
-                    ) {
+                    if (intval($coEfficient) === 100) {
                         $isPerfectDuplicate = true;
                     }
 
@@ -472,7 +526,7 @@ class JaccardSimilarity
                         'middle_name' => $beneficiary->middle_name,
                         'last_name' => $beneficiary->last_name,
                         'extension_name' => $beneficiary->extension_name,
-                        'birthdate' => Carbon::parse($beneficiary->birthdate)->format('M d, Y'),
+                        'birthdate' => $beneficiary->birthdate,
                         'barangay_name' => $beneficiary->barangay_name,
                         'contact_num' => $beneficiary->contact_num,
                         'occupation' => $beneficiary->occupation,
@@ -557,15 +611,72 @@ class JaccardSimilarity
             $coEfficient = self::calculateSimilarity($beneficiaryFromDatabase, $filteredInputString) * 100;
 
             # check if it's a perfect duplicate
-            if (
-                intval($coEfficient) === 100
-                && Carbon::parse($birthdate)->format('Y-m-d') == Carbon::parse($beneficiary->birthdate)->format('Y-m-d')
-            ) {
+            if (intval($coEfficient) === 100) {
                 $isPerfect = true;
                 break;
             }
         }
 
         return $isPerfect;
+    }
+
+    public static function isOverThreshold(mixed $person, int|float $threshold = 65)
+    {
+        # initialize the $results var so it would return null if there's no similarities
+        $results = [];
+
+        # Filters the input string to check if the beneficiary from database has a middle name or not
+        $filteredInputString = mb_strtoupper(self::personFullName($person), "UTF-8");
+
+        # fetch all the potential duplicating names from the database
+        $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $person->middle_name, $person->extension_name);
+
+        if (ctype_digit((string) $threshold)) {
+
+            if (floatval($threshold) > 100.0) {
+                $threshold = 100;
+            } else if (MoneyFormat::isNegative((string) $threshold)) {
+                $threshold = 0;
+            } else {
+                $threshold = intval(config('settings.duplication_threshold', 65));
+            }
+
+        } else {
+            $threshold = intval(config('settings.duplication_threshold', 65));
+        }
+
+        if (!is_null($beneficiariesFromDatabase)) {
+            $count = 1;
+            # this is where it checks the similarities
+            foreach ($beneficiariesFromDatabase as $beneficiary) {
+                $count++;
+
+                # gets the full name of the beneficiary
+                $beneficiaryFromDatabase = self::fullName($beneficiary, $person->middle_name, $person->extension_name);
+
+                # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
+                $coEfficient = self::calculateSimilarity($beneficiaryFromDatabase, $filteredInputString) * 100;
+
+                # then check if it goes over the Threshold
+                if ($coEfficient >= floatval($threshold)) {
+                    $isPerfectDuplicate = false;
+
+                    # If the names are exactly the same, then it's considered a Perfect Duplicate
+                    if (intval($coEfficient) === 100) {
+                        $isPerfectDuplicate = true;
+                    }
+
+                    # if it does, then add them to the $results array
+                    $results = [
+                        'id' => encrypt($beneficiary->id),
+                        'coEfficient' => $coEfficient,
+                        'is_perfect' => $isPerfectDuplicate,
+                    ];
+                }
+            }
+        }
+
+
+        return $results;
     }
 }

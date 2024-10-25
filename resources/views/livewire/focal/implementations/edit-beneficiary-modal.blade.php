@@ -381,11 +381,11 @@
                                                                             {{-- Preview --}}
                                                                             @if ($reason_saved_image_path || ($reason_image_file_path && !$errors->has('reason_image_file_path')))
                                                                                 @if (is_object($reason_image_file_path))
-                                                                                    <img class="size-[95%]"
+                                                                                    <img class="w-[95%]"
                                                                                         src="{{ $reason_image_file_path->temporaryUrl() }}">
                                                                                 @else
                                                                                     {{-- Show the saved image from the database --}}
-                                                                                    <img class="size-[95%]"
+                                                                                    <img class="w-[95%]"
                                                                                         src="{{ route('credentials.show', ['filename' => $reason_saved_image_path]) }}">
                                                                                 @endif
                                                                                 {{-- Default --}}
@@ -846,13 +846,12 @@
 
                                     {{-- Image Area --}}
                                     <label for="edit_image_file_path"
-                                        class="flex flex-col items-center justify-center w-full h-full border-2 border-blue-300 border-dashed rounded cursor-pointer bg-blue-50">
+                                        class="flex flex-col items-center justify-center size-full border-2 border-blue-300 border-dashed rounded cursor-pointer bg-blue-50">
 
                                         {{-- Image Preview --}}
-                                        <div
-                                            class="relative flex flex-col items-center justify-center py-4 w-full h-full">
+                                        <div class="relative flex flex-col items-center justify-center py-4 size-full">
                                             {{-- Loading State for Changes --}}
-                                            <div class="absolute items-center justify-center w-full h-full z-50 text-blue-900"
+                                            <div class="absolute items-center justify-center size-full z-50 text-blue-900"
                                                 wire:loading.flex wire:target="image_file_path">
                                                 <div
                                                     class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
@@ -874,10 +873,11 @@
                                             {{-- Preview --}}
                                             @if ($saved_image_path || ($image_file_path && !$errors->has('image_file_path')))
                                                 @if (is_object($image_file_path))
-                                                    <img class="w-28" src="{{ $image_file_path->temporaryUrl() }}">
+                                                    <img class="w-[95%]"
+                                                        src="{{ $image_file_path->temporaryUrl() }}">
                                                 @else
                                                     {{-- Show the saved image from the database --}}
-                                                    <img class="w-28"
+                                                    <img class="w-[95%]"
                                                         src="{{ route('credentials.show', ['filename' => $saved_image_path]) }}">
                                                 @endif
                                                 {{-- Default --}}
@@ -1156,7 +1156,7 @@
                                 <!-- Modal Header -->
                                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                                     <h1 class="text-sm sm:text-base font-semibold text-blue-1100">
-                                        Delete Beneficiary
+                                        Confirm Change
                                     </h1>
 
                                     {{-- Close Button --}}
