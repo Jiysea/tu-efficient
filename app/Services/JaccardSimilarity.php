@@ -19,14 +19,16 @@ class JaccardSimilarity
         # Split the string into words (tokens)
         $tokens = explode(' ', $string);
 
-        # Removes the birthdate (FOR TESTING)
-        // unset($tokens[sizeOf($tokens) - 1]);
-
         # Sort the tokens to neutralize order differences
         sort($tokens);
+        $string = implode(" ", $tokens);
+
+        $string = str_replace(' ', '', $string);
+        $tokens = mb_str_split($string, 2, "UTF-8");
 
         # Join the tokens back into a single string
-        return implode(' ', $tokens);
+        // return implode(' ', $tokens);
+        return implode(" ", $tokens);
     }
 
     /**
@@ -74,12 +76,12 @@ class JaccardSimilarity
     {
         $fullName = $person['first_name'];
 
-        if ($middle) {
+        if (isset($middle) && !empty($middle) && isset($person['middle_name']) && !empty($person['middle_name'])) {
             $fullName .= ' ' . $person['middle_name'];
         }
 
         $fullName .= ' ' . $person['last_name'];
-        if ($ext) {
+        if (isset($ext) && !empty($ext) && isset($person['extension_name']) && !empty($person['extension_name'])) {
             $fullName .= ' ' . $person['extension_name'];
         }
 
@@ -91,7 +93,7 @@ class JaccardSimilarity
         $first = Essential::trimmer($first);
         $filteredInputString = $first;
 
-        if (!empty($middle) && $middle !== '-' && $middle !== '' && isset($middle) && isset($personFromDatabase->middle_name)) {
+        if (!empty($middle) && $middle !== '-' && $middle !== '' && isset($middle) && isset($personFromDatabase->middle_name) && !empty($personFromDatabase->middle_name)) {
             $middle = Essential::trimmer($middle);
             $filteredInputString .= ' ' . $middle;
         } else {
@@ -362,6 +364,11 @@ class JaccardSimilarity
 
                 # then check if it goes over the Threshold
                 if ($coEfficient >= floatval($threshold)) {
+                    // dump(
+                    //     $filteredInputString
+                    //     ,
+                    //     $beneficiaryFromDatabase
+                    // );
                     $isPerfectDuplicate = false;
                     $identity_image_file_path = null;
                     $reason_image_file_path = null;

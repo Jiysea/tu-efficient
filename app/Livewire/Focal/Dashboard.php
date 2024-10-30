@@ -584,6 +584,27 @@ class Dashboard extends Component
         }
 
         if ($prop === 'exportChoice') {
+            if ($this->exportChoice === 'selected_project') {
+                # By Date Range
+                $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
+                $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
+
+                $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
+                $choosenDate = date('Y-m-d', strtotime($date));
+                $currentTime = date('H:i:s', strtotime(now()));
+                $this->export_start = $choosenDate . ' ' . $currentTime;
+
+                $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
+                $choosenDate = date('Y-m-d', strtotime($date));
+                $currentTime = date('H:i:s', strtotime(now()));
+                $this->export_end = $choosenDate . ' ' . $currentTime;
+
+                # By Selected Project
+                if ($this->implementationId) {
+                    $this->exportImplementationId = $this->implementationId;
+                    $this->currentExportImplementation = $this->exportImplementation[0]->project_num;
+                }
+            }
             $this->dispatch('init-reload')->self();
         }
     }
