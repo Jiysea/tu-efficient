@@ -7,6 +7,7 @@ use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
+use App\Services\Essential;
 use App\Services\GenerateActivityLogs;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
@@ -34,14 +35,17 @@ class AddBeneficiariesModal extends Component
     public $minDate;
     #[Locked]
     public $duplicationThreshold;
+    #[Locked]
+    public $maximumIncome;
 
     # ------------------------------------
 
     public $includeBirthdate = false;
-    public $similarityResults;
+    public $similarityResults = null;
     public $isResolved = false;
     public $isPerfectDuplicate = false;
     public $isSameImplementation = false;
+    public $isSamePending = false;
     public $isIneligible = false;
     public $addReasonModal = false;
 
@@ -98,15 +102,14 @@ class AddBeneficiariesModal extends Component
             'first_name' => [
                 'required',
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    elseif (preg_match('~[0-9]+~', $value)) {
+                    elseif (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
 
@@ -114,15 +117,14 @@ class AddBeneficiariesModal extends Component
             ],
             'middle_name' => [
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
@@ -130,30 +132,28 @@ class AddBeneficiariesModal extends Component
             'last_name' => [
                 'required',
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
             ],
             'extension_name' => [
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value, true)) {
                         $fail('No illegal characters.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('No numbers.');
                     }
                 },
@@ -162,33 +162,50 @@ class AddBeneficiariesModal extends Component
             'contact_num' => [
                 'required',
                 function ($attr, $value, $fail) {
-                    if (!preg_match('~[0-9]+~', $value)) {
+                    if (!Essential::hasNumber($value)) {
                         $fail('Value only accepts numbers.');
                     }
                 },
                 'starts_with:09',
                 'digits:11',
             ],
-            'avg_monthly_income' => [
-                'required_unless:occupation,null',
-                function ($attr, $value, $fail) {
-                    if ($this->avg_monthly_income) {
-
-                        if (MoneyFormat::isNegative($value)) {
-                            $fail('The value should be more than 1.');
-                        }
-                        if (!MoneyFormat::isMaskInt($value)) {
-
-                            $fail('The value should be a valid amount.');
-                        }
-                    }
-                },
-            ],
             'occupation' => [
+                'required',
                 # hard-coded since `required_unless` is messy with `$money($input)` x-mask
                 function ($attr, $value, $fail) {
                     if ($this->avg_monthly_income && !$value) {
                         $fail('This field is required.');
+                    }
+                },
+            ],
+            'avg_monthly_income' => [
+                'required',
+                function ($attr, $value, $fail) {
+
+                    if (MoneyFormat::isNegative($value)) {
+                        $fail('The value should be more than 1.');
+                    }
+                    if (!MoneyFormat::isMaskInt($value)) {
+                        $fail('The value should be a valid amount.');
+                    }
+                    if (MoneyFormat::unmask($value) > ($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income')))) {
+                        $fail('Maximum amount is ₱' . MoneyFormat::mask($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income'))));
+                    }
+
+                },
+            ],
+            'dependent' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (Essential::hasIllegal($value, false, true)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
                     }
                 },
             ],
@@ -211,25 +228,15 @@ class AddBeneficiariesModal extends Component
                 },
             ],
             'reason_image_file_path' => [
-                'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
-                function ($attr, $value, $fail) {
-                    if (!isset($value) && empty($value) && !$this->isResolved) {
-                        $fail('Case image proof is required.', );
-                    }
-                },
+                'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false,isSamePending,false',
+                'required',
                 'image',
                 'mimes:png,jpg,jpeg',
                 'max:5120',
             ],
             'image_description' => [
-                'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
-                function ($attr, $value, $fail) {
-                    if (!isset($value) && empty($value) && !$this->isResolved) {
-                        $fail('Description must not be left blank.');
-                    }
-                },
+                'required_unless:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false,isSamePending,false',
             ],
-
         ];
     }
 
@@ -243,6 +250,9 @@ class AddBeneficiariesModal extends Component
             'contact_num.required' => 'Contact number is required.',
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',
+            'occupation.required' => 'This field is required.',
+            'avg_monthly_income.required' => 'This field is required.',
+            'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
 
@@ -251,10 +261,11 @@ class AddBeneficiariesModal extends Component
             'image_file_path.mimes' => 'Image should be in PNG or JPG format.',
             'image_file_path.max' => 'Image size must not exceed 5MB.',
 
-            'reason_image_file_path.required_if' => 'Case proof is required.',
+            'reason_image_file_path.required' => 'Case proof is required.',
             'reason_image_file_path.image' => 'Case proof must be an image type.',
             'reason_image_file_path.mimes' => 'Image should be in PNG or JPG format.',
             'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
+            'image_description.required_unless' => 'Description must not be left blank.'
         ];
     }
 
@@ -287,14 +298,46 @@ class AddBeneficiariesModal extends Component
         $batch = Batch::find(decrypt($this->batchId));
         $implementation = Implementation::find($batch->implementations_id);
 
+        if (strtolower($this->middle_name) === 'n/a' || strtolower($this->middle_name) === 'none' || strtolower($this->middle_name) == '-' || empty($this->middle_name)) {
+            $this->middle_name = null;
+        }
+
+        if (strtolower($this->extension_name) === 'n/a' || strtolower($this->extension_name) === 'none' || strtolower($this->extension_name) == '-' || empty($this->extension_name)) {
+            $this->extension_name = null;
+        }
+
+        if (strtolower($this->e_payment_acc_num) === 'n/a' || strtolower($this->e_payment_acc_num) === 'none' || strtolower($this->e_payment_acc_num) == '-' || empty($this->e_payment_acc_num)) {
+            $this->e_payment_acc_num = null;
+        }
+
+        if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) === 'none' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
+            $this->skills_training = null;
+        }
+
+        if (strtolower($this->spouse_first_name) === 'n/a' || strtolower($this->spouse_first_name) === 'none' || strtolower($this->spouse_first_name) == '-' || empty($this->spouse_first_name)) {
+            $this->spouse_first_name = null;
+        }
+
+        if (strtolower($this->spouse_middle_name) === 'n/a' || strtolower($this->spouse_middle_name) === 'none' || strtolower($this->spouse_middle_name) == '-' || empty($this->spouse_middle_name)) {
+            $this->spouse_middle_name = null;
+        }
+
+        if (strtolower($this->spouse_last_name) === 'n/a' || strtolower($this->spouse_last_name) === 'none' || strtolower($this->spouse_last_name) == '-' || empty($this->spouse_last_name)) {
+            $this->spouse_last_name = null;
+        }
+
+        if (strtolower($this->spouse_extension_name) === 'n/a' || strtolower($this->spouse_extension_name) === 'none' || strtolower($this->spouse_extension_name) == '-' || empty($this->spouse_extension_name)) {
+            $this->spouse_extension_name = null;
+        }
+
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () use ($batch, $implementation) {
             $beneficiary = Beneficiary::create([
                 'batches_id' => decrypt($this->batchId),
-                'first_name' => $this->first_name,
-                'middle_name' => $this->middle_name ?? null,
-                'last_name' => $this->last_name,
-                'extension_name' => $this->extension_name ?? null,
+                'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
+                'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
+                'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
+                'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
                 'birthdate' => $this->birthdate,
                 'barangay_name' => $batch->barangay_name,
                 'contact_num' => $this->contact_num,
@@ -310,21 +353,21 @@ class AddBeneficiariesModal extends Component
                 'sex' => strtolower($this->sex),
                 'civil_status' => strtolower($this->civil_status),
                 'age' => $this->beneficiaryAge($this->birthdate),
-                'dependent' => $this->dependent ?? null,
+                'dependent' => strtoupper($this->dependent),
                 'self_employment' => strtolower($this->self_employment),
                 'skills_training' => $this->skills_training ?? null,
                 'is_pwd' => strtolower($this->is_pwd),
                 'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                'spouse_first_name' => $this->spouse_first_name,
-                'spouse_middle_name' => $this->spouse_middle_name,
-                'spouse_last_name' => $this->spouse_last_name,
-                'spouse_extension_name' => $this->spouse_extension_name,
+                'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
+                'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
+                'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
+                'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
             ]);
 
             $file = null;
 
             if ($this->image_file_path) {
-                $file = $this->image_file_path->store(path: 'credentials');
+                $file = $this->image_file_path->store('credentials');
             }
 
             Credential::create([
@@ -334,16 +377,18 @@ class AddBeneficiariesModal extends Component
                 'for_duplicates' => 'no',
             ]);
 
+            $file = null;
+
             if ($this->isPerfectDuplicate) {
-                $file = $this->reason_image_file_path->store(path: 'credentials');
+                if (isset($this->reason_image_file_path) && !empty($this->reason_image_file_path)) {
+                    $file = $this->reason_image_file_path->store('credentials');
+                }
                 Credential::create([
                     'beneficiaries_id' => $beneficiary->id,
                     'image_description' => $this->image_description,
                     'image_file_path' => $file,
                     'for_duplicates' => 'yes',
                 ]);
-
-                GenerateActivityLogs::set_barangay_added_special_case_log($beneficiary->barangay_name, $implementation->project_num, $batch->batch_num, $this->full_name($beneficiary));
             }
 
         });
@@ -354,35 +399,32 @@ class AddBeneficiariesModal extends Component
     public function nameCheck()
     {
         # clear out any previous similarity results
-        $this->similarityResults = null;
-        $this->isPerfectDuplicate = false;
-        $this->isSameImplementation = false;
-        $this->isIneligible = false;
+        $this->reset('similarityResults', 'isPerfectDuplicate', 'isSameImplementation', 'isSamePending', 'isIneligible');
 
         # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
 
             # double checking again before handing over to the algorithm
             # basically we filter the user input along the way
-            $this->first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->first_name)));
+            $this->first_name = Essential::trimmer($this->first_name);
             $filteredInputString = $this->first_name;
             $this->validateOnly('first_name');
 
             if ($this->middle_name && $this->middle_name !== '') {
-                $this->middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->middle_name)));
+                $this->middle_name = Essential::trimmer($this->middle_name);
                 $filteredInputString .= ' ' . $this->middle_name;
                 $this->validateOnly('middle_name');
             } else {
                 $this->middle_name = null;
             }
 
-            $this->last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->last_name)));
+            $this->last_name = Essential::trimmer($this->last_name);
             $filteredInputString .= ' ' . $this->last_name;
             $this->validateOnly('last_name');
 
             # checks if there's an extension_name input
             if ($this->extension_name && $this->extension_name !== '') {
-                $this->extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->extension_name)));
+                $this->extension_name = Essential::trimmer($this->extension_name);
                 $filteredInputString .= ' ' . $this->extension_name;
                 $this->validateOnly('extension_name');
             } else {
@@ -412,6 +454,11 @@ class AddBeneficiariesModal extends Component
             $perfectCounter = 0;
             foreach ($results as $result) {
 
+                # Queries the batch if it's pending on the possible duplicate beneficiary
+                $batch_pending = Batch::where('batch_num', $result['batch_num'])
+                    ->where('approval_status', 'pending')
+                    ->exists();
+
                 # checks if the result row is a perfect duplicate
                 if ($result['is_perfect'] === true) {
                     $this->isPerfectDuplicate = true;
@@ -423,6 +470,10 @@ class AddBeneficiariesModal extends Component
                     if ($result['project_num'] === $project_num->project_num && $this->isPerfectDuplicate) {
                         $this->isSameImplementation = true;
                     }
+                }
+
+                if ($result['is_perfect'] && $batch_pending) {
+                    $this->isSamePending = true;
                 }
             }
 
@@ -443,6 +494,7 @@ class AddBeneficiariesModal extends Component
     {
         $ids = [
             'Barangay ID',
+            'Barangay Certificate',
             'e-Card / UMID',
             "Driver's License",
             'Passport',
@@ -460,6 +512,12 @@ class AddBeneficiariesModal extends Component
         ];
 
         return $ids;
+    }
+
+    #[Computed]
+    public function batch()
+    {
+        return Batch::find($this->batchId ? decrypt($this->batchId) : null);
     }
 
     public function updated($property)
@@ -546,6 +604,7 @@ class AddBeneficiariesModal extends Component
         $this->resetExcept(
             'batchId',
             'duplicationThreshold',
+            'maximumIncome',
         );
         $this->resetValidation();
     }
@@ -556,6 +615,7 @@ class AddBeneficiariesModal extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->duplicationThreshold = floatval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
     }
 
     public function render()

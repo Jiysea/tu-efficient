@@ -2,11 +2,10 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, isAboveBreakpoint: true, addCoordinatorsModal: false }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, isAboveBreakpoint: true, addCoordinatorsModal: $wire.entangle('addCoordinatorsModal'), viewCoordinatorModal: $wire.entangle('viewCoordinatorModal') }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
-
 
     <div :class="{
         'md:ml-20': !open,
@@ -20,31 +19,27 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 <div class="flex items-center gap-2">
                     <livewire:sidebar.focal-bar />
-
                     <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">User Management</h1>
-
                 </div>
 
-                <div class="flex items-center gap-2 text-indigo-900">
-
-                    {{-- Loading State --}}
-                    <svg class="size-8 animate-spin" wire:loading.flex wire:target="selectedAllRows, updateCoordinators"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                            stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
-                </div>
+                {{-- Loading State --}}
+                <svg class="absolute right-0 size-6 text-indigo-900 animate-spin" wire:loading.flex
+                    wire:target="selectedAllRows, updateCoordinators, viewCoordinator" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4">
+                    </circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
             </div>
             <div class="relative grid grid-cols-1 w-full h-full lg:grid-cols-5">
                 {{-- List of Coordinators --}}
                 <div class="relative lg:col-span-full h-full w-full rounded bg-white shadow">
 
                     {{-- Upper/Header --}}
-                    <div class="relative max-h-12 flex items-center justify-between">
+                    <div class="relative h-10 flex items-center justify-between">
                         <div class="inline-flex items-center text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="384.37499999999994"
@@ -55,7 +50,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="font-bold m-2">List of Coordinators</h1>
+                            <h1 class="max-[480px]:hidden text-base font-semibold sm:font-bold m-2"><span
+                                    class="hidden sm:inline">List of
+                                </span>Coordinators</h1>
                             <span class="py-1 px-2 text-xs font-medium text-indigo-700 bg-indigo-100 rounded">
                                 {{ sizeof($this->users) }}
                             </span>
@@ -116,9 +113,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
                                         <th scope="col" class="pe-2 ps-4 py-2">
-                                            <input id="select-all-checkbox" type="checkbox"
-                                                wire:model.live="selectedAllRows"
-                                                class="size-4 text-indigo-600 bg-indigo-100 border-indigo-300 rounded ring-indigo-100 ring-2 focus:ring-indigo-100 focus:ring-2">
+                                            #
                                         </th>
                                         <th scope="col" class="pr-6 py-2 text-sm">
                                             coordinator
@@ -142,96 +137,89 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="relative text-xs">
                                     @foreach ($this->users as $key => $user)
-                                        <tr wire:key="user-{{ $key }}"
-                                            class="relative border-b {{ in_array($key, $selectedRows) ? 'bg-gray-100 hover:bg-gray-200 text-indigo-900' : 'hover:bg-indigo-50' }} whitespace-nowrap duration-200 ease-in-out">
-                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium text-indigo-1100">
-                                                <input id="user-checkbox-{{ $key }}" type="checkbox"
-                                                    value="{{ $key }}" wire:model.live="selectedRows"
-                                                    class="size-4 text-indigo-600 bg-indigo-100 border-indigo-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                        <tr wire:key="user-{{ $key }}" wire:loading.class="pointer-events-none"
+                                            wire:target="viewCoordinator"
+                                            @dblClick="$wire.viewCoordinator('{{ encrypt($user->id) }}');"
+                                            class="relative border-b {{ is_null($user->email_verified_at) ? 'bg-red-300 hover:bg-red-400 text-red-700 hover:text-red-900' : 'hover:bg-indigo-50 text-indigo-1100' }} whitespace-nowrap duration-200 cursor-pointer ease-in-out">
+                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium">
+                                                {{ $key + 1 }}
                                             </th>
                                             <td class="pr-6 py-2">
                                                 {{ $this->full_name($user) }}
                                             </td>
                                             <td class="p-2">
                                                 {{ $user->email }}
+                                                @if (is_null($user->email_verified_at))
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="inline ms-1 size-4 text-red-700"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
+                                                        <g>
+                                                            <path
+                                                                d="M175.606 13.697 C 34.401 32.950,-35.779 196.532,48.155 310.766 C 138.823 434.164,332.291 403.043,378.795 257.579 C 420.628 126.725,311.070 -4.774,175.606 13.697 M211.301 90.122 C 220.712 94.430,227.454 104.096,227.963 114.011 C 228.365 121.843,219.818 221.239,218.463 224.481 C 211.721 240.618,188.279 240.618,181.537 224.481 C 180.112 221.072,171.620 121.497,172.086 113.672 C 173.216 94.715,194.031 82.215,211.301 90.122 M209.801 265.203 C 225.439 272.153,229.266 292.609,217.188 304.688 C 205.345 316.530,185.671 313.291,178.162 298.264 C 168.018 277.964,189.055 255.982,209.801 265.203 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
+                                                            </path>
+                                                        </g>
+                                                    </svg>
+                                                @endif
                                             </td>
                                             <td class="p-2">
                                                 {{ $user->contact_num }}
                                             </td>
                                             <td class="p-2 text-center">
                                                 <span
-                                                    class="bg-green-200 text-green-1000 rounded p-1.5 mx-1.5 font-semibold">{{ $user->approved_assignments }}</span>
+                                                    class="{{ $this->approvedCount($user) === 0 ? 'bg-gray-200 text-gray-700' : 'bg-green-300 text-green-950' }} rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->approvedCount($user) }}</span>
                                                 /
                                                 <span
-                                                    class="bg-amber-200 text-amber-900 rounded p-1.5 mx-1.5 font-semibold">{{ $user->pending_assignments }}</span>
+                                                    class="{{ $this->pendingCount($user) === 0 ? 'bg-gray-200 text-gray-700' : 'bg-amber-300 text-amber-950' }} rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->pendingCount($user) }}</span>
                                                 /
                                                 <span
-                                                    class="bg-indigo-200 text-indigo-1000 rounded p-1.5 mx-1.5 font-semibold">{{ $user->approved_assignments + $user->pending_assignments }}</span>
+                                                    class="{{ $this->approvedCount($user) + $this->pendingCount($user) === 0 ? 'bg-gray-200 text-gray-700' : 'bg-indigo-300 text-indigo-950' }} rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->approvedCount($user) + $this->pendingCount($user) }}</span>
                                             </td>
-                                            <td class="p-2 text-center">
-                                                {{ $user->last_login ? \Carbon\Carbon::parse($user->last_login)->format('M d, Y') : 'Never' }}
+                                            <td class="text-center p-2">
+                                                @if ($this->checkIfOnline($user) !== true)
+                                                    {{ $user->last_login ? \Carbon\Carbon::parse($user->last_login)->format('M d, Y @ h:i A') : 'Never' }}
+                                                @else
+                                                    <span class="flex items-center justify-center gap-1">
+                                                        <span class="bg-green-900 rounded-full p-1"></span>
+                                                        Online
+                                                    </span>
+                                                @endif
                                             </td>
                                             {{-- User Dropdown --}}
-                                            <td class="p-2">
+                                            <td class="p-1">
+                                                {{-- View Button --}}
+                                                <button type="button"
+                                                    @click.stop="$wire.viewCoordinator('{{ encrypt($user->id) }}');"
+                                                    id="beneficiaryRowButton-{{ $key }}"
+                                                    class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50">
 
+                                                    {{-- View Icon --}}
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
+                                                        <g>
+                                                            <path
+                                                                d="M181.641 87.979 C 130.328 95.222,89.731 118.794,59.712 158.775 C 35.189 191.436,35.188 208.551,59.709 241.225 C 108.153 305.776,191.030 329.697,264.335 300.287 C 312.216 281.078,358.187 231.954,358.187 200.000 C 358.187 163.027,301.790 109.157,246.875 93.676 C 229.295 88.720,196.611 85.866,181.641 87.979 M214.728 139.914 C 251.924 148.468,272.352 190.837,256.127 225.780 C 234.108 273.202,167.333 273.905,144.541 226.953 C 121.658 179.813,163.358 128.100,214.728 139.914 M188.095 164.017 C 162.140 172.314,153.687 205.838,172.483 225.933 C 192.114 246.920,228.245 238.455,236.261 210.991 C 244.785 181.789,217.066 154.756,188.095 164.017 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
+                                                            </path>
+                                                        </g>
+                                                    </svg>
+                                                </button>
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
-
                         </div>
-
-                        {{-- User Dropdown Content --}}
-                        {{-- @foreach ($this->users as $key => $user)
-                            <div wire:key="userRowDropdown-{{ $key }}"
-                                id="userRowDropdown-{{ $key }}"
-                                class="absolute z-50 hidden bg-white border rounded-md shadow">
-                                <ul class="text-sm text-indigo-1100"
-                                    aria-labelledby="userRowButton-{{ $key }}">
-                                    <li>
-                                        <a aria-label="{{ __('View Coordinator') }}"
-                                            class="rounded-t-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                height="400" viewBox="0, 0, 400,400">
-                                                <g>
-                                                    <path
-                                                        d="M101.397 46.276 C 101.173 92.311,101.162 92.594,99.468 95.313 C 95.650 101.440,98.231 101.144,46.280 101.396 L -0.017 101.621 0.187 238.115 L 0.391 374.609 3.063 380.078 C 6.559 387.234,12.766 393.441,19.922 396.937 L 25.391 399.609 150.629 399.814 C 290.080 400.042,279.856 400.425,288.803 394.633 C 296.183 389.855,300.883 383.544,303.595 374.770 L 304.995 370.244 289.411 354.609 C 275.047 340.197,273.645 339.001,271.484 339.321 C 270.195 339.511,265.449 340.426,260.938 341.353 C 235.047 346.675,205.887 340.299,183.868 324.501 L 178.094 320.358 116.976 320.140 C 57.447 319.928,55.792 319.881,53.266 318.359 C 45.856 313.894,45.666 303.603,52.911 299.099 L 55.859 297.266 106.435 297.043 L 157.010 296.821 153.561 290.403 C 151.664 286.873,149.176 281.625,148.032 278.741 L 145.951 273.497 100.905 273.272 C 56.162 273.048,55.841 273.035,53.125 271.343 C 45.806 266.782,45.693 256.712,52.911 252.224 L 55.859 250.391 98.572 250.164 L 141.284 249.937 141.317 240.948 C 141.334 236.004,141.574 230.759,141.849 229.292 L 142.350 226.625 99.105 226.399 C 41.076 226.094,47.266 231.205,47.266 183.594 C 47.266 145.513,47.137 146.438,52.911 142.849 L 55.859 141.016 153.906 141.016 C 244.733 141.016,252.486 141.118,259.186 142.408 C 273.372 145.139,285.766 150.121,297.266 157.716 C 300.273 159.703,303.181 161.613,303.728 161.962 C 304.529 162.474,304.680 149.339,304.509 93.993 L 304.297 25.391 301.625 19.922 C 298.129 12.766,291.921 6.559,284.766 3.063 L 279.297 0.391 190.459 0.182 L 101.621 -0.026 101.397 46.276 M41.797 42.188 L 5.866 78.125 41.995 78.125 L 78.125 78.125 78.125 42.188 C 78.125 22.422,78.036 6.250,77.927 6.250 C 77.817 6.250,61.559 22.422,41.797 42.188 M251.421 48.828 C 258.913 53.343,258.913 63.845,251.421 68.359 C 248.891 69.884,247.443 69.922,191.406 69.922 C 135.370 69.922,133.922 69.884,131.391 68.359 C 122.382 62.930,124.454 50.112,134.749 47.588 C 141.019 46.052,248.713 47.196,251.421 48.828 M251.421 95.703 C 258.913 100.218,258.913 110.720,251.421 115.234 C 248.891 116.759,247.443 116.797,191.406 116.797 C 135.370 116.797,133.922 116.759,131.391 115.234 C 122.316 109.766,124.386 97.023,134.766 94.463 C 140.996 92.926,248.713 94.071,251.421 95.703 M70.313 183.594 L 70.313 203.125 109.598 203.125 L 148.883 203.125 151.469 197.852 C 155.839 188.941,162.490 179.651,170.206 171.680 L 177.580 164.063 123.946 164.063 L 70.313 164.063 70.313 183.594 M226.563 165.184 C 176.220 175.719,149.210 230.954,171.889 276.987 C 200.399 334.854,283.976 334.854,312.486 276.987 C 334.140 233.035,309.949 179.063,262.891 166.340 C 254.916 164.184,234.453 163.532,226.563 165.184 M324.499 300.586 C 319.053 308.219,309.999 317.409,302.148 323.275 C 298.389 326.084,295.313 328.594,295.313 328.852 C 295.313 330.809,362.570 396.223,366.406 397.997 C 386.489 407.286,407.286 386.489,397.997 366.406 C 396.189 362.496,330.790 295.313,328.792 295.313 C 328.500 295.313,326.569 297.686,324.499 300.586 "
-                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                    </path>
-                                                </g>
-                                            </svg>
-                                            View Coordinator
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a aria-label="{{ __('Modify Coordinator') }}"
-                                            class="rounded-b-md flex items-center justify-start px-4 py-2 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out cursor-pointer">
-
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 pe-2"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                height="400" viewBox="0, 0, 400,400">
-                                                <g>
-                                                    <path
-                                                        d="M303.516 1.151 C 303.086 1.286,300.186 1.817,297.070 2.332 L 291.406 3.267 291.406 13.161 L 291.406 23.055 286.776 24.850 C 284.230 25.837,279.286 28.560,275.789 30.901 C 268.179 35.995,269.993 36.042,260.547 30.499 L 252.734 25.914 250.479 27.996 C 242.118 35.714,226.598 64.358,229.308 67.068 C 229.581 67.341,233.185 69.506,237.318 71.880 L 244.832 76.195 244.890 89.111 L 244.948 102.027 236.943 106.605 C 227.905 111.774,228.276 110.842,231.644 119.932 C 235.614 130.648,241.667 140.650,248.649 148.031 L 252.734 152.350 260.813 147.659 C 270.417 142.083,268.427 142.249,274.532 146.517 C 277.323 148.468,282.262 151.291,285.507 152.790 L 291.406 155.516 291.406 165.151 L 291.406 174.786 298.242 176.146 C 307.129 177.914,321.538 177.925,331.055 176.170 L 338.281 174.838 338.281 164.954 L 338.281 155.070 342.911 153.275 C 345.457 152.288,350.414 149.556,353.927 147.205 L 360.313 142.931 368.633 147.708 L 376.953 152.485 380.342 148.748 C 387.935 140.373,394.881 128.579,398.409 118.072 C 400.664 111.353,400.684 111.388,391.797 106.226 C 385.964 102.839,384.034 101.327,384.179 100.259 C 384.615 97.052,384.467 80.715,383.984 78.792 C 383.493 76.838,383.902 76.476,391.414 72.223 C 395.785 69.748,399.536 67.269,399.749 66.716 C 401.432 62.330,389.916 40.052,380.692 29.849 L 376.953 25.713 368.827 30.435 C 359.151 36.057,361.132 35.919,354.408 31.438 C 351.339 29.393,346.473 26.669,343.594 25.384 L 338.361 23.047 338.126 13.281 L 337.891 3.516 331.641 2.214 C 326.163 1.074,306.162 0.317,303.516 1.151 M327.682 60.017 C 359.999 75.140,347.796 123.308,312.265 120.873 C 286.986 119.140,273.851 88.930,289.784 69.170 C 298.991 57.753,314.723 53.953,327.682 60.017 M161.866 114.621 C 161.471 115.388,159.505 120.410,157.497 125.781 L 153.846 135.547 141.572 135.581 C 134.821 135.600,128.418 135.844,127.344 136.122 C 125.476 136.607,125.187 136.166,120.750 126.046 C 118.198 120.225,115.679 115.297,115.152 115.095 C 109.188 112.806,60.133 134.492,55.945 141.268 C 55.748 141.587,57.686 146.585,60.251 152.376 L 64.915 162.905 57.202 170.710 C 52.960 175.003,48.598 179.697,47.509 181.141 L 45.528 183.767 35.067 179.774 C 22.138 174.840,23.441 174.701,19.224 181.466 C 11.509 193.844,4.697 210.957,1.583 225.781 C -0.921 237.703,-1.558 236.557,9.961 240.858 C 15.439 242.904,20.322 244.831,20.811 245.140 C 21.404 245.516,21.797 250.423,21.990 259.864 L 22.281 274.025 11.870 278.577 C 6.144 281.081,1.305 283.379,1.116 283.684 C -1.798 288.398,20.533 339.150,27.384 343.385 C 27.717 343.590,32.748 341.603,38.564 338.969 L 49.139 334.180 55.624 340.769 C 59.191 344.393,63.904 348.766,66.097 350.486 L 70.084 353.615 65.902 364.497 C 63.601 370.483,61.719 375.613,61.719 375.898 C 61.719 376.674,72.958 383.252,80.078 386.643 C 92.123 392.380,109.257 397.767,119.160 398.931 L 123.202 399.406 126.333 391.305 C 128.055 386.849,129.936 381.885,130.514 380.273 L 131.564 377.344 143.516 377.192 C 150.090 377.108,156.542 377.020,157.854 376.997 C 160.173 376.954,160.370 377.246,164.915 387.464 C 167.486 393.245,169.680 398.065,169.790 398.175 C 170.984 399.370,193.632 391.863,204.636 386.625 C 214.000 382.168,229.688 372.474,229.688 371.145 C 229.688 370.790,227.609 365.826,225.068 360.113 L 220.448 349.726 226.178 344.374 C 229.330 341.431,233.721 336.789,235.936 334.059 L 239.963 329.096 250.905 333.305 C 263.545 338.167,262.147 338.401,266.681 330.664 C 275.931 314.880,288.526 278.890,285.765 276.130 C 285.624 275.989,280.655 274.007,274.723 271.726 L 263.937 267.578 263.692 254.688 C 263.557 247.598,263.217 241.237,262.937 240.552 C 262.530 239.559,264.647 238.313,273.401 234.391 C 285.846 228.817,285.165 229.918,282.441 219.748 C 278.212 203.962,271.838 189.792,262.780 176.037 C 257.678 168.290,258.883 168.430,246.401 174.134 L 236.328 178.738 228.802 171.172 C 224.662 167.012,220.007 162.743,218.456 161.686 C 214.999 159.332,214.887 160.714,219.531 148.437 C 224.443 135.454,224.854 137.012,215.039 131.413 C 201.929 123.933,189.239 118.936,175.391 115.802 C 163.555 113.122,162.678 113.045,161.866 114.621 M158.594 193.865 C 207.759 206.194,223.725 268.978,186.493 303.574 C 153.132 334.572,99.094 322.263,82.653 279.922 C 63.723 231.170,107.867 181.145,158.594 193.865 "
-                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                    </path>
-                                                </g>
-                                            </svg>
-                                            Modify Coordinator
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        @endforeach --}}
                     @else
                         <div
                             class="relative bg-white px-4 pb-4 pt-2 h-[84vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="animate-pulse size-12 sm:size-20 mb-4 text-gray-300"
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-gray-300"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                     viewBox="0, 0, 400,400">
                                     <g>
@@ -241,15 +229,17 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                                 <p>No coordinators found.</p>
-                                <p>Try creating a <span class="animate-pulse text-indigo-900">new coordinator</span>.
+                                <p>Try creating a <span class="text-indigo-900">new coordinator</span>.
                                 </p>
                             </div>
                         </div>
                     @endif
 
-                    {{-- Create Button | Main Modal --}}
+                    {{-- Add Coordinators Modal --}}
                     <livewire:focal.user-management.add-coordinators-modal />
 
+                    {{-- View Coordinator Modal --}}
+                    <livewire:focal.user-management.view-coordinator :$coordinatorId />
                 </div>
             </div>
         </div>

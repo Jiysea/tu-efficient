@@ -45,7 +45,6 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('delete-beneficiary-focal', function (User $user, Beneficiary $beneficiary) {
-
             $beneficiary = Implementation::join('batches', 'batches.implementations_id', '=', 'implementations.id')
                 ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
                 ->where('beneficiaries.id', $beneficiary->id)
@@ -57,6 +56,16 @@ class AppServiceProvider extends ServiceProvider
             } else {
                 return false;
             }
+
+        });
+
+        Gate::define('delete-coordinator-focal', function (User $user, User $coordinator) {
+            if ($coordinator->regional_office === $user->regional_office && $coordinator->field_office === $user->field_office && $user->user_type === 'focal') {
+                return true;
+            } else {
+                return false;
+            }
+
         });
 
         Gate::define('approve-submission-coordinator', function (User $user, Batch $batch) {

@@ -58,8 +58,11 @@ class Essential
      * @param string $value Any string value can be assigned here
      * @return string Returns the trimmed string
      */
-    public static function trimmer(string $value)
+    public static function trimmer(string|null $value)
     {
+        if (!isset($value) || empty($value)) {
+            return null;
+        }
         return trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $value)));
     }
 }

@@ -345,6 +345,8 @@ class ListingPage extends Component
     #[On('edit-beneficiary')]
     public function editBeneficiary()
     {
+        $this->beneficiaryId = null;
+        $this->selectedBeneficiaryRow = -1;
         $this->showAlert = true;
         $this->alertMessage = 'Successfully modified a beneficiary!';
         $this->dispatch('show-alert');
@@ -362,7 +364,7 @@ class ListingPage extends Component
                 ->get();
             $old = $beneficiary;
             foreach ($credentials as $credential) {
-                if (isset($credential->image_file_path)) {
+                if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
                     Storage::delete($credential->image_file_path);
                 }
                 $credential->delete();

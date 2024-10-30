@@ -2,8 +2,11 @@
 
 namespace App\Livewire\Focal\UserManagement;
 
+use App\Jobs\CheckCoordinatorVerificationStatus;
 use App\Models\Implementation;
 use App\Models\User;
+use App\Services\Essential;
+use Illuminate\Auth\Events\Registered;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -37,14 +40,13 @@ class AddCoordinatorsModal extends Component
                 'required',
                 # Check if the name has illegal characters
                 function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    elseif (preg_match('~[0-9]+~', $value)) {
+                    elseif (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
 
@@ -53,14 +55,12 @@ class AddCoordinatorsModal extends Component
             'middle_name' => [
                 # Check if the name has illegal characters
                 function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
-
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    elseif (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
@@ -69,14 +69,12 @@ class AddCoordinatorsModal extends Component
                 'required',
                 # Check if the name has illegal characters
                 function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
-
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    elseif (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
@@ -84,21 +82,22 @@ class AddCoordinatorsModal extends Component
             'extension_name' => [
                 # Check if the name has illegal characters
                 function ($attribute, $value, $fail) {
-                    $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
-
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
-                        $fail('No illegal characters.');
+                    if (Essential::hasIllegal($value, true)) {
+                        $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
-                        $fail('No numbers.');
+                    elseif (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
                     }
                 },
             ],
             'contact_num' => [
                 'required',
                 function ($attr, $value, $fail) {
+                    if (User::where('contact_num', '+63' . substr($this->contact_num, 1))->exists()) {
+                        $fail('Contact number already exists.');
+                    }
                     if (!preg_match('~[0-9]+~', $value)) {
                         $fail('Value only accepts numbers.');
                     }
@@ -128,11 +127,11 @@ class AddCoordinatorsModal extends Component
             'email.unique' => 'Email already exists.',
 
             'password.required' => 'Password is required.',
-            'password.min' => 'Must have at least 8 characters.',
+            'password.min' => 'Need at least 8 characters.',
             'password.uncompromised' => 'Please try a different :attribute.',
-            'password.mixed' => 'Must have at least 1 uppercase letter.',
-            'password.numbers' => 'Must have at least 1 number.',
-            'password.symbols' => 'Must have at least 1 symbol.',
+            'password.mixed' => 'Need at least 1 uppercase letter.',
+            'password.numbers' => 'Need at least 1 number.',
+            'password.symbols' => 'Need at least 1 symbol.',
 
             'password_confirmation.required' => 'Passwords do not match.',
             'password_confirmation.same' => 'Passwords do not match.',
@@ -157,7 +156,7 @@ class AddCoordinatorsModal extends Component
 
         $this->contact_num = '+63' . substr($this->contact_num, 1);
 
-        User::create([
+        $user = User::create([
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name,
             'last_name' => $this->last_name,
@@ -170,7 +169,7 @@ class AddCoordinatorsModal extends Component
             'user_type' => 'coordinator',
         ]);
 
-        $this->reset();
+        $this->resetCoordinators();
         $this->dispatch('add-new-coordinator');
     }
 

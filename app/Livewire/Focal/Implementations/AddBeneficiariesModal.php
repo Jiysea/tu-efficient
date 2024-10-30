@@ -34,15 +34,17 @@ class AddBeneficiariesModal extends Component
     public $minDate;
     #[Locked]
     public $duplicationThreshold;
+    #[Locked]
+    public $maximumIncome;
 
     # ------------------------------------
 
     public $includeBirthdate = false;
-    public $similarityResults;
-    public $isResults = false;
+    public $similarityResults = null;
     public $isResolved = false;
     public $isPerfectDuplicate = false;
     public $isSameImplementation = false;
+    public $isSamePending = false;
     public $isIneligible = false;
     public $expanded = false;
     public $addReasonModal = false;
@@ -179,7 +181,6 @@ class AddBeneficiariesModal extends Component
             'avg_monthly_income' => [
                 'required',
                 function ($attr, $value, $fail) {
-                    $maximumIncome = UserSetting::where('users_id', Auth::id())->where('key', 'maximum_income')->value('value');
 
                     if (MoneyFormat::isNegative($value)) {
                         $fail('The value should be more than 1.');
@@ -187,8 +188,8 @@ class AddBeneficiariesModal extends Component
                     if (!MoneyFormat::isMaskInt($value)) {
                         $fail('The value should be a valid amount.');
                     }
-                    if (MoneyFormat::unmask($value) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
-                        $fail('Maximum amount is ₱' . MoneyFormat::mask($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income'))));
+                    if (MoneyFormat::unmask($value) > ($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income')))) {
+                        $fail('Maximum amount is ₱' . MoneyFormat::mask($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income'))));
                     }
 
                 },
@@ -206,7 +207,6 @@ class AddBeneficiariesModal extends Component
                     else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
-
                 },
             ],
             'image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
@@ -229,14 +229,8 @@ class AddBeneficiariesModal extends Component
             ],
             'reason_image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
             'image_description' => [
-                'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
-                function ($attr, $value, $fail) {
-                    if (!isset($value) && empty($value) && !$this->isResolved) {
-                        $fail('Description must not be left blank.', );
-                    }
-                },
+                'required_unless:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false,isSamePending,false',
             ],
-
         ];
     }
 
@@ -264,6 +258,7 @@ class AddBeneficiariesModal extends Component
             'reason_image_file_path.image' => 'Case proof must be an image type.',
             'reason_image_file_path.mimes' => 'Image should be in PNG or JPG format.',
             'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
+            'image_description.required_unless' => 'Description must not be left blank.'
         ];
     }
 
@@ -308,10 +303,6 @@ class AddBeneficiariesModal extends Component
             $this->e_payment_acc_num = null;
         }
 
-        if (strtolower($this->occupation) === 'n/a' || strtolower($this->occupation) === 'none' || strtolower($this->occupation) == '-' || empty($this->occupation)) {
-            $this->occupation = null;
-        }
-
         if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) === 'none' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
             $this->skills_training = null;
         }
@@ -336,10 +327,10 @@ class AddBeneficiariesModal extends Component
         DB::transaction(function () use ($batch, $implementation) {
             $beneficiary = Beneficiary::create([
                 'batches_id' => decrypt($this->batchId),
-                'first_name' => strtoupper($this->first_name),
-                'middle_name' => $this->middle_name ? strtoupper($this->middle_name) : null,
-                'last_name' => strtoupper($this->last_name),
-                'extension_name' => $this->extension_name ? strtoupper($this->extension_name) : null,
+                'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
+                'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
+                'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
+                'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
                 'birthdate' => $this->birthdate,
                 'barangay_name' => $batch->barangay_name,
                 'contact_num' => $this->contact_num,
@@ -360,10 +351,10 @@ class AddBeneficiariesModal extends Component
                 'skills_training' => $this->skills_training ?? null,
                 'is_pwd' => strtolower($this->is_pwd),
                 'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                'spouse_first_name' => $this->spouse_first_name ?? null,
-                'spouse_middle_name' => $this->spouse_middle_name ?? null,
-                'spouse_last_name' => $this->spouse_last_name ?? null,
-                'spouse_extension_name' => $this->spouse_extension_name ?? null,
+                'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
+                'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
+                'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
+                'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
             ]);
 
             $file = null;
@@ -379,8 +370,12 @@ class AddBeneficiariesModal extends Component
                 'for_duplicates' => 'no',
             ]);
 
+            $file = null;
+
             if ($this->isPerfectDuplicate) {
-                $file = $this->reason_image_file_path->store('credentials');
+                if (isset($this->reason_image_file_path) && !empty($this->reason_image_file_path)) {
+                    $file = $this->reason_image_file_path->store('credentials');
+                }
                 Credential::create([
                     'beneficiaries_id' => $beneficiary->id,
                     'image_description' => $this->image_description,
@@ -397,34 +392,32 @@ class AddBeneficiariesModal extends Component
     public function nameCheck()
     {
         # clear out any previous similarity results
-        $this->similarityResults = null;
-        $this->isPerfectDuplicate = false;
-        $this->isSameImplementation = false;
+        $this->reset('similarityResults', 'isPerfectDuplicate', 'isSameImplementation', 'isSamePending', 'isIneligible');
 
         # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
 
             # double checking again before handing over to the algorithm
             # basically we filter the user input along the way
-            $this->first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->first_name)));
+            $this->first_name = Essential::trimmer($this->first_name);
             $filteredInputString = $this->first_name;
             $this->validateOnly('first_name');
 
             if ($this->middle_name && $this->middle_name !== '') {
-                $this->middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->middle_name)));
+                $this->middle_name = Essential::trimmer($this->middle_name);
                 $filteredInputString .= ' ' . $this->middle_name;
                 $this->validateOnly('middle_name');
             } else {
                 $this->middle_name = null;
             }
 
-            $this->last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->last_name)));
+            $this->last_name = Essential::trimmer($this->last_name);
             $filteredInputString .= ' ' . $this->last_name;
             $this->validateOnly('last_name');
 
             # checks if there's an extension_name input
             if ($this->extension_name && $this->extension_name !== '') {
-                $this->extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->extension_name)));
+                $this->extension_name = Essential::trimmer($this->extension_name);
                 $filteredInputString .= ' ' . $this->extension_name;
                 $this->validateOnly('extension_name');
             } else {
@@ -460,6 +453,11 @@ class AddBeneficiariesModal extends Component
             $perfectCounter = 0;
             foreach ($results as $result) {
 
+                # Queries the batch if it's pending on the possible duplicate beneficiary
+                $batch_pending = Batch::where('batch_num', $result['batch_num'])
+                    ->where('approval_status', 'pending')
+                    ->exists();
+
                 # checks if the result row is a perfect duplicate
                 if ($result['is_perfect'] === true) {
                     $this->isPerfectDuplicate = true;
@@ -471,6 +469,10 @@ class AddBeneficiariesModal extends Component
                     if ($result['project_num'] === $project_num->project_num && $this->isPerfectDuplicate) {
                         $this->isSameImplementation = true;
                     }
+                }
+
+                if ($result['is_perfect'] && $batch_pending) {
+                    $this->isSamePending = true;
                 }
             }
 
@@ -491,6 +493,7 @@ class AddBeneficiariesModal extends Component
     {
         $ids = [
             'Barangay ID',
+            'Barangay Certificate',
             'e-Card / UMID',
             "Driver's License",
             'Passport',
@@ -567,7 +570,7 @@ class AddBeneficiariesModal extends Component
         $this->resetExcept(
             'batchId',
             'duplicationThreshold',
-            'birthdate'
+            'maximumIncome',
         );
         $this->resetValidation();
     }
@@ -578,6 +581,7 @@ class AddBeneficiariesModal extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->duplicationThreshold = floatval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
     }
 
     public function render()

@@ -20,6 +20,7 @@ use Livewire\Attributes\Reactive;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Storage;
 
 class EditBeneficiaryModal extends Component
 {
@@ -34,14 +35,18 @@ class EditBeneficiaryModal extends Component
     public $minDate;
     #[Locked]
     public $duplicationThreshold;
+    #[Locked]
+    public $maximumIncome;
 
     # ------------------------------------
 
-    public $similarityResults;
+    public $similarityResults = null;
     public $isResolved = false;
     public $isPerfectDuplicate = false;
     public $isSpecialCase = false;
     public $isSameImplementation = false;
+    public $isSamePending = false;
+    public $isOriginal = false;
     public $isIneligible = false;
     public $expanded = false;
     public $addReasonModal = false;
@@ -167,17 +172,25 @@ class EditBeneficiaryModal extends Component
             'contact_num' => [
                 'required',
                 function ($attr, $value, $fail) {
-                    if (!preg_match('~[0-9]+~', $value)) {
+                    if (!Essential::hasNumber($value)) {
                         $fail('Value only accepts numbers.');
                     }
                 },
                 'starts_with:09',
                 'digits:11',
             ],
+            'occupation' => [
+                'required',
+                # hard-coded since `required_unless` is messy with `$money($input)` x-mask
+                function ($attr, $value, $fail) {
+                    if ($this->avg_monthly_income && !$value) {
+                        $fail('This field is required.');
+                    }
+                },
+            ],
             'avg_monthly_income' => [
                 'required',
                 function ($attr, $value, $fail) {
-                    $maximumIncome = UserSetting::where('users_id', Auth::id())->where('key', 'maximum_income')->value('value');
 
                     if (MoneyFormat::isNegative($value)) {
                         $fail('The value should be more than 1.');
@@ -185,8 +198,8 @@ class EditBeneficiaryModal extends Component
                     if (!MoneyFormat::isMaskInt($value)) {
                         $fail('The value should be a valid amount.');
                     }
-                    if (MoneyFormat::unmask($value) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
-                        $fail('Maximum amount is ₱' . MoneyFormat::mask($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income'))));
+                    if (MoneyFormat::unmask($value) > ($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income')))) {
+                        $fail('Maximum amount is ₱' . MoneyFormat::mask($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income'))));
                     }
 
                 },
@@ -203,16 +216,6 @@ class EditBeneficiaryModal extends Component
                     # throws validation error whenever the name has a number
                     else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
-                    }
-
-                },
-            ],
-            'occupation' => [
-                'required',
-                # hard-coded since `required_unless` is messy with `$money($input)` x-mask
-                function ($attr, $value, $fail) {
-                    if ($this->avg_monthly_income && !$value) {
-                        $fail('This field is required.');
                     }
                 },
             ],
@@ -234,19 +237,9 @@ class EditBeneficiaryModal extends Component
                     }
                 },
             ],
-            'reason_image_file_path' => [
-                'nullable',
-                'image',
-                'mimes:png,jpg,jpeg',
-                'max:5120',
-            ],
+            'reason_image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
             'image_description' => [
-                'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
-                function ($attr, $value, $fail) {
-                    if (!isset($value) && empty($value) && !$this->isResolved) {
-                        $fail('Description must not be left blank.', );
-                    }
-                },
+                'required_unless:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false,isSamePending,false',
             ],
         ];
     }
@@ -271,9 +264,11 @@ class EditBeneficiaryModal extends Component
             'image_file_path.mimes' => 'Image should be in PNG or JPG format.',
             'image_file_path.max' => 'Image size must not exceed 5MB.',
 
+            'reason_image_file_path.required_if' => 'Case proof is required.',
             'reason_image_file_path.image' => 'Case proof must be an image type.',
-            'reason_image_file_path.mimes' => 'It must be in PNG or JPG format.',
+            'reason_image_file_path.mimes' => 'Image should be in PNG or JPG format.',
             'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
+            'image_description.required_unless' => 'Description must not be left blank.'
         ];
     }
 
@@ -360,17 +355,25 @@ class EditBeneficiaryModal extends Component
                 'contact_num' => [
                     'required',
                     function ($attr, $value, $fail) {
-                        if (!preg_match('~[0-9]+~', $value)) {
+                        if (!Essential::hasNumber($value)) {
                             $fail('Value only accepts numbers.');
                         }
                     },
                     'starts_with:09',
                     'digits:11',
                 ],
+                'occupation' => [
+                    'required',
+                    # hard-coded since `required_unless` is messy with `$money($input)` x-mask
+                    function ($attr, $value, $fail) {
+                        if ($this->avg_monthly_income && !$value) {
+                            $fail('This field is required.');
+                        }
+                    },
+                ],
                 'avg_monthly_income' => [
                     'required',
                     function ($attr, $value, $fail) {
-                        $maximumIncome = UserSetting::where('users_id', Auth::id())->where('key', 'maximum_income')->value('value');
 
                         if (MoneyFormat::isNegative($value)) {
                             $fail('The value should be more than 1.');
@@ -378,8 +381,8 @@ class EditBeneficiaryModal extends Component
                         if (!MoneyFormat::isMaskInt($value)) {
                             $fail('The value should be a valid amount.');
                         }
-                        if (MoneyFormat::unmask($value) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
-                            $fail('Maximum amount is ₱' . MoneyFormat::mask($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income'))));
+                        if (MoneyFormat::unmask($value) > ($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income')))) {
+                            $fail('Maximum amount is ₱' . MoneyFormat::mask($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income'))));
                         }
 
                     },
@@ -396,16 +399,6 @@ class EditBeneficiaryModal extends Component
                         # throws validation error whenever the name has a number
                         else if (Essential::hasNumber($value)) {
                             $fail('Numbers on names are not allowed.');
-                        }
-
-                    },
-                ],
-                'occupation' => [
-                    'required',
-                    # hard-coded since `required_unless` is messy with `$money($input)` x-mask
-                    function ($attr, $value, $fail) {
-                        if ($this->avg_monthly_income && !$value) {
-                            $fail('This field is required.');
                         }
                     },
                 ],
@@ -427,20 +420,8 @@ class EditBeneficiaryModal extends Component
                         }
                     },
                 ],
-                'reason_image_file_path' => [
-                    'nullable',
-                    'image',
-                    'mimes:png,jpg,jpeg',
-                    'max:5120',
-                ],
-                'image_description' => [
-                    'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
-                    function ($attr, $value, $fail) {
-                        if (!isset($value) && empty($value) && !$this->isResolved) {
-                            $fail('Description must not be left blank.', );
-                        }
-                    },
-                ],
+                'reason_image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
+                'image_description' => 'required_unless:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
             ],
             [
                 'first_name.required' => 'This field is required.',
@@ -452,15 +433,18 @@ class EditBeneficiaryModal extends Component
                 'occupation.required' => 'This field is required.',
                 'avg_monthly_income.required' => 'This field is required.',
                 'dependent.required' => 'This field is required.',
+                'avg_monthly_income.required_unless' => 'This field is required.',
                 'id_number.required' => 'This field is required.',
 
                 'image_file_path.image' => 'It should be an image type.',
                 'image_file_path.mimes' => 'Image should be in PNG or JPG format.',
                 'image_file_path.max' => 'Image size must not exceed 5MB.',
 
+                'reason_image_file_path.required_if' => 'Case proof is required.',
                 'reason_image_file_path.image' => 'Case proof must be an image type.',
-                'reason_image_file_path.mimes' => 'It must be in PNG or JPG format.',
+                'reason_image_file_path.mimes' => 'Image should be in PNG or JPG format.',
                 'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
+                'image_description.required_unless' => 'Description must not be left blank.'
             ],
         );
         # Re-Check for Duplicates
@@ -483,10 +467,6 @@ class EditBeneficiaryModal extends Component
 
         if (strtolower($this->e_payment_acc_num) === 'n/a' || strtolower($this->e_payment_acc_num) === 'none' || strtolower($this->e_payment_acc_num) == '-' || empty($this->e_payment_acc_num)) {
             $this->e_payment_acc_num = null;
-        }
-
-        if (strtolower($this->occupation) === 'n/a' || strtolower($this->occupation) === 'none' || strtolower($this->occupation) == '-' || empty($this->occupation)) {
-            $this->occupation = null;
         }
 
         if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) === 'none' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
@@ -530,20 +510,20 @@ class EditBeneficiaryModal extends Component
             # then send an optimistic lock notification and close the modal to refresh the records.
             if (!$beneficiary) {
                 $this->dispatch('optimistic-lock', message: 'This record has been updated by someone else. Refreshing...');
-                $this->resetViewBeneficiary();
+                $this->resetEditBeneficiary();
                 return;
             } else {
                 $beneficiary->fill([
                     'batches_id' => $batch->id,
-                    'first_name' => $this->first_name,
-                    'middle_name' => $this->middle_name ?? null,
-                    'last_name' => $this->last_name,
-                    'extension_name' => $this->extension_name ?? null,
+                    'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
+                    'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
+                    'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
+                    'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
                     'birthdate' => $this->birthdate,
                     'barangay_name' => $batch->barangay_name,
                     'contact_num' => $this->contact_num,
-                    'occupation' => $this->occupation,
-                    'avg_monthly_income' => $this->avg_monthly_income,
+                    'occupation' => $this->occupation ?? null,
+                    'avg_monthly_income' => $this->avg_monthly_income ?? null,
                     'city_municipality' => $implementation->city_municipality,
                     'province' => $implementation->province,
                     'district' => $implementation->district,
@@ -554,15 +534,15 @@ class EditBeneficiaryModal extends Component
                     'sex' => strtolower($this->sex),
                     'civil_status' => strtolower($this->civil_status),
                     'age' => $this->beneficiaryAge($this->birthdate),
-                    'dependent' => $this->dependent,
+                    'dependent' => mb_strtoupper($this->dependent, "UTF-8"),
                     'self_employment' => strtolower($this->self_employment),
                     'skills_training' => $this->skills_training ?? null,
                     'is_pwd' => strtolower($this->is_pwd),
                     'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                    'spouse_first_name' => $this->spouse_first_name ?? null,
-                    'spouse_middle_name' => $this->spouse_middle_name ?? null,
-                    'spouse_last_name' => $this->spouse_last_name ?? null,
-                    'spouse_extension_name' => $this->spouse_extension_name ?? null,
+                    'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
+                    'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
+                    'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
+                    'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
                 ]);
 
                 if ($beneficiary->isDirty()) {
@@ -572,10 +552,13 @@ class EditBeneficiaryModal extends Component
             }
 
             $file = null;
+
             if ($identity) {
                 if ($this->image_file_path) {
                     $file = $this->image_file_path->store(path: 'credentials');
-
+                    if (Storage::exists($identity->image_file_path)) {
+                        Storage::delete($identity->image_file_path);
+                    }
                     $identity->fill([
                         'image_file_path' => $file,
                     ]);
@@ -587,15 +570,21 @@ class EditBeneficiaryModal extends Component
                 }
             }
 
-            $file = null;
             if ($special_case) {
                 if ($this->reason_image_file_path) {
                     $file = $this->reason_image_file_path->store(path: 'credentials');
+                    if (Storage::exists($special_case->image_file_path)) {
+                        Storage::delete($special_case->image_file_path);
+                    }
                     $special_case->fill([
                         'image_description' => $this->image_description,
                         'image_file_path' => $file,
                     ]);
                 } elseif (!isset($this->reason_saved_image_path) || empty($this->reason_saved_image_path)) {
+                    $file = null;
+                    if (Storage::exists($special_case->image_file_path)) {
+                        Storage::delete($special_case->image_file_path);
+                    }
                     $special_case->fill([
                         'image_description' => $this->image_description,
                         'image_file_path' => $file,
@@ -621,35 +610,32 @@ class EditBeneficiaryModal extends Component
     public function nameCheck()
     {
         # clear out any previous similarity results
-        $this->similarityResults = null;
-        $this->isPerfectDuplicate = false;
-        $this->isSameImplementation = false;
-        $this->isIneligible = false;
+        $this->reset('similarityResults', 'isPerfectDuplicate', 'isSameImplementation', 'isSamePending', 'isOriginal', 'isIneligible');
 
         # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
 
             # double checking again before handing over to the algorithm
             # basically we filter the user input along the way
-            $this->first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->first_name)));
+            $this->first_name = Essential::trimmer($this->first_name);
             $filteredInputString = $this->first_name;
             $this->validateOnly('first_name');
 
             if ($this->middle_name && $this->middle_name !== '') {
-                $this->middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->middle_name)));
+                $this->middle_name = Essential::trimmer($this->middle_name);
                 $filteredInputString .= ' ' . $this->middle_name;
                 $this->validateOnly('middle_name');
             } else {
                 $this->middle_name = null;
             }
 
-            $this->last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->last_name)));
+            $this->last_name = Essential::trimmer($this->last_name);
             $filteredInputString .= ' ' . $this->last_name;
             $this->validateOnly('last_name');
 
             # checks if there's an extension_name input
             if ($this->extension_name && $this->extension_name !== '') {
-                $this->extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $this->extension_name)));
+                $this->extension_name = Essential::trimmer($this->extension_name);
                 $filteredInputString .= ' ' . $this->extension_name;
                 $this->validateOnly('extension_name');
             } else {
@@ -662,8 +648,6 @@ class EditBeneficiaryModal extends Component
             if (!isset($this->similarityResults)) {
                 $this->expanded = false;
             }
-
-            $this->dispatch('init-reload')->self();
         }
     }
 
@@ -684,6 +668,11 @@ class EditBeneficiaryModal extends Component
             $perfectCounter = 0;
             foreach ($results as $result) {
 
+                # Queries the batch if it's pending on the possible duplicate beneficiary
+                $batch_pending = Batch::where('batch_num', $result['batch_num'])
+                    ->where('approval_status', 'pending')
+                    ->exists();
+
                 # checks if the result row is a perfect duplicate
                 if ($result['is_perfect'] === true) {
                     $this->isPerfectDuplicate = true;
@@ -695,6 +684,16 @@ class EditBeneficiaryModal extends Component
                     if ($result['project_num'] === $project_num->project_num && $this->isPerfectDuplicate) {
                         $this->isSameImplementation = true;
                     }
+                }
+
+                # checks if this edit is an original
+                if (strtolower($this->beneficiary_type) === 'underemployed' && $result['is_perfect'] && $result['beneficiary_type'] === 'special case' && strtotime($result['created_at']) > strtotime($this->beneficiary?->created_at)) {
+                    $this->isOriginal = true;
+                    $this->isPerfectDuplicate = false;
+                }
+
+                if (($result['is_perfect'] && $batch_pending && !$this->isOriginal && !$this->isSpecialCase)) {
+                    $this->isSamePending = true;
                 }
             }
 
@@ -715,6 +714,7 @@ class EditBeneficiaryModal extends Component
     {
         $ids = [
             'Barangay ID',
+            'Barangay Certificate',
             'e-Card / UMID',
             "Driver's License",
             'Passport',
@@ -801,20 +801,7 @@ class EditBeneficiaryModal extends Component
                 $this->resetValidation('contact_num');
             }
         }
-        if ($property === 'avg_monthly_income') {
-            if (!$this->occupation && !$this->avg_monthly_income) {
-                $this->resetValidation('occupation');
-                $this->resetValidation('avg_monthly_income');
-                $this->reset('occupation');
-            }
-        }
-        if ($property === 'occupation') {
-            if (!$this->avg_monthly_income && !$this->occupation) {
-                $this->resetValidation('avg_monthly_income');
-                $this->resetValidation('occupation');
-                $this->reset('avg_monthly_income');
-            }
-        }
+
         if ($property === 'is_pwd') {
             if ($this->is_pwd === 'No' && $this->type_of_id === "Person's With Disability (PWD) ID") {
                 $this->type_of_id = 'Barangay ID';
@@ -935,6 +922,7 @@ class EditBeneficiaryModal extends Component
         $this->resetExcept(
             'beneficiaryId',
             'duplicationThreshold',
+            'maximumIncome',
         );
         $this->resetValidation();
     }
@@ -945,6 +933,7 @@ class EditBeneficiaryModal extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->duplicationThreshold = floatval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
     }
 
     public function render()

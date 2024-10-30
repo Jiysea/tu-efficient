@@ -8,6 +8,7 @@ use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
+use App\Services\Essential;
 use App\Services\GenerateActivityLogs;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
@@ -33,19 +34,26 @@ class ViewBeneficiary extends Component
     public $passedCredentialId;
     #[Locked]
     public $duplicationThreshold;
-    public $editMode = false;
-    public $deleteBeneficiaryModal = false;
-    public $viewCredentialsModal = false;
+    #[Locked]
+    public $maximumIncome;
     public $maxDate;
     public $minDate;
 
     # ---------------------------------------
 
-    public $similarityResults;
+    public $editMode = false;
+    public $deleteBeneficiaryModal = false;
+    public $viewCredentialsModal = false;
+
+    # ---------------------------------------
+
+    public $similarityResults = null;
     public $isResolved = false;
     public $isPerfectDuplicate = false;
     public $isSpecialCase = false;
     public $isSameImplementation = false;
+    public $isSamePending = false;
+    public $isOriginal = false;
     public $isIneligible = false;
     public $expanded = false;
     public $addReasonModal = false;
@@ -98,8 +106,6 @@ class ViewBeneficiary extends Component
     public $reason_image_file_path;
     #[Validate]
     public $image_description;
-    #[Validate]
-    public $password_delete;
     public $saved_image_path;
     public $reason_saved_image_path;
 
@@ -111,30 +117,29 @@ class ViewBeneficiary extends Component
             'first_name' => [
                 'required',
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    elseif (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
+
                 },
             ],
             'middle_name' => [
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
@@ -142,30 +147,28 @@ class ViewBeneficiary extends Component
             'last_name' => [
                 'required',
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value)) {
                         $fail('Illegal characters are not allowed.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('Numbers on names are not allowed.');
                     }
                 },
             ],
             'extension_name' => [
                 # Check if the name has illegal characters
-                function ($attribute, $value, $fail) {
-                    $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                function ($attr, $value, $fail) {
 
                     # throws validation errors whenever it detects illegal characters on names
-                    if (strpbrk($value, $illegal)) {
+                    if (Essential::hasIllegal($value, true)) {
                         $fail('No illegal characters.');
                     }
                     # throws validation error whenever the name has a number
-                    else if (preg_match('~[0-9]+~', $value)) {
+                    else if (Essential::hasNumber($value)) {
                         $fail('No numbers.');
                     }
                 },
@@ -174,33 +177,50 @@ class ViewBeneficiary extends Component
             'contact_num' => [
                 'required',
                 function ($attr, $value, $fail) {
-                    if (!preg_match('~[0-9]+~', $value)) {
+                    if (!Essential::hasNumber($value)) {
                         $fail('Value only accepts numbers.');
                     }
                 },
                 'starts_with:09',
                 'digits:11',
             ],
-            'avg_monthly_income' => [
-                'required_unless:occupation,null',
-                function ($attr, $value, $fail) {
-                    if ($this->avg_monthly_income) {
-
-                        if (MoneyFormat::isNegative($value)) {
-                            $fail('The value should be more than 1.');
-                        }
-                        if (!MoneyFormat::isMaskInt($value)) {
-
-                            $fail('The value should be a valid amount.');
-                        }
-                    }
-                },
-            ],
             'occupation' => [
+                'required',
                 # hard-coded since `required_unless` is messy with `$money($input)` x-mask
                 function ($attr, $value, $fail) {
                     if ($this->avg_monthly_income && !$value) {
                         $fail('This field is required.');
+                    }
+                },
+            ],
+            'avg_monthly_income' => [
+                'required',
+                function ($attr, $value, $fail) {
+
+                    if (MoneyFormat::isNegative($value)) {
+                        $fail('The value should be more than 1.');
+                    }
+                    if (!MoneyFormat::isMaskInt($value)) {
+                        $fail('The value should be a valid amount.');
+                    }
+                    if (MoneyFormat::unmask($value) > ($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income')))) {
+                        $fail('Maximum amount is ₱' . MoneyFormat::mask($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income'))));
+                    }
+
+                },
+            ],
+            'dependent' => [
+                'required',
+                # Check if the name has illegal characters
+                function ($attribute, $value, $fail) {
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (Essential::hasIllegal($value, false, true)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    else if (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
                     }
                 },
             ],
@@ -222,28 +242,8 @@ class ViewBeneficiary extends Component
                     }
                 },
             ],
-            'reason_image_file_path' => [
-                'nullable',
-                'image',
-                'mimes:png,jpg,jpeg',
-                'max:5120',
-            ],
-            'image_description' => [
-                'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
-                function ($attr, $value, $fail) {
-                    if (!isset($value) && empty($value) && !$this->isResolved) {
-                        $fail('Description must not be left blank.', );
-                    }
-                },
-            ],
-            'password_delete' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if (!Hash::check($value, Auth::user()->password)) {
-                        $fail('Wrong password.');
-                    }
-                },
-            ],
+            'reason_image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
+            'image_description' => 'required_unless:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false,isSamePending,false',
         ];
     }
 
@@ -256,19 +256,21 @@ class ViewBeneficiary extends Component
             'contact_num.required' => 'Contact number is required.',
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',
+            'occupation.required' => 'This field is required.',
+            'avg_monthly_income.required' => 'This field is required.',
+            'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
 
             'image_file_path.image' => 'It should be an image type.',
-            'image_file_path.mimes' => 'It should be in PNG or JPG format.',
-
-            'image_description.required_if' => 'Description must not be left blank.',
+            'image_file_path.mimes' => 'Image should be in PNG or JPG format.',
+            'image_file_path.max' => 'Image size must not exceed 5MB.',
 
             'reason_image_file_path.required_if' => 'Case proof is required.',
             'reason_image_file_path.image' => 'Case proof must be an image type.',
-            'reason_image_file_path.mimes' => 'It must be in PNG or JPG format.',
+            'reason_image_file_path.mimes' => 'Image should be in PNG or JPG format.',
             'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
-            'password_delete.required' => 'This field is required.',
+            'image_description.required_unless' => 'Description must not be left blank.'
         ];
     }
 
@@ -341,7 +343,7 @@ class ViewBeneficiary extends Component
             $this->resetExcept(
                 'passedBeneficiaryId',
                 'duplicationThreshold',
-                'deleteBeneficiaryModal',
+                'maximumIncome',
             );
         }
     }
@@ -358,10 +360,7 @@ class ViewBeneficiary extends Component
     public function nameCheck()
     {
         # clear out any previous similarity results
-        $this->similarityResults = null;
-        $this->isPerfectDuplicate = false;
-        $this->isSameImplementation = false;
-        $this->isIneligible = false;
+        $this->reset('similarityResults', 'isPerfectDuplicate', 'isSameImplementation', 'isSamePending', 'isOriginal', 'isIneligible');
 
         # the filtering process won't go through if first_name, last_name, & birthdate are empty fields
         if ($this->first_name && $this->last_name && $this->birthdate) {
@@ -393,12 +392,14 @@ class ViewBeneficiary extends Component
                 $this->extension_name = null;
             }
 
-            $this->similarityResults = JaccardSimilarity::getResultsFromEdit($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold, $this->passedBeneficiaryId);
+            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold, $this->passedBeneficiaryId);
             $this->setCheckers($this->similarityResults);
 
             if (!isset($this->similarityResults)) {
                 $this->expanded = false;
             }
+
+            $this->dispatch('init-reload')->self();
         }
 
     }
@@ -420,6 +421,11 @@ class ViewBeneficiary extends Component
             $perfectCounter = 0;
             foreach ($results as $result) {
 
+                # Queries the batch if it's pending on the possible duplicate beneficiary
+                $batch_pending = Batch::where('batch_num', $result['batch_num'])
+                    ->where('approval_status', 'pending')
+                    ->exists();
+
                 # checks if the result row is a perfect duplicate
                 if ($result['is_perfect'] === true) {
                     $this->isPerfectDuplicate = true;
@@ -431,6 +437,16 @@ class ViewBeneficiary extends Component
                     if ($result['project_num'] === $project_num->project_num && $this->isPerfectDuplicate) {
                         $this->isSameImplementation = true;
                     }
+                }
+
+                # checks if this edit is an original
+                if (strtolower($this->beneficiary_type) === 'underemployed' && $result['is_perfect'] && $result['beneficiary_type'] === 'special case' && strtotime($result['created_at']) > strtotime($this->beneficiary?->created_at)) {
+                    $this->isOriginal = true;
+                    $this->isPerfectDuplicate = false;
+                }
+
+                if (($result['is_perfect'] && $batch_pending && !$this->isOriginal && !$this->isSpecialCase)) {
+                    $this->isSamePending = true;
                 }
             }
 
@@ -449,30 +465,29 @@ class ViewBeneficiary extends Component
                 'first_name' => [
                     'required',
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value)) {
                             $fail('Illegal characters are not allowed.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        elseif (Essential::hasNumber($value)) {
                             $fail('Numbers on names are not allowed.');
                         }
+
                     },
                 ],
                 'middle_name' => [
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value)) {
                             $fail('Illegal characters are not allowed.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        else if (Essential::hasNumber($value)) {
                             $fail('Numbers on names are not allowed.');
                         }
                     },
@@ -480,30 +495,28 @@ class ViewBeneficiary extends Component
                 'last_name' => [
                     'required',
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value)) {
                             $fail('Illegal characters are not allowed.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        else if (Essential::hasNumber($value)) {
                             $fail('Numbers on names are not allowed.');
                         }
                     },
                 ],
                 'extension_name' => [
                     # Check if the name has illegal characters
-                    function ($attribute, $value, $fail) {
-                        $illegal = "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\";
+                    function ($attr, $value, $fail) {
 
                         # throws validation errors whenever it detects illegal characters on names
-                        if (strpbrk($value, $illegal)) {
+                        if (Essential::hasIllegal($value, true)) {
                             $fail('No illegal characters.');
                         }
                         # throws validation error whenever the name has a number
-                        else if (preg_match('~[0-9]+~', $value)) {
+                        else if (Essential::hasNumber($value)) {
                             $fail('No numbers.');
                         }
                     },
@@ -512,33 +525,50 @@ class ViewBeneficiary extends Component
                 'contact_num' => [
                     'required',
                     function ($attr, $value, $fail) {
-                        if (!preg_match('~[0-9]+~', $value)) {
+                        if (!Essential::hasNumber($value)) {
                             $fail('Value only accepts numbers.');
                         }
                     },
                     'starts_with:09',
                     'digits:11',
                 ],
-                'avg_monthly_income' => [
-                    'required_unless:occupation,null',
-                    function ($attr, $value, $fail) {
-                        if ($this->avg_monthly_income) {
-
-                            if (MoneyFormat::isNegative($value)) {
-                                $fail('The value should be more than 1.');
-                            }
-                            if (!MoneyFormat::isMaskInt($value)) {
-
-                                $fail('The value should be a valid amount.');
-                            }
-                        }
-                    },
-                ],
                 'occupation' => [
+                    'required',
                     # hard-coded since `required_unless` is messy with `$money($input)` x-mask
                     function ($attr, $value, $fail) {
                         if ($this->avg_monthly_income && !$value) {
                             $fail('This field is required.');
+                        }
+                    },
+                ],
+                'avg_monthly_income' => [
+                    'required',
+                    function ($attr, $value, $fail) {
+
+                        if (MoneyFormat::isNegative($value)) {
+                            $fail('The value should be more than 1.');
+                        }
+                        if (!MoneyFormat::isMaskInt($value)) {
+                            $fail('The value should be a valid amount.');
+                        }
+                        if (MoneyFormat::unmask($value) > ($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income')))) {
+                            $fail('Maximum amount is ₱' . MoneyFormat::mask($this->maximumIncome ? intval($this->maximumIncome) : intval(config('settings.maximum_income'))));
+                        }
+
+                    },
+                ],
+                'dependent' => [
+                    'required',
+                    # Check if the name has illegal characters
+                    function ($attribute, $value, $fail) {
+
+                        # throws validation errors whenever it detects illegal characters on names
+                        if (Essential::hasIllegal($value, false, true)) {
+                            $fail('Illegal characters are not allowed.');
+                        }
+                        # throws validation error whenever the name has a number
+                        else if (Essential::hasNumber($value)) {
+                            $fail('Numbers on names are not allowed.');
                         }
                     },
                 ],
@@ -560,20 +590,8 @@ class ViewBeneficiary extends Component
                         }
                     },
                 ],
-                'reason_image_file_path' => [
-                    'nullable',
-                    'image',
-                    'mimes:png,jpg,jpeg',
-                    'max:5120',
-                ],
-                'image_description' => [
-                    'exclude_if:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
-                    function ($attr, $value, $fail) {
-                        if (!isset($value) && empty($value) && !$this->isResolved) {
-                            $fail('Description must not be left blank.', );
-                        }
-                    },
-                ],
+                'reason_image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
+                'image_description' => 'required_unless:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false',
             ],
             [
                 'first_name.required' => 'This field is required.',
@@ -582,16 +600,21 @@ class ViewBeneficiary extends Component
                 'contact_num.required' => 'Contact number is required.',
                 'contact_num.digits' => 'Valid number should be 11 digits.',
                 'contact_num.starts_with' => 'Valid number should start with \'09\'',
+                'occupation.required' => 'This field is required.',
+                'avg_monthly_income.required' => 'This field is required.',
+                'dependent.required' => 'This field is required.',
                 'avg_monthly_income.required_unless' => 'This field is required.',
                 'id_number.required' => 'This field is required.',
 
                 'image_file_path.image' => 'It should be an image type.',
-                'image_file_path.mimes' => 'Image must be in PNG or JPG format.',
+                'image_file_path.mimes' => 'Image should be in PNG or JPG format.',
                 'image_file_path.max' => 'Image size must not exceed 5MB.',
 
+                'reason_image_file_path.required_if' => 'Case proof is required.',
                 'reason_image_file_path.image' => 'Case proof must be an image type.',
-                'reason_image_file_path.mimes' => 'It must be in PNG or JPG format.',
+                'reason_image_file_path.mimes' => 'Image should be in PNG or JPG format.',
                 'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
+                'image_description.required_unless' => 'Description must not be left blank.'
             ],
         );
         # Re-Check for Duplicates
@@ -603,6 +626,38 @@ class ViewBeneficiary extends Component
         $this->contact_num = '+63' . substr($this->contact_num, 1);
         $batch = Batch::find($this->beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
+
+        if (strtolower($this->middle_name) === 'n/a' || strtolower($this->middle_name) === 'none' || strtolower($this->middle_name) == '-' || empty($this->middle_name)) {
+            $this->middle_name = null;
+        }
+
+        if (strtolower($this->extension_name) === 'n/a' || strtolower($this->extension_name) === 'none' || strtolower($this->extension_name) == '-' || empty($this->extension_name)) {
+            $this->extension_name = null;
+        }
+
+        if (strtolower($this->e_payment_acc_num) === 'n/a' || strtolower($this->e_payment_acc_num) === 'none' || strtolower($this->e_payment_acc_num) == '-' || empty($this->e_payment_acc_num)) {
+            $this->e_payment_acc_num = null;
+        }
+
+        if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) === 'none' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
+            $this->skills_training = null;
+        }
+
+        if (strtolower($this->spouse_first_name) === 'n/a' || strtolower($this->spouse_first_name) === 'none' || strtolower($this->spouse_first_name) == '-' || empty($this->spouse_first_name)) {
+            $this->spouse_first_name = null;
+        }
+
+        if (strtolower($this->spouse_middle_name) === 'n/a' || strtolower($this->spouse_middle_name) === 'none' || strtolower($this->spouse_middle_name) == '-' || empty($this->spouse_middle_name)) {
+            $this->spouse_middle_name = null;
+        }
+
+        if (strtolower($this->spouse_last_name) === 'n/a' || strtolower($this->spouse_last_name) === 'none' || strtolower($this->spouse_last_name) == '-' || empty($this->spouse_last_name)) {
+            $this->spouse_last_name = null;
+        }
+
+        if (strtolower($this->spouse_extension_name) === 'n/a' || strtolower($this->spouse_extension_name) === 'none' || strtolower($this->spouse_extension_name) == '-' || empty($this->spouse_extension_name)) {
+            $this->spouse_extension_name = null;
+        }
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () use ($batch, $implementation) {
@@ -630,10 +685,10 @@ class ViewBeneficiary extends Component
             } else {
                 $beneficiary->fill([
                     'batches_id' => $batch->id,
-                    'first_name' => $this->first_name,
-                    'middle_name' => $this->middle_name ?? null,
-                    'last_name' => $this->last_name,
-                    'extension_name' => $this->extension_name ?? null,
+                    'first_name' => strtoupper($this->first_name),
+                    'middle_name' => $this->middle_name ? strtoupper($this->middle_name) : null,
+                    'last_name' => strtoupper($this->last_name),
+                    'extension_name' => $this->extension_name ? strtoupper($this->extension_name) : null,
                     'birthdate' => $this->birthdate,
                     'barangay_name' => $batch->barangay_name,
                     'contact_num' => $this->contact_num,
@@ -649,17 +704,16 @@ class ViewBeneficiary extends Component
                     'sex' => strtolower($this->sex),
                     'civil_status' => strtolower($this->civil_status),
                     'age' => $this->beneficiaryAge($this->birthdate),
-                    'dependent' => $this->dependent ?? null,
+                    'dependent' => strtoupper($this->dependent),
                     'self_employment' => strtolower($this->self_employment),
                     'skills_training' => $this->skills_training ?? null,
                     'is_pwd' => strtolower($this->is_pwd),
                     'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                    'spouse_first_name' => $this->spouse_first_name ?? null,
-                    'spouse_middle_name' => $this->spouse_middle_name ?? null,
-                    'spouse_last_name' => $this->spouse_last_name ?? null,
-                    'spouse_extension_name' => $this->spouse_extension_name ?? null,
+                    'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
+                    'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
+                    'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
+                    'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
                 ]);
-
                 if ($beneficiary->isDirty()) {
                     $beneficiary->save();
                     $isChanged = true;
@@ -671,7 +725,9 @@ class ViewBeneficiary extends Component
             if ($identity) {
                 if ($this->image_file_path) {
                     $file = $this->image_file_path->store(path: 'credentials');
-
+                    if (Storage::exists($identity->image_file_path)) {
+                        Storage::delete($identity->image_file_path);
+                    }
                     $identity->fill([
                         'image_file_path' => $file,
                     ]);
@@ -686,12 +742,18 @@ class ViewBeneficiary extends Component
             if ($special_case) {
                 if ($this->reason_image_file_path) {
                     $file = $this->reason_image_file_path->store(path: 'credentials');
+                    if (Storage::exists($special_case->image_file_path)) {
+                        Storage::delete($special_case->image_file_path);
+                    }
                     $special_case->fill([
                         'image_description' => $this->image_description,
                         'image_file_path' => $file,
                     ]);
                 } elseif (!isset($this->reason_saved_image_path) || empty($this->reason_saved_image_path)) {
                     $file = null;
+                    if (Storage::exists($special_case->image_file_path)) {
+                        Storage::delete($special_case->image_file_path);
+                    }
                     $special_case->fill([
                         'image_description' => $this->image_description,
                         'image_file_path' => $file,
@@ -795,15 +857,15 @@ class ViewBeneficiary extends Component
     {
         # get each value first
         $values = [
-            'First Name' => $this->beneficiary->first_name,
-            'Middle Name' => $this->beneficiary->middle_name ?? '-',
-            'Last Name' => $this->beneficiary->last_name,
-            'Extension Name' => $this->beneficiary->extension_name ?? '-',
-            'Birthdate' => Carbon::parse($this->beneficiary->birthdate)->format('M d, Y'),
-            'Contact Number' => $this->beneficiary->contact_num,
-            'Sex' => ucwords($this->beneficiary->sex),
-            'Age' => $this->beneficiary->age,
-            'Civil Status' => ucwords($this->beneficiary->civil_status),
+            'First Name' => mb_strtoupper($this->beneficiary?->first_name, "UTF-8"),
+            'Middle Name' => $this->beneficiary?->middle_name ? mb_strtoupper($this->beneficiary?->middle_name, "UTF-8") : '-',
+            'Last Name' => mb_strtoupper($this->beneficiary?->last_name, "UTF-8"),
+            'Extension Name' => $this->beneficiary?->extension_name ? mb_strtoupper($this->beneficiary?->extension_name, "UTF-8") : '-',
+            'Birthdate' => Carbon::parse($this->beneficiary?->birthdate)->format('M d, Y'),
+            'Contact Number' => $this->beneficiary?->contact_num,
+            'Sex' => ucwords($this->beneficiary?->sex),
+            'Age' => $this->beneficiary?->age,
+            'Civil Status' => ucwords($this->beneficiary?->civil_status),
         ];
 
         return $values;
@@ -814,10 +876,10 @@ class ViewBeneficiary extends Component
     {
         # get each value first
         $values = [
-            'Province' => $this->beneficiary->province,
-            'City/Municipality' => $this->beneficiary->city_municipality,
-            'District' => $this->beneficiary->district,
-            'Barangay' => $this->beneficiary->barangay_name,
+            'Province' => $this->beneficiary?->province,
+            'City/Municipality' => $this->beneficiary?->city_municipality,
+            'District' => $this->beneficiary?->district,
+            'Barangay' => $this->beneficiary?->barangay_name,
         ];
 
         return $values;
@@ -828,17 +890,17 @@ class ViewBeneficiary extends Component
     {
         # get each value first
         $values = [
-            'Occupation' => $this->beneficiary->occupation ?? '-',
-            'Avg. Monthly Income' => $this->beneficiary->avg_monthly_income ? '₱' . MoneyFormat::mask($this->beneficiary->avg_monthly_income) : '-',
-            'Type of Beneficiary' => ucwords($this->beneficiary->beneficiary_type),
-            'e-Payment Account Number' => $this->beneficiary->e_payment_acc_num ?? '-',
-            'Interested in Self-Employment' => ucwords($this->beneficiary->self_employment),
-            'Type of ID' => $this->beneficiary->type_of_id,
-            'ID Number' => $this->beneficiary->id_number,
-            'Dependent' => $this->beneficiary->dependent ?? '-',
-            'Skills Training' => $this->beneficiary->skills_training ?? '-',
-            'is PWD' => ucwords($this->beneficiary->is_pwd),
-            'is Senior Citizen' => ucwords($this->beneficiary->is_senior_citizen),
+            'Occupation' => $this->beneficiary?->occupation ?? '-',
+            'Avg. Monthly Income' => $this->beneficiary?->avg_monthly_income ? '₱' . MoneyFormat::mask($this->beneficiary->avg_monthly_income) : '-',
+            'Type of Beneficiary' => ucwords($this->beneficiary?->beneficiary_type),
+            'e-Payment Account Number' => $this->beneficiary?->e_payment_acc_num ?? '-',
+            'Interested in Self-Employment' => ucwords($this->beneficiary?->self_employment),
+            'Type of ID' => $this->beneficiary?->type_of_id,
+            'ID Number' => $this->beneficiary?->id_number,
+            'Dependent' => $this->beneficiary?->dependent ?? '-',
+            'Skills Training' => $this->beneficiary?->skills_training ?? '-',
+            'is PWD' => ucwords($this->beneficiary?->is_pwd),
+            'is Senior Citizen' => ucwords($this->beneficiary?->is_senior_citizen),
         ];
 
         return $values;
@@ -849,10 +911,10 @@ class ViewBeneficiary extends Component
     {
         # get each value first
         $values = [
-            'Spouse First Name' => $this->beneficiary->spouse_first_name ?? '-',
-            'Spouse Middle Name' => $this->beneficiary->spouse_middle_name ?? '-',
-            'Spouse Last Name' => $this->beneficiary->spouse_last_name ?? '-',
-            'Spouse Extension Name' => $this->beneficiary->spouse_extension_name ?? '-',
+            'Spouse First Name' => $this->beneficiary?->spouse_first_name ?? '-',
+            'Spouse Middle Name' => $this->beneficiary?->spouse_middle_name ?? '-',
+            'Spouse Last Name' => $this->beneficiary?->spouse_last_name ?? '-',
+            'Spouse Extension Name' => $this->beneficiary?->spouse_extension_name ?? '-',
         ];
 
         return $values;
@@ -892,7 +954,7 @@ class ViewBeneficiary extends Component
     #[Computed]
     public function batch()
     {
-        $batch = Batch::find($this->beneficiary->batches_id);
+        $batch = Batch::find($this->beneficiary?->batches_id);
         return $batch;
 
     }
@@ -900,10 +962,9 @@ class ViewBeneficiary extends Component
     #[Computed]
     public function beneficiary()
     {
-        if ($this->passedBeneficiaryId) {
-            $beneficiary = Beneficiary::find(decrypt($this->passedBeneficiaryId));
-            return $beneficiary;
-        }
+        $beneficiary = Beneficiary::find($this->passedBeneficiaryId ? decrypt($this->passedBeneficiaryId) : null);
+        return $beneficiary;
+
     }
 
     protected function beneficiaryAge($birthdate)
@@ -938,9 +999,9 @@ class ViewBeneficiary extends Component
     public function setFieldName($field)
     {
         if ($field === 'middle_name') {
-            $this->middle_name = $this->beneficiary->middle_name;
+            $this->middle_name = $this->beneficiary?->middle_name;
         } elseif ($field === 'extension_name') {
-            $this->extension_name = $this->beneficiary->extension_name;
+            $this->extension_name = $this->beneficiary?->extension_name;
         }
     }
 
@@ -1011,20 +1072,7 @@ class ViewBeneficiary extends Component
                 $this->resetValidation('contact_num');
             }
         }
-        if ($property === 'avg_monthly_income') {
-            if (!$this->occupation && !$this->avg_monthly_income) {
-                $this->resetValidation('occupation');
-                $this->resetValidation('avg_monthly_income');
-                $this->reset('occupation');
-            }
-        }
-        if ($property === 'occupation') {
-            if (!$this->avg_monthly_income && !$this->occupation) {
-                $this->resetValidation('avg_monthly_income');
-                $this->resetValidation('occupation');
-                $this->reset('avg_monthly_income');
-            }
-        }
+
         if ($property === 'is_pwd') {
             if ($this->is_pwd === 'No' && $this->type_of_id === "Person's With Disability (PWD) ID") {
                 $this->type_of_id = 'Barangay ID';
@@ -1048,7 +1096,7 @@ class ViewBeneficiary extends Component
 
     public function resetViewBeneficiary()
     {
-        $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold');
+        $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold', 'maximumIncome');
     }
 
     public function mount()
@@ -1056,6 +1104,7 @@ class ViewBeneficiary extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
     }
 
     public function render()

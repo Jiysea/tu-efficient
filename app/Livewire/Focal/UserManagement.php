@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -15,21 +16,20 @@ use Livewire\Component;
 #[Title('User Management | TU-Efficient')]
 class UserManagement extends Component
 {
-    public array $selectedRows = [];
-    public bool $selectedAllRows;
+    #[Locked]
+    public $coordinatorId;
     public $showAlert = false;
     public $alertMessage = '';
     public $searchUsers;
     public $addCoordinatorsModal = false;
+    public $viewCoordinatorModal = false;
 
     #[Computed]
     public function users()
     {
-        $users = User::leftJoin('assignments', 'assignments.users_id', '=', 'users.id')
-            ->leftJoin('batches', 'batches.id', '=', 'assignments.batches_id')
-            ->where('users.user_type', 'coordinator')
-            ->where('regional_office', Auth::user()->regional_office)
-            ->where('field_office', Auth::user()->field_office)
+        $users = User::where('users.user_type', 'coordinator')
+            ->where('users.regional_office', Auth::user()->regional_office)
+            ->where('users.field_office', Auth::user()->field_office)
             ->when($this->searchUsers, function ($q) {
                 # Check if the search field starts with '#' and filter by contact number
                 if (str_contains($this->searchUsers, '#')) {
@@ -50,52 +50,53 @@ class UserManagement extends Component
                 }
             })
             ->select([
-                'users.id',
-                'users.first_name',
-                'users.middle_name',
-                'users.last_name',
-                'users.extension_name',
-                'users.email',
-                'users.contact_num',
-                'users.regional_office',
-                'users.field_office',
-                'users.user_type',
-                'users.email_verified_at',
-                'users.last_login',
-                'users.created_at',
-                'users.updated_at',
-                DB::raw('SUM(CASE WHEN batches.approval_status = "approved" THEN 1 ELSE 0 END) AS approved_assignments'),
-                DB::raw('SUM(CASE WHEN batches.approval_status = "pending" THEN 1 ELSE 0 END) AS pending_assignments'),
-            ])
-            ->groupBy([
-                'users.id',
-                'users.first_name',
-                'users.middle_name',
-                'users.last_name',
-                'users.extension_name',
-                'users.email',
-                'users.contact_num',
-                'users.regional_office',
-                'users.field_office',
-                'users.user_type',
-                'users.email_verified_at',
-                'users.last_login',
-                'users.created_at',
-                'users.updated_at',
+                'users.*'
             ])
             ->get();
-
         return $users;
     }
 
-
-    public function updatedSelectedAllRows($value)
+    #[Computed]
+    public function approvedCount($user)
     {
-        if ($value) {
-            $this->selectedRows = range(0, count($this->users) - 1);
-        } else {
-            $this->selectedRows = [];
-        }
+        $approved = User::join('assignments', 'assignments.users_id', '=', 'users.id')
+            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
+            ->where('users.id', $user->id)
+            ->where('batches.approval_status', 'approved')
+            ->distinct()
+            ->count();
+
+        return $approved;
+    }
+
+    #[Computed]
+    public function pendingCount($user)
+    {
+        $pending = User::join('assignments', 'assignments.users_id', '=', 'users.id')
+            ->join('batches', 'batches.id', '=', 'assignments.batches_id')
+            ->where('users.id', $user->id)
+            ->where('batches.approval_status', 'pending')
+            ->distinct()
+            ->count();
+
+        return $pending;
+    }
+
+    #[Computed]
+    public function checkIfOnline(User $user)
+    {
+        $status = $user->isOnline();
+
+        if ($status)
+            return true;
+        else
+            return $user->last_login;
+    }
+
+    public function viewCoordinator($encryptedId)
+    {
+        $this->coordinatorId = $encryptedId;
+        $this->viewCoordinatorModal = true;
     }
 
     public function full_name($person)
@@ -115,6 +116,7 @@ class UserManagement extends Component
         return $full_name;
     }
 
+
     #[On('add-new-coordinator')]
     public function createCoordinators()
     {
@@ -125,10 +127,20 @@ class UserManagement extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    #[On('delete-coordinator')]
+    public function deleteCoordinators()
+    {
+        $this->coordinatorId = null;
+        $this->showAlert = true;
+        $this->alertMessage = 'A coordinator has been deleted!';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
     public function mount()
     {
         $user = Auth::user();
-        if ($user->user_type !== 'focal' || $user->isOngoingVerification()) {
+        if ($user->user_type !== 'focal') {
             $this->redirectIntended();
         }
 

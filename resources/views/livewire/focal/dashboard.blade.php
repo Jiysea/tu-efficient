@@ -150,19 +150,16 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3 text-indigo-900">
-
-                    {{-- Loading State --}}
-                    <svg class="size-7 animate-spin" wire:loading xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                            stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
-                </div>
+                {{-- Loading State --}}
+                <svg class="absolute right-2 text-indigo-900 size-6 animate-spin" wire:loading
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4">
+                    </circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
             </div>
 
             {{-- Body --}}
@@ -414,7 +411,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                     {{-- Popover for `Print` --}}
                                     <div id="print-btn" role="tooltip"
-                                        class="absolute z-30 invisible inline-block px-3 py-2 text-sm font-medium text-indigo-100 bg-gray-900 border-gray-300 border transition-opacity duration-300 rounded-lg shadow-sm opacity-0 tooltip ">
+                                        class="text-center absolute z-30 invisible inline-block px-3 py-2 text-sm font-medium text-indigo-100 bg-gray-900 border-gray-300 border transition-opacity duration-300 rounded-lg shadow-sm opacity-0 tooltip ">
                                         @if ($this->batches->isNotEmpty())
                                             Print this Implementation
                                         @else
@@ -427,7 +424,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                     {{-- Export Button --}}
                                     <button type="button"
-                                        @if ($this->exportImplementations->isNotEmpty()) wire:click="showExport"
+                                        @if ($this->justCount > 0) wire:click="showExport"
                                         @else
                                         disabled @endif
                                         data-tooltip-target="export-btn" data-tooltip-placement="bottom"
@@ -447,13 +444,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                     {{-- Popover for `Export` --}}
                                     <div id="export-btn" role="tooltip"
-                                        class="absolute z-30 invisible inline-block px-3 py-2 text-sm font-medium text-indigo-100 bg-gray-900 border-gray-300 border transition-opacity duration-300 rounded-lg shadow-sm opacity-0 tooltip ">
-                                        @if ($this->exportImplementations->isNotEmpty())
+                                        class="text-center absolute z-30 invisible inline-block px-3 py-2 text-sm font-medium text-indigo-100 bg-gray-900 border-gray-300 border transition-opacity duration-300 rounded-lg shadow-sm opacity-0 tooltip ">
+                                        @if ($this->justCount > 0)
                                             Export Options
                                         @else
                                             You may able to <span class="text-amber-500">export</span> the summary <br>
-                                            when there are implementation <br>
-                                            projects available.
+                                            when there are beneficiaries on <br>the implementation.
                                         @endif
                                         <div class="tooltip-arrow" data-popper-arrow></div>
                                     </div>
@@ -736,7 +732,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             {{-- Loading State --}}
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-indigo-900 animate-spin"
                                 wire:loading
-                                wire:target="export, showExport, exportChoice, exportFormat, defaultExportStart, defaultExportEnd, selectExportImplementationRow"
+                                wire:target="exportSummary, showExport, exportChoice, exportFormat, defaultExportStart, defaultExportEnd, selectExportImplementationRow"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10"
                                     stroke="currentColor" stroke-width="4">
@@ -771,14 +767,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <span class="text-sm font-medium">Export Options:</span>
                                 {{-- Date Range --}}
                                 <label for="date_range"
-                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportChoice === 'date_range' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportChoice === 'date_range' ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
                                     By Date Range
                                     <input type="radio" class="hidden absolute inset-0" id="date_range"
                                         value="date_range" wire:model.live="exportChoice">
                                 </label>
                                 {{-- Selected Project --}}
                                 <label for="selected_project"
-                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportChoice === 'selected_project' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportChoice === 'selected_project' ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
                                     By Selected Project
                                     <input type="radio" class="hidden absolute inset-0" id="selected_project"
                                         value="selected_project" wire:model.live="exportChoice">
@@ -790,14 +786,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <span class="text-sm font-medium">File Format:</span>
                                 {{-- Date Range --}}
                                 <label for="xlsx-radio"
-                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'xlsx' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'xlsx' ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
                                     XLSX
                                     <input type="radio" class="hidden absolute inset-0" id="xlsx-radio"
                                         value="xlsx" wire:model.live="exportFormat">
                                 </label>
                                 {{-- Selected Project --}}
                                 <label for="csv-radio"
-                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'csv' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                    class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'csv' ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
                                     CSV
                                     <input type="radio" class="hidden absolute inset-0" id="csv-radio"
                                         value="csv" wire:model.live="exportFormat">
@@ -807,66 +803,90 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <hr class="w-full my-2">
 
                             {{-- Body --}}
-                            <div class="w-full flex flex-col justify-center gap-4">
+                            <div class="w-full flex flex-col justify-center gap-4 text-indigo-1100">
                                 @if ($exportChoice === 'date_range')
+
                                     {{-- Date Range picker --}}
                                     <div id="export-date-range" datepicker-orientation="top" date-rangepicker
-                                        datepicker-autohide
-                                        class="flex items-center gap-1 sm:gap-2 pb-4 text-xs text-indigo-1100">
+                                        datepicker-autohide class="flex flex-col gap-2">
 
-                                        {{-- Start --}}
-                                        <span class="text-sm font-medium">Start to End:</span>
-                                        <div class="relative">
-                                            <span
-                                                class="absolute {{ $errors->has('defaultExportStart') ? 'text-red-900' : 'text-indigo-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
-                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                    height="400" viewBox="0, 0, 400,400">
-                                                    <g>
-                                                        <path
-                                                            d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                        </path>
-                                                    </g>
-                                                </svg>
-                                            </span>
-                                            <input id="export-start-date" name="start" type="text"
-                                                @change-date.camel="$wire.set('defaultExportStart', $el.value);"
-                                                wire:model="defaultExportStart" value="{{ $defaultExportStart }}"
-                                                class="border {{ $errors->has('defaultExportStart') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
-                                                placeholder="Select date start">
-                                            @error('defaultExportStart')
-                                                <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
-                                                    {{ $message }}</p>
-                                            @enderror
-                                        </div>
+                                        {{-- Header --}}
+                                        <h1
+                                            class="flex items-center gap-1.5 mb-2 text-sm font-semibold text-indigo-900">
+                                            Range
+                                            of
+                                            Projects to Export <span
+                                                class="text-gray-500 font-normal">(MM/DD/YYYY)</span></h1>
 
-                                        <span class="text-sm">-></span>
 
-                                        {{-- End --}}
-                                        <div class="relative">
-                                            <span
-                                                class="absolute {{ $errors->has('defaultExportEnd') ? 'text-red-900' : 'text-indigo-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
-                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                    height="400" viewBox="0, 0, 400,400">
-                                                    <g>
-                                                        <path
-                                                            d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                                            stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                        </path>
-                                                    </g>
-                                                </svg>
-                                            </span>
-                                            <input id="export-end-date" name="end" type="text"
-                                                @change-date.camel="$wire.set('defaultExportEnd', $el.value);"
-                                                wire:model="defaultExportEnd" value="{{ $defaultExportEnd }}"
-                                                class="border {{ $errors->has('defaultExportEnd') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
-                                                placeholder="Select date end">
-                                            @error('defaultExportEnd')
-                                                <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
-                                                    {{ $message }}</p>
-                                            @enderror
+                                        <div class="flex items-center gap-1 sm:gap-2 pb-4 text-xs">
+
+                                            {{-- Start --}}
+                                            <div class="flex flex-col gap-1">
+                                                <span class="font-medium text-indigo-1100 text-xs">Start Date:</span>
+
+                                                <div class="relative">
+                                                    <span
+                                                        class="absolute {{ $errors->has('defaultExportStart') ? 'text-red-900' : 'text-indigo-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                            class="size-3.5 sm:size-5"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd">
+                                                                </path>
+                                                            </g>
+                                                        </svg>
+                                                    </span>
+                                                    <input id="export-start-date" name="start" type="text"
+                                                        @change-date.camel="$wire.set('defaultExportStart', $el.value);"
+                                                        wire:model="defaultExportStart"
+                                                        value="{{ $defaultExportStart }}"
+                                                        class="border {{ $errors->has('defaultExportStart') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
+                                                        placeholder="Select date start">
+                                                    @error('defaultExportStart')
+                                                        <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
+                                                            {{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <span class="text-sm">-></span>
+
+                                            {{-- End --}}
+                                            <div class="flex flex-col gap-1">
+                                                <span class="font-medium text-indigo-1100 text-xs">End Date:</span>
+
+                                                <div class="relative">
+                                                    <span
+                                                        class="absolute {{ $errors->has('defaultExportEnd') ? 'text-red-900' : 'text-indigo-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                            class="size-3.5 sm:size-5"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd">
+                                                                </path>
+                                                            </g>
+                                                        </svg>
+                                                    </span>
+                                                    <input id="export-end-date" name="end" type="text"
+                                                        @change-date.camel="$wire.set('defaultExportEnd', $el.value);"
+                                                        wire:model="defaultExportEnd" value="{{ $defaultExportEnd }}"
+                                                        class="border {{ $errors->has('defaultExportEnd') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
+                                                        placeholder="Select date end">
+                                                    @error('defaultExportEnd')
+                                                        <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
+                                                            {{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -878,7 +898,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                         {{-- Confirm Button --}}
                                         <button type="button"
-                                            @if ($this->exportImplementations->isNotEmpty()) wire:click="export"
+                                            @if ($this->exportImplementations->isNotEmpty()) wire:click="exportSummary"
                                             @else
                                             disabled @endif
                                             class="duration-200 ease-in-out flex items-center justify-center px-3 py-2 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">CONFIRM</button>
@@ -887,7 +907,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     {{-- Implementation Projects Dropdown --}}
                                     <div class="flex items-center w-full gap-2">
                                         <h2 class="text-sm font-medium">
-                                            Choose Implementation:
+                                            Choose Another Project
                                         </h2>
 
                                         {{-- Projects Dropdown --}}
@@ -896,10 +916,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             {{-- Button --}}
                                             <button type="button" @click="show = !show;"
                                                 class="flex items-center justify-between gap-2 border-2 outline-none text-xs font-semibold px-2 py-1 rounded
-                                                    disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
-                                                    bg-indigo-100 hover:bg-indigo-800 active:bg-indigo-900 
-                                                    text-indigo-700 hover:text-indigo-50 active:text-indigo-50
-                                                    border-indigo-700 hover:border-transparent active:border-transparent duration-200 ease-in-out">
+                                                disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
+                                                bg-indigo-100 hover:bg-indigo-800 active:bg-indigo-900 
+                                                text-indigo-700 hover:text-indigo-50 active:text-indigo-50
+                                                border-indigo-700 hover:border-transparent active:border-transparent duration-200 ease-in-out">
 
                                                 <span x-text="currentImplementation"></span>
 
@@ -967,7 +987,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     @else
                                                         <div
                                                             class="flex flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
-                                                            Nothing to see here...
+                                                            No implementations found
                                                         </div>
                                                     @endif
                                                 </ul>
@@ -976,22 +996,66 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </div>
                                     </div>
 
+                                    {{-- Export Overview --}}
+                                    <div class="flex flex-col gap-2 rounded p-2 bg-indigo-50 text-xs">
+                                        <h1 class="flex items-center text-sm mb-2 font-bold text-indigo-900">
+                                            Export Overview
+                                        </h1>
+                                        <div class="flex items-center justify-between">
+                                            <p class="flex items-center gap-1.5 font-medium text-xs">
+                                                Project to Export:
+                                                <span
+                                                    class="rounded font-semibold px-2 py-1 bg-indigo-100 text-indigo-900">
+                                                    {{ $this->exportImplementation[0]->project_num }}
+                                                </span>
+                                            </p>
+                                            <p class="flex items-center gap-1.5 font-medium text-xs">
+                                                Total Slots:
+                                                <span
+                                                    class="rounded font-semibold px-2 py-1 bg-indigo-100 text-indigo-900">
+                                                    {{ $this->exportImplementation[0]->total_slots }}
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="flex flex-col gap-1 font-medium text-xs">
+                                            Barangays Included:
+                                            <div
+                                                class="flex flex-col gap-1 max-h-36 overflow-y-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                                                @foreach ($this->exportBatchesInfo as $count => $batch)
+                                                    <span
+                                                        class="flex items-center gap-1.5 me-1.5 rounded font-semibold px-2 py-1 bg-indigo-100 text-indigo-900">
+                                                        <span class="text-indigo-1100">{{ $count + 1 }}</span>
+                                                        {{ 'Brgy. ' . $batch->barangay_name }}
+                                                        <span
+                                                            class="text-gray-500">{{ ' (' . $batch->batch_num . ')' }}</span>
+                                                        <span
+                                                            class="flex items-center justify-center font-medium gap-1 rounded px-2 py-1
+                                                            {{ $this->exportBeneficiaryCount(encrypt($batch->id)) === $batch->slots_allocated ? 'bg-indigo-200 text-indigo-900' : 'bg-amber-200 text-amber-900' }}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5"
+                                                                xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                width="400" height="400"
+                                                                viewBox="0, 0, 400,400">
+                                                                <g>
+                                                                    <path
+                                                                        d="M96.875 42.643 C 52.219 54.424,52.561 118.254,97.341 129.707 C 111.583 133.349,116.540 131.561,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.616 67.550,148.905 66.535,145.219 60.791 C 135.687 45.938,114.514 37.989,96.875 42.643 M280.938 42.600 C 270.752 45.179,260.204 52.464,254.763 60.678 C 251.061 66.267,251.383 67.401,258.836 75.011 C 272.214 88.670,280.835 105.931,282.526 122.444 C 283.253 129.539,284.941 131.255,291.175 131.236 C 330.920 131.117,351.409 84.551,324.504 55.491 C 313.789 43.917,296.242 38.725,280.938 42.600 M189.063 75.494 C 134.926 85.627,123.780 159.908,172.566 185.433 C 216.250 208.290,267.190 170.135,257.471 121.839 C 251.236 90.860,220.007 69.703,189.063 75.494 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M283.058 149.743 C 282.139 150.542,280.658 153.753,279.696 157.031 C 276.119 169.218,270.328 179.314,261.225 189.234 C 253.482 197.670,254.234 200.382,265.191 203.537 C 288.694 210.306,307.108 223.950,319.474 243.758 C 324.516 251.833,323.991 251.565,334.706 251.543 C 362.465 251.487,376.780 236.149,375.520 207.813 C 374.261 179.527,360.172 159.904,334.766 151.051 C 326.406 148.137,286.076 147.117,283.058 149.743 M150.663 223.858 C 119.731 229.560,95.455 253.370,88.566 284.766 C 80.747 320.396,94.564 350.121,122.338 357.418 C 129.294 359.246,270.706 359.246,277.662 357.418 C 300.848 351.327,312.868 333.574,312.837 305.469 C 312.790 264.161,291.822 235.385,254.043 224.786 C 246.270 222.606,161.583 221.845,150.663 223.858 "
+                                                                        stroke="none" fill="currentColor"
+                                                                        fill-rule="evenodd"></path>
+                                                                </g>
+                                                            </svg>
+                                                            {{ $this->exportBeneficiaryCount(encrypt($batch->id)) . ' / ' . $batch->slots_allocated }}
+                                                        </span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {{-- Implementations to Export --}}
                                     <div class="flex items-center justify-end w-full gap-4">
-                                        {{-- <h2 class="flex flex-1 items-center gap-2">Selected Project
-                                            <span
-                                                class="grid place-self-center py-1 px-2 rounded text-xs font-semibold 
-                                                        {{ isset($this->implementation) ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500' }}">
-                                                {{ $this->implementation->project_num }}<br>
-                                                <span class="truncate">
-                                                    {{ $this->implementation->project_title }}
-                                                </span>
-                                            </span>
-                                        </h2> --}}
 
                                         {{-- Confirm Button --}}
                                         <button type="button"
-                                            @if ($this->exportImplementations->isNotEmpty()) wire:click="export"
+                                            @if ($this->exportBatchesInfo->isNotEmpty()) wire:click="exportSummary"
                                             @else
                                             disabled @endif
                                             class="duration-200 ease-in-out flex items-center justify-center px-3 py-2 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">CONFIRM</button>

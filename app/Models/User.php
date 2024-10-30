@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use DB;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -50,6 +53,32 @@ class User extends Authenticatable
     public function user_setting()
     {
         return $this->hasMany(UserSetting::class, 'users_id');
+    }
+
+    public function isOnline()
+    {
+        $session = DB::table('sessions')
+            ->where('user_id', $this->id) # Filter by the current user ID
+            ->where('last_activity', '>=', Carbon::now()->subMinutes(5)->timestamp)
+            ->first();
+
+        return $session !== null;
+    }
+
+    public function isEmailVerified()
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    public function isMobileVerified()
+    {
+        return $this->mobile_verified_at !== null;
+    }
+
+    public function markMobileAsVerified()
+    {
+        $this->mobile_verified_at = now();
+        $this->save();
     }
 
     /**

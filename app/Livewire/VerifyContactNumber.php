@@ -2,9 +2,11 @@
 
 namespace App\Livewire;
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
+use RateLimiter;
 use Vonage\Client;
 use Vonage\Client\Credentials\Basic;
 use Vonage\Verify\Request;
@@ -36,6 +38,29 @@ class VerifyContactNumber extends Component
         ];
     }
 
+    #[Computed]
+    public function user()
+    {
+        return Auth::user();
+    }
+
+    #[Computed]
+    public function maskedContact()
+    {
+        $contact_num = Auth::user()->contact_num;
+        # Calculate the number of characters to show and mask
+
+        $visibleCount = ceil(strlen($contact_num) * 0.30);
+        $maskedCount = strlen($contact_num) - 7;
+        $startCount = 3;
+
+        # Create the masked username
+        $contactMasked = substr($contact_num, 0, $startCount) . str_repeat('*', $maskedCount) . substr($contact_num, -4, 4);
+
+        # Reassemble the email with the masked username
+        return $contactMasked;
+    }
+
     public function removeAlert($id)
     {
         $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {
@@ -45,21 +70,40 @@ class VerifyContactNumber extends Component
 
     public function sendVerificationCode()
     {
-        # Initialize Vonage Client
-        $basic = new Basic(config('services.vonage.key'), config('services.vonage.secret'));
-        $client = new Client($basic);
+        $executed = RateLimiter::attempt(
+            'resendSMS:' . Auth::id(),
+            $perMinute = 1,
+            function () {
 
-        # Send verification code to the user's phone number
-        $request = new Request(substr(Auth::user()->contact_num, 1), "TU-Efficient", 6);
-        $response = $client->verify()->start($request);
+                # Initialize Vonage Client
+                $basic = new Basic(config('services.vonage.key'), config('services.vonage.secret'));
+                $client = new Client(new \Vonage\Client\Credentials\Container($basic));
 
-        # Save the request_id in the session
-        session(['vonage_request_id' => $response->getRequestId()]);
+                # Send verification code to the user's phone number
+                $request = new \Vonage\Verify2\Request\SMSRequest(substr(Auth::user()->contact_num, 1), "TU-Efficient");
+                $getRequest = $client->verify2()->startVerification($request);
 
-        $this->alerts[] = [
-            'message' => 'Verification code sent to your phone.',
-            'id' => uniqid(),
-        ];
+                # Save the request_id in the session
+                session(['vonage_request_id' => $getRequest]);
+
+                $this->alerts[] = [
+                    'message' => 'Verification code sent to your phone.',
+                    'id' => uniqid(),
+                    'color' => 'indigo'
+                ];
+
+            }
+        );
+
+        if (!$executed) {
+            $this->alerts[] = [
+                'message' => 'You already requested one. Try again after a 2 minutes.',
+                'id' => uniqid(),
+                'color' => 'red',
+            ];
+        }
+
+
     }
 
     public function verifyCode()
@@ -67,74 +111,66 @@ class VerifyContactNumber extends Component
         # Validate the code
         $this->validate();
 
+        $request = session('vonage_request_id');
+
         # Retrieve request_id from the authenticated user
-        if (!session('vonage_request_id')) {
+        if (!$request) {
             $this->alerts[] = [
-                'message' => 'Verification code sent to your phone.',
+                'message' => 'Request ID not found.',
                 'id' => uniqid(),
+                'color' => 'red'
             ];
             return;
         }
 
         # Initialize Vonage Client
         $basic = new Basic(config('services.vonage.key'), config('services.vonage.secret'));
-        $client = new Client($basic);
+        $client = new Client(new \Vonage\Client\Credentials\Container($basic));
 
         # Check the verification code
         try {
-            $result = $client->verify()->check(session('vonage_request_id'), $this->verification_code);
-            if ($result->getStatus() === 0) { # Status 0 means success
+            $result = $client->verify2()->check($request['request_id'], $this->verification_code);
+
+            if ($result) {
                 $user = Auth::user();
 
                 $user->update(['mobile_verified_at' => now()]);
 
                 $this->alerts[] = [
-                    'message' => 'User verified successfully.',
+                    'message' => 'User authenticated successfully. Redirecting...',
                     'id' => uniqid(),
+                    'color' => 'indigo'
                 ];
 
-                $user->update(['ongoing_verification' => 0]);
-                $user->save();
+                # Logs the login date of the user
+                $user->update(['last_login' => now(), 'ongoing_verification' => 0]);
 
-                if (Auth::user()->user_type === 'focal') {
-                    $this->redirectRoute('focal.dashboard');
-                } else if (Auth::user()->user_type === 'coordinator') {
-                    $this->redirectRoute('coordinator.assignments');
-                } else {
-                    $this->redirectIntended();
-                }
+                # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
+                session()->flash('heads-up', Auth::user()->last_login);
+
+                $this->redirectIntended();
             } else {
                 $this->alerts[] = [
                     'message' => 'Verification failed. Please try again.',
                     'id' => uniqid(),
+                    'color' => 'red'
                 ];
             }
         } catch (\Exception $e) {
             $this->alerts[] = [
                 'message' => 'Error verifying the code: ' . $e->getMessage(),
                 'id' => uniqid(),
+                'color' => 'red'
             ];
         }
     }
 
     public function mount()
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-            if (!$user->isOngoingVerification()) {
-                if (Auth::user()->user_type === 'focal')
-                    return redirect()->route('focal.dashboard');
-                else if (Auth::user()->user_type === 'coordinator')
-                    return redirect()->route('coordinator.assignments');
-            }
-        } else {
-            if (session('code')) {
-                session()->invalidate();
-                session()->flush();
-                session()->regenerateToken();
-            }
-            $this->redirectIntended();
+        if (!Auth::user()->isOngoingVerification()) {
+            $this->redirect('/');
         }
+
     }
 
     public function render()

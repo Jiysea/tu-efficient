@@ -2,15 +2,15 @@
 
     <!-- Modal -->
     <div x-show="addBeneficiariesModal" x-trap.noautofocus.noscroll="addBeneficiariesModal"
-        class="relative h-full overflow-y-auto p-4 flex items-center justify-center select-none">
+        class="relative h-full overflow-y-auto p-4 flex items-start justify-center select-none">
 
         <!-- Modal content -->
-        <div class="relative size-full max-w-7xl">
+        <div class="w-full sm:h-auto">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
-                    <h1 class="text-sm md:text-lg font-semibold text-blue-1100 ">
+                    <h1 class="text-xs sm:text-sm md:text-lg font-semibold text-blue-1100 ">
                         Add New Beneficiaries in
                         {{ $this->batch?->barangay_name }}
                         <span class="text-gray-500">{{ ' (' . $this->batch?->batch_num . ')' }}</span>
@@ -49,14 +49,16 @@
 
                 <!-- Modal body -->
                 <form wire:submit.prevent="saveBeneficiary" class="p-4 md:p-5">
-                    <div class="grid gap-4 sm:gap-2 grid-cols-10 text-xs">
+                    <div class="grid gap-2.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
-                        <div x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }" class="relative col-span-full mb-2">
+                        <div x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }" class="order-first relative col-span-full">
 
                             @if (isset($similarityResults))
                                 <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
                                     :class="{
+                                        // A Perfect Duplicate && Unresolved Duplication Issue
+                                        'border-orange-300 bg-orange-50 text-orange-900': {{ json_encode($isIneligible && $isPerfectDuplicate && !$isResolved) }},
                                         // A Perfect Duplicate && Unresolved Duplication Issue
                                         'border-red-300 bg-red-50 text-red-900': {{ json_encode($isPerfectDuplicate && !$isResolved) }},
                                         // A Possible Duplicate
@@ -65,8 +67,8 @@
                                         'border-green-300 bg-green-50 text-green-900': {{ json_encode($isResolved) }},
                                     }">
 
-                                    {{-- If the user is attempting to add the beneficiary on the same implementation --}}
                                     @if ($isSameImplementation)
+                                        {{-- If the user is attempting to add the beneficiary on the same implementation --}}
                                         <p class="inline mx-2">You cannot enter the same beneficiary on the same
                                             implementation.
                                             <button type="button" @click="expanded = ! expanded"
@@ -74,9 +76,8 @@
                                                 possible
                                                 duplicates</button>
                                         </p>
-
-                                        {{-- If the beneficiary has already applied more than 2 times this year --}}
                                     @elseif($isIneligible)
+                                        {{-- If the beneficiary has already applied more than 2 times this year --}}
                                         <p class="inline mx-2">This beneficiary
                                             has already applied more than twice (2) this year.
                                             <button type="button" @click="expanded = ! expanded"
@@ -84,9 +85,17 @@
                                                 possible
                                                 duplicates</button>
                                         </p>
-
-                                        {{-- Perfect Duplicate && Unresolved --}}
+                                    @elseif($isSamePending)
+                                        {{-- If the beneficiary has already applied from another pending implementation project --}}
+                                        <p class="inline mx-2">This beneficiary
+                                            has already applied in another pending implementation project.
+                                            <button type="button" @click="expanded = ! expanded"
+                                                class="outline-none underline underline-offset-2 font-bold">Show
+                                                possible
+                                                duplicates</button>
+                                        </p>
                                     @elseif ($isPerfectDuplicate && !$isResolved)
+                                        {{-- Perfect Duplicate && Unresolved --}}
                                         <p class="inline mx-2">This beneficiary
                                             has
                                             already
@@ -106,8 +115,10 @@
                                             </button>
                                         @elseif (strtolower($beneficiary_type) !== 'special case')
                                             <p class="inline mx-2">Not a mistake? Change the
-                                                Type of Beneficiary to
-                                                <strong class="underline underline-offset-2">Special Case</strong>
+                                                <span
+                                                    class="font-medium py-0.5 px-1 bg-blue-100 text-blue-1100 rounded">Beneficiary
+                                                    Type</span> to <strong class="underline underline-offset-2">Special
+                                                    Case</strong>
                                             </p>
                                         @endif
 
@@ -148,52 +159,52 @@
                                                 <th scope="col" class="ps-4 py-2">
                                                     similarity %
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     project number
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     batch number
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     first name
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     middle name
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     last name
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     ext.
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     birthdate
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     contact #
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     barangay
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     sex
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     age
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     beneficiary type
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     id type
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     id #
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     pwd
                                                 </th>
-                                                <th scope="col" class="px-2 py-2">
+                                                <th scope="col" class="p-2">
                                                     dependent
                                                 </th>
                                             </tr>
@@ -205,16 +216,16 @@
                                                     <td class="ps-4 py-2 font-medium">
                                                         {{ $result['coEfficient'] }}%
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         {{ $result['project_num'] }}
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         {{ $result['batch_num'] }}
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         <span data-popover-target="first-{{ $key }}"
                                                             data-popover-trigger="hover"
-                                                            class="{{ strtoupper($first_name) === $result['first_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} z-50 rounded py-0.5 px-1.5">
+                                                            class="{{ mb_strtoupper($first_name, 'UTF-8') === mb_strtoupper($result['first_name'], 'UTF-8') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} z-50 rounded py-0.5 px-1.5">
                                                             {{ $result['first_name'] }}
                                                         </span>
                                                         <div data-popover id="first-{{ $key }}"
@@ -223,23 +234,22 @@
                                                             <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                                 <p>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500"></span>
-                                                                    <span>Exactly the same as input</span>
+                                                                        class="p-1.5 bg-red-500 rounded"></span>
+                                                                    <span>Same first name as input</span>
                                                                 </div>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500"></span>
-                                                                    <span>Not the
-                                                                        same as input</span>
+                                                                        class="p-1.5 bg-amber-500 rounded"></span>
+                                                                    <span>Different from input</span>
                                                                 </div>
                                                                 </p>
                                                             </div>
                                                             <div data-popper-arrow></div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         <span data-popover-target="middle-{{ $key }}"
                                                             data-popover-trigger="hover"
-                                                            class="{{ (strtoupper($middle_name) === $result['middle_name'] && !isset($middle_name)) || (strtoupper($middle_name) === $result['middle_name'] && empty($middle_name)) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            class="{{ mb_strtoupper($middle_name, 'UTF-8') === mb_strtoupper($result['middle_name'], 'UTF-8') || !isset($middle_name) === !isset($result['middle_name']) || empty($middle_name) === empty($result['middle_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['middle_name'] ?? '-' }}
                                                         </span>
                                                         <div data-popover id="middle-{{ $key }}"
@@ -248,23 +258,22 @@
                                                             <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                                 <p>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500"></span>
-                                                                    <span>Exactly the same as input</span>
+                                                                        class="p-1.5 bg-red-500 rounded"></span>
+                                                                    <span>Same middle name as input</span>
                                                                 </div>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500"></span>
-                                                                    <span>Not the
-                                                                        same as input</span>
+                                                                        class="p-1.5 bg-amber-500 rounded"></span>
+                                                                    <span>Different from input</span>
                                                                 </div>
                                                                 </p>
                                                             </div>
                                                             <div data-popper-arrow></div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         <span data-popover-target="last-{{ $key }}"
                                                             data-popover-trigger="hover"
-                                                            class="{{ $last_name === $result['last_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            class="{{ mb_strtoupper($last_name, 'UTF-8') === mb_strtoupper($result['last_name'], 'UTF-8') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['last_name'] }}
                                                         </span>
                                                         <div data-popover id="last-{{ $key }}"
@@ -273,23 +282,22 @@
                                                             <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                                 <p>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500"></span>
-                                                                    <span>Exactly the same as input</span>
+                                                                        class="p-1.5 bg-red-500 rounded"></span>
+                                                                    <span>Same last name as input</span>
                                                                 </div>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500"></span>
-                                                                    <span>Not the
-                                                                        same as input</span>
+                                                                        class="p-1.5 bg-amber-500 rounded"></span>
+                                                                    <span>Different from input</span>
                                                                 </div>
                                                                 </p>
                                                             </div>
                                                             <div data-popper-arrow></div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         <span data-popover-target="ext-{{ $key }}"
                                                             data-popover-trigger="hover"
-                                                            class="{{ (strtoupper($extension_name) === $result['extension_name'] && !isset($extension_name)) || (strtoupper($extension_name) === $result['extension_name'] && empty($extension_name)) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                            class="{{ mb_strtoupper($extension_name, 'UTF-8') === mb_strtoupper($result['extension_name'], 'UTF-8') || !isset($extension_name) === !isset($result['extension_name']) || empty($extension_name) === empty($result['extension_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['extension_name'] ?? '-' }}
                                                         </span>
                                                         <div data-popover id="ext-{{ $key }}" role="tooltip"
@@ -297,20 +305,19 @@
                                                             <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                                 <p>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500"></span>
-                                                                    <span>Exactly the same as input</span>
+                                                                        class="p-1.5 bg-red-500 rounded"></span>
+                                                                    <span>Same extension name as input</span>
                                                                 </div>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500"></span>
-                                                                    <span>Not the
-                                                                        same as input</span>
+                                                                        class="p-1.5 bg-amber-500 rounded"></span>
+                                                                    <span>Different from input</span>
                                                                 </div>
                                                                 </p>
                                                             </div>
                                                             <div data-popper-arrow></div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         <span data-popover-target="birthdate-{{ $key }}"
                                                             data-popover-trigger="hover"
                                                             class="{{ \Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
@@ -322,23 +329,22 @@
                                                             <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                                 <p>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500"></span>
-                                                                    <span>Exactly the same as input</span>
+                                                                        class="p-1.5 bg-red-500 rounded"></span>
+                                                                    <span>Same birthdate as input</span>
                                                                 </div>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500"></span>
-                                                                    <span>Not the
-                                                                        same as input</span>
+                                                                        class="p-1.5 bg-amber-500 rounded"></span>
+                                                                    <span>Different from input</span>
                                                                 </div>
                                                                 </p>
                                                             </div>
                                                             <div data-popper-arrow></div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         {{ $result['contact_num'] }}
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         <span data-popover-target="barangay-{{ $key }}"
                                                             data-popover-trigger="hover"
                                                             class="{{ $this->batch?->barangay_name === $result['barangay_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
@@ -350,11 +356,11 @@
                                                             <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                                 <p>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500"></span>
+                                                                        class="p-1.5 bg-red-500 rounded"></span>
                                                                     <span>Same barangay</span>
                                                                 </div>
                                                                 <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500"></span>
+                                                                        class="p-1.5 bg-amber-500 rounded"></span>
                                                                     <span>Different barangay</span>
                                                                 </div>
                                                                 </p>
@@ -362,25 +368,25 @@
                                                             <div data-popper-arrow></div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-2 py-2 capitalize">
+                                                    <td class="p-2 capitalize">
                                                         {{ $result['sex'] }}
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         {{ $result['age'] }}
                                                     </td>
-                                                    <td class="px-2 py-2 capitalize">
+                                                    <td class="p-2 capitalize">
                                                         {{ $result['beneficiary_type'] }}
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         {{ $result['type_of_id'] }}
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         {{ $result['id_number'] }}
                                                     </td>
-                                                    <td class="px-2 py-2 capitalize">
+                                                    <td class="p-2 capitalize">
                                                         {{ $result['is_pwd'] }}
                                                     </td>
-                                                    <td class="px-2 py-2">
+                                                    <td class="p-2">
                                                         {{ $result['dependent'] ?? '-' }}
                                                     </td>
                                                 </tr>
@@ -550,8 +556,12 @@
                                                                 <div class="flex flex-col">
                                                                     <label for="image_description"
                                                                         class="relative block mb-1 font-medium text-blue-1100 ">
-                                                                        <span class="relative">Description <span
-                                                                                class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span></label>
+                                                                        <span class="relative">Description
+                                                                            <span
+                                                                                class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                                                            </span>
+                                                                        </span>
+                                                                    </label>
                                                                     <textarea type="text" id="image_description" autocomplete="off" wire:model.blur="image_description"
                                                                         maxlength="255" rows="4"
                                                                         class="resize-none h-full text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('image_description') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
@@ -582,13 +592,15 @@
                         </div>
 
                         {{-- First Name --}}
-                        <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
-                            <label for="first_name" class="block mb-1 font-medium text-blue-1100">
-                                <span class="relative">First Name <span
-                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                        <div class="order-[1] relative col-span-full sm:col-span-2 xl:col-span-3 mb-4 pb-1">
+                            <label for="edit_first_name" class="block mb-1 font-medium text-blue-1100">
+                                <span class="relative">First Name
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                    </span>
+                                </span>
                             </label>
-                            <input type="text" id="first_name" autocomplete="off" wire:model.blur="first_name"
-                                @blur="$wire.nameCheck();"
+                            <input type="text" id="edit_first_name" autocomplete="off"
+                                wire:model.blur="first_name" @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="Type first name">
                             @error('first_name')
@@ -597,11 +609,12 @@
                         </div>
 
                         {{-- Middle Name --}}
-                        <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="middle_name" class="block mb-1  font-medium text-blue-1100 ">Middle
+                        <div
+                            class="order-[2] relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-2 mb-4 pb-1">
+                            <label for="edit_middle_name" class="block mb-1  font-medium text-blue-1100 ">Middle
                                 Name</label>
-                            <input type="text" id="middle_name" autocomplete="off" wire:model.blur="middle_name"
-                                @blur="$wire.nameCheck();"
+                            <input type="text" id="edit_middle_name" autocomplete="off"
+                                wire:model.blur="middle_name" @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('middle_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="(optional)">
                             @error('middle_name')
@@ -610,11 +623,14 @@
                         </div>
 
                         {{-- Last Name --}}
-                        <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="last_name" class="block mb-1  font-medium text-blue-1100 ">
-                                <span class="relative">Last Name <span
-                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span></label>
-                            <input type="text" id="last_name" autocomplete="off" wire:model.blur="last_name"
+                        <div class="order-[3] relative col-span-full sm:col-span-2 mb-4 pb-1">
+                            <label for="edit_last_name" class="block mb-1  font-medium text-blue-1100 ">
+                                <span class="relative">Last Name
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                    </span>
+                                </span>
+                            </label>
+                            <input type="text" id="edit_last_name" autocomplete="off" wire:model.blur="last_name"
                                 @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="Type last name">
@@ -624,10 +640,11 @@
                         </div>
 
                         {{-- Extension Name --}}
-                        <div class="relative col-span-full sm:col-span-1 mb-4 pb-1">
-                            <label for="extension_name" class="block mb-1 font-medium text-blue-1100 ">Ext.
+                        <div
+                            class="order-[4] relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-1 mb-4 pb-1">
+                            <label for="edit_extension_name" class="block mb-1 font-medium text-blue-1100 ">Ext.
                                 Name</label>
-                            <input type="text" id="extension_name" autocomplete="off"
+                            <input type="text" id="edit_extension_name" autocomplete="off"
                                 wire:model.blur="extension_name" @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('extension_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="III, Sr., etc.">
@@ -638,10 +655,13 @@
                         </div>
 
                         {{-- Birthdate --}}
-                        <div x-data="{ birthdate: $wire.entangle('birthdate') }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="birthdate" class="block mb-1  font-medium text-blue-1100 ">
-                                <span class="relative">Birthdate <span
-                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span></label>
+                        <div x-data="{ birthdate: $wire.entangle('birthdate') }" class="order-[5] relative col-span-full sm:col-span-2 mb-4 pb-1">
+                            <label for="edit_birthdate" class="block mb-1  font-medium text-blue-1100 ">
+                                <span class="relative">Birthdate
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                    </span>
+                                </span>
+                            </label>
                             <div class="absolute start-0 bottom-3.5 flex items-center ps-3 pointer-events-none">
                                 <svg class="size-4 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'text-red-700' : 'text-blue-900' }}"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -652,7 +672,7 @@
                             </div>
                             <input type="text" datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                 datepicker-min-date='{{ $minDate }}' datepicker-max-date='{{ $maxDate }}'
-                                id="birthdate" autocomplete="off" wire:model.blur="birthdate"
+                                id="edit_birthdate" autocomplete="off" wire:model.blur="birthdate"
                                 @change-date.camel="$wire.set('birthdate', $el.value); $wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="Select date">
@@ -662,10 +682,12 @@
                         </div>
 
                         {{-- Contact Number --}}
-                        <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="contact_num" class="block mb-1 font-medium text-blue-1100 ">
-                                <span class="relative">Contact Number <span
-                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                        <div class="order-[6] relative col-span-full sm:col-span-2 mb-4 pb-1">
+                            <label for="edit_contact_num" class="block mb-1 font-medium text-blue-1100 ">
+                                <span class="relative">Contact Number
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                    </span>
+                                </span>
                             </label>
                             <div class="relative">
                                 <div
@@ -677,7 +699,7 @@
                                 </div>
                                 <input x-mask="99999999999" type="text" min="0"
                                     @blur="if($el.value == '') { $wire.contact_num = null; }" autocomplete="off"
-                                    id="contact_num" wire:model.blur="contact_num"
+                                    id="edit_contact_num" wire:model.blur="contact_num"
                                     class="text-xs outline-none border ps-12 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('contact_num') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50  border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                     placeholder="ex. 09123456789">
                             </div>
@@ -689,18 +711,20 @@
                         </div>
 
                         {{-- E-payment Account Number --}}
-                        <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="e_payment_acc_num" class="block mb-1 font-medium text-blue-1100 ">E-payment
+                        <div class="order-[7] relative col-span-full sm:col-span-2 mb-4 pb-1">
+                            <label for="edit_e_payment_acc_num"
+                                class="block mb-1 font-medium text-blue-1100 ">E-payment
                                 Account No.</label>
-                            <input type="text" id="e_payment_acc_num" autocomplete="off"
+                            <input type="text" id="edit_e_payment_acc_num" autocomplete="off"
                                 wire:model.blur="e_payment_acc_num"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600"
                                 placeholder="Type e-payment account number">
                         </div>
 
-                        {{-- Type of Beneficiary --}}
-                        <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <p class="mb-1 font-medium text-blue-1100">Type of Beneficiary</p>
+                        {{-- Beneficiary Type --}}
+                        <div
+                            class="order-[8] relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-2 mb-4 pb-1">
+                            <p class="mb-1 font-medium text-blue-1100">Beneficiary Type</p>
                             <div x-data="{ open: false, beneficiary_type: $wire.entangle('beneficiary_type') }" x-on:keydown.escape.prevent.stop="open = false;"
                                 class="relative">
 
@@ -744,12 +768,15 @@
                         </div>
 
                         {{-- Occupation --}}
-                        <div x-data="{ avg: $wire.entangle('avg_monthly_income') }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="occupation" class="block mb-1  font-medium text-blue-1100 ">
-                                <span class="relative">Occupation <span
-                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                        <div x-data="{ avg: $wire.entangle('avg_monthly_income') }" class="order-[9] relative col-span-full sm:col-span-2 mb-4 pb-1">
+                            <label for="edit_occupation" class="block mb-1  font-medium text-blue-1100 ">
+                                <span class="relative">Occupation
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                    </span>
+                                </span>
                             </label>
-                            <input type="text" id="occupation" autocomplete="off" wire:model.blur="occupation"
+                            <input type="text" id="edit_occupation" autocomplete="off"
+                                wire:model.blur="occupation"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('occupation') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="Type occupation">
                             @error('occupation')
@@ -759,7 +786,7 @@
                         </div>
 
                         {{-- Sex --}}
-                        <div class="relative col-span-full sm:col-span-1 mb-4 pb-1">
+                        <div class="order-[10] relative col-span-full sm:col-span-1 mb-4 pb-1">
                             <p class="mb-1 font-medium text-blue-1100 ">Sex</p>
                             <div x-data="{ open: false, sex: $wire.entangle('sex') }" x-on:keydown.escape.prevent.stop="open = false;"
                                 class="relative">
@@ -799,7 +826,8 @@
                         </div>
 
                         {{-- Civil Status --}}
-                        <div class="relative col-span-full sm:col-span-1 mb-4 pb-1">
+                        <div
+                            class="order-[11] relative col-span-full sm:col-span-1 md:col-span-2 lg:lg:col-span-1 xl:col-span-1 mb-4 pb-1">
                             <p class="mb-1 font-medium text-blue-1100 ">Civil Status</p>
                             <div x-data="{ open: false, civil_status: $wire.entangle('civil_status') }" x-on:keydown.escape.prevent.stop="open = false;"
                                 class="relative">
@@ -841,10 +869,13 @@
                         </div>
 
                         {{-- Average Monthly Income --}}
-                        <div x-data="{ occ: $wire.entangle('occupation') }" class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="avg_monthly_income" class="block mb-1  font-medium text-blue-1100 ">
-                                <span class="relative">Average Monthly Income <span
-                                        class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                        <div x-data="{ occ: $wire.entangle('occupation') }"
+                            class="order-[12] relative col-span-full sm:col-span-2 mb-4 pb-1">
+                            <label for="edit_avg_monthly_income" class="block mb-1  font-medium text-blue-1100 ">
+                                <span class="relative">Average Monthly Income
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                    </span>
+                                </span>
                             </label>
                             <div class="relative">
                                 <div
@@ -855,7 +886,7 @@
                                     </p>
                                 </div>
                                 <input x-mask:dynamic="$money($input)" type="text" min="0"
-                                    autocomplete="off" id="avg_monthly_income"
+                                    autocomplete="off" id="edit_avg_monthly_income"
                                     @input="$wire.avg_monthly_income = $el.value;"
                                     class="text-xs outline-none border ps-10 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('avg_monthly_income') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50  border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                     placeholder="0.00">
@@ -867,15 +898,17 @@
                         </div>
 
                         {{-- Dependent --}}
-                        <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
+                        <div class="order-[13] relative col-span-full sm:col-span-2 xl:col-span-3 mb-4 pb-1">
                             <div class="flex items-center">
-                                <label for="dependent" class="block mb-1 font-medium text-blue-1100 ">
-                                    <span class="relative">Dependent <span
-                                            class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
+                                <label for="edit_dependent"
+                                    class="relative flex items-center gap-1.5 mb-1 font-medium text-blue-1100">
+                                    Dependent <span class="text-gray-500">(must be 18+ years old)</span>
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                    </span>
                                 </label>
-                                <p class="block mb-1 ms-3.5 text-gray-500 ">(must be 18+ years old)</p>
+
                             </div>
-                            <input type="text" id="dependent" autocomplete="off" wire:model.blur="dependent"
+                            <input type="text" id="edit_dependent" autocomplete="off" wire:model.blur="dependent"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('dependent') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="Type dependent's name">
                             @error('dependent')
@@ -886,7 +919,7 @@
                         </div>
 
                         {{-- Interested in Wage Employment or Self-Employment --}}
-                        <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
+                        <div class="order-[14] relative col-span-full sm:col-span-2 xl:col-span-3 mb-4 pb-1">
                             <p class="mb-1 font-medium text-blue-1100">Interested in Wage or
                                 Self-Employment</p>
                             <div x-data="{ open: false, self_employment: $wire.entangle('self_employment') }" x-on:keydown.escape.prevent.stop="open = false;"
@@ -931,64 +964,74 @@
                         </div>
 
                         {{-- Skills Training Needed --}}
-                        <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                            <label for="skills_training" class="block mb-1  font-medium text-blue-1100 ">Skills
+                        <div
+                            class="order-[15] relative col-span-full sm:col-span-2 md:col-span-6 xl:col-span-2 mb-4 pb-1">
+                            <label for="edit_skills_training" class="block mb-1  font-medium text-blue-1100 ">Skills
                                 Training
                                 Needed</label>
-                            <input type="text" id="skills_training" autocomplete="off"
+                            <input type="text" id="edit_skills_training" autocomplete="off"
                                 wire:model.blur="skills_training"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600"
-                                placeholder="Type skills">
+                                placeholder="(optional) Type skills">
                         </div>
 
-                        {{-- Bottom Section --}}
-                        <div class="relative grid gap-x-4 gap-y-2 grid-cols-10 col-span-full grid-rows-2">
+                        {{-- Proof of Identity --}}
+                        <div class="order-[16] w-full relative col-span-full lg:col-span-2 mb-4 pb-1">
+                            <div class="lg:absolute w-full flex flex-col items-start justify-center">
 
-                            {{-- Proof of Identity --}}
-                            <div class="relative h-full col-span-full row-span-full sm:col-span-2">
-                                <div class="flex flex-col h-full items-start">
-                                    <div class="flex items-center">
-                                        <p class="inline mb-1 font-medium text-blue-1100">Proof of Identity <span
-                                                class="text-gray-500">(optional)</span></p>
+                                {{-- Header --}}
+                                <div class="flex items-center">
+                                    <p class="inline mb-1 font-medium text-blue-1100">Proof of Identity <span
+                                            class="text-gray-500">(optional)</span></p>
 
-                                        {{-- Popover Thingy --}}
-                                        <div x-data="{ pop: false }" class="relative flex items-center"
-                                            id="identity-question-mark">
-                                            <svg class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-blue-700"
-                                                aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                                fill="currentColor" viewBox="0 0 20 20" @mouseleave="pop = false;"
-                                                @mouseenter="pop = true;">
-                                                <path
-                                                    d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
-                                            </svg>
-                                            {{-- Popover --}}
-                                            <div id="identity-popover"
-                                                class="absolute -left-20 sm:left-0 bottom-full mb-2 z-50 text-xs whitespace-nowrap border border-gray-300 text-blue-50 bg-gray-700 rounded p-2 shadow"
-                                                x-show="pop">
-                                                It's basically an image of a beneficiary's ID card <br>
-                                                to further prove that their identity is legitimate.
-                                            </div>
+                                    {{-- Popover Thingy --}}
+                                    <div x-data="{ pop: false }" class="relative flex items-center"
+                                        id="identity-question-mark">
+                                        <svg class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-blue-700"
+                                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                            viewBox="0 0 20 20" @mouseleave="pop = false;" @mouseenter="pop = true;">
+                                            <path
+                                                d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
+                                        </svg>
+                                        {{-- Popover --}}
+                                        <div id="identity-popover"
+                                            class="absolute -left-20 sm:left-0 bottom-full mb-2 z-50 text-xs whitespace-nowrap border border-gray-300 text-blue-50 bg-gray-700 rounded p-2 shadow"
+                                            x-show="pop">
+                                            It's basically an image of a beneficiary's ID card <br>
+                                            to further prove that their identity is legitimate.
                                         </div>
                                     </div>
+                                </div>
 
-                                    {{-- Image Area --}}
-                                    <label for="image_file_path"
-                                        class="flex flex-col items-center justify-center w-full h-full border-2 border-blue-300 border-dashed rounded cursor-pointer bg-blue-50">
+                                {{-- Image Area --}}
+                                <label for="edit_image_file_path" x-data="{ uploading: false, progress: 0 }"
+                                    x-on:livewire-upload-start="uploading = true"
+                                    x-on:livewire-upload-finish="uploading = false; progress = 0;"
+                                    x-on:livewire-upload-cancel="uploading = false"
+                                    x-on:livewire-upload-error="uploading = false;"
+                                    x-on:livewire-upload-progress="progress = $event.detail.progress;"
+                                    class="flex flex-col items-center justify-center size-full border-2 border-blue-300 border-dashed rounded cursor-pointer bg-blue-50">
 
-                                        {{-- Image Preview --}}
-                                        <div
-                                            class="relative flex flex-col items-center justify-center py-4 w-full h-full">
-                                            {{-- Loading State for Changes --}}
-                                            <div class="absolute items-center justify-center w-full h-full z-50 text-blue-900"
-                                                wire:loading.flex wire:target="image_file_path">
-                                                <div
-                                                    class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
-                                                    {{-- Darkness... --}}
+                                    {{-- Image Preview --}}
+                                    <div class="relative flex flex-col items-center justify-center py-4 size-full">
+                                        {{-- Loading State for Changes --}}
+                                        <div class="absolute flex items-center justify-center size-full z-50 text-blue-900"
+                                            x-show="uploading">
+                                            <div
+                                                class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
+                                                {{-- Darkness... --}}
+                                            </div>
+
+                                            <!-- Progress Bar && Loading Icon -->
+                                            <div class="absolute flex items-center justify-center w-3/4 z-50">
+                                                <div class="w-full bg-gray-300 rounded-lg h-2">
+                                                    <div class=" h-full bg-blue-500 rounded-lg"
+                                                        x-bind:style="'width: ' + progress + '%'">
+                                                    </div>
                                                 </div>
-
-                                                {{-- Loading Circle --}}
-                                                <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none" viewBox="0 0 24 24">
+                                                <svg class="ms-2 size-5 text-blue-900 animate-spin"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10"
                                                         stroke="currentColor" stroke-width="4">
                                                     </circle>
@@ -997,249 +1040,250 @@
                                                     </path>
                                                 </svg>
                                             </div>
-
-                                            {{-- Preview --}}
-                                            @if ($image_file_path && !$errors->has('image_file_path'))
-                                                <img class="w-40" src="{{ $image_file_path->temporaryUrl() }}">
-
-                                                {{-- Default --}}
-                                            @else
-                                                <svg class="size-8 mb-4 text-gray-500" aria-hidden="true"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                    viewBox="0 0 20 16">
-                                                    <path stroke="currentColor" stroke-linecap="round"
-                                                        stroke-linejoin="round" stroke-width="2"
-                                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
-                                                </svg>
-                                                <p class="mb-2 text-xs text-gray-500"><span
-                                                        class="font-semibold">Click to
-                                                        upload</span> or drag and drop</p>
-                                                <p class="text-xs text-gray-500 ">PNG or JPG (MAX. 5MB)</p>
-                                            @endif
                                         </div>
 
-                                        {{-- The Image itself --}}
-                                        <input id="image_file_path" wire:model="image_file_path" type="file"
-                                            accept=".png,.jpg,.jpeg" class="hidden" />
-                                    </label>
-                                </div>
-                                @error('image_file_path')
-                                    <p
-                                        class="text-center whitespace-nowrap w-full text-red-500 absolute -bottom-4 z-10 text-xs">
-                                        {{ $message }}</p>
-                                @enderror
-                            </div>
+                                        {{-- Preview --}}
+                                        @if ($image_file_path && !$errors->has('image_file_path'))
+                                            <img class="w-40 h-24 object-contain"
+                                                src="{{ $image_file_path->temporaryUrl() }}">
 
-                            {{-- ID Type --}}
-                            <div class="relative col-span-full sm:col-span-4 sm:row-span-1 mb-4 pb-1">
-                                <p class="mb-1 font-medium text-blue-1100 ">ID Type</p>
-                                <div x-data="{ open: false, type_of_id: $wire.entangle('type_of_id') }" class="relative"
-                                    @click.away="
+                                            {{-- Default --}}
+                                        @else
+                                            <svg class="size-8 mb-4 text-gray-500" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 20 16">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                            </svg>
+                                            <p class="mb-2 text-xs text-gray-500"><span class="font-semibold">Click to
+                                                    upload</span> or drag and drop</p>
+                                            <p class="text-xs text-gray-500 ">PNG or JPG (MAX. 5MB)</p>
+                                        @endif
+                                    </div>
+
+                                    {{-- The Image itself --}}
+                                    <input id="edit_image_file_path" wire:model="image_file_path" type="file"
+                                        accept=".png,.jpg,.jpeg" class="hidden" />
+                                </label>
+                            </div>
+                            @error('image_file_path')
+                                <p
+                                    class="text-center whitespace-nowrap w-full text-red-500 absolute -bottom-4 z-10 text-xs">
+                                    {{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- ID Type --}}
+                        <div
+                            class="order-[17] relative col-span-full sm:col-span-2 md:col-span-3 lg:col-span-3 xl:col-span-4 lg:col-start-3 xl:col-start-auto mb-4 pb-1">
+                            <p class="mb-1 font-medium text-blue-1100 ">ID Type</p>
+                            <div x-data="{ open: false, type_of_id: $wire.entangle('type_of_id') }" class="relative"
+                                @click.away="
                                     if(open) {
                                     open = false;
                                     } ">
-                                    <!-- Button -->
-                                    <button @click="open = !open" :aria-expanded="open" type="button"
-                                        class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-blue-50 border-blue-300 text-blue-1100 outline-blue-300 focus:outline-blue-600 focus:border-blue-600">
-                                        <span x-text="type_of_id"></span> <!-- Display selected option -->
+                                <!-- Button -->
+                                <button @click="open = !open" :aria-expanded="open" type="button"
+                                    class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-blue-50 border-blue-300 text-blue-1100 outline-blue-300 focus:outline-blue-600 focus:border-blue-600">
+                                    <span x-text="type_of_id"></span> <!-- Display selected option -->
 
-                                        <!-- Icon -->
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                            class="size-4 text-blue-1100 group-hover:text-blue-900 group-active:text-blue-1000 duration-200 ease-in-out"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
+                                    <!-- Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-4 text-blue-1100 group-hover:text-blue-900 group-active:text-blue-1000 duration-200 ease-in-out"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
 
-                                    <!-- Dropdown Content -->
-                                    <div x-show="open"
-                                        class="absolute left-0 mt-2 max-h-[10rem] w-full z-50 rounded bg-blue-50 shadow-lg border overflow-y-scroll border-blue-500 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
-                                        @if ($is_pwd === 'Yes')
-                                            <button type="button"
-                                                @click="type_of_id = 'Person\'s With Disability (PWD) ID'; open = false;"
-                                                class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
-                                                Person's With Disability (PWD) ID
-                                            </button>
-                                        @endif
-
-                                        @if ($birthdate && strtotime($birthdate) < strtotime(\Carbon\Carbon::now()->subYears(60)))
-                                            <button type="button"
-                                                @click="type_of_id = 'Senior Citizen ID'; open = false;"
-                                                class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
-                                                Senior Citizen ID
-                                            </button>
-                                        @endif
-
-                                        @foreach ($this->listOfIDs as $id)
-                                            <button type="button"
-                                                @click="type_of_id = `{{ $id }}`; open = false;"
-                                                class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
-                                                {{ $id }}
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- ID Number --}}
-                            <div class="relative col-span-full sm:col-span-3 sm:row-span-1 mb-4 pb-1">
-                                <label for="id_number" class="block mb-1 font-medium text-blue-1100 ">
-                                    <span class="relative">ID Number <span
-                                            class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span></span>
-                                </label>
-                                <input type="text" id="id_number" autocomplete="off" wire:model.blur="id_number"
-                                    class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('id_number') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
-                                    placeholder="Type ID number">
-                                @error('id_number')
-                                    <p class="text-red-500 ms-2 mt-1 z-10 text-xs">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- Is PWD? --}}
-                            <div class="relative col-span-full sm:col-span-1 sm:row-span-1 mb-4 pb-1">
-                                <div class="flex items-center">
-                                    <p class="inline mb-1 font-medium text-blue-1100">Is PWD?</p>
-                                    {{-- Popover Thingy --}}
-                                    <div x-data="{ pop: false }" class="relative flex items-center"
-                                        id="is-pwd-question-mark">
-                                        <svg class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-blue-700"
-                                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                            viewBox="0 0 20 20" @mouseleave="pop = false;" @mouseenter="pop = true;">
-                                            <path
-                                                d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
-                                        </svg>
-                                        {{-- Popover --}}
-                                        <div id="is-pwd-popover"
-                                            class="absolute z-50 bottom-full mb-2 left-0 md:left-auto md:right-0 text-xs whitespace-nowrap border border-gray-300 text-blue-50 bg-gray-700 rounded p-2 shadow"
-                                            x-show="pop">
-                                            PWD stands for <b>P</b>erson <b>w</b>ith
-                                            <b>D</b>isability
-                                        </div>
-                                    </div>
-                                </div>
-                                <div x-data="{ open: false, is_pwd: $wire.entangle('is_pwd') }" x-on:keydown.escape.prevent.stop="open = false;"
-                                    class="relative">
-                                    <!-- Button -->
-                                    <button @click="open = !open;" :aria-expanded="open" type="button"
-                                        class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-blue-50 border-blue-300 text-blue-1100 outline-blue-300 focus:outline-blue-600 focus:border-blue-600">
-                                        <span x-text="is_pwd"></span>
-
-                                        <!-- Icon -->
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                            class="size-4 text-blue-1100 group-hover:text-blue-900 group-active:text-blue-1000 duration-200 ease-in-out"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-
-                                    <!-- Panel -->
-                                    <div x-show="open" @click.away="open = false;"
-                                        class="absolute left-0 mt-2 w-full z-50 rounded bg-blue-50 shadow-lg border border-blue-500">
+                                <!-- Dropdown Content -->
+                                <div x-show="open"
+                                    class="absolute left-0 mt-2 max-h-[10rem] w-full z-50 rounded bg-blue-50 shadow-lg border overflow-y-scroll border-blue-500 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
+                                    @if ($is_pwd === 'Yes')
                                         <button type="button"
-                                            @click="is_pwd = 'Yes'; open = false; $wire.$refresh();"
+                                            @click="type_of_id = 'Person\'s With Disability (PWD) ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
-                                            Yes
+                                            Person's With Disability (PWD) ID
                                         </button>
+                                    @endif
 
+                                    @if ($birthdate && strtotime($birthdate) < strtotime(\Carbon\Carbon::now()->subYears(60)))
                                         <button type="button"
-                                            @click="is_pwd = 'No'; open = false; $wire.$refresh(); "
+                                            @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
-                                            No
+                                            Senior Citizen ID
                                         </button>
-                                    </div>
+                                    @endif
+
+                                    @foreach ($this->listOfIDs as $id)
+                                        <button type="button"
+                                            @click="type_of_id = `{{ $id }}`; open = false;"
+                                            class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
+                                            {{ $id }}
+                                        </button>
+                                    @endforeach
                                 </div>
                             </div>
+                        </div>
 
-                            {{-- Spouse First Name --}}
-                            <div class="relative col-span-full sm:col-span-3 mb-4 pb-1">
-                                <label for="spouse_first_name"
-                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}">
-                                    <span class="relative"> Spouse
-                                        First Name @if ($civil_status === 'Married')
-                                            <span
-                                                class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span>
-                                        @endif
+                        {{-- ID Number --}}
+                        <div
+                            class="order-[18] relative col-span-full sm:col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-3 xl:col-start-auto mb-4 pb-1">
+                            <label for="edit_id_number" class="block mb-1 font-medium text-blue-1100 ">
+                                <span class="relative">ID Number
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
-                                </label>
-                                <input type="text" id="spouse_first_name" autocomplete="off"
-                                    wire:model.blur="spouse_first_name"
-                                    @if ($civil_status === 'Single') disabled @endif
-                                    class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out @if ($civil_status === 'Married') {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}
+                                </span>
+                            </label>
+                            <input type="text" id="edit_id_number" autocomplete="off" wire:model.blur="id_number"
+                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('id_number') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
+                                placeholder="Type ID number">
+                            @error('id_number')
+                                <p class="text-red-500 ms-2 mt-1 z-10 text-xs">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Is PWD? --}}
+                        <div class="order-[19] relative col-span-full sm:col-span-1 xl:col-start-auto mb-4 pb-1">
+                            <div class="flex items-center">
+                                <p class="inline mb-1 font-medium text-blue-1100">Is PWD?</p>
+                                {{-- Popover Thingy --}}
+                                <div x-data="{ pop: false }" class="relative flex items-center"
+                                    id="is-pwd-question-mark">
+                                    <svg class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-blue-700"
+                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                        viewBox="0 0 20 20" @mouseleave="pop = false;" @mouseenter="pop = true;">
+                                        <path
+                                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
+                                    </svg>
+                                    {{-- Popover --}}
+                                    <div id="is-pwd-popover"
+                                        class="absolute z-50 bottom-full mb-2 left-0 md:left-auto md:right-0 text-xs whitespace-nowrap border border-gray-300 text-blue-50 bg-gray-700 rounded p-2 shadow"
+                                        x-show="pop">
+                                        PWD stands for <b>P</b>erson <b>w</b>ith
+                                        <b>D</b>isability
+                                    </div>
+                                </div>
+                            </div>
+                            <div x-data="{ open: false, is_pwd: $wire.entangle('is_pwd') }" x-on:keydown.escape.prevent.stop="open = false;"
+                                class="relative">
+                                <!-- Button -->
+                                <button @click="open = !open;" :aria-expanded="open" type="button"
+                                    class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-blue-50 border-blue-300 text-blue-1100 outline-blue-300 focus:outline-blue-600 focus:border-blue-600">
+                                    <span x-text="is_pwd"></span>
+
+                                    <!-- Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-4 text-blue-1100 group-hover:text-blue-900 group-active:text-blue-1000 duration-200 ease-in-out"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+
+                                <!-- Panel -->
+                                <div x-show="open" @click.away="open = false;"
+                                    class="absolute left-0 mt-2 w-full z-50 rounded bg-blue-50 shadow-lg border border-blue-500">
+                                    <button type="button" @click="is_pwd = 'Yes'; open = false; $wire.$refresh();"
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
+                                        Yes
+                                    </button>
+
+                                    <button type="button" @click="is_pwd = 'No'; open = false; $wire.$refresh(); "
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
+                                        No
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Spouse First Name --}}
+                        <div
+                            class="order-[20] relative col-span-full sm:col-span-2 xl:col-span-3 lg:col-start-3 xl:col-start-3 mb-4 pb-1">
+                            <label for="edit_spouse_first_name"
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}">
+                                <span class="relative"> Spouse
+                                    First Name @if ($civil_status === 'Married')
+                                        <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                        </span>
+                                    @endif
+                                </span>
+                            </label>
+                            <input type="text" id="edit_spouse_first_name" autocomplete="off"
+                                wire:model.blur="spouse_first_name" @if ($civil_status === 'Single') disabled @endif
+                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out @if ($civil_status === 'Married') {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}
                                     @else
                                     bg-gray-200 border-gray-300 text-gray-500 @endif"
-                                    placeholder="Type spouse first name">
-                                @error('spouse_first_name')
-                                    <p class="text-red-500 ms-2 mt-1 z-10 text-xs">{{ $message }}</p>
-                                @enderror
-                            </div>
+                                placeholder="Type spouse first name">
+                            @error('spouse_first_name')
+                                <p class="text-red-500 ms-2 mt-1 z-10 text-xs">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                            {{-- Spouse Middle Name --}}
-                            <div class="relative col-span-full sm:col-span-2 mb-4 pb-1">
-                                <label for="spouse_middle_name"
-                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}">Spouse
-                                    Middle Name </label>
-                                <input type="text" id="spouse_middle_name" autocomplete="off"
-                                    wire:model.blur="spouse_middle_name"
-                                    @if ($civil_status === 'Single') disabled @endif
-                                    class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
+                        {{-- Spouse Middle Name --}}
+                        <div
+                            class="order-[21] relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-2 mb-4 pb-1">
+                            <label for="edit_spouse_middle_name"
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}">Spouse
+                                Middle Name </label>
+                            <input type="text" id="edit_spouse_middle_name" autocomplete="off"
+                                wire:model.blur="spouse_middle_name" @if ($civil_status === 'Single') disabled @endif
+                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                             {{ $civil_status === 'Married'
                                 ? 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600'
                                 : 'bg-gray-200 border-gray-300 text-gray-500' }}"
-                                    placeholder="(optional)">
-                            </div>
+                                placeholder="(optional)">
+                        </div>
 
-                            {{-- Spouse Last Name --}}
-                            <div class="relative flex flex-col col-span-full sm:col-span-2 mb-4 pb-1">
-                                <label for="spouse_last_name"
-                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}"><span
-                                        class="relative"> Spouse
-                                        Last Name @if ($civil_status === 'Married')
-                                            <span
-                                                class="absolute left-full -top-1 ms-1 text-red-700 font-normal text-sm">*</span>
-                                        @endif
-                                    </span>
-                                </label>
-                                <input type="text" id="spouse_last_name" autocomplete="off"
-                                    wire:model.blur="spouse_last_name"
-                                    @if ($civil_status === 'Single') disabled @endif
-                                    class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
+                        {{-- Spouse Last Name --}}
+                        <div class="order-[22] relative flex flex-col col-span-full sm:col-span-2 mb-4 pb-1">
+                            <label for="edit_spouse_last_name"
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}"><span
+                                    class="relative"> Spouse
+                                    Last Name @if ($civil_status === 'Married')
+                                        <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                        </span>
+                                    @endif
+                                </span>
+                            </label>
+                            <input type="text" id="edit_spouse_last_name" autocomplete="off"
+                                wire:model.blur="spouse_last_name" @if ($civil_status === 'Single') disabled @endif
+                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                             
                             @if ($civil_status === 'Married') {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}
                             @else
                             bg-gray-200 border-gray-300 text-gray-500 @endif"
-                                    placeholder="Type spouse last name">
-                                @error('spouse_last_name')
-                                    <p class="text-red-500 ms-2 mt-1 z-10 text-xs">{{ $message }}</p>
-                                @enderror
-                            </div>
+                                placeholder="Type spouse last name">
+                            @error('spouse_last_name')
+                                <p class="text-red-500 ms-2 mt-1 z-10 text-xs">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                            {{-- Spouse Extension Name --}}
-                            <div class="relative col-span-full sm:col-span-1 mb-4 pb-1">
-                                <label for="spouse_extension_name"
-                                    class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}">Spouse
-                                    Ext. Name</label>
-                                <input type="text" id="spouse_extension_name" autocomplete="off"
-                                    wire:model.blur="spouse_extension_name"
-                                    @if ($civil_status === 'Single') disabled @endif
-                                    class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
+                        {{-- Spouse Extension Name --}}
+                        <div
+                            class="order-[23] relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-1 mb-4 pb-1">
+                            <label for="edit_spouse_extension_name"
+                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-blue-1100' : 'text-gray-400' }}">Spouse
+                                Ext. Name</label>
+                            <input type="text" id="edit_spouse_extension_name" autocomplete="off"
+                                wire:model.blur="spouse_extension_name"
+                                @if ($civil_status === 'Single') disabled @endif
+                                class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                             {{ $civil_status === 'Married'
                                 ? 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600'
                                 : 'bg-gray-200 border-gray-300 text-gray-500' }}"
-                                    placeholder="III, Sr., etc.">
+                                placeholder="III, Sr., etc.">
 
-                            </div>
                         </div>
 
                         {{-- Modal footer --}}
-                        <div class="relative col-span-full w-full flex items-center justify-end">
+                        <div class="order-[24] relative col-span-full w-full flex items-center justify-end">
                             <div class="flex items-center justify-end relative">
                                 {{-- Loading State for Changes --}}
-                                <button wire:click.prevent="saveBeneficiary" wire:loading.attr="disabled"
-                                    wire:target="saveBeneficiary"
+                                <button type="submit" wire:loading.attr="disabled" wire:target="saveBeneficiary"
                                     class="space-x-2 py-2 px-4 text-center text-white font-bold flex items-center bg-blue-700 disabled:opacity-75 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-md">
                                     <p>ADD</p>
 

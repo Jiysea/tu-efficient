@@ -226,58 +226,23 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $implementation->days_of_work }}
                                             </td>
                                             <td class="py-1">
+
+                                                {{-- View Button --}}
                                                 <button type="button"
                                                     @click.stop="$wire.viewProject('{{ encrypt($implementation->id) }}');"
                                                     id="implementationRowButton-{{ $key }}"
                                                     aria-label="{{ __('View Project') }}"
                                                     class="flex items-center justify-center z-0 p-1 outline-none rounded duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
+
+                                                    {{-- View Icon --}}
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">
                                                         <g>
-                                                            <path d=" M167.400 18.185 C 150.115 28.164,135.964
-                                            36.599,135.955 36.930 C 135.915 38.323,147.648 57.404,148.429 57.216 C
-                                            148.900 57.102,160.542 50.510,174.301 42.567 C 188.059 34.624,199.643
-                                            28.125,200.041 28.125 C 200.440 28.125,212.028 34.632,225.791 42.584 C
-                                            239.555 50.536,251.180 57.128,251.623 57.232 C 252.414 57.418,263.978
-                                            38.646,264.019 37.109 C 264.044 36.180,201.493 -0.010,199.916 0.021 C
-                                            199.317 0.033,184.686 8.207,167.400 18.185 M142.401 86.929 C 110.936
-                                            105.075,85.184 120.098,85.174 120.313 C 85.143 120.997,198.778
-                                            186.328,200.000 186.328 C 201.235 186.328,314.854 121.022,314.829 120.326 C
-                                            314.814 119.917,200.604 53.894,199.959 53.921 C 199.767 53.929,173.866
-                                            68.783,142.401 86.929 M58.398 81.093 L 26.563 99.553 26.563 136.886 L 26.563
-                                            174.219 38.672 174.219 L 50.781 174.219 50.810 143.945 L 50.838 113.672
-                                            74.715 100.000 C 87.847 92.480,99.600 85.725,100.833 84.988 L 103.075 83.647
-                                            97.045 73.096 C 93.729 67.293,90.840 62.565,90.625 62.589 C 90.410
-                                            62.613,75.908 70.940,58.398 81.093 M302.976 73.087 L 296.967 83.612 304.633
-                                            88.095 C 308.849 90.561,320.594 97.324,330.731 103.125 L 349.164 113.672
-                                            349.191 143.945 L 349.219 174.219 361.328 174.219 L 373.438 174.219 373.438
-                                            136.877 L 373.438 99.536 341.715 81.213 C 324.268 71.136,309.766
-                                            62.817,309.489 62.727 C 309.211 62.636,306.280 67.299,302.976 73.087 M73.438
-                                            206.912 L 73.437 273.198 130.484 306.130 C 161.859 324.243,187.701
-                                            339.063,187.910 339.063 C 188.119 339.063,188.200 309.121,188.090 272.525 L
-                                            187.891 205.987 131.283 173.306 C 100.149 155.331,74.397 140.625,74.057
-                                            140.625 C 73.716 140.625,73.438 170.454,73.438 206.912 M268.735 173.317 L
-                                            212.109 206.009 211.910 272.536 C 211.800 309.125,211.893 339.063,212.117
-                                            339.063 C 212.341 339.063,238.183 324.248,269.543 306.142 L 326.563 273.221
-                                            326.563 206.923 C 326.563 170.459,326.292 140.625,325.961 140.625 C 325.631
-                                            140.625,299.879 155.336,268.735 173.317 M26.563 263.100 L 26.562 300.418
-                                            58.699 318.984 C 76.375 329.195,90.906 337.450,90.991 337.329 C 91.077
-                                            337.208,93.834 332.442,97.120 326.737 L 103.093 316.364 100.842 315.018 C
-                                            99.603 314.278,87.848 307.520,74.719 300.000 L 50.847 286.328 50.814 256.055
-                                            L 50.781 225.781 38.672 225.781 L 26.563 225.781 26.563 263.100 M349.191
-                                            256.055 L 349.164 286.328 330.731 296.875 C 320.594 302.676,308.845
-                                            309.442,304.623 311.911 L 296.947 316.400 302.912 326.755 C 306.193
-                                            332.450,308.944 337.210,309.025 337.334 C 309.106 337.457,323.632
-                                            329.207,341.305 319.000 L 373.438 300.442 373.438 263.111 L 373.438 225.781
-                                            361.328 225.781 L 349.219 225.781 349.191 256.055 M144.483 347.811 C 142.675
-                                            350.949,140.012 355.495,138.566 357.915 C 137.120 360.334,135.945
-                                            362.619,135.955 362.993 C 135.975 363.819,198.595 400.000,200.004 400.000 C
-                                            201.551 400.000,264.043 363.774,264.019 362.891 C 263.978 361.354,252.414
-                                            342.582,251.623 342.768 C 251.180 342.872,239.555 349.464,225.791 357.416 C
-                                            212.028 365.368,200.441 371.875,200.043 371.875 C 199.471 371.875,174.329
-                                            357.579,151.035 344.008 L 147.772 342.107 144.483 347.811 " stroke="none"
-                                                                fill="currentColor" fill-rule="evenodd">
+                                                            <path
+                                                                d="M181.641 87.979 C 130.328 95.222,89.731 118.794,59.712 158.775 C 35.189 191.436,35.188 208.551,59.709 241.225 C 108.153 305.776,191.030 329.697,264.335 300.287 C 312.216 281.078,358.187 231.954,358.187 200.000 C 358.187 163.027,301.790 109.157,246.875 93.676 C 229.295 88.720,196.611 85.866,181.641 87.979 M214.728 139.914 C 251.924 148.468,272.352 190.837,256.127 225.780 C 234.108 273.202,167.333 273.905,144.541 226.953 C 121.658 179.813,163.358 128.100,214.728 139.914 M188.095 164.017 C 162.140 172.314,153.687 205.838,172.483 225.933 C 192.114 246.920,228.245 238.455,236.261 210.991 C 244.785 181.789,217.066 154.756,188.095 164.017 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
                                                             </path>
                                                         </g>
                                                     </svg>
@@ -425,15 +390,19 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 </span>
                                             </td>
                                             <td class="py-1 ps-2">
+
+                                                {{-- View Button --}}
                                                 <button @click.stop="$wire.viewBatch('{{ encrypt($batch->id) }}');"
                                                     id="batchRowButton-{{ $key }}"
                                                     class="flex justify-center items-center z-0 p-1 font-medium rounded outline-none duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+
+                                                    {{-- View Icon --}}
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">
                                                         <g>
                                                             <path
-                                                                d="M196.094 28.629 C 195.449 28.884,154.668 44.553,105.469 63.450 C -5.207 105.958,5.050 101.718,2.258 106.121 C -2.113 113.013,-0.475 121.858,5.978 126.207 C 11.439 129.887,195.785 200.000,200.000 200.000 C 204.215 200.000,388.561 129.887,394.022 126.207 C 402.510 120.487,401.990 106.158,393.130 101.648 C 391.538 100.837,348.398 84.081,297.266 64.412 C 207.418 29.852,199.805 27.159,196.094 28.629 M270.092 85.625 C 308.670 100.491,341.237 113.019,342.463 113.463 C 345.218 114.462,202.811 169.873,199.219 169.200 C 198.145 168.999,165.351 156.563,126.345 141.564 L 55.424 114.293 127.517 86.499 C 167.168 71.211,199.686 58.679,199.779 58.649 C 199.873 58.618,231.513 70.758,270.092 85.625 M27.734 178.937 C 8.335 186.462,5.574 187.749,3.334 190.309 C -2.881 197.416,-0.344 209.612,8.118 213.305 C 34.431 224.791,197.646 286.063,201.099 285.752 C 204.384 285.456,376.320 220.179,391.882 213.319 C 400.350 209.586,402.878 197.424,396.666 190.302 C 394.417 187.724,391.728 186.476,372.085 178.892 L 350.029 170.377 330.733 177.806 C 320.120 181.893,310.950 185.509,310.354 185.843 C 309.658 186.232,315.440 188.805,326.508 193.029 C 335.988 196.648,343.743 199.785,343.740 200.000 C 343.737 200.215,311.394 212.816,271.867 228.003 L 200.000 255.614 128.133 228.003 C 88.606 212.816,56.263 200.215,56.260 200.000 C 56.257 199.785,64.002 196.652,73.470 193.038 C 82.938 189.424,90.408 186.230,90.069 185.941 C 89.518 185.472,53.654 171.648,50.781 170.798 C 50.137 170.607,39.766 174.269,27.734 178.937 M28.200 264.467 C 1.675 274.836,-0.000 276.085,0.000 285.509 C 0.000 292.897,2.730 296.701,10.265 299.816 C 49.494 316.032,196.246 371.435,200.000 371.445 C 203.950 371.456,381.599 304.222,393.130 298.352 C 399.546 295.086,402.301 284.114,398.224 278.064 C 395.451 273.950,393.030 272.722,370.793 264.156 L 349.950 256.126 330.249 263.690 C 319.413 267.850,310.240 271.441,309.865 271.670 C 309.490 271.898,317.177 275.154,326.947 278.904 C 343.410 285.223,344.546 285.782,342.472 286.533 C 341.241 286.980,308.701 299.497,270.159 314.349 L 200.084 341.354 127.712 313.514 L 55.339 285.673 72.942 278.969 C 82.624 275.282,90.300 272.037,89.999 271.757 C 89.162 270.976,50.655 256.239,49.682 256.327 C 49.213 256.369,39.546 260.032,28.200 264.467 "
+                                                                d="M181.641 87.979 C 130.328 95.222,89.731 118.794,59.712 158.775 C 35.189 191.436,35.188 208.551,59.709 241.225 C 108.153 305.776,191.030 329.697,264.335 300.287 C 312.216 281.078,358.187 231.954,358.187 200.000 C 358.187 163.027,301.790 109.157,246.875 93.676 C 229.295 88.720,196.611 85.866,181.641 87.979 M214.728 139.914 C 251.924 148.468,272.352 190.837,256.127 225.780 C 234.108 273.202,167.333 273.905,144.541 226.953 C 121.658 179.813,163.358 128.100,214.728 139.914 M188.095 164.017 C 162.140 172.314,153.687 205.838,172.483 225.933 C 192.114 246.920,228.245 238.455,236.261 210.991 C 244.785 181.789,217.066 154.756,188.095 164.017 "
                                                                 stroke="none" fill="currentColor"
                                                                 fill-rule="evenodd">
                                                             </path>
@@ -536,7 +505,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
 
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
-                        <div class="col-span-1 px-2 flex flex-1 items-center justify-end gap-2">
+                        <div class="relative col-span-1 px-2 flex flex-1 items-center justify-end gap-2">
 
                             {{-- Search Input Bar --}}
                             <div class="relative">
@@ -572,7 +541,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
 
                             {{-- Import Button --}}
-                            <button type="button" data-popover-target="import-btn" data-popover-trigger="hover"
+                            <button type="button" data-popover-target="import-btn" data-popover-placement="bottom"
+                                data-popover-trigger="hover"
                                 @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) @click="importFileModal = !importFileModal;" @else disabled @endif
                                 class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 rounded-md px-2 py-1 text-sm font-bold duration-200 ease-in-out">
 
@@ -588,17 +558,21 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </button>
                             <div data-popover id="import-btn" role="tooltip"
                                 class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                <div class="flex flex-col text-xs font-semibold p-2 gap-1">
-                                    <p>
+                                <div class="text-center text-xs font-semibold p-2 gap-1">
+                                    @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'])
                                         Import Beneficiaries <br>with a Sample Format
-                                    </p>
+                                    @else
+                                        You may able to <span class="text-indigo-500">import</span> beneficiaries <br>
+                                        when you select a batch or the batch is not full slotted
+                                    @endif
                                 </div>
                                 <div data-popper-arrow></div>
                             </div>
 
                             {{-- Export Button --}}
-                            <button type="button" data-popover-target="export-btn" data-popover-trigger="hover"
-                                @if ($this->exportBatches->isNotEmpty() && $selectedBatchRow !== -1) @click="showExportModal = !showExportModal;" @else disabled @endif
+                            <button type="button" data-popover-target="export-btn" data-popover-placement="bottom"
+                                data-popover-trigger="hover"
+                                @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0) wire:click="showExport" @else disabled @endif
                                 class="duration-200 ease-in-out flex items-center gap-2 justify-center px-2 py-1 rounded-md text-xs sm:text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900">
 
                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
@@ -613,16 +587,20 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </button>
                             <div data-popover id="export-btn" role="tooltip"
                                 class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                <div class="flex flex-col text-xs font-semibold p-2 gap-1">
-                                    <p>
+                                <div class="text-center text-xs font-semibold p-2 gap-1">
+                                    @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0)
                                         Export Beneficiaries <br>to Annex Files
-                                    </p>
+                                    @else
+                                        You may able to <span class="text-indigo-500">export</span> an Annex <br>
+                                        when there are beneficiaries on the batch
+                                    @endif
                                 </div>
                                 <div data-popper-arrow></div>
                             </div>
 
                             {{-- Add Button --}}
-                            <button type="button" data-popover-target="add-btn" data-popover-trigger="hover"
+                            <button type="button" data-popover-target="add-btn" data-popover-placement="bottom"
+                                data-popover-trigger="hover"
                                 @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
                                 class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 rounded-md px-2 py-1 text-sm font-bold duration-200 ease-in-out">
 
@@ -638,10 +616,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </button>
                             <div data-popover id="add-btn" role="tooltip"
                                 class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                <div class="flex flex-col text-xs font-semibold p-2 gap-1">
-                                    <p>
+                                <div class="text-center text-xs font-semibold p-2 gap-1">
+                                    @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'])
                                         Add Beneficiaries Manually
-                                    </p>
+                                    @else
+                                        You may able to <span class="text-indigo-500">add</span> beneficiaries <br>
+                                        when you select a batch or the batch is not full slotted
+                                    @endif
                                 </div>
                                 <div data-popper-arrow></div>
                             </div>
@@ -837,6 +818,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $beneficiary->spouse_extension_name ?? '-' }}
                                             </td>
                                             <td class="py-1">
+
+                                                {{-- View Button --}}
                                                 <button type="button"
                                                     @click.stop="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
                                                     id="beneficiaryRowButton-{{ $key }}"
@@ -848,12 +831,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                         'text-amber-700 hover:text-amber-900 focus:text-amber-900 hover:bg-amber-300 focus:bg-amber-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                                     
                                                     }">
+
+                                                    {{-- View Icon --}}
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">
                                                         <g>
                                                             <path
-                                                                d="M182.813 38.986 C 123.313 52.113,100.226 125.496,141.415 170.564 C 183.488 216.599,261.606 197.040,276.896 136.644 C 291.453 79.146,240.501 26.259,182.813 38.986 M278.141 204.778 C 272.904 206.868,270.880 210.858,270.342 220.156 L 269.922 227.420 264.768 229.218 C 261.934 230.206,258.146 231.841,256.351 232.849 L 253.088 234.684 248.224 229.884 C 241.216 222.970,235.198 221.459,229.626 225.214 C 221.063 230.985,221.157 239.379,229.884 248.224 L 234.684 253.088 232.849 256.351 C 231.841 258.146,230.206 261.934,229.218 264.768 L 227.420 269.922 220.156 270.313 C 208.989 270.915,204.670 274.219,204.083 282.607 C 203.466 291.419,208.211 295.523,219.675 296.094 L 227.526 296.484 228.868 300.781 C 229.606 303.145,231.177 306.971,232.359 309.285 L 234.508 313.492 230.227 317.879 C 223.225 325.054,221.747 330.343,224.976 336.671 C 229.458 345.458,239.052 345.437,248.076 336.622 L 252.794 332.014 258.233 334.683 C 261.224 336.151,265.133 337.742,266.919 338.218 L 270.167 339.083 270.435 346.830 C 270.818 357.905,274.660 362.505,283.514 362.495 C 292.220 362.485,296.084 357.523,296.090 346.344 L 296.094 339.173 300.586 337.882 C 303.057 337.171,306.997 335.559,309.341 334.298 L 313.605 332.006 318.326 336.618 C 324.171 342.328,325.413 342.969,330.613 342.966 C 344.185 342.956,347.496 329.464,336.652 318.359 L 332.075 313.672 334.421 309.022 C 335.711 306.464,337.308 302.509,337.970 300.233 L 339.173 296.094 346.276 296.094 C 357.566 296.094,362.500 292.114,362.500 283.005 C 362.500 274.700,357.650 270.809,346.830 270.435 L 339.083 270.167 338.218 266.919 C 337.742 265.133,336.151 261.224,334.683 258.233 L 332.014 252.794 336.622 248.076 C 345.259 239.234,345.423 230.021,337.028 225.208 C 330.778 221.625,325.473 222.915,318.356 229.749 L 313.432 234.478 309.255 232.344 C 306.958 231.170,303.145 229.606,300.781 228.868 L 296.484 227.526 296.094 219.675 C 295.460 206.941,288.076 200.814,278.141 204.778 M140.625 220.855 C 91.525 226.114,53.906 267.246,53.906 315.674 C 53.906 333.608,63.031 349.447,77.831 357.207 C 88.240 362.664,85.847 362.500,155.113 362.500 L 217.422 362.500 214.329 360.259 C 202.518 351.704,196.602 335.289,200.309 321.365 L 201.381 317.339 196.198 313.914 C 172.048 297.955,174.729 264.426,201.338 249.629 C 201.430 249.578,200.995 247.619,200.371 245.276 C 198.499 238.241,199.126 229.043,201.981 221.680 C 202.483 220.383,151.436 219.698,140.625 220.855 M290.207 252.760 C 316.765 259.678,323.392 292.263,301.575 308.656 C 283.142 322.507,256.557 311.347,252.282 287.964 C 248.462 267.069,269.646 247.405,290.207 252.760 "
+                                                                d="M181.641 87.979 C 130.328 95.222,89.731 118.794,59.712 158.775 C 35.189 191.436,35.188 208.551,59.709 241.225 C 108.153 305.776,191.030 329.697,264.335 300.287 C 312.216 281.078,358.187 231.954,358.187 200.000 C 358.187 163.027,301.790 109.157,246.875 93.676 C 229.295 88.720,196.611 85.866,181.641 87.979 M214.728 139.914 C 251.924 148.468,272.352 190.837,256.127 225.780 C 234.108 273.202,167.333 273.905,144.541 226.953 C 121.658 179.813,163.358 128.100,214.728 139.914 M188.095 164.017 C 162.140 172.314,153.687 205.838,172.483 225.933 C 192.114 246.920,228.245 238.455,236.261 210.991 C 244.785 181.789,217.066 154.756,188.095 164.017 "
                                                                 stroke="none" fill="currentColor"
                                                                 fill-rule="evenodd">
                                                             </path>
@@ -1179,7 +1164,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     </span>
                                                     <input id="export-start-date" name="start" type="text"
                                                         @change-date.camel="$wire.set('defaultExportStart', $el.value);"
-                                                        wire:model="defaultExportStart"
                                                         value="{{ $defaultExportStart }}"
                                                         class="border {{ $errors->has('defaultExportStart') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
                                                         placeholder="Select date start">
@@ -1210,7 +1194,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     </span>
                                                     <input id="export-end-date" name="end" type="text"
                                                         @change-date.camel="$wire.set('defaultExportEnd', $el.value);"
-                                                        wire:model="defaultExportEnd"
                                                         value="{{ $defaultExportEnd }}"
                                                         class="border {{ $errors->has('defaultExportEnd') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
                                                         placeholder="Select date end">
@@ -1359,7 +1342,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                                 @endforeach
                                                             @else
                                                                 <div
-                                                                    class="flex flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
+                                                                    class="flex flex-col flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
                                                                     @if (isset($searchExportBatch) && !empty($searchExportBatch))
                                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                                             class="size-12 mb-4 text-indigo-900 opacity-65"

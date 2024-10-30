@@ -51,27 +51,20 @@ class JaccardSimilarity
 
     protected static function dirtyFullname($first, $middle, $last, $ext)
     {
-        $first = Essential::trimmer($first);
+        $first = Essential::trimmer(self::filterIllegalCharacters($first));
         $fullName = $first;
 
         if (!empty($middle) && $middle !== '-' && $middle !== '' && isset($middle)) {
-            $middle = Essential::trimmer($middle);
+            $middle = Essential::trimmer(self::filterIllegalCharacters($middle));
             $fullName .= ' ' . $middle;
-        } else {
-            $middle = null;
         }
 
-        $last = Essential::trimmer($last);
+        $last = Essential::trimmer(self::filterIllegalCharacters($last));
         $fullName .= ' ' . $last;
 
-        # Filter the whole name (no extension_name) if in case there's illegal characters 
-        $fullName = self::filterIllegalCharacters($fullName);
-
         if ($ext && $ext !== '-' && $ext !== '' && !is_null($ext)) {
-            $ext = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $ext)));
-            $fullName .= ' ' . self::filterIllegalCharacters($ext, true);
-        } else {
-            $ext = null;
+            $ext = Essential::trimmer(self::filterIllegalCharacters($ext, true));
+            $fullName .= ' ' . $ext;
         }
 
         return $fullName;
@@ -327,16 +320,16 @@ class JaccardSimilarity
      *  @return array|null Returns the similarity results in an array, otherwise null.
      *  
      */
-    public static function getResults(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, string $birthdate, int|float $threshold = 65)
+    public static function getResults(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, string $birthdate, int|float $threshold = 65, ?string $ignoreId = null)
     {
         # initialize the $results var so it would return null if there's no similarities
         $results = [];
 
         # this var is only used to prefetch names from the database
-        $dirtyFullName = strtoupper(self::dirtyFullname($first_name, $middle_name, $last_name, $extension_name));
+        $dirtyFullName = Essential::trimmer(strtoupper(self::dirtyFullname($first_name, $middle_name, $last_name, $extension_name)));
 
         # fetch all the potential duplicating names from the database
-        $beneficiariesFromDatabase = self::prefetchNames($dirtyFullName, $middle_name, $extension_name);
+        $beneficiariesFromDatabase = self::prefetchNames($dirtyFullName, $middle_name, $extension_name, $ignoreId);
 
         if (ctype_digit((string) $threshold)) {
 

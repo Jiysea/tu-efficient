@@ -252,13 +252,19 @@ class AssignBatchesModal extends Component
 
         $this->totalSlots -= $this->slots_allocated;
         $this->reset(
-            'batch_num',
             'barangay_name',
             'slots_allocated',
             'assigned_coordinators',
+            'ignoredCoordinatorIDs',
         );
 
         $this->validateOnly('temporaryBatchesList');
+
+        $this->generateBatchNum();
+
+        unset($this->coordinators);
+        $this->setCoordinator();
+
     }
 
     # triggers when clicking the `X` button which removes the
@@ -327,8 +333,6 @@ class AssignBatchesModal extends Component
             ];
 
             $this->validateOnly('assigned_coordinators');
-
-
 
             # removes the coordinator from the `Add Coordinator` dropdown
             $this->ignoredCoordinatorIDs[] = encrypt($this->coordinators[$this->selectedCoordinatorKey]->id);
@@ -431,6 +435,7 @@ class AssignBatchesModal extends Component
             $coordinators = User::where('user_type', 'Coordinator')
                 ->where('regional_office', Auth::user()->regional_office)
                 ->where('field_office', Auth::user()->field_office)
+                ->whereNot('email_verified_at', null)
                 ->when($this->searchCoordinator, function ($q) {
                     # Otherwise, search by first, middle, or last name
                     $q->where(function ($query) {
@@ -447,6 +452,7 @@ class AssignBatchesModal extends Component
             $coordinators = User::where('user_type', 'Coordinator')
                 ->where('regional_office', Auth::user()->regional_office)
                 ->where('field_office', Auth::user()->field_office)
+                ->whereNot('email_verified_at', null)
                 ->when($this->searchCoordinator, function ($q) {
                     # Otherwise, search by first, middle, or last name
                     $q->where(function ($query) {

@@ -66,27 +66,25 @@ class Login extends Component
 
             session()->regenerate();
 
-            // $user = Auth::user();
-            // if (!$user->isOngoingVerification()) {
-            //     Auth::user()->update(['ongoing_verification' => 1]);
-            //     // $user->save();
-            //     $this->redirectRoute('verify.contact');
-            // }
+            # For Email && Mobile Verification (disabled the mobile verification)
+            if (!Auth::user()->isEmailVerified()) {
+                // Auth::user()->update(['ongoing_verification' => 1]);
+                $this->redirectRoute('verification.notice');
+            } elseif (!Auth::user()->isOngoingVerification()) {
+                // Auth::user()->update(['ongoing_verification' => 1]);
+            }
+
+            # Logs the login date of the user (remove this when enabling mobile verification)
+            User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
 
             if (strtolower(Auth::user()->user_type) === 'focal') {
 
                 # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
                 session()->flash('heads-up', Auth::user()->last_login);
 
-                # Logs the login date of the user
-                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
-
                 $this->redirectRoute('focal.dashboard');
 
             } else if (strtolower(Auth::user()->user_type) === 'coordinator') {
-
-                # Logs the login date of the user
-                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
 
                 $this->redirectRoute('coordinator.assignments');
             }
@@ -118,7 +116,7 @@ class Login extends Component
         if (Auth::check()) {
             $user = Auth::user();
             if ($user->isOngoingVerification()) {
-                $this->redirectRoute('verify.contact');
+                $this->redirectRoute('verify.mobile');
             } else {
                 if (Auth::user()->user_type === 'focal')
                     return redirect()->route('focal.dashboard');

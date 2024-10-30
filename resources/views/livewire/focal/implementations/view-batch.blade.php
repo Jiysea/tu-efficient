@@ -1,7 +1,11 @@
 <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50" x-show="viewBatchModal">
 
     <!-- Modal -->
-    <div x-show="viewBatchModal" x-trap.noscroll="viewBatchModal"
+    <div x-data="{
+        accessCodeModal: $wire.entangle('accessCodeModal'),
+        forceApproveModal: $wire.entangle('forceApproveModal'),
+        pendBatchModal: $wire.entangle('pendBatchModal')
+    }" x-show="viewBatchModal" x-trap.noscroll="viewBatchModal"
         class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         {{-- The Modal --}}
@@ -55,15 +59,16 @@
 
                                 {{-- Batch Number --}}
                                 <div class="relative flex flex-1 flex-col mb-4">
-                                    <label for="view_batch_num" class="flex items-center justify-between mb-1 font-medium text-indigo-1100 ">Batch
-                                        Number <span class="absolute -z-0 -top-1 right-0 bg-indigo-100 font-medium text-indigo-700 rounded px-2 pt-1 pb-2">prefix:
+                                    <label for="view_batch_num"
+                                        class="flex items-center justify-between mb-1 font-medium text-indigo-1100 ">Batch
+                                        Number <span
+                                            class="absolute -z-0 -top-1 right-0 bg-indigo-100 font-medium text-indigo-700 rounded px-2 pt-1 pb-2">prefix:
                                             <strong>{{ substr($batchNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($batchNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong>
                                         </span>
                                     </label>
                                     <input disabled type="text" id="view_batch_num" autocomplete="off"
                                         wire:model.blur="view_batch_num"
                                         class="text-xs z-10 duration-200 disabled:bg-gray-50 disabled:placeholder-gray-700 disabled:text-gray-700 disabled:border-gray-300 {{ $errors->has('view_batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
-
                                         placeholder="Type project number">
                                     @error('view_batch_num')
                                         <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
@@ -197,7 +202,7 @@
                                             Allocated Slots
                                         </p>
                                         <span
-                                            class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch->slots_allocated }}</span>
+                                            class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->slots_allocated }}</span>
                                     @endif
                                 </div>
 
@@ -321,7 +326,7 @@
                                             Assigned Coordinators
                                         </p>
                                         <span
-                                            class="flex flex-1 py-1 overflow-x-scroll rounded border {{ $errors->has('view_assigned_coordinators') ? 'border-red-300 bg-red-50 scrollbar-track-red-50 scrollbar-thumb-red-700' : 'border-indigo-300 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700'}} scrollbar-thin">
+                                            class="flex flex-1 py-1 overflow-x-scroll rounded border {{ $errors->has('view_assigned_coordinators') ? 'border-red-300 bg-red-50 scrollbar-track-red-50 scrollbar-thumb-red-700' : 'border-indigo-300 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700' }} scrollbar-thin">
 
                                             {{-- A Toast of Coordinators --}}
                                             @foreach ($view_assigned_coordinators as $key => $assignedCoordinator)
@@ -349,11 +354,11 @@
                                             @endforeach
                                         </span>
                                     </div>
-                                     @error('view_assigned_coordinators')
-                                     <p class="text-red-500 absolute left-16 top-full z-10 mt-1 text-xs">
-                                         {{ $message }}
-                                     </p>
-                                     @enderror
+                                    @error('view_assigned_coordinators')
+                                        <p class="text-red-500 absolute left-16 top-full z-10 mt-1 text-xs">
+                                            {{ $message }}
+                                        </p>
+                                    @enderror
 
                                 </div>
 
@@ -595,10 +600,197 @@
                                             {{ date('M d, Y @ h:i:s a', strtotime($this->batch?->updated_at)) }}</span>
                                     </div>
                                 </div>
+
+                                {{-- Buttons --}}
+                                <div
+                                    class="flex items-center justify-end gap-2 sm:gap-4 col-span-full relative text-sm font-bold">
+                                    @if ($this->batch?->approval_status === 'pending')
+                                        <button type="button"
+                                            @if (!$this->isEmpty) @click="forceApproveModal = !forceApproveModal;"
+                                        @else
+                                        disabled @endif
+                                            class="text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md disabled:bg-gray-300 disabled:text-gray-500 bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">
+                                            FORCE APPROVE
+                                        </button>
+                                    @elseif ($this->batch?->approval_status === 'approved')
+                                        <button type="button" @click="pendBatchModal = !pendBatchModal;"
+                                            class="text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                            PEND BATCH
+                                        </button>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                     </form>
                 @endif
+
+                {{-- Force Approve Modal --}}
+                <div x-cloak>
+                    <!-- Modal Backdrop -->
+                    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+                        x-show="forceApproveModal">
+                    </div>
+
+                    <!-- Modal -->
+                    <div x-show="forceApproveModal" x-trap.noscroll="forceApproveModal"
+                        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
+
+                        {{-- The Modal --}}
+                        <div class="relative w-full max-w-2xl max-h-full">
+                            <div class="relative bg-white rounded-md shadow">
+
+                                <!-- Modal Header -->
+                                <div class="relative flex items-center justify-between py-2 px-4 rounded-t-md">
+                                    <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">Force Approve Batch
+                                    </h1>
+
+                                    <div class="flex items-center justify-center">
+                                        {{-- Loading State for Changes --}}
+                                        <div class="z-50 text-indigo-900" wire:loading wire:target="forceApprove">
+                                            <svg class="size-6 mr-3 -ml-1 animate-spin"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4">
+                                                </circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                        </div>
+
+                                        {{-- Close Modal --}}
+                                        <button type="button" @click="forceApproveModal = false;"
+                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                            <span class="sr-only">Close Modal</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr class="">
+
+                                {{-- Modal body --}}
+                                <div
+                                    class="flex flex-col items-center justify-center gap-4 w-full pt-5 pb-10 px-3 md:px-16 text-xs">
+
+                                    <p class="font-medium text-sm mb-1">
+                                        Are you sure about force approving this batch?
+                                    </p>
+
+                                    <div class="relative flex items-center justify-center w-full">
+                                        <div class="flex items-center justify-center">
+                                            <div class="relative me-2">
+                                                <input type="password" id="password_force_approve"
+                                                    wire:model.blur="password_force_approve"
+                                                    class="flex flex-1 {{ $errors->has('password_force_approve') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} rounded outline-none border py-2.5 text-sm select-all duration-200 ease-in-out"
+                                                    placeholder="Enter your password">
+                                                @error('password_force_approve')
+                                                    <p class="absolute top-full left-0 text-xs text-red-700">
+                                                        {{ $message }}
+                                                    </p>
+                                                @enderror
+                                            </div>
+                                            <button wire:loading.attr="disabled" wire:target="forceApprove"
+                                                class="flex items-center justify-center disabled:bg-red-300 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 p-2 rounded text-base font-bold duration-200 ease-in-out"
+                                                @click="$wire.forceApprove();">
+                                                CONFIRM
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Pend Batch Modal --}}
+                <div x-cloak>
+                    <!-- Modal Backdrop -->
+                    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="pendBatchModal">
+                    </div>
+
+                    <!-- Modal -->
+                    <div x-show="pendBatchModal" x-trap.noscroll="pendBatchModal"
+                        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
+
+                        {{-- The Modal --}}
+                        <div class="relative w-full max-w-2xl max-h-full">
+                            <div class="relative bg-white rounded-md shadow">
+
+                                <!-- Modal Header -->
+                                <div class="relative flex items-center justify-between py-2 px-4 rounded-t-md">
+                                    <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">Change Batch to
+                                        Pending
+                                    </h1>
+
+                                    <div class="flex items-center justify-center">
+                                        {{-- Loading State for Changes --}}
+                                        <div class="z-50 text-indigo-900" wire:loading wire:target="pendBatch">
+                                            <svg class="size-6 mr-3 -ml-1 animate-spin"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4">
+                                                </circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                        </div>
+
+                                        {{-- Close Modal --}}
+                                        <button type="button" @click="pendBatchModal = false;"
+                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                            <span class="sr-only">Close Modal</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr class="">
+
+                                {{-- Modal body --}}
+                                <div
+                                    class="flex flex-col items-center justify-center gap-4 w-full pt-5 pb-10 px-3 md:px-16 text-xs">
+                                    <p class="font-medium text-sm mb-1">
+                                        Are you sure about pending this batch?
+                                    </p>
+                                    <div class="relative flex items-center justify-center w-full">
+                                        <div class="flex items-center justify-center">
+                                            <div class="relative me-2">
+                                                <input type="password" id="password_pend_batch"
+                                                    wire:model.blur="password_pend_batch"
+                                                    class="flex {{ $errors->has('password_pend_batch') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
+                                                    placeholder="Enter your password">
+                                                @error('password_pend_batch')
+                                                    <p class="absolute top-full left-0 text-xs text-red-700">
+                                                        {{ $message }}
+                                                    </p>
+                                                @enderror
+                                            </div>
+                                            <button wire:loading.attr="disabled" wire:target="pendBatch"
+                                                class="flex items-center justify-center disabled:bg-red-300 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 p-2 rounded text-base font-bold duration-200 ease-in-out"
+                                                @click="$wire.pendBatch();">
+                                                CONFIRM
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

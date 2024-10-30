@@ -48,10 +48,12 @@ class ViewCredentialsModal extends Component
     public function render()
     {
         if ($this->passedCredentialId && $this->credentials) {
-            if ($this->credentials->for_duplicates === 'yes') {
+            if ($this->credentials?->for_duplicates === 'yes') {
                 $this->type = 'special';
-            } elseif ($this->credentials->for_duplicates === 'no') {
+            } elseif ($this->credentials?->for_duplicates === 'no') {
                 $this->type = 'identity';
+            } else {
+                $this->type = null;
             }
         }
         return view('livewire.coordinator.submissions.view-credentials-modal');

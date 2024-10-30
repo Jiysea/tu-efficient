@@ -2,7 +2,8 @@
     <x-f-favicons />
 </x-slot>
 
-<div class="relative flex flex-col px-12 py-12 items-center sm:max-h-screen md:px-12 lg:px-24 lg:py-24 select-none">
+<div
+    class="relative flex flex-col px-12 py-12 items-center sm:min-h-screen justify-center sm:max-h-screen md:px-12 lg:px-24 lg:py-24 select-none">
 
     {{-- White Box --}}
     <div class="flex justify-center items-center text-center bg-indigo-100 rounded-2xl sm:max-w-2xl sm:w-full">

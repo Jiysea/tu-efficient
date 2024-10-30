@@ -5,6 +5,7 @@ namespace App\Livewire\Focal\Implementations;
 use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
+use App\Models\Code;
 use App\Models\Implementation;
 use App\Models\User;
 use App\Models\UserSetting;
@@ -24,6 +25,22 @@ class ViewBatch extends Component
     #[Locked]
     public $passedBatchId;
     public $batchNumPrefix;
+
+    # --------------------------------------------------------------------------
+
+    public $accessCodeModal = false;
+    public $forceApproveModal = false;
+    public $pendBatchModal = false;
+    public $deleteBatchModal = false;
+    #[Locked]
+    public $code;
+    #[Validate]
+    public $password_force_approve;
+    #[Validate]
+    public $password_pend_batch;
+
+    # --------------------------------------------------------------------------
+
     public $remainingSlots;
     public $totalSlots;
     public $ignoredCoordinatorIDs;
@@ -34,9 +51,11 @@ class ViewBatch extends Component
     public $editMode = false;
     #[Locked]
     public $isEmpty = true;
-    public $deleteBatchModal = false;
     public $batchesCount;
     public $selectedBatchListRow = -1;
+
+    # --------------------------------------------------------------------------
+
     #[Validate]
     public $view_batch_num;
     #[Validate]
@@ -94,6 +113,23 @@ class ViewBatch extends Component
                 'lte:' . $this->totalSlots,
             ],
             'view_assigned_coordinators' => 'required',
+            'password_force_approve' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, Auth::user()->password)) {
+                        $fail('Wrong password.');
+                    }
+                },
+
+            ],
+            'password_pend_batch' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, Auth::user()->password)) {
+                        $fail('Wrong password.');
+                    }
+                },
+            ]
         ];
     }
 
@@ -111,6 +147,8 @@ class ViewBatch extends Component
             'view_slots_allocated.min' => ':attribute should be > 0.',
             'view_slots_allocated.gte' => ':attribute should be nonnegative.',
             'view_slots_allocated.lte' => ':attribute should be less than total.',
+            'password_force_approve.required' => 'This field is required.',
+            'password_pend_batch.required' => 'This field is required.',
         ];
     }
 
@@ -125,6 +163,43 @@ class ViewBatch extends Component
             'view_assigned_coordinators' => 'assigned coordinator',
         ];
     }
+
+    # ----------------------------------------------------------------------------------------------
+
+    public function forceApprove()
+    {
+        $this->validateOnly('password_force_approve');
+
+        $accessCode = Code::where('batches_id', $this->passedBatchId ? decrypt($this->passedBatchId) : null)
+            ->where('is_accessible', 'yes')
+            ->first();
+
+        if ($accessCode) {
+            Code::find($accessCode->id)->update([
+                'is_accessible' => 'no'
+            ]);
+        }
+
+        $this->batch->approval_status = 'approved';
+        $this->batch->save();
+
+        $this->dispatch('refreshAfterOpening', message: 'Batch has been approved forcibly!');
+        $this->forceApproveModal = false;
+    }
+
+    public function pendBatch()
+    {
+        $this->validateOnly('password_pend_batch');
+
+        $this->batch->approval_status = 'pending';
+        $this->batch->save();
+
+        $this->dispatch('refreshAfterOpening', message: 'Batch has been changed to pending!');
+        $this->pendBatchModal = false;
+    }
+
+
+    # ----------------------------------------------------------------------------------------------
 
     # this function adds the selected coordinator from the `Add Coordinator` dropdown
     # and append it to the `Assigned Coordinators` as a toast-like element.
@@ -504,6 +579,7 @@ class ViewBatch extends Component
             $coordinators = User::where('user_type', 'Coordinator')
                 ->where('regional_office', Auth::user()->regional_office)
                 ->where('field_office', Auth::user()->field_office)
+                ->whereNot('email_verified_at', null)
                 ->when($this->searchCoordinator, function ($q) {
                     # Otherwise, search by first, middle, or last name
                     $q->where(function ($query) {
@@ -520,6 +596,7 @@ class ViewBatch extends Component
             $coordinators = User::where('user_type', 'Coordinator')
                 ->where('regional_office', Auth::user()->regional_office)
                 ->where('field_office', Auth::user()->field_office)
+                ->whereNot('email_verified_at', null)
                 ->when($this->searchCoordinator, function ($q) {
                     # Otherwise, search by first, middle, or last name
                     $q->where(function ($query) {

@@ -463,13 +463,13 @@
                                                         (This is action is irreversible)
                                                     </p>
                                                     <div class="flex items-center justify-center w-full gap-4">
-                                                        <button type="button" @clck="deleteProjectModal = false;"
+                                                        <button type="button" @click="deleteProjectModal = false;"
                                                             class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                                             CANCEL
                                                         </button>
                                                         <button type="button"
                                                             @click="$wire.deleteProject(); deleteProjectModal = false;"
-                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
                                                             CONFIRM
                                                         </button>
                                                     </div>

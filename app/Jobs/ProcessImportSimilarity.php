@@ -7,6 +7,7 @@ use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
+use App\Services\Essential;
 use App\Services\GenerateActivityLogs;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
@@ -32,16 +33,18 @@ class ProcessImportSimilarity implements ShouldQueue
     public $users_id;
     public $batches_id;
     public $duplicationThreshold;
+    public $maximumIncome;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($file_path, $users_id, $batches_id, $duplicationThreshold)
+    public function __construct($file_path, $users_id, $batches_id, $duplicationThreshold, $maximumIncome)
     {
         $this->file_path = $file_path;
         $this->users_id = $users_id;
         $this->batches_id = $batches_id;
         $this->duplicationThreshold = $duplicationThreshold;
+        $this->maximumIncome = $maximumIncome;
     }
 
     /**
@@ -66,7 +69,8 @@ class ProcessImportSimilarity implements ShouldQueue
         }
 
         $worksheet = $spreadsheet->getActiveSheet();
-        $maxDataRow = $worksheet->getHighestDataRow();
+        $minRow = 12;
+        $maxRow = $worksheet->getHighestDataRow();
 
         $successCounter = 0;
         $list = [];
@@ -92,32 +96,41 @@ class ProcessImportSimilarity implements ShouldQueue
             'R' => 'civil_status',
             'S' => 'age',
             'T' => 'avg_monthly_income',
-            'U' => 'is_pwd',
-            'V' => 'dependent',
-            'W' => 'self_employment',
-            'X' => 'skills_training',
-            'Y' => 'spouse_first_name',
-            'Z' => 'spouse_middle_name',
-            'AA' => 'spouse_last_name',
-            'AB' => 'spouse_extension_name'
+            'U' => 'dependent',
+            'V' => 'self_employment',
+            'W' => 'skills_training',
+            'X' => 'spouse_first_name',
+            'Y' => 'spouse_middle_name',
+            'Z' => 'spouse_last_name',
+            'AA' => 'spouse_extension_name',
+            'AB' => 'is_pwd'
         ];
 
         $batch = Batches::find($this->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
 
-        foreach ($worksheet->getRowIterator(13, $maxDataRow - 16) as $row) {
-            if ($row->isEmpty(startColumn: 'A', endColumn: 'AB')) {
+        foreach ($worksheet->getRowIterator($minRow, $maxRow) as $row) {
+            if ($row->isEmpty(3, 'A', 'AB')) {
                 continue;
             }
 
             foreach ($row->getCellIterator('A', 'AB') as $keyCell => $cell) {
 
                 # Trims the cell value and removes extra whitespaces, then add it to the array
-                $value = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $cell->getValue())));
+                $value = Essential::trimmer($cell->getValue());
 
                 # The Sheet Row from the file assigned as a unique identifier for these temporary beneficiaries
                 if ($keyCell === 'A') {
                     $value = $row->getRowIndex();
+                }
+
+                # For Names
+                elseif (in_array($keyCell, ['B', 'D', 'C', 'E', 'U'])) {
+                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                        $value = null;
+                    } else {
+                        $value = mb_strtoupper($value, "UTF-8");
+                    }
                 }
 
                 # For birthdate
@@ -126,23 +139,14 @@ class ProcessImportSimilarity implements ShouldQueue
                 }
 
                 # Values that are empty, null, or `-` will be assigned as `null` to uniform the data
-                elseif (in_array($keyCell, ['N', 'P', 'T', 'X', 'Y', 'Z', 'AA', 'AB'])) {
+                elseif (in_array($keyCell, ['N', 'U', 'W', 'X', 'Y', 'Z', 'AA'])) {
                     if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = null;
-                    }
-                }
-
-                # For Names
-                elseif (in_array($keyCell, ['B', 'D', 'C', 'E', 'V'])) {
-                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
-                        $value = null;
-                    } else {
-                        $value = mb_strtoupper($value, "UTF-8");
                     }
                 }
 
                 # Interested in Self Employment && Person with Disability values that are empty or null will be assigned with `no` as default
-                elseif (in_array($keyCell, ['U', 'W'])) {
+                elseif (in_array($keyCell, ['V', 'AB'])) {
                     if (in_array(strtolower($value), ['no', 'yes'])) {
                         $value = strtolower($value);
                     } else {
@@ -184,7 +188,11 @@ class ProcessImportSimilarity implements ShouldQueue
 
                 # The age value (will not be used)
                 elseif ($keyCell === 'S') {
-                    $value = $cell->getCalculatedValue();
+                    if ($cell->isFormula()) {
+                        $value = $cell->getCalculatedValue();
+                    } elseif (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                        $value = null;
+                    }
                 }
 
                 # Type of Beneficiary value will be defaulted as `underemployed`
@@ -212,7 +220,7 @@ class ProcessImportSimilarity implements ShouldQueue
             }
 
             # Also validate each row and flag a row that has some validation errors
-            $beneficiary = self::validateAndReturn($beneficiary);
+            $beneficiary = self::validateAndReturn($beneficiary, $this->maximumIncome);
 
             # Then we start the similarity checker
             $beneficiary = self::checkSimilaritiesAndReturn($beneficiary, $this->duplicationThreshold);
@@ -232,144 +240,145 @@ class ProcessImportSimilarity implements ShouldQueue
         }
 
         # End Game
-        cache(["similarity_" . $this->users_id => $list], now()->addMinutes(10));
+        cache(["importing_" . $this->users_id => $list], now()->addMinutes(10));
     }
 
-    protected static function validateAndReturn(array $beneficiary)
+    protected static function validateAndReturn(array $beneficiary, string $maximumIncome)
     {
         $list = $beneficiary;
 
         # First Name
-        $errors = '';
-        $errors .= self::required($beneficiary['first_name']);
-        $errors .= self::illegal($beneficiary['first_name']);
-        $errors .= self::numbers($beneficiary['first_name']);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['first_name']);
+        $errors['illegal'] = self::illegal($beneficiary['first_name']);
+        $errors['is_string'] = self::numbers_on_name($beneficiary['first_name']);
         $list['errors']['first_name'] = $errors;
 
         # Middle Name
-        $errors = '';
-        $errors .= self::illegal($beneficiary['middle_name']);
-        $errors .= self::numbers($beneficiary['middle_name']);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
+        $errors = [];
+        $errors['illegal'] = self::illegal($beneficiary['middle_name']);
+        $errors['is_string'] = self::numbers_on_name($beneficiary['middle_name']);
         $list['errors']['middle_name'] = $errors;
 
         # Last Name
-        $errors = '';
-        $errors .= self::required($beneficiary['last_name']);
-        $errors .= self::illegal($beneficiary['last_name']);
-        $errors .= self::numbers($beneficiary['last_name']);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['last_name']);
+        $errors['illegal'] = self::illegal($beneficiary['last_name']);
+        $errors['is_string'] = self::numbers_on_name($beneficiary['last_name']);
         $list['errors']['last_name'] = $errors;
 
         # Extension Name
-        $errors = '';
-        $errors .= self::illegal($beneficiary['extension_name'], true);
-        $errors .= self::numbers($beneficiary['extension_name']);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
+        $errors = [];
+        $errors['illegal'] = self::illegal($beneficiary['extension_name'], true);
+        $errors['is_string'] = self::numbers_on_name($beneficiary['extension_name']);
         $list['errors']['extension_name'] = $errors;
 
         # Birthdate
-        $errors = '';
-        $errors .= self::required($beneficiary['birthdate']);
-        $errors .= self::valid_date($beneficiary['birthdate']);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
-        if (is_null($errors))
-            $list['birthdate'] = Carbon::createFromFormat('Y/m/d', $beneficiary['birthdate'])->format('Y-m-d');
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['birthdate']);
+        $errors['date'] = $beneficiary['birthdate'] === null ? 'Invalid date format. Please use yyyy/mm/dd.' : null;
         $list['errors']['birthdate'] = $errors;
 
         # Contact Number
-        $errors = '';
-        $errors .= self::required($beneficiary['contact_num']);
-        $errors .= self::phone_requirement($beneficiary['contact_num']);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
-        if (is_null($errors))
-            $list['contact_num'] = self::type_of_contact_num($beneficiary['contact_num']);
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['contact_num']);
+        $errors['integer'] = self::is_integer($beneficiary['contact_num']);
+        $errors['starts_with'] = self::starts_with($beneficiary['contact_num']);
+        $errors['digits'] = self::digits($beneficiary['contact_num']);
+        if (empty(array_filter($errors, fn($value) => !is_null(($value)))))
+            $list['contact_num'] = self::filter_contact_num($beneficiary['contact_num']);
         $list['errors']['contact_num'] = $errors;
 
         # Average Monthly Income
-        $errors = '';
-        if (isset($beneficiary['avg_monthly_income']) && empty(self::required_unless($beneficiary['avg_monthly_income'], $beneficiary['occupation'], null))) {
-            $errors .= self::required_unless($beneficiary['avg_monthly_income'], $beneficiary['occupation'], null);
-            $errors .= self::is_negative($beneficiary['avg_monthly_income']);
-            $errors .= self::is_money_integer($beneficiary['avg_monthly_income']);
-
-            if (empty($errors)) {
-                $list['avg_monthly_income'] = MoneyFormat::unmask($beneficiary['avg_monthly_income']);
-            }
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['avg_monthly_income']);
+        $errors['negative'] = self::is_negative($beneficiary['avg_monthly_income']);
+        $errors['integer'] = self::is_money_integer($beneficiary['avg_monthly_income']);
+        $errors['limit'] = self::is_above_maximum_income($beneficiary['avg_monthly_income'], $maximumIncome);
+        if (empty(array_filter($errors, fn($value) => !is_null(($value))))) {
+            $list['avg_monthly_income'] = MoneyFormat::unmask($beneficiary['avg_monthly_income']);
         }
-        if (!isset($errors) || empty($errors))
-            $errors = null;
         $list['errors']['avg_monthly_income'] = $errors;
 
         # Occupation
-        $errors = '';
-        $errors .= self::required_unless($beneficiary['occupation'], $beneficiary['avg_monthly_income'], null);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['occupation']);
         $list['errors']['occupation'] = $errors;
 
+        # Dependent
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['dependent']);
+        $errors['illegal'] = self::illegal($beneficiary['dependent'], false, true);
+        $errors['is_string'] = self::numbers_on_name($beneficiary['dependent']);
+        $list['errors']['dependent'] = $errors;
+
         # Type of ID
-        $errors = '';
-        $errors .= self::required($beneficiary['type_of_id']);
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['type_of_id']);
         if (!isset($errors) || empty($errors))
             $errors = null;
         $list['errors']['type_of_id'] = $errors;
 
         # ID Number
-        $errors = '';
-        $errors .= self::required($beneficiary['id_number']);
-        if (!isset($errors) || empty($errors))
-            $errors = null;
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['id_number']);
         $list['errors']['id_number'] = $errors;
 
-        # Spouse First Name
-        $errors = '';
+        # For Spouse Information (if married)
         if ($beneficiary['civil_status'] === 'married') {
-            $errors .= self::required_if($beneficiary['spouse_first_name'], $beneficiary['civil_status'], 'married');
-            $errors .= self::illegal($beneficiary['spouse_first_name']);
-            $errors .= self::numbers($beneficiary['spouse_first_name']);
-        }
-        if (!isset($errors) || empty($errors))
-            $errors = null;
-        $list['errors']['spouse_first_name'] = $errors;
 
-        # Spouse Middle Name
-        $errors = '';
-        if ($beneficiary['civil_status'] === 'married') {
-            $errors .= self::illegal($beneficiary['spouse_middle_name']);
-            $errors .= self::numbers($beneficiary['spouse_middle_name']);
-        }
-        if (!isset($errors) || empty($errors))
-            $errors = null;
-        $list['errors']['spouse_middle_name'] = $errors;
+            # Spouse First Name
+            $errors = [];
+            $errors['required'] = self::required($beneficiary['spouse_first_name']);
+            $errors['illegal'] = self::illegal($beneficiary['spouse_first_name']);
+            $errors['is_string'] = self::numbers_on_name($beneficiary['spouse_first_name']);
+            $list['errors']['spouse_first_name'] = $errors;
 
-        # Spouse Last Name
-        $errors = '';
-        if ($beneficiary['civil_status'] === 'married') {
-            $errors .= self::required_if($beneficiary['spouse_last_name'], $beneficiary['civil_status'], 'married');
-            $errors .= self::illegal($beneficiary['spouse_last_name']);
-            $errors .= self::numbers($beneficiary['spouse_last_name']);
-        }
-        if (!isset($errors) || empty($errors))
-            $errors = null;
-        $list['errors']['spouse_last_name'] = $errors;
+            # Spouse Middle Name
+            $errors = [];
+            $errors['illegal'] = self::illegal($beneficiary['spouse_middle_name']);
+            $errors['is_string'] = self::numbers_on_name($beneficiary['spouse_middle_name']);
+            $list['errors']['spouse_middle_name'] = $errors;
 
-        # Spouse Extension Name
-        $errors = '';
-        if ($beneficiary['civil_status'] === 'married') {
-            $errors .= self::illegal($beneficiary['spouse_extension_name'], true);
-            $errors .= self::numbers($beneficiary['spouse_extension_name']);
+            # Spouse Last Name
+            $errors = [];
+            $errors['required'] = self::required($beneficiary['spouse_last_name']);
+            $errors['illegal'] = self::illegal($beneficiary['spouse_last_name']);
+            $errors['is_string'] = self::numbers_on_name($beneficiary['spouse_last_name']);
+            $list['errors']['spouse_last_name'] = $errors;
+
+            # Spouse Extension Name
+            $errors = [];
+            $errors['illegal'] = self::illegal($beneficiary['spouse_extension_name']);
+            $errors['is_string'] = self::numbers_on_name($beneficiary['spouse_extension_name']);
+            $list['errors']['spouse_extension_name'] = $errors;
+        } else {
+            # Spouse First Name
+            $errors = [];
+            $errors['required'] = null;
+            $errors['illegal'] = null;
+            $errors['is_string'] = null;
+            $list['errors']['spouse_first_name'] = $errors;
+
+            # Spouse Middle Name
+            $errors = [];
+            $errors['illegal'] = null;
+            $errors['is_string'] = null;
+            $list['errors']['spouse_middle_name'] = $errors;
+
+            # Spouse Last Name
+            $errors = [];
+            $errors['required'] = null;
+            $errors['illegal'] = null;
+            $errors['is_string'] = null;
+            $list['errors']['spouse_last_name'] = $errors;
+
+            # Spouse Extension Name
+            $errors = [];
+            $errors['illegal'] = null;
+            $errors['is_string'] = null;
+            $list['errors']['spouse_extension_name'] = $errors;
         }
-        if (!isset($errors) || empty($errors))
-            $errors = null;
-        $list['errors']['spouse_extension_name'] = $errors;
 
         return $list;
     }
@@ -378,10 +387,8 @@ class ProcessImportSimilarity implements ShouldQueue
     {
         $list = $beneficiary;
 
-        if (!self::check_name_errors($beneficiary['errors'])) {
-
+        if (!self::checkNameErrors($beneficiary['errors'])) {
             $list['similarities'] = JaccardSimilarity::getResults($beneficiary['first_name'], $beneficiary['middle_name'], $beneficiary['last_name'], $beneficiary['extension_name'], $beneficiary['birthdate'], $duplicationThreshold);
-
         } else {
             $list['similarities'] = false;
         }
@@ -393,7 +400,7 @@ class ProcessImportSimilarity implements ShouldQueue
     {
         $list = $beneficiary;
 
-        if (array_unique($beneficiary['errors']) === ["first_name" => null] && $beneficiary['similarities'] === null) {
+        if (!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) {
 
             DB::transaction(function () use ($beneficiary, $batches_id) {
                 $batch = Batches::find($batches_id);
@@ -439,6 +446,7 @@ class ProcessImportSimilarity implements ShouldQueue
                 ]);
 
             });
+
             $list['success'] = true;
         } else {
             $list['success'] = false;
@@ -458,88 +466,113 @@ class ProcessImportSimilarity implements ShouldQueue
             return 'This field is required.';
         }
 
-        return '';
+        return null;
     }
 
     # throws validation errors whenever it detects illegal characters on names
-    static function illegal($data, $ext = false)
+    static function illegal($data, $ext = false, $full = false)
     {
         if ($ext) {
             if (strpbrk($data, "!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\")) {
                 return 'Illegal characters are not allowed.';
             }
-        } else {
+        } elseif ($full) {
 
-            if (strpbrk($data, ".!@#$%^&*()+=-[]';,/{}|:<>?~\"`\\")) {
+            if (strpbrk($data, "!@#$%^&*()+=[]';,/{}|:<>?~\"`\\")) {
+                return 'Illegal characters are not allowed.';
+            }
+
+        } else {
+            if (strpbrk($data, ".!@#$%^&*()+=[]';,/{}|:<>?~\"`\\")) {
                 return 'Illegal characters are not allowed.';
             }
         }
 
-        return '';
+        return null;
     }
 
     # throws validation error whenever the name has a number
-    static function numbers($data)
+    static function numbers_on_name($data)
     {
         if (preg_match('~[0-9]+~', $data)) {
             return 'Numbers on names are not allowed.';
         }
 
-        return '';
+        return null;
     }
 
-    static function valid_date($data)
+    static function is_integer($data)
     {
-        if (!Carbon::createFromFormat('Y/m/d', $data)) {
-            return 'Invalid date format. Please use `YYYY/MM/DD`';
-        }
-
-        return '';
-    }
-
-    static function phone_requirement($data)
-    {
-        $errors = '';
-        if (!preg_match('~[0-9]+~', $data)) {
-            $errors .= 'This only accepts numbers.';
-        }
-
-        $check_09 = substr($data, 0, 2) === '09' ?? false;
-        $check_639 = substr($data, 0, 4) === '+639' ?? false;
-
-        if ($check_09) {
-            if ((strlen($data) !== 11)) {
-                $errors .= 'This number should be 11 digits.';
+        if ($data) {
+            if (substr($data, 0, 2) === '09') {
+                if (Essential::hasNumber(substr($data, 0, 2))) {
+                    return null;
+                }
+            } elseif (substr($data, 0, 4) === '+639') {
+                if (Essential::hasNumber(substr($data, 0, 4))) {
+                    return null;
+                }
             }
-        } elseif ($check_639) {
-            if ((strlen($data) !== 13)) {
-                $errors .= 'This number should be 12 digits.';
-            }
-        } else {
-            $errors .= 'This number should start with 09 or +639.';
+
+            return 'Value only accepts numbers.';
         }
 
-        return $errors;
+        return 'Invalid phone number format.';
     }
 
-    static function type_of_contact_num($data)
+    static function digits($data)
     {
-        if (substr($data, 0, 2) === '09') {
-            return '+63' . substr($data, 1);
-        }
+        if ($data) {
+            if (substr($data, 0, 2) === '09') {
+                if ((strlen($data) !== 11)) {
+                    return 'This number should be 11 digits.';
+                }
 
-        return $data;
-    }
+                return null;
 
-    static function required_unless($data, $other_field, $value)
-    {
-        if ($other_field !== $value) {
-            if (!isset($data) || empty($data)) {
-                return 'This field is required.';
+            } elseif (substr($data, 0, 4) === '+639') {
+                if ((strlen($data) !== 13)) {
+                    return 'This number should be 12 digits with \'+\' symbol.';
+                }
+
+                return null;
+
             }
         }
 
-        return '';
+        return 'Invalid phone number format.';
+    }
+
+    static function starts_with($data)
+    {
+        if ($data) {
+
+            if (substr((string) $data, 0, 2) === '09') {
+                return null;
+            } elseif (substr((string) $data, 0, 4) === '+639') {
+                return null;
+            }
+
+            return 'Valid number should start with \'09\' or \'+639\'';
+        }
+
+        return 'Invalid phone number format.';
+    }
+
+    static function is_above_maximum_income($data, $maximumIncome)
+    {
+        if ($data) {
+
+            if (!ctype_digit((string) $data)) {
+                return 'Invalid money format.';
+            } elseif (MoneyFormat::unmask($data) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
+                return 'The value should be more than 1.';
+            }
+
+            return null;
+        }
+
+        return 'Invalid money format.';
     }
 
     static function required_if($data, $other_field, $value)
@@ -550,34 +583,62 @@ class ProcessImportSimilarity implements ShouldQueue
             }
         }
 
-        return '';
+        return null;
     }
 
     static function is_negative($data)
     {
-        if (MoneyFormat::isNegative($data)) {
-            return 'The value should be more than 1.';
+        if ($data) {
+            if (!ctype_digit((string) $data)) {
+                return 'Invalid money format.';
+            } elseif (MoneyFormat::isNegative($data)) {
+                return 'The value should be more than 1.';
+            }
+            return null;
         }
 
-        return '';
+        return 'Invalid money format.';
     }
 
     static function is_money_integer($data)
     {
-        if (!MoneyFormat::isMaskInt($data)) {
-            return 'The value should be a valid amount.';
+        if ($data) {
+            if (!ctype_digit((string) $data)) {
+                return 'Invalid money format.';
+            } elseif (!MoneyFormat::isMaskInt($data)) {
+                return 'The value should be a valid amount.';
+            }
+
+            return null;
         }
-        return '';
+
+        return 'Invalid money format.';
     }
 
-    static function check_name_errors($errors)
+    # End of Some validation rules ------------------------------------------------------------------------
+
+    static function checkNameErrors($errors, $keys = ['first_name', 'middle_name', 'last_name', 'extension_name'])
     {
-        foreach ($errors as $key => $error) {
-            if (in_array($key, ['first_name', 'middle_name', 'last_name', 'extension_name', 'birthdate'])) {
-                if (!is_null($error)) {
-                    return true;
+        foreach ($keys as $key) {
+            foreach ($errors[$key] as $value) {
+                if (!is_null($value)) {
+                    return true; # Found a non-null value
                 }
             }
+        }
+        return false;
+    }
+    static function checkIfErrors($errors)
+    {
+        $keys = array_keys($errors);
+
+        foreach ($keys as $key) {
+            foreach ($errors[$key] as $value) {
+                if (!is_null($value)) {
+                    return true; # Found a non-null value
+                }
+            }
+
         }
         return false;
     }
@@ -587,56 +648,40 @@ class ProcessImportSimilarity implements ShouldQueue
         return Carbon::parse($birthdate)->age;
     }
 
-    # End of Some validation rules ------------------------------------------------------------------------
+    static function filter_contact_num($data)
+    {
+        if (substr($data, 0, 2) === '09') {
+            return '+63' . substr($data, 1);
+        } elseif (substr($data, 0, 4) === '+639') {
+            return $data;
+        } else {
+            return false;
+        }
+    }
 
     static function extract_dateTime($message, $returnFormat = 'Y/m/d')
     {
         $date_patterns = [
-            // '/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3,8}Z\b/' => 'Y-m-d\TH:i:s.u\Z', // format DATE ISO 8601
             '/\b\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y-m-d',
             '/\b\d{4}-(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])\b/' => 'Y-d-m',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-\d{4}\b/' => 'd-m-Y',
             '/\b(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])-\d{4}\b/' => 'm-d-Y',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-\d{4}\b/' => 'd-m-Y',
+            '/\b(0[1-9]|1[0-2])-\d{4}-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm-Y-d',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-\d{4}-(0[1-9]|1[0-2])\b/' => 'd-Y-m',
 
-            '/\b(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm-d',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])\b/' => 'd-m',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])\b/' => 'd-m',
-            '/\b(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm-d',
-
-
-            '/\b\d{4}\/(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\b/' => 'Y/d/m',
             '/\b\d{4}\/(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y/m/d',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}\b/' => 'd/m/Y',
+            '/\b\d{4}\/(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\b/' => 'Y/d/m',
             '/\b(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\/\d{4}\b/' => 'm/d/Y',
-
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\b/' => 'd/m',
-            '/\b(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm/d',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\b/' => 'd/m',
-            '/\b(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm/d',
-
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}\b/' => 'd/m/Y',
+            '/\b(0[1-9]|1[0-2])\/\d{4}\/(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm/Y/d',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\/\d{4}\/(0[1-9]|1[0-2])\b/' => 'd/Y/m',
 
             '/\b\d{4}\.(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y.m.d',
             '/\b\d{4}\.(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\b/' => 'Y.d.m',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\.\d{4}\b/' => 'd.m.Y',
             '/\b(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\.\d{4}\b/' => 'm.d.Y',
-
-            '/\b(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm.d',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\b/' => 'd.m',
-            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\b/' => 'd.m',
-            '/\b(0[1-9]|1[0-2])\.(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm.d',
-
-        ];
-
-        $time_patterns = [
-            // for 24-hour | hours seconds
-            // '/\b(?:2[0-3]|[01][0-9]):[0-5][0-9](:[0-5][0-9])\.\d{3,6}\b/' => 'H:i:s.u',
-            '/\b(?:2[0-3]|[01][0-9]):[0-5][0-9](:[0-5][0-9])\b/' => 'H:i:s',
-            '/\b(?:2[0-3]|[01][0-9]):[0-5][0-9]\b/' => 'H:i',
-
-            // for 12-hour | hours seconds
-            // '/\b(?:1[012]|0[0-9]):[0-5][0-9](:[0-5][0-9])\.\d{3,6}\b/' => 'h:i:s.u',
-            '/\b(?:1[012]|0[0-9]):[0-5][0-9](:[0-5][0-9])\b/' => 'h:i:s',
-            '/\b(?:1[012]|0[0-9]):[0-5][0-9]\b/' => 'h:i',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\.\d{4}\b/' => 'd.m.Y',
+            '/\b(0[1-9]|1[0-2])\.\d{4}\.(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'm.Y.d',
+            '/\b(0[1-9]|[1-2][0-9]|3[0-1])\.\d{4}\.(0[1-9]|1[0-2])\b/' => 'd.Y.m',
         ];
 
         $dateTimeStr = null;
@@ -649,22 +694,11 @@ class ProcessImportSimilarity implements ShouldQueue
                 break;
             }
         }
-        if ($dateTimeFormat)
-            $dateTimeFormat .= ' ';
-        if ($dateTimeStr)
-            $dateTimeStr .= ' ';
-        foreach ($time_patterns as $time_pattern => $format) {
-            if (preg_match($time_pattern, $message, $matches)) {
-                $dateTimeFormat .= $format;
-                $dateTimeStr .= $matches[0];
-                break;
-            }
-        }
+
         if ($dateTimeStr == null || $dateTimeFormat == null) {
-            $d = new DateTime();
-            return $d->format($returnFormat);
+            return null;
         }
-        $d = DateTime::createFromFormat($dateTimeFormat, $dateTimeStr);
+        $d = Carbon::createFromFormat($dateTimeFormat, $dateTimeStr);
         return $d->format($returnFormat);
     }
 }

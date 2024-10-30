@@ -3,6 +3,7 @@
 namespace App\Livewire\Focal;
 
 use App\Models\Batch;
+use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\User;
 use App\Services\Annex;
@@ -47,7 +48,7 @@ class Dashboard extends Component
     public $alertMessage;
     public $summaryUrl;
     public $showExportModal = false;
-    public $exportChoice = 'date_range';
+    public $exportChoice = 'selected_project';
     public $exportFormat = 'xlsx';
     #[Validate]
     public $defaultExportStart;
@@ -179,6 +180,8 @@ class Dashboard extends Component
 
     public function showExport()
     {
+
+        # By Date Range
         $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
         $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
 
@@ -192,10 +195,16 @@ class Dashboard extends Component
         $currentTime = date('H:i:s', strtotime(now()));
         $this->export_end = $choosenDate . ' ' . $currentTime;
 
+        # By Selected Project
+        if ($this->implementationId) {
+            $this->exportImplementationId = $this->implementationId;
+            $this->currentExportImplementation = $this->exportImplementation[0]->project_num;
+        }
+
         $this->showExportModal = true;
     }
 
-    public function export()
+    public function exportSummary()
     {
         $data = [
             'date_range' => null,
@@ -274,6 +283,23 @@ class Dashboard extends Component
     }
 
     #[Computed]
+    public function exportBatchesInfo()
+    {
+        $batches = Batch::whereHas('beneficiary')
+            ->where('batches.implementations_id', $this->exportImplementationId ? decrypt($this->exportImplementationId) : null)
+            ->get();
+        return $batches;
+    }
+
+    #[Computed]
+    public function exportBeneficiaryCount($encryptedId)
+    {
+        $count = Beneficiary::where('batches_id', decrypt($encryptedId))
+            ->count();
+        return $count;
+    }
+
+    #[Computed]
     public function exportImplementations()
     {
         $implementations = Implementation::whereHas('batch.beneficiary')
@@ -307,6 +333,8 @@ class Dashboard extends Component
         }
 
     }
+
+    # ----------------------------------------------------------------------------------------------
 
     #[On('start-change')]
     public function setStartDate($value)
@@ -560,10 +588,20 @@ class Dashboard extends Component
         }
     }
 
+    #[Computed]
+    public function justCount()
+    {
+        $count = Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            ->where('implementations.id', $this->implementationId ? decrypt($this->implementationId) : null)
+            ->count();
+        return $count;
+    }
+
     public function mount()
     {
         $user = Auth::user();
-        if ($user->user_type !== 'focal' || $user->isOngoingVerification()) {
+        if ($user->user_type !== 'focal') {
             $this->redirectIntended();
         }
         $this->summaryUrl = url('/print-summary');

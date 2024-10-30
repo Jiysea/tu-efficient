@@ -321,7 +321,7 @@ class Assignments extends Component
     public function mount()
     {
         $user = Auth::user();
-        if ($user->user_type !== 'coordinator' || $user->isOngoingVerification()) {
+        if ($user->user_type !== 'coordinator') {
             $this->redirectIntended();
         }
 

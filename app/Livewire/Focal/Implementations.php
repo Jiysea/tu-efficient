@@ -89,6 +89,30 @@ class Implementations extends Component
 
     # ------------------------------------------
 
+    public function rules()
+    {
+        return [
+            'defaultExportStart' => [
+                'required'
+            ],
+            'defaultExportEnd' => [
+                'required'
+            ],
+            'exportBatchId' => [
+                'required'
+            ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'defaultExportStart.required' => 'This field is required.',
+            'defaultExportEnd.required' => 'This field is required.',
+            'exportBatchId.required' => 'This field is required.',
+        ];
+    }
+
     public function showExport()
     {
         $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
@@ -103,6 +127,12 @@ class Implementations extends Component
         $choosenDate = date('Y-m-d', strtotime($date));
         $currentTime = date('H:i:s', strtotime(now()));
         $this->export_end = $choosenDate . ' ' . $currentTime;
+
+        # By Selected Batch
+        if ($this->batchId) {
+            $this->exportBatchId = $this->batchId;
+            $this->currentExportBatch = $this->exportBatch->batch_num . ' / ' . $this->exportBatch->barangay_name;
+        }
 
         $this->showExportModal = true;
     }
@@ -755,10 +785,22 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    #[On('refreshAfterOpening')]
+    public function refreshAfterOpening($message)
+    {
+        unset($this->batches);
+        unset($this->accessCode);
+
+        $this->showAlert = true;
+        $this->alertMessage = $message;
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
     public function mount()
     {
         $user = Auth::user();
-        if ($user->user_type !== 'focal' || $user->isOngoingVerification()) {
+        if ($user->user_type !== 'focal') {
             $this->redirectIntended();
         }
 

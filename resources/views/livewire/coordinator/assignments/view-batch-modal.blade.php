@@ -1,9 +1,11 @@
 <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewBatchModal">
 
     <!-- Modal -->
-    <div x-data="{ accessCodeModal: $wire.entangle('accessCodeModal'), 
-                    forceSubmitConfirmationModal: $wire.entangle('forceSubmitConfirmationModal'), 
-                    revalidateConfirmationModal: $wire.entangle('revalidateConfirmationModal') }" x-show="viewBatchModal" x-trap.noscroll="viewBatchModal"
+    <div x-data="{
+        accessCodeModal: $wire.entangle('accessCodeModal'),
+        forceSubmitConfirmationModal: $wire.entangle('forceSubmitConfirmationModal'),
+        revalidateConfirmationModal: $wire.entangle('revalidateConfirmationModal')
+    }" x-show="viewBatchModal" x-trap.noscroll="viewBatchModal"
         class="min-h-screen p-4 flex items-center justify-center overflow-y-auto z-50 select-none">
 
         @if ($passedBatchId)
@@ -86,12 +88,16 @@
                                 </p>
                                 <div
                                     class="flex flex-1 flex-wrap gap-2 sm:gap-4 text-sm rounded p-2.5 bg-blue-50 text-blue-1000 font-medium">
-                                    @foreach ($this->assignments as $key => $assignment)
+                                    @forelse ($this->assignments as $key => $assignment)
                                         <span wire:key="{{ $key }}"
                                             class="text-center bg-blue-200 rounded px-2 py-1">
                                             {{ $this->getFullName($assignment) }}
                                         </span>
-                                    @endforeach
+                                    @empty
+                                        <span class="w-full text-center bg-blue-200 rounded px-2 py-1">
+                                            NO OTHER COORDINATORS
+                                        </span>
+                                    @endforelse
                                 </div>
                             </div>
 

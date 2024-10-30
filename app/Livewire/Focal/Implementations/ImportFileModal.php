@@ -6,6 +6,7 @@ use App\Jobs\ProcessImportSimilarity;
 use App\Models\Batch as Batches;
 use App\Models\Beneficiary;
 use App\Models\UserSetting;
+use App\Services\Annex;
 use App\Services\AnnexDGenerator;
 use App\Services\JaccardSimilarity;
 use Illuminate\Support\Facades\Auth;
@@ -29,16 +30,18 @@ class ImportFileModal extends Component
     #[Locked]
     public $batchId;
     public $selectedSheetIndex = null;
+    public $duplicationThreshold;
+    public $maximumIncome;
 
     # -----------------------------------
 
     public $step = 1;
     public $number_of_rows = 10;
     public $downloadSampleModal = false;
-    public $duplicationThreshold;
     public $isResult = false;
     public $cachedResults = [];
     public array $successResults = [];
+    public array $perfectResults = [];
     public array $errorResults = [];
     public array $similarityResults = [];
     public array $ineligibleResults = [];
@@ -49,6 +52,7 @@ class ImportFileModal extends Component
     public $jobsBatchId;
     public $importing = false;
     public $importFinished = false;
+    public $importFailed = false;
 
     # -----------------------------------
 
@@ -119,32 +123,25 @@ class ImportFileModal extends Component
 
         $this->importing = true;
         $this->importFinished = false;
-
         $jobBatch = Bus::batch([
-            new ProcessImportSimilarity($filePath, Auth::id(), $this->batch->id, $this->duplicationThreshold),
-        ])->catch(function (Batch $batch, Throwable $e) {
-
-        })->dispatch();
+            new ProcessImportSimilarity((string) $filePath, Auth::id(), $this->batch->id, $this->duplicationThreshold, $this->maximumIncome),
+        ])->dispatch();
 
         $this->jobsBatchId = $jobBatch->id;
 
         $this->nextStep();
     }
 
-    // public function testingAlgorithm()
-    // {
-    //     JaccardSimilarity::getResults('Eniggo', 'Sumeragi', 'Lincoln', 'Jr....', '1989-11-20');
-    // }
-
     public function importProgress()
     {
         $jobBatch = Bus::findBatch($this->jobsBatchId);
 
-        if ($jobBatch->finished()) {
+        if ($jobBatch->finished() && !$jobBatch->hasFailures()) {
             $this->importing = false;
             $this->importFinished = true;
+            $this->importFailed = false;
             $this->reset('successResults', 'errorResults', 'similarityResults', 'ineligibleResults');
-            $this->cachedResults = cache("similarity_" . Auth::id());
+            $this->cachedResults = cache("importing_" . Auth::id());
 
             # Queries the project number of this editted beneficiary
             $project_num = Batches::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
@@ -154,27 +151,36 @@ class ImportFileModal extends Component
                 ])
                 ->first();
 
-            if (isset($this->cachedResults) || !empty($this->cachedResults)) {
+            if (isset($this->cachedResults) && !empty($this->cachedResults)) {
+
                 foreach ($this->cachedResults as $beneficiary) {
 
                     if ($beneficiary['success']) {
                         $this->successResults[] = $beneficiary;
                     }
 
-                    if (array_unique($beneficiary['errors']) !== ["first_name" => null]) {
+                    if ($this->checkIfErrors($beneficiary['errors'])) {
                         $this->errorResults[] = $beneficiary;
                     }
 
                     # This will check if the algorithm has found any possible duplicates based on the given threshold
-                    if (!is_null($beneficiary['similarities'])) {
+                    if (isset($beneficiary['similarities']) && is_array($beneficiary['similarities'])) {
                         # counts how many perfect duplicates encountered from the database
                         $perfectCounter = 0;
+                        $isPerfectDuplicate = false;
                         $isSameImplementation = false;
+
                         foreach ($beneficiary['similarities'] as $result) {
 
+                            # Queries the batch if it's pending on the possible duplicate beneficiary
+                            $batch_pending = Batches::where('batch_num', $result['batch_num'])
+                                ->where('approval_status', 'pending')
+                                ->exists();
+
                             # checks if the result row is a perfect duplicate
-                            if ($result['is_perfect']) {
+                            if ($result['is_perfect'] && !$batch_pending) {
                                 $perfectCounter++;
+                                $isPerfectDuplicate = true;
                             }
 
                             # checks if the result row is in the same project implementation as this editted beneficiary
@@ -185,10 +191,18 @@ class ImportFileModal extends Component
                             }
                         }
 
+                        # Check if there is a perfect duplicate found
+                        if ($isPerfectDuplicate && $perfectCounter < 2 && !$isSameImplementation) {
+                            $this->perfectResults[] = $beneficiary;
+                        }
+
                         # check if there are already more than 2 perfect duplicates and mark this editted beneficiary as `ineligible`
-                        if ($perfectCounter >= 2 || $isSameImplementation) {
+                        elseif ($perfectCounter >= 2 || $isSameImplementation || ($batch_pending && $result['is_perfect'])) {
                             $this->ineligibleResults[] = $beneficiary;
-                        } else {
+                        }
+
+                        # otherwise it'll just be a similarity
+                        else {
                             $this->similarityResults[] = $beneficiary;
                         }
 
@@ -197,14 +211,31 @@ class ImportFileModal extends Component
                 if (sizeof($this->successResults) > 0) {
                     // $this->dispatch(event: 'import-success-beneficiaries', count: sizeof($this->successResults));
                 }
-            } else {
-                $this->backStep();
             }
-            $this->reset('file_path');
 
             # Notify the User if it's done processing the Import
             $this->dispatch('finished-importing');
+        } elseif ($jobBatch->hasFailures()) {
+            $this->importing = false;
+            $this->importFinished = true;
+            $this->importFailed = true;
+            $this->reset('successResults', 'errorResults', 'similarityResults', 'ineligibleResults', 'file_path');
         }
+    }
+
+    protected function checkIfErrors($errors)
+    {
+        $keys = array_keys($errors);
+
+        foreach ($keys as $key) {
+            foreach ($errors[$key] as $value) {
+                if (!is_null($value)) {
+                    return true; # Found a non-null value
+                }
+            }
+
+        }
+        return false;
     }
 
     protected function setCheckers(?array $results)
@@ -249,15 +280,15 @@ class ImportFileModal extends Component
         $this->reset('file_path');
     }
 
-    public function export()
+    public function exportSample()
     {
+        $this->validateOnly('slots_allocated');
         $spreadsheet = new Spreadsheet();
-        $annexD = new AnnexDGenerator();
 
-        $spreadsheet = $annexD->getGeneratedSheet($spreadsheet, $this->slots_allocated);
+        $spreadsheet = Annex::sampleImport($spreadsheet, $this->slots_allocated, $this->batch);
 
         $writer = new Xlsx($spreadsheet);
-        $fileName = 'Annex D - Profile (Sample Format).xlsx';
+        $fileName = 'STIF.xlsx';
         $filePath = storage_path($fileName);
 
         $writer->save($filePath);
@@ -279,8 +310,8 @@ class ImportFileModal extends Component
 
     public function resetImports()
     {
-        if ($this->step === 3 && $this->importFinished && (!isset($this->file_path) || empty($this->file_path))) {
-            $this->resetExcept('batchId', 'duplicationThreshold');
+        if ($this->step === 3 || $this->importFinished && (!isset($this->file_path) || empty($this->file_path) || $this->importFailed)) {
+            $this->resetExcept('batchId', 'duplicationThreshold', 'maximumIncome');
         }
     }
 
@@ -290,6 +321,7 @@ class ImportFileModal extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
     }
 
     public function render()

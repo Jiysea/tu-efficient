@@ -62,15 +62,13 @@
                                         </p>
                                     </div>
 
-                                    {{-- ID Picture --}}
+                                    {{-- Case Picture --}}
                                     @if ($this->credentials->image_file_path)
                                         <button type="button" @click="viewImageModal = !viewImageModal;"
                                             class="relative flex items-center justify-center col-span-1 bg-green-50 w-[90%] aspect-square rounded overflow-hidden group">
 
                                             <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}"
-
-
-                                                class="size-[95%] rounded" alt="ID Picture">
+                                                class="w-[95%] object-contain" alt="ID Picture">
 
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                 class="absolute bottom-0 right-0 size-6 p-1 rounded-tl ease-in-out duration-200 text-green-1100 group-hover:text-green-900"
@@ -140,9 +138,7 @@
                                             class="relative flex items-center justify-center col-span-1 bg-green-50 w-[90%] aspect-square rounded overflow-hidden group">
 
                                             <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}"
-
-
-                                                class="size-[95%] rounded" alt="ID Picture">
+                                                class="w-[95%] object-contain" alt="ID Picture">
 
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                 class="absolute bottom-0 right-0 size-6 p-1 rounded-tl ease-in-out duration-200 text-green-1100 group-hover:text-green-900"
@@ -234,9 +230,7 @@
                                     class="relative flex items-center justify-center col-span-1 w-[50%] aspect-square rounded">
                                     @if (isset($this->credentials->image_file_path))
                                         <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}"
-
-
-                                            class="size-[95%] rounded" alt="ID Picture">
+                                            class="w-[95%]" alt="ID Picture">
                                     @endif
                                 </div>
                             </div>

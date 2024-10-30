@@ -118,6 +118,12 @@ class Submissions extends Component
                     }
                 },
             ],
+            'defaultExportStart' => [
+                'required'
+            ],
+            'defaultExportEnd' => [
+                'required'
+            ],
             'exportBatchId' => [
                 'required'
             ],
@@ -128,6 +134,8 @@ class Submissions extends Component
     {
         return [
             'password_approve.required' => 'This field is required.',
+            'defaultExportStart.required' => 'This field is required.',
+            'defaultExportEnd.required' => 'This field is required.',
             'exportBatchId.required' => 'This field is required.',
         ];
     }
@@ -147,6 +155,12 @@ class Submissions extends Component
         $currentTime = date('H:i:s', strtotime(now()));
         $this->export_end = $choosenDate . ' ' . $currentTime;
 
+        # By Selected Batch
+        if ($this->batchId) {
+            $this->exportBatchId = $this->batchId;
+            $this->currentExportBatch = $this->exportBatch->batch_num . ' / ' . $this->exportBatch->barangay_name;
+        }
+
         $this->showExportModal = true;
     }
 
@@ -156,8 +170,16 @@ class Submissions extends Component
             'exportBatchId' => [
                 'required'
             ],
+            'defaultExportStart' => [
+                'required'
+            ],
+            'defaultExportEnd' => [
+                'required'
+            ],
         ], [
-            'exportBatchId.required' => 'This field is required.'
+            'exportBatchId.required' => 'This field is required.',
+            'defaultExportStart.required' => 'This field is required.',
+            'defaultExportEnd.required' => 'This field is required.',
         ]);
 
         $batch = $this->exportBatch;
@@ -760,6 +782,27 @@ class Submissions extends Component
         $this->deleteBeneficiaryModal = false;
     }
 
+    #[On('optimistic-lock')]
+    public function optimisticLockBeneficiary($message)
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->passedBeneficiaryId = null;
+
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->showAlert = true;
+        $this->alertMessage = $message;
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+        $this->viewBeneficiaryModal = false;
+    }
+
     #[On('finished-importing')]
     public function finishedImporting()
     {
@@ -823,7 +866,7 @@ class Submissions extends Component
     public function mount($batchId = null, $coordinatorId = null)
     {
         $user = Auth::user();
-        if ($user->user_type !== 'coordinator' || $user->isOngoingVerification()) {
+        if ($user->user_type !== 'coordinator') {
             $this->redirectIntended();
         }
 

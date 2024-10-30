@@ -49,9 +49,9 @@ class ViewCredentialsModal extends Component
     public function render()
     {
         if ($this->credentialId) {
-            if ($this->credentials->for_duplicates === 'yes') {
+            if ($this->credentials?->for_duplicates === 'yes') {
                 $this->type = 'special';
-            } elseif ($this->credentials->for_duplicates === 'no') {
+            } elseif ($this->credentials?->for_duplicates === 'no') {
                 $this->type = 'identity';
             } else {
                 $this->type = null;

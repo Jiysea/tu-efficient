@@ -69,7 +69,7 @@ class ActivityLogs extends Component
     public function mount()
     {
         $user = Auth::user();
-        if ($user->user_type !== 'focal' || $user->isOngoingVerification()) {
+        if ($user->user_type !== 'focal') {
             $this->redirectIntended();
         }
     }
