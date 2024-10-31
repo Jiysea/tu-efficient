@@ -358,12 +358,20 @@ class ViewBatch extends Component
         $assignments = Assignment::where('batches_id', decrypt($this->passedBatchId))
             ->get();
         $batch = Batch::find(decrypt($this->passedBatchId));
+        $codes = Code::where('batches_id', $batch->id)->get();
 
         $this->authorize('delete-batch-focal', $batch);
 
         foreach ($assignments as $assignment) {
             $assignment->delete();
         }
+
+        if ($codes->isNotEmpty()) {
+            foreach ($codes as $code) {
+                $code->delete();
+            }
+        }
+
 
         $batch->delete();
 
