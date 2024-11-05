@@ -23,7 +23,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 <livewire:sidebar.focal-bar />
 
-                <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">Implementations</h1>
+                <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">Implementations
+                </h1>
 
                 {{-- Date Range picker --}}
                 <div id="implementations-date-range" date-rangepicker datepicker-autohide

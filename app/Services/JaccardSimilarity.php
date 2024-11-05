@@ -21,13 +21,8 @@ class JaccardSimilarity
 
         # Sort the tokens to neutralize order differences
         sort($tokens);
-        $string = implode(" ", $tokens);
-
-        $string = str_replace(' ', '', $string);
-        $tokens = mb_str_split($string, 2, "UTF-8");
 
         # Join the tokens back into a single string
-        // return implode(' ', $tokens);
         return implode(" ", $tokens);
     }
 
@@ -42,7 +37,7 @@ class JaccardSimilarity
         # the n-grams amount
         $n = 2;
         $ngrams = [];
-        $length = strlen($string) - $n + 1;
+        $length = strlen($string) - $n;
 
         for ($i = 0; $i < $length; $i++) {
             $ngrams[] = substr($string, $i, $n);
@@ -254,19 +249,16 @@ class JaccardSimilarity
             })
             ->where(function ($q) use ($namesToLetters, $middle_name, $extension_name) {
 
-                foreach ($namesToLetters as $letter) {
-                    $q->orWhere('beneficiaries.middle_name', 'LIKE', $letter . '%');
-                }
+                $q->when($middle_name, function ($q) use ($namesToLetters) {
+                    foreach ($namesToLetters as $letter) {
+                        $q->orWhere('beneficiaries.middle_name', 'LIKE', $letter . '%');
+                    }
+                });
 
                 foreach ($namesToLetters as $letter) {
                     $q->orWhere('beneficiaries.last_name', 'LIKE', $letter . '%');
                 }
 
-                $q->when($extension_name, function ($q) use ($namesToLetters) {
-                    foreach ($namesToLetters as $letter) {
-                        $q->orWhere('beneficiaries.extension_name', 'LIKE', $letter . '%');
-                    }
-                });
             })
             ->select([
                 'beneficiaries.*',
@@ -302,6 +294,7 @@ class JaccardSimilarity
         $intersection = array_intersect($ngrams1, $ngrams2);
         $union = array_unique(array_merge($ngrams1, $ngrams2));
 
+        # Calculate the jaccard index
         $jaccardIndex = count($intersection) / count($union);
 
         # Returns the Jaccard Similarity as float
@@ -364,11 +357,7 @@ class JaccardSimilarity
 
                 # then check if it goes over the Threshold
                 if ($coEfficient >= floatval($threshold)) {
-                    // dump(
-                    //     $filteredInputString
-                    //     ,
-                    //     $beneficiaryFromDatabase
-                    // );
+
                     $isPerfectDuplicate = false;
                     $identity_image_file_path = null;
                     $reason_image_file_path = null;
@@ -386,12 +375,13 @@ class JaccardSimilarity
                     }
 
                     # If the names are exactly the same, then it's considered a Perfect Duplicate
-                    if (intval($coEfficient) === 100) {
+                    if (intval($coEfficient) === 100 && $beneficiaryFromDatabase === $filteredInputString) {
                         $isPerfectDuplicate = true;
                     }
 
                     # if it does, then add them to the $results array
                     $results[] = [
+                        'coEfficient' => $coEfficient,
                         'project_num' => $beneficiary->project_num,
                         'batch_num' => $beneficiary->batch_num,
                         'first_name' => $beneficiary->first_name,
@@ -423,7 +413,6 @@ class JaccardSimilarity
                         'spouse_last_name' => $beneficiary->spouse_last_name,
                         'spouse_extension_name' => $beneficiary->spouse_extension_name,
                         'created_at' => $beneficiary->created_at,
-                        'coEfficient' => $coEfficient,
                         'is_perfect' => $isPerfectDuplicate,
                         'identity_image_file_path' => $identity_image_file_path,
                         'reason_image_file_path' => $reason_image_file_path,
@@ -435,8 +424,10 @@ class JaccardSimilarity
 
         if (empty($results))
             return null;
-        else
+        else {
+            arsort($results);
             return $results;
+        }
     }
 
     public static function getResultsFromEdit(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, string $birthdate, int|float $threshold = 65, ?string $ignoreId = null)

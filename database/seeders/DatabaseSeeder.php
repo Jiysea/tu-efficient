@@ -10,13 +10,10 @@ use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\SystemsLog;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\UserSetting;
 use App\Services\JaccardSimilarity;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {

@@ -439,16 +439,17 @@ class AddBeneficiariesModal extends Component
 
     protected function setCheckers(?array $results)
     {
-        # Queries the project number of this editted beneficiary
-        $project_num = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-            ->where('batches.id', decrypt($this->batchId))
-            ->select([
-                'implementations.project_num'
-            ])
-            ->first();
 
         # Checks if there are any results
         if ($results) {
+
+            # Queries the project number of this editted beneficiary
+            $project_num = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+                ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
+                ->select([
+                    'implementations.project_num'
+                ])
+                ->first();
 
             # counts how many perfect duplicates encountered from the database
             $perfectCounter = 0;

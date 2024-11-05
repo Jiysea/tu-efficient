@@ -25,7 +25,7 @@ class ImplementationFactory extends Factory
         $endDate = Carbon::createFromDate(2024, 9, 29); // End date (YYYY, MM, DD)
 
         $budgetAmount = fake()->numberBetween(100000000, 250000000);
-        $minimumWage = mt_rand(46200, 61800);
+        $minimumWage = mt_rand(config('settings.minimum_wage', 481.00) * 100, 61800);
         $daysOfWork = fake()->randomElement([10, 15]);
         $total_slots = $this->calculateTotalSlots($budgetAmount, $minimumWage, $daysOfWork);
         $district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);

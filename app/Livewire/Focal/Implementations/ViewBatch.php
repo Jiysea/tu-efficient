@@ -372,9 +372,9 @@ class ViewBatch extends Component
             }
         }
 
-
         $batch->delete();
 
+        $this->js('viewBatchModal = false;');
         $this->editMode = false;
         $this->dispatch('delete-batch');
         $this->resetViewBatch();
