@@ -1527,7 +1527,7 @@
                                         <span
                                             class="flex flex-1 items-center justify-between text-sm rounded p-2.5 font-medium"
                                             :class="{
-                                                'bg-amber-50 text-amber-700': {{ json_encode($key === 'Type of Beneficiary' && strtolower($info) === 'special case') }},
+                                                'bg-red-50 text-red-700': {{ json_encode($key === 'Type of Beneficiary' && strtolower($info) === 'special case') }},
                                                 'bg-indigo-50 text-indigo-700': {{ json_encode(($key === 'Type of Beneficiary' && strtolower($info) !== 'special case') || $key !== 'Type of Beneficiary') }},
                                             
                                             }">
@@ -1554,7 +1554,7 @@
                                             @if ($key === 'Type of Beneficiary' && strtolower($info) === 'special case')
                                                 {{-- View Button --}}
                                                 <button type="button" wire:click="viewCredential('special')"
-                                                    class="p-0.5 rounded bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50">
+                                                    class="p-0.5 rounded bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">

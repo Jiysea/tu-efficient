@@ -165,11 +165,11 @@
                                                 <th scope="col" class="p-2">
                                                     batch number
                                                 </th>
-                                                <th scope="col" class="relative p-2">
+                                                <th scope="col" class="relative p-2 normal-case">
                                                     <span data-popover-target="first" data-popover-trigger="hover">first
                                                         name</span>
                                                     <div data-popover id="first" role="tooltip"
-                                                        class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                        class="normal-case absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
                                                         <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                             <p>
                                                             <div class="flex items-center gap-2"><span
@@ -186,11 +186,11 @@
                                                     </div>
 
                                                 </th>
-                                                <th scope="col" class="relative p-2">
+                                                <th scope="col" class="relative p-2 normal-case">
                                                     <span data-popover-target="middle"
                                                         data-popover-trigger="hover">middle name</span>
                                                     <div data-popover id="middle" role="tooltip"
-                                                        class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                        class="normal-case absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
                                                         <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                             <p>
                                                             <div class="flex items-center gap-2"><span
@@ -206,11 +206,11 @@
                                                         <div data-popper-arrow></div>
                                                     </div>
                                                 </th>
-                                                <th scope="col" class="relative p-2">
+                                                <th scope="col" class="relative p-2 normal-case">
                                                     <span data-popover-target="last" data-popover-trigger="hover">last
                                                         name</span>
                                                     <div data-popover id="last" role="tooltip"
-                                                        class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                        class="normal-case absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
                                                         <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                             <p>
                                                             <div class="flex items-center gap-2"><span
@@ -226,11 +226,11 @@
                                                         <div data-popper-arrow></div>
                                                     </div>
                                                 </th>
-                                                <th scope="col" class="relative p-2">
+                                                <th scope="col" class="relative p-2 normal-case">
                                                     <span data-popover-target="ext"
                                                         data-popover-trigger="hover">ext.</span>
                                                     <div data-popover id="ext" role="tooltip"
-                                                        class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                        class="normal-case absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
                                                         <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                             <p>
                                                             <div class="flex items-center gap-2"><span
@@ -246,11 +246,11 @@
                                                         <div data-popper-arrow></div>
                                                     </div>
                                                 </th>
-                                                <th scope="col" class="relative p-2">
+                                                <th scope="col" class="relative p-2 normal-case">
                                                     <span data-popover-target="birthdate-sim"
                                                         data-popover-trigger="hover">birthdate</span>
                                                     <div data-popover id="birthdate-sim" role="tooltip"
-                                                        class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                        class="normal-case absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
                                                         <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                             <p>
                                                             <div class="flex items-center gap-2"><span
@@ -273,7 +273,7 @@
                                                     <span data-popover-target="barangay-sim"
                                                         data-popover-trigger="hover">barangay</span>
                                                     <div data-popover id="barangay-sim" role="tooltip"
-                                                        class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
+                                                        class="normal-case absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
                                                         <div class="flex flex-col text-xs font-medium p-2 gap-1">
                                                             <p>
                                                             <div class="flex items-center gap-2"><span
@@ -314,7 +314,7 @@
                                         </thead>
                                         <tbody class="text-xs relative">
                                             @forelse ($similarityResults ?? [] as $key => $result)
-                                                <tr wire:key='batch-{{ $key }}'
+                                                <tr wire:key='similiar-beneficiary-{{ $key }}'
                                                     class="relative whitespace-nowrap hover:bg-gray-50">
                                                     <td class="ps-4 py-2 font-medium">
                                                         {{ $result['coEfficient'] }}%

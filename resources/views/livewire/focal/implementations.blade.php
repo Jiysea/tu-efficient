@@ -499,7 +499,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             @if ($batchId)
                                 <h2 class="hidden lg:block ms-2 font-medium text-xs text-indigo-1100">Special Cases:
                                 </h2><span
-                                    class="{{ $this->specialCasesCount !== 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500' }} rounded px-2 py-1 ms-2 text-xs font-medium">
+                                    class="{{ $this->specialCasesCount !== 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-500' }} rounded px-2 py-1 ms-2 text-xs font-medium">
                                     {{ $this->specialCasesCount }}
                                 </span>
                             @endif
@@ -730,15 +730,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             :class="{
                                                 'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
                                                 'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
-                                                'bg-amber-200 text-amber-900 hover:bg-amber-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                'bg-amber-100 text-amber-700 hover:bg-amber-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                             
                                             }">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
                                                     'bg-indigo-700': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
                                                     '': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
-                                                    'bg-amber-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
                                                     '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
@@ -828,8 +828,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     :class="{
                                                         'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
                                                         'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
-                                                        'hover:bg-amber-700 focus:bg-amber-700 text-amber-900 hover:text-amber-50 focus:text-amber-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                        'text-amber-700 hover:text-amber-900 focus:text-amber-900 hover:bg-amber-300 focus:bg-amber-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                        'hover:bg-red-700 focus:bg-red-700 text-red-900 hover:text-red-50 focus:text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                        'text-red-700 hover:text-red-900 focus:text-red-900 hover:bg-red-300 focus:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                                     
                                                     }">
 
