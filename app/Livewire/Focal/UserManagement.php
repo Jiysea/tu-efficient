@@ -122,7 +122,16 @@ class UserManagement extends Component
     {
         $this->addCoordinatorsModal = false;
         $this->showAlert = true;
-        $this->alertMessage = 'Successfully created a new coordinator!';
+        $this->alertMessage = 'Successfully created a new coordinator';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[On('edit-coordinator')]
+    public function editCoordinators()
+    {
+        $this->showAlert = true;
+        $this->alertMessage = 'Modified a coordinator successfully';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
     }
@@ -132,7 +141,7 @@ class UserManagement extends Component
     {
         $this->coordinatorId = null;
         $this->showAlert = true;
-        $this->alertMessage = 'A coordinator has been deleted!';
+        $this->alertMessage = 'A coordinator has been deleted';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
     }

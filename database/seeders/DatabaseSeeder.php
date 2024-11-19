@@ -8,10 +8,10 @@ use App\Models\Beneficiary;
 use App\Models\Code;
 use App\Models\Credential;
 use App\Models\Implementation;
-use App\Models\SystemsLog;
 use App\Models\User;
 use App\Models\UserSetting;
 use App\Services\JaccardSimilarity;
+use App\Services\LogIt;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $startDate = Carbon::createFromDate(2023, 9, 29);
+        $startDate = Carbon::createFromDate(2023, 1, 1);
 
         // $admin = User::factory()->create([
         //     'first_name' => 'TU-Admin',
@@ -62,23 +62,25 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $focalUser = User::factory()->create([
+            'first_name' => 'JON CHRYST',
+            'middle_name' => 'ANDOQUE',
+            'last_name' => 'CAMPOS',
+            'extension_name' => null,
             'user_type' => 'focal',
+            'email' => 'j.campos.511247@umindanao.edu.ph',
+            'contact_num' => '+639774547579',
+            'email_verified_at' => $startDate->addMinutes(11)->addSeconds(mt_rand(1, 59)),
+            'mobile_verified_at' => $startDate->addMinutes(15)->addSeconds(mt_rand(1, 59)),
+            'created_at' => $startDate,
+            'updated_at' => $startDate,
         ]);
 
-        SystemsLog::factory()->create([
-            'users_id' => $focalUser->id,
-            'log_timestamp' => $startDate,
-            'description' => $this->getFullName($focalUser) . ' has been created as field office focal.'
-        ]);
+        LogIt::set_register_user($focalUser);
 
         $coordinatorUsers = User::factory($this->coordinatorsAmount)->create();
 
         foreach ($coordinatorUsers as $key => $user) {
-            SystemsLog::factory()->create([
-                'users_id' => $user->id,
-                'log_timestamp' => $startDate,
-                'description' => $this->getFullName($user) . ' has been created as ' . $focalUser->regional_office . ' coordinator.'
-            ]);
+            LogIt::set_register_user($user, $focalUser->id);
         }
 
         # Uncomment and use this only when adding additional settings
@@ -94,13 +96,12 @@ class DatabaseSeeder extends Seeder
             'batch_number_prefix' => config('settings.batch_number_prefix'),
             'senior_age_threshold' => config('settings.senior_age_threshold'),
             'maximum_income' => config('settings.maximum_income'),
+            'default_archive' => config('settings.default_archive'),
         ];
 
         $settingsCoordinator = [
-            'minimum_wage' => config('settings.minimum_wage'),
             'duplication_threshold' => config('settings.duplication_threshold'),
-            'senior_age_threshold' => config('settings.senior_age_threshold'),
-            'maximum_income' => config('settings.maximum_income'),
+            'default_archive' => config('settings.default_archive'),
         ];
 
         foreach ($settingsFocal as $key => $setting) {
@@ -110,11 +111,7 @@ class DatabaseSeeder extends Seeder
                 'value' => $setting,
             ]);
 
-            SystemsLog::factory()->create([
-                'users_id' => null,
-                'log_timestamp' => $startDate,
-                'description' => 'A setting ' . $initSetting['key'] . ' has been initialized with ' . $initSetting['value'] . ' for ' . $this->getFullName(person: $focalUser) . '.'
-            ]);
+            LogIt::set_initialization_of_user_settings($initSetting);
         }
 
         foreach ($coordinatorUsers as $user) {
@@ -125,11 +122,7 @@ class DatabaseSeeder extends Seeder
                     'value' => $setting,
                 ]);
 
-                SystemsLog::factory()->create([
-                    'users_id' => null,
-                    'log_timestamp' => $startDate,
-                    'description' => 'A setting ' . $initSetting['key'] . ' has been initialized with ' . $initSetting['value'] . ' for ' . $this->getFullName(person: $user) . '.'
-                ]);
+                LogIt::set_initialization_of_user_settings($initSetting);
             }
         }
 
@@ -140,116 +133,98 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        # Implementations
         foreach ($implementations as $key => $implementation) {
             Implementation::withoutTimestamps(function () use ($implementation, $project_title, $key) {
                 $implementation->project_title = $project_title . ' ' . $key + 1;
                 $implementation->save();
             });
 
-            SystemsLog::factory()->create([
-                'users_id' => $focalUser->id,
-                'log_timestamp' => $implementation->updated_at,
-                'description' => 'Created an implementation project ' . $implementation['project_num'] . '.',
-            ]);
-        }
+            LogIt::set_create_project($implementation);
 
-        $batches = $implementations->flatMap(function ($implementation) {
             $currentDate = $implementation->created_at;
             $allottedSlots = $this->generateRandomArray($implementation->total_slots);
+            $is_sectoral = $implementation->is_sectoral;
 
-            return collect($allottedSlots)->map(function ($slots) use ($implementation, $currentDate) {
-                return Batch::factory()->create([
+            # Batches
+            foreach ($allottedSlots as $slots) {
+
+                $district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
+
+                $batch = Batch::factory()->create([
                     'implementations_id' => $implementation->id,
-                    'barangay_name' => $this->getBarangayName($implementation->id),
+                    'batch_num' => $this->batchNumberGenerator(Carbon::parse($currentDate)->format('Y-')),
+                    'sector_title' => $is_sectoral === 1 ? $this->generateSectorTitle() : null,
+                    'district' => $is_sectoral === 1 ? null : $district,
+                    'barangay_name' => $is_sectoral === 1 ? null : $this->getBarangayName($implementation->id, $district),
                     'slots_allocated' => $slots,
                     'created_at' => $currentDate,
                     'updated_at' => $currentDate,
                 ]);
-            });
-        });
 
-        foreach ($batches as $batch) {
-            SystemsLog::factory()->create([
-                'users_id' => $focalUser->id,
-                'log_timestamp' => $batch->updated_at,
-                'description' => 'Created a batch assignment ' . $batch->batch_num . ' in project ' . Implementation::find($batch->implementations_id)->value('project_num') . '.',
-            ]);
+                LogIt::set_create_batches($batch);
 
-            $amount = mt_rand($this->assignmentAmountMin, $this->assignmentAmountMax);
-            $coordinators = $coordinatorUsers->random($amount);
-            $currentDate = $batch->created_at;
+                $amount = mt_rand($this->assignmentAmountMin, $this->assignmentAmountMax);
+                $coordinators = $coordinatorUsers->random($amount);
+                $currentDate = $batch->created_at;
 
-            $coordinators->each(function ($user) use ($batch, $currentDate, $focalUser) {
-                Assignment::factory()->create([
+                $coordinators->each(function ($user) use ($batch, $currentDate, $focalUser) {
+                    $assignment = Assignment::factory()->create([
+                        'batches_id' => $batch->id,
+                        'users_id' => $user->id,
+                        'created_at' => $currentDate,
+                        'updated_at' => $currentDate,
+                    ]);
+
+                    LogIt::set_assign_coordinator_to_batch($assignment);
+                });
+
+                $code = Code::factory()->create(['batches_id' => $batch->id]);
+                $coordinators = User::whereHas('assignment', function ($q) use ($batch) {
+                    $q->where('batches_id', $batch->id);
+                })->get();
+
+                $randomCoordinator = $coordinators->random();
+                LogIt::set_open_access($code, $randomCoordinator);
+
+                $beneficiaries = Beneficiary::factory($batch->slots_allocated)->create([
                     'batches_id' => $batch->id,
-                    'users_id' => $user->id,
-                    'created_at' => $currentDate,
-                    'updated_at' => $currentDate,
+                    'district' => $batch->district ?? '.',
+                    'barangay_name' => $batch->barangay_name ?? '.',
+                    'created_at' => $batch->created_at,
+                    'updated_at' => $batch->updated_at,
                 ]);
 
-                SystemsLog::factory()->create([
-                    'users_id' => $focalUser->id,
-                    'log_timestamp' => $currentDate,
-                    'description' => 'Assigned ' . $this->getFullName($user) . ' in batch ' . $batch->batch_num . '.',
-                ]);
-            });
-        }
+                $specialCases = 0;
+                foreach ($beneficiaries as $beneficiary) {
+                    if ($beneficiary->district === '.') {
+                        $individual_district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
+                        $beneficiary->district = $individual_district;
+                        $beneficiary->barangay_name = $this->getBarangayName($implementation->id, $individual_district);
+                    }
 
-        $focalUserId = $focalUser->id; // example focal user id
-        $batches = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-            ->select(['batches.*', 'implementations.district'])
-            ->get();
+                    if ($is_sectoral === 1 && mb_strtolower(substr($batch->sector_title, 0, 10), "UTF-8") === 'occupation') {
+                        $beneficiary->occupation = substr($batch->sector_title, 11);
+                    }
 
-        foreach ($batches as $batch) {
-            Batch::withoutTimestamps(function () use ($batch) {
-                $batch->submission_status = 'submitted';
-                $batch->save();
-            });
+                    $beneficiary->save();
 
-            SystemsLog::factory()->create([
-                'users_id' => $focalUserId,
-                'log_timestamp' => $batch->updated_at,
-                'description' => 'Marked batch ' . $batch->batch_num . ' as submitted.',
-            ]);
+                    # check its Jaccard Similarity index
+                    $beneficiariesInDatabase = $this->prefetchNames($beneficiary, $this->getFullName($beneficiary), $beneficiary->middle_name);
+                    $joiningFrequency = 1;
 
-            $code = Code::factory()->create(['batches_id' => $batch->id]);
+                    # this is where it checks the similarities
+                    foreach ($beneficiariesInDatabase as $key => $existing) {
 
-            SystemsLog::factory()->create([
-                'users_id' => $focalUserId,
-                'log_timestamp' => $batch->updated_at,
-                'description' => 'Created an access code for Batch ' . $code->access_code . '.',
-            ]);
+                        # gets the full name of the beneficiary
+                        $existingPerson = $this->getFullName2($existing, $beneficiary->middle_name);
+                        $currentPerson = $this->getFullName2($beneficiary, $beneficiary->middle_name);
 
-            $beneficiaries = Beneficiary::factory($batch->slots_allocated)->create([
-                'batches_id' => $batch->id,
-                'barangay_name' => $batch->barangay_name,
-                'district' => $batch->district,
-                'created_at' => $batch->created_at,
-                'updated_at' => $batch->updated_at,
-            ]);
+                        # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
+                        $coEfficient = JaccardSimilarity::calculateSimilarity($existingPerson, $currentPerson);
 
-            $specialCases = 0;
-            foreach ($beneficiaries as $beneficiary) {
-
-                # check its Jaccard Similarity index
-                $beneficiariesInDatabase = $this->prefetchNames($beneficiary, $this->getFullName($beneficiary), $beneficiary->middle_name);
-                $joiningFrequency = 1;
-
-                # this is where it checks the similarities
-                foreach ($beneficiariesInDatabase as $key => $existing) {
-
-                    # gets the full name of the beneficiary
-                    $existingPerson = $this->getFullName2($existing, $beneficiary->middle_name);
-                    $currentPerson = $this->getFullName2($beneficiary, $beneficiary->middle_name);
-
-                    # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
-                    $coEfficient = JaccardSimilarity::calculateSimilarity($existingPerson, $currentPerson);
-
-                    # check if it's a perfect duplicate
-                    if (intval($coEfficient * 100) === 100) {
-
-                        # if the current beneficiary is the same as the existing beneficiary...
-                        if ($existingPerson === $currentPerson) {
+                        # check if it's a perfect duplicate
+                        if (intval($coEfficient * 100) === 100) {
 
                             # if the exact same person joined more than 2 times...
                             if ($joiningFrequency > 1) {
@@ -271,6 +246,11 @@ class DatabaseSeeder extends Seeder
                                     $beneficiary->spouse_middle_name = $s_middle_name;
                                     $beneficiary->spouse_last_name = $s_last_name;
                                     $beneficiary->spouse_extension_name = $s_extension_name;
+
+                                    if (is_null($beneficiary->barangay_name)) {
+                                        $barangay_name = $this->getBarangaysByDistrict($beneficiary->district);
+                                        $beneficiary->barangay_name = $barangay_name;
+                                    }
                                     $beneficiary->save();
                                 });
                             }
@@ -295,35 +275,31 @@ class DatabaseSeeder extends Seeder
                                 $specialCases++;
                             }
                         }
-
-                        # otherwise...
-                        else {
-
-                            # tell the reason if they are not the same person
-                            Credential::factory()->create([
-                                'beneficiaries_id' => $beneficiary->id,
-                                'image_description' => 'Not the same person.',
-                                'for_duplicates' => 'yes',
-                                'created_at' => $batch->created_at,
-                                'updated_at' => $batch->updated_at,
-                            ]);
-                        }
                     }
+
+                    Credential::factory()->create([
+                        'beneficiaries_id' => $beneficiary->id,
+                        'created_at' => $batch->created_at,
+                        'updated_at' => $batch->updated_at,
+                    ]);
                 }
 
-                Credential::factory()->create([
-                    'beneficiaries_id' => $beneficiary->id,
-                    'created_at' => $batch->created_at,
-                    'updated_at' => $batch->updated_at,
-                ]);
+                LogIt::set_import_success($randomCoordinator, $batch, $batch->slots_allocated - $specialCases);
+
+                if ($specialCases > 0) {
+                    LogIt::set_import_special_cases($randomCoordinator, $batch, $specialCases);
+                }
+
+                # Then force submit the batch
+                Batch::withoutTimestamps(function () use ($batch) {
+                    $batch->submission_status = 'submitted';
+                    $batch->approval_status = 'approved';
+                    $batch->save();
+                });
+
+                LogIt::set_force_submit_batch($randomCoordinator, $batch);
+                LogIt::set_approve_batch($randomCoordinator, $batch);
             }
-
-            SystemsLog::factory()->create([
-                'users_id' => $focalUser->id,
-                'log_timestamp' => $batch->updated_at,
-                'description' => 'Added (' . $batch->slots_allocated . ') beneficiaries with (' . $specialCases . ') special cases in batch ' . $batch->batch_num . '.',
-            ]);
-
         }
     }
 
@@ -389,6 +365,48 @@ class DatabaseSeeder extends Seeder
         return $beneficiariesFromDatabase;
     }
 
+    function generateSectorTitle()
+    {
+        $type_of_sector = fake()->randomElement(['occupation', 'assistance']);
+
+        if ($type_of_sector === 'occupation') {
+            return 'Occupation:' . fake()->randomElement([
+                'Fisherman',
+                'Street Vendor',
+                'Plumber',
+                'Warehouse Worker',
+                'Construction Worker',
+                'Driver',
+                'Cook',
+                'Street Sweeper',
+                'Farmer',
+                'Janitor',
+                'Welder',
+                'Gardener'
+            ]);
+        } elseif ($type_of_sector === 'assistance') {
+            return fake()->randomElement([
+                'School Related',
+                'Community Program',
+                'Calamity Assistance',
+            ]);
+        }
+    }
+
+    function batchNumberGenerator(string $year)
+    {
+        $prefix = config('settings.batch_number_prefix', 'DCFO-BN-');
+        $number = $prefix . $year . fake()->bothify('########');
+        $existingNumber = Batch::where('batch_num', $number)->first();
+
+        while ($existingNumber) {
+            $number = $prefix . $year . fake()->bothify('########');
+            $existingNumber = Batch::where('batch_num', $number)->first(); // Check if the new number exists
+        }
+
+        return $number;
+    }
+
     function getFullName2($person, $middle_name)
     {
         $name = $person->first_name;
@@ -445,9 +463,8 @@ class DatabaseSeeder extends Seeder
         return $values;
     }
 
-    function getBarangayName($implementationId): string
+    function getBarangayName($implementationId, $district): string
     {
-        $district = Implementation::find($implementationId)->district;
         $barangays = $this->getBarangaysByDistrict($district);
 
         do {
@@ -660,7 +677,7 @@ class DatabaseSeeder extends Seeder
             switch ($nameType) {
                 case 'first':
                     if (strtolower($sex) == 'male') {
-                        return $name = fake()->randomElement([
+                        $name = fake()->randomElement([
                             'Andres',
                             'Antonio',
                             'Angelo',
@@ -920,7 +937,7 @@ class DatabaseSeeder extends Seeder
                             'Zosimo'
                         ]);
                     } else if (strtolower($sex) == 'female') {
-                        return $name = fake()->randomElement([
+                        $name = fake()->randomElement([
                             'Andrea',
                             'Angela',
                             'Adelina',
@@ -1160,14 +1177,14 @@ class DatabaseSeeder extends Seeder
                         ]);
                     }
                 case 'middle':
-                    return $name = $this->getMiddleName();
+                    $name = $this->getMiddleName();
                 case 'last':
-                    return $name = $last_name;
+                    $name = $last_name;
                 case 'ext':
-                    return $name = $this->getSuffix();
+                    $name = $this->getSuffix();
             }
         }
-        return $name;
+        return $name ? mb_strtoupper($name, "UTF-8") : null;
     }
     protected function getFirstName($sex)
     {
@@ -2180,12 +2197,12 @@ class DatabaseSeeder extends Seeder
             $pickedFirstNames .= ' ' . $firstNames;
         }
 
-        return $pickedFirstNames;
+        return mb_strtoupper($pickedFirstNames, "UTF-8");
     }
 
     protected function getLastName()
     {
-        return fake()->randomElement([
+        return mb_strtoupper(fake()->randomElement([
             'Abad',
             'Abalos',
             'Abdullah',
@@ -2473,12 +2490,12 @@ class DatabaseSeeder extends Seeder
             'Yu',
             'Zamora',
             'Zapanta',
-        ]);
+        ]), "UTF-8");
     }
 
     protected function getMiddleName()
     {
-        return fake()->optional(0.85)->randomElement([
+        $name = fake()->optional(0.85)->randomElement([
             'Abad',
             'Abalos',
             'Abdullah',
@@ -2767,11 +2784,13 @@ class DatabaseSeeder extends Seeder
             'Zamora',
             'Zapanta',
         ]);
+        return $name ? mb_strtoupper($name, "UTF-8") : null;
     }
 
     protected function getSuffix()
     {
-        return fake()->optional(0.1)->randomElement(['I', 'II', 'III', 'IV', 'Sr.', 'Jr.']);
+        $name = fake()->optional(0.1)->randomElement(['I', 'II', 'III', 'IV', 'Sr.', 'Jr.']);
+        return $name ? mb_strtoupper($name, "UTF-8") : null;
     }
 
     // -----------------------------------

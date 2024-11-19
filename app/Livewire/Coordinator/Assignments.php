@@ -125,7 +125,8 @@ class Assignments extends Component
         $approvalStatuses = array_keys(array_filter($this->filter['approval_status']));
         $submissionStatuses = array_keys(array_filter($this->filter['submission_status']));
 
-        $batches = Batch::join('assignments', 'batches.id', '=', 'assignments.batches_id')
+        $batches = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            ->join('assignments', 'batches.id', '=', 'assignments.batches_id')
             ->where('assignments.users_id', Auth::id())
             ->when(!empty($approvalStatuses), function ($q) use ($approvalStatuses) {
                 $q->whereIn('batches.approval_status', $approvalStatuses);
@@ -138,7 +139,9 @@ class Assignments extends Component
             ->select(
                 [
                     'batches.id',
+                    'implementations.is_sectoral',
                     'batches.batch_num',
+                    'batches.sector_title',
                     'batches.barangay_name',
                     'batches.slots_allocated',
                     'batches.approval_status',
@@ -219,10 +222,12 @@ class Assignments extends Component
             $location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
                 ->where('batches.id', $this->batchId)
                 ->select([
-                    'implementations.district',
+                    'implementations.is_sectoral',
                     'implementations.city_municipality',
                     'implementations.province',
+                    'batches.district',
                     'batches.barangay_name',
+                    'batches.sector_title'
                 ])
                 ->first();
 

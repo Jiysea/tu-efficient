@@ -6,6 +6,7 @@ use App\Jobs\CheckCoordinatorVerificationStatus;
 use App\Models\Implementation;
 use App\Models\User;
 use App\Services\Essential;
+use App\Services\LogIt;
 use Illuminate\Auth\Events\Registered;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -115,26 +116,26 @@ class AddCoordinatorsModal extends Component
     public function messages()
     {
         return [
-            'first_name.required' => 'First name is required.',
-            'last_name.required' => 'Last name is required.',
+            'first_name.required' => 'This field is required.',
+            'last_name.required' => 'This field is required.',
 
-            'contact_num.required' => 'Contact number is required.',
+            'contact_num.required' => 'This field is required.',
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',
 
-            'email.required' => 'Email is required.',
+            'email.required' => 'This field is required.',
             'email.email' => 'Invalid email.',
             'email.unique' => 'Email already exists.',
 
-            'password.required' => 'Password is required.',
-            'password.min' => 'Need at least 8 characters.',
+            'password.required' => 'This field is required.',
+            'password.min' => 'Needs at least 8 characters.',
             'password.uncompromised' => 'Please try a different :attribute.',
-            'password.mixed' => 'Need at least 1 uppercase letter.',
-            'password.numbers' => 'Need at least 1 number.',
-            'password.symbols' => 'Need at least 1 symbol.',
+            'password.mixed' => 'Needs at least 1 uppercase letter.',
+            'password.numbers' => 'Needs at least 1 number.',
+            'password.symbols' => 'Needs at least 1 symbol.',
 
-            'password_confirmation.required' => 'Passwords do not match.',
-            'password_confirmation.same' => 'Passwords do not match.',
+            'password_confirmation.required' => 'This field is required.',
+            'password_confirmation.same' => 'Passwords does not match.',
         ];
     }
 
@@ -157,17 +158,19 @@ class AddCoordinatorsModal extends Component
         $this->contact_num = '+63' . substr($this->contact_num, 1);
 
         $user = User::create([
-            'first_name' => $this->first_name,
-            'middle_name' => $this->middle_name,
-            'last_name' => $this->last_name,
-            'extension_name' => $this->extension_name,
-            'email' => $this->email,
+            'first_name' => mb_strtoupper(Essential::trimmer($this->first_name), "UTF-8"),
+            'middle_name' => $this->middle_name ? mb_strtoupper(Essential::trimmer($this->middle_name), "UTF-8") : null,
+            'last_name' => mb_strtoupper(Essential::trimmer($this->last_name), "UTF-8"),
+            'extension_name' => $this->extension_name ? mb_strtoupper(Essential::trimmer($this->extension_name), "UTF-8") : null,
+            'email' => mb_strtolower(Essential::trimmer($this->email), "UTF-8"),
             'password' => bcrypt($this->password),
             'contact_num' => $this->contact_num,
             'regional_office' => Auth::user()->regional_office,
             'field_office' => Auth::user()->field_office,
             'user_type' => 'coordinator',
         ]);
+
+        LogIt::set_register_user($user, auth()->id());
 
         $this->resetCoordinators();
         $this->dispatch('add-new-coordinator');

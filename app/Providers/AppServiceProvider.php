@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Archive;
 use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         Gate::define('delete-implementation-focal', function (User $user, Implementation $implementation) {
             return $user->id === $implementation->users_id;
         });
@@ -89,6 +91,38 @@ class AppServiceProvider extends ServiceProvider
                 ->first();
 
             if (isset($assignments)) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('restore-beneficiary-focal', function (User $user, Archive $archive) {
+
+            if (!$archive) {
+                return false;
+            }
+
+            $batchId = $archive->data['batches_id'];
+            $users_id = Implementation::find(Batch::find($batchId)->implementations_id)->users_id;
+
+            if ($user->id === $users_id) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('permdelete-beneficiary-focal', function (User $user, Archive $archive) {
+
+            if (!$archive) {
+                return false;
+            }
+
+            $batchId = $archive->data['batches_id'];
+            $users_id = Implementation::find(Batch::find($batchId)->implementations_id)->users_id;
+
+            if ($user->id === $users_id) {
                 return true;
             } else {
                 return false;

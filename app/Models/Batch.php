@@ -19,6 +19,8 @@ class Batch extends Model
     protected $fillable = [
         'implementations_id',
         'batch_num',
+        'sector_title',
+        'district',
         'barangay_name',
         'slots_allocated',
         'approval_status',

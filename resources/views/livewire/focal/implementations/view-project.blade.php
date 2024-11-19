@@ -46,28 +46,22 @@
 
                 {{-- Modal body --}}
                 <form wire:submit.prevent="editProject" class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
 
                         {{-- IF Edit Mode is ON --}}
                         @if ($editMode)
                             {{-- Project Number --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
-                                <label for="project_num" class="block mb-1  font-medium text-indigo-1100 ">Project
-                                    Number <span class="text-red-700 font-normal text-sm">*</span> <span
-                                        class="text-gray-500 ms-2">prefix:
-                                        <strong>{{ substr($projectNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($projectNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong></span></label>
-                                <input type="text" id="project_num" autocomplete="off" wire:model.blur="project_num"
-                                    class="text-xs duration-200 {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
-                                    placeholder="Type project number">
-                                @error('project_num')
-                                    <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
-                                        {{ $message }}
-                                    </p>
-                                @enderror
+                            <div class="flex flex-1 flex-col relative">
+                                <p class="block mb-1 font-medium text-indigo-1100">
+                                    Project Number
+                                </p>
+                                <span
+                                    class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
+                                    {{ $this->implementation?->project_num }}</span>
                             </div>
 
                             {{-- Project Title --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
+                            <div class="flex flex-1 flex-col relative">
                                 <label for="project_title" class="block mb-1 font-medium text-indigo-1100 ">Project
                                     Title</label>
                                 <input type="text" id="project_title" autocomplete="off"
@@ -82,7 +76,7 @@
                             </div>
 
                             {{-- Budget --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
+                            <div class="flex flex-1 flex-col relative">
                                 @if ($isEmpty)
                                     <label for="budget_amount" class="block mb-1  font-medium text-indigo-1100 ">Budget
                                         <span class="text-red-700 font-normal">*</span></label>
@@ -117,7 +111,7 @@
                             </div>
 
                             {{-- Minimum Wage --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
+                            <div class="flex flex-1 flex-col relative">
                                 @if ($isEmpty)
                                     <label for="minimum_wage" class="block mb-1  font-medium text-indigo-1100 ">Minimum
                                         Wage
@@ -153,7 +147,7 @@
                             </div>
 
                             {{-- Total Slots --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
+                            <div class="flex flex-1 flex-col relative">
                                 @if ($isEmpty)
                                     <div class="flex items-center">
                                         <label for="total_slots"
@@ -193,7 +187,7 @@
                             </div>
 
                             {{-- Days Of Work --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
+                            <div class="flex flex-1 flex-col relative">
                                 @if ($isEmpty)
                                     <label for="days_of_work" class="block mb-1  font-medium text-indigo-1100 ">Days
                                         of
@@ -218,88 +212,64 @@
                             </div>
 
                             {{-- Province --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
-                                @if ($isEmpty)
-                                    <label for="province"
-                                        class="block mb-1  font-medium text-indigo-1100 ">Province</label>
-                                    <select id="province" autocomplete="off" wire:model.blur="province"
-                                        class="text-xs duration-200 {{ $errors->has('province') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                                        @foreach ($this->provinces as $province)
-                                            <option>{{ $province }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('province')
-                                        <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
-                                            {{ $message }}
-                                        </p>
-                                    @enderror
-                                @else
-                                    <p class="block mb-1 font-medium text-indigo-1100">
-                                        Province
-                                    </p>
-                                    <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
-                                        {{ $this->implementation?->province }}</span>
-                                @endif
+                            <div class="flex flex-1 flex-col relative">
+                                <p class="block mb-1 font-medium text-indigo-1100">
+                                    Province
+                                </p>
+                                <span
+                                    class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
+                                    {{ $this->implementation?->province }}</span>
                             </div>
 
                             {{-- City|Municipality --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
-                                @if ($isEmpty)
-                                    <label for="city_municipality" class="block mb-1  font-medium text-indigo-1100 ">
-                                        City/Municipality</label>
-                                    <select id="city_municipality" autocomplete="off"
-                                        wire:model.blur="city_municipality" wire:key="{{ $province }}"
-                                        class="text-xs duration-200 {{ $errors->has('city_municipality') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                                        @foreach ($this->cities_municipalities as $city_municipality)
-                                            <option>{{ $city_municipality }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('city_municipality')
-                                        <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
-                                            {{ $message }}
-                                        </p>
-                                    @enderror
-                                @else
-                                    <p class="block mb-1 font-medium text-indigo-1100">
-                                        City/Municipality
-                                    </p>
-                                    <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
-                                        {{ $this->implementation?->city_municipality }}</span>
-                                @endif
+                            <div class="flex flex-1 flex-col relative">
+                                <p class="block mb-1 font-medium text-indigo-1100">
+                                    City/Municipality
+                                </p>
+                                <span
+                                    class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
+                                    {{ $this->implementation?->city_municipality }}</span>
                             </div>
 
-                            {{-- District --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
+                            {{-- Sectoral && Non-Sectoral --}}
+                            <div class="flex flex-1 flex-col">
                                 @if ($isEmpty)
-                                    <label for="district"
-                                        class="block mb-1  font-medium text-indigo-1100 ">District</label>
-                                    <select id="district" autocomplete="off" wire:model.blur="district"
-                                        wire:key="{{ $district }}"
-                                        class="text-xs duration-200 {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                                        @foreach ($this->districts as $district)
-                                            <option>{{ $district }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('district')
-                                        <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
+                                    <span class="block mb-1 font-medium text-indigo-1100">Type of Implementation</span>
+
+                                    <span class="flex items-center justify-center gap-2">
+                                        {{-- Sectoral --}}
+                                        <label for="sectoral-radio2"
+                                            class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ $is_sectoral ? 'bg-rose-700 hover:bg-rose-800 active:bg-rose-900 text-rose-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
+                                            Sectoral
+                                            <input type="radio" class="hidden absolute inset-0"
+                                                id="sectoral-radio2" value="1" wire:model.live="is_sectoral">
+                                        </label>
+                                        {{-- Non-Sectoral --}}
+                                        <label for="non-sectoral-radio2"
+                                            class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ !$is_sectoral ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
+                                            Non-Sectoral
+                                            <input type="radio" class="hidden absolute inset-0"
+                                                id="non-sectoral-radio2" value="0"
+                                                wire:model.live="is_sectoral">
+                                        </label>
+                                    </span>
+                                    @error('is_sectoral')
+                                        <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
                                             {{ $message }}
                                         </p>
                                     @enderror
                                 @else
                                     <p class="block mb-1 font-medium text-indigo-1100">
-                                        District
+                                        Type of Implementation
                                     </p>
                                     <span
                                         class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
-                                        {{ $this->implementation?->district }}</span>
+                                        {{ $this->implementation?->is_sectoral ? 'Sectoral' : 'Non-Sectoral' }}</span>
                                 @endif
                             </div>
 
                             {{-- Purpose --}}
-                            <div class="flex flex-1 flex-col relative mb-4">
+                            <div class="flex flex-1 flex-col sm:col-span-2 relative">
                                 <label for="purpose" class="block mb-1 font-medium text-indigo-1100 ">Purpose
                                     of the
                                     Project</label>
@@ -333,9 +303,9 @@
 
                                 <div class="flex items-center justify-center">
                                     <button type="submit"
-                                        class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">
+                                        class="flex flex-1 items-center justify-center gap-2 duration-200 ease-in-out px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                         SAVE
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ms-2"
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                             viewBox="0, 0, 400,400">
                                             <g>
@@ -347,6 +317,7 @@
                                         </svg>
                                     </button>
 
+                                    {{-- X/Cancel Button --}}
                                     <button type="button" wire:click.prevent="toggleEdit"
                                         wire:loading.attr="disabled" wire:target="toggleEdit"
                                         class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-3 rounded outline-none font-bold text-sm border border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50">
@@ -365,7 +336,7 @@
                         {{-- IF Edit Mode is OFF --}}
                         @if (!$editMode)
                             {{-- Project Number OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Project Number
                                 </p>
@@ -374,7 +345,7 @@
                             </div>
 
                             {{-- Project Title --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Project Title
                                 </p>
@@ -383,12 +354,12 @@
                             </div>
 
                             {{-- Edit | Delete Buttons OFF --}}
-                            <div x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }" class="flex justify-center items-center">
+                            <div x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }" class="flex justify-center items-end">
                                 <button type="button" wire:loading.attr="disabled" wire:target="toggleEdit"
                                     @if (!$isApproved) wire:click.prevent="toggleEdit" @else disabled @endif
-                                    class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm disabled:border disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                    class="duration-200 ease-in-out flex flex-1 items-center justify-center gap-2 px-2 py-2.5 rounded outline-none font-bold text-sm disabled:border disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                     EDIT
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ms-2"
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -403,8 +374,8 @@
                                 {{-- Delete/Trash Button --}}
                                 <button type="button"
                                     @if ($isEmpty) @click="deleteProjectModal = !deleteProjectModal;" @else disabled @endif
-                                    class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm border {{ $isEmpty ? 'border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50' : ' bg-gray-100 text-gray-400 cursor-not-allowed' }} ">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                    class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2.5 rounded outline-none font-bold text-sm disabled:border disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -462,7 +433,7 @@
                                                     <p class="text-gray-500 text-sm mb-4">
                                                         (This is action is irreversible)
                                                     </p>
-                                                    <div class="flex items-center justify-center w-full gap-4">
+                                                    <div class="flex items-center justify-center w-full gap-2">
                                                         <button type="button" @click="deleteProjectModal = false;"
                                                             class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                                             CANCEL
@@ -481,7 +452,7 @@
                             </div>
 
                             {{-- Budget OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Budget
                                 </p>
@@ -491,7 +462,7 @@
                             </div>
 
                             {{-- Minimum Wage OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Minimum Wage
                                 </p>
@@ -501,7 +472,7 @@
                             </div>
 
                             {{-- Total Slots OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Total Slots
                                 </p>
@@ -510,7 +481,7 @@
                             </div>
 
                             {{-- Days Of Work OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Days of Work
                                 </p>
@@ -520,7 +491,7 @@
                             </div>
 
                             {{-- Province OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Province
                                 </p>
@@ -530,7 +501,7 @@
                             </div>
 
                             {{-- City|Municipality OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     City/Municipality
                                 </p>
@@ -539,24 +510,27 @@
                                     {{ $this->implementation?->city_municipality }}</span>
                             </div>
 
-                            {{-- District OFF --}}
-                            <div class="relative flex flex-col mb-4">
-                                <p class="block mb-1 font-medium text-indigo-1100">
-                                    District
-                                </p>
-                                <span
-                                    class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
-                                    {{ $this->implementation?->district }}</span>
-                            </div>
-
                             {{-- Purpose OFF --}}
-                            <div class="relative flex flex-col mb-4">
+                            <div class="relative flex flex-col sm:col-span-2">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     Purpose of the Project
                                 </p>
                                 <span
                                     class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
                                     {{ $this->implementation?->purpose }}</span>
+                            </div>
+
+                            {{-- Sectoral && Non-Sectoral OFF --}}
+                            <div class="relative flex flex-col">
+                                <p class="block mb-1 font-medium text-indigo-1100">
+                                    Type of Implementation
+                                </p>
+                                <span class="flex flex-1 items-center text-sm rounded p-2.5 bg-indigo-50 font-medium">
+                                    <span
+                                        class="rounded-lg px-3 py-0.5 {{ $this->implementation?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">
+                                        {{ $this->implementation?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}
+                                    </span>
+                                </span>
                             </div>
 
                             {{-- Date Created && Last Updated OFF --}}

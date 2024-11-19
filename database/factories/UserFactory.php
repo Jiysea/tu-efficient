@@ -24,23 +24,31 @@ class UserFactory extends Factory
         $first = $this->getFirstName();
         $middle = $this->getMiddleName();
         $last = $this->getLastName();
+        $ext = $this->getSuffix();
 
         $email = $this->getEmail($first, $last);
-        $startDate = Carbon::createFromDate(2023, 9, 29);
+        $randHour = mt_rand(0, 23);
+        $randMinute = mt_rand(30, 59);
+        $randSecond = mt_rand(0, 59);
+        $startDate = Carbon::createFromDate(2023, 1, 1);
+        $addedTime = $startDate->addHours($randHour)->addMinutes($randMinute)->addSeconds($randSecond);
+        $startMobile = $addedTime->addMinutes(mt_rand(0, 59))->addSeconds(mt_rand(0, 59));
 
         return [
             'first_name' => $first,
             'middle_name' => $middle,
             'last_name' => $last,
-            'extension_name' => $this->getSuffix(),
+            'extension_name' => $ext,
             'email' => $email,
             'password' => $password,
             'contact_num' => fake()->numerify('+639#########'),
             'regional_office' => 'Region XI',
-            'field_office' => 'Davao City',
+            'field_office' => 'City of Davao',
             'user_type' => 'coordinator',
-            'email_verified_at' => null,
             'last_login' => null,
+            'email_verified_at' => $addedTime,
+            'mobile_verified_at' => $startMobile,
+            'ongoing_verification' => 0,
             'created_at' => $startDate,
             'updated_at' => $startDate,
         ];
@@ -1088,12 +1096,12 @@ class UserFactory extends Factory
         } else {
             $pickedFirstNames = $firstNames;
         }
-        return $pickedFirstNames;
+        return mb_strtoupper($pickedFirstNames, "UTF-8");
     }
 
     protected function getLastName()
     {
-        return fake()->randomElement([
+        $name = fake()->randomElement([
             'Abad',
             'Abalos',
             'Abdullah',
@@ -1382,11 +1390,12 @@ class UserFactory extends Factory
             'Zamora',
             'Zapanta',
         ]);
+        return mb_strtoupper($name, "UTF-8");
     }
 
     protected function getMiddleName()
     {
-        return fake()->optional(0.8)->randomElement([
+        $name = fake()->optional(0.8)->randomElement([
             'Abad',
             'Abalos',
             'Abdullah',
@@ -1675,11 +1684,13 @@ class UserFactory extends Factory
             'Zamora',
             'Zapanta',
         ]);
+        return $name ? mb_strtoupper($name, "UTF-8") : null;
     }
 
     protected function getSuffix()
     {
-        return fake()->optional(0.1)->randomElement(['I', 'II', 'III', 'IV', 'V', 'Sr.', 'Jr.']);
+        $name = fake()->optional(0.1)->randomElement(['I', 'II', 'III', 'IV', 'V', 'Sr.', 'Jr.']);
+        return $name ? mb_strtoupper($name, "UTF-8") : null;
     }
 
     /**

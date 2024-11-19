@@ -14,7 +14,7 @@
         {{-- App Name | Submission Type | Submit Button --}}
         <div class="relative flex items-center justify-between mb-2">
             <div class="flex items-center justify-between">
-                
+
                 <img class="rounded-lg object-contain drop-shadow size-11 ms-3 duration-500 ease-in-out select-none"
                     src="{{ asset('assets/b_logo.png') }}" alt="TU-Efficient Barangay logo">
                 <h1 class="text-3xl font-bold ms-3 text-green-900 drop-shadow">TU-EFFICIENT</h1>
@@ -436,8 +436,8 @@
                                 {{-- Header --}}
                                 <p
                                     class="font-bold text-sm lg:text-xs bg-gray-200 text-gray-700 rounded uppercase px-2 py-1">
-                                    basic
-                                    information</p>
+                                    basic information
+                                </p>
 
                                 {{-- Body --}}
                                 <div class="flex flex-1 flex-col px-2 py-1 gap-2">

@@ -16,8 +16,8 @@ class CitiesMunicipalities
         # Region XI
         if ($province === 'Davao del Sur') {
             $cities_municipalities = [
-                'Davao City',
-                'Digos City',
+                'City of Davao',
+                'City of Digos',
                 'Bansalan',
                 'Hagonoy',
                 'Kiblawan',
@@ -29,7 +29,7 @@ class CitiesMunicipalities
             ];
         } else if ($province === 'Davao del Norte') {
             $cities_municipalities = [
-                'Tagum',
+                'City of Tagum',
                 'Asuncion',
                 'Braulio E. Dujali',
                 'Carmen',

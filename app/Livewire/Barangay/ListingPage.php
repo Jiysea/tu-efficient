@@ -7,7 +7,7 @@ use App\Models\Beneficiary;
 use App\Models\Code;
 use App\Models\Credential;
 use App\Models\Implementation;
-use App\Services\GenerateActivityLogs;
+use App\Services\LogIt;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;
 use DB;
@@ -371,7 +371,7 @@ class ListingPage extends Component
             }
             $beneficiary->delete();
 
-            GenerateActivityLogs::set_barangay_delete_beneficiary_log($old->barangay_name, $this->implementation->project_num, $this->batch->batch_num, $this->full_name($old));
+            LogIt::set_barangay_delete_beneficiary($old->barangay_name, $this->implementation->project_num, $this->batch->batch_num, $this->full_name($old));
             $this->beneficiaryId = null;
             $this->selectedBeneficiaryRow = -1;
 
@@ -399,7 +399,7 @@ class ListingPage extends Component
                 ]);
             $batch->save();
 
-            GenerateActivityLogs::set_barangay_submit_log($batch->barangay_name, $this->implementation->project_num, $batch->batch_num, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount);
+            LogIt::set_barangay_submit($batch->barangay_name, $this->implementation->project_num, $batch->batch_num, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount);
         });
 
         $this->submitBatchModal = false;

@@ -353,11 +353,12 @@ class Implementations extends Component
             ->select([
                 'batches.id',
                 'batches.barangay_name',
+                'batches.sector_title',
                 'batches.slots_allocated',
                 DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots'),
                 DB::raw('batches.approval_status AS approval_status')
             ])
-            ->groupBy('batches.id', 'barangay_name', 'slots_allocated', 'approval_status')
+            ->groupBy('batches.id', 'barangay_name', 'sector_title', 'slots_allocated', 'approval_status')
             ->orderBy('batches.id', 'desc')
             ->get();
 
@@ -541,7 +542,6 @@ class Implementations extends Component
         $this->alertMessage = 'Project implementation successfully created!';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
-        $this->createProjectModal = false;
     }
 
     #[On('edit-project')]
@@ -584,8 +584,6 @@ class Implementations extends Component
         $this->alertMessage = 'Successfully deleted the project!';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
-
-        $this->viewProjectModal = false;
     }
 
     #[On('assign-batches')]
@@ -607,7 +605,6 @@ class Implementations extends Component
         $this->alertMessage = 'Batches successfully assigned!';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
-        $this->assignBatchesModal = false;
     }
 
     #[On('edit-batch')]

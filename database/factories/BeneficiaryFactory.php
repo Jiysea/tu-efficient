@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Batch;
 use Brick\Math\BigInteger;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -18,6 +19,7 @@ class BeneficiaryFactory extends Factory
      */
     public function definition(): array
     {
+
         $randomTimestamp = mt_rand(Carbon::create(1934, 1, 1)->timestamp, Carbon::create(now()->subYears(20))->timestamp);
         $birthdate = Carbon::createFromTimestamp($randomTimestamp)->format('Y-m-d');
 
@@ -28,12 +30,29 @@ class BeneficiaryFactory extends Factory
         $suffix = $this->getSuffix();
         $contact_num = fake()->numerify('+639#########');
         $occupation = $this->getOccupation();
-        $avg_monthly_income = $this->getAvgMonthlyIncome($occupation);
-        $type_of_id = fake()->randomElement(['Driver\'s License', 'Philippine Identification (PhilID / ePhilID)', 'BIR (TIN)', 'Phil-health ID', 'Philippine Postal ID', 'NBI Clearance']);
+        $avg_monthly_income = $this->getAvgMonthlyIncome();
+        $type_of_id = fake()->randomElement([
+            'Barangay ID',
+            'Barangay Certificate',
+            'e-Card / UMID',
+            "Driver's License",
+            'Passport',
+            'Phil-health ID',
+            'Philippine Postal ID',
+            'SSS ID',
+            "COMELEC / Voter's ID / COMELEC Registration Form",
+            'Philippine Identification (PhilID / ePhilID)',
+            'NBI Clearance',
+            'Pantawid Pamilya Pilipino Program (4Ps) ID',
+            'Integrated Bar of the Philippines (IBP) ID',
+            'BIR (TIN)',
+            'Pag-ibig ID',
+            'Solo Parent ID'
+        ]);
         $id_number = $this->getIdNumber($type_of_id);
         $age = $this->age($birthdate);
         $civil_status = fake()->randomElement(['single', 'married']);
-        $skills_training = fake()->optional(0.25)->randomElement([
+        $skills_training = fake()->optional(0.1)->randomElement([
             'Agriculture crops production',
             'Aquaculture',
             'Automotive',
@@ -72,7 +91,7 @@ class BeneficiaryFactory extends Factory
             'sex' => $sex,
             'civil_status' => $civil_status,
             'age' => $age,
-            'dependent' => fake()->optional(0.1)->name(),
+            'dependent' => fake()->name(),
             'self_employment' => 'no',
             'skills_training' => $skills_training,
             'is_pwd' => fake()->optional(0.05, "no")->randomElement(['yes']),
@@ -84,9 +103,20 @@ class BeneficiaryFactory extends Factory
         ];
     }
 
+    protected function getBarangayName($implementationId, $district): string
+    {
+        $barangays = $this->getBarangaysByDistrict($district);
+
+        do {
+            $barangay = fake()->randomElement($barangays);
+        } while (Batch::where('implementations_id', $implementationId)->where('barangay_name', $barangay)->exists());
+
+        return $barangay;
+    }
+
     protected function checkSeniorCitizen($age)
     {
-        if ($age >= 60) {
+        if ($age >= intval(config('settings.senior_age_threshold', 60))) {
             return 'yes';
         }
         return 'no';
@@ -1620,7 +1650,7 @@ class BeneficiaryFactory extends Factory
             $pickedFirstNames .= ' ' . $firstNames;
         }
 
-        return strtoupper($pickedFirstNames);
+        return mb_strtoupper($pickedFirstNames, "UTF-8");
     }
 
     protected function getLastName()
@@ -1914,7 +1944,7 @@ class BeneficiaryFactory extends Factory
             'Zamora',
             'Zapanta',
         ]);
-        return strtoupper($name);
+        return mb_strtoupper($name, "UTF-8");
     }
 
     protected function getMiddleName()
@@ -2208,33 +2238,29 @@ class BeneficiaryFactory extends Factory
             'Zamora',
             'Zapanta',
         ]);
-        return $name ? strtoupper($name) : null;
+        return $name ? mb_strtoupper($name, "UTF-8") : null;
     }
 
     protected function getSuffix()
     {
-        $name = fake()->optional(0.1)->randomElement(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'Sr', 'Jr']);
-        return $name ? strtoupper($name) : null;
+        $name = fake()->optional('0.1')->randomElement(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'Sr', 'Jr']);
+        return $name ? mb_strtoupper($name, "UTF-8") : null;
     }
 
     protected function getOccupation()
     {
-        return fake()->optional(0.1)->randomElement(['Fisherman', 'Street Vendor', 'Plumber', 'Warehouse Worker', 'Construction Worker', 'Driver', 'Cook', 'Street Sweeper', 'Farmer', 'Janitor', 'Welder', 'Gardener']);
+        return fake()->randomElement(['Fisherman', 'Street Vendor', 'Plumber', 'Warehouse Worker', 'Construction Worker', 'Driver', 'Cook', 'Street Sweeper', 'Farmer', 'Janitor', 'Welder', 'Gardener']);
     }
 
-    protected function getAvgMonthlyIncome($occupation)
+    protected function getAvgMonthlyIncome()
     {
-        $avg_monthly_income = null;
-        if ($occupation) {
-            $avg_monthly_income = fake()->numberBetween(100000, 1500000);
-        }
-        return $avg_monthly_income;
+        return $avg_monthly_income = fake()->numberBetween(100000, config('settings.maximum_income'));
     }
 
     protected function getIdNumber($type_of_id)
     {
         $id_number = '';
-        // ['Driver\'s License', 'Philippine Identification (PhilID / ePhilID)', 'BIR (TIN)', 'Phil-health ID', 'Philippine Postal ID', 'NBI Clearance']
+
         switch ($type_of_id) {
             case 'Driver\'s License':
                 $id_number = fake()->bothify('?##-##-######');
@@ -2253,6 +2279,9 @@ class BeneficiaryFactory extends Factory
                 break;
             case 'NBI Clearance':
                 $id_number = fake()->bothify('????##?##?-?####?###');
+                break;
+            default:
+                $id_number = fake()->bothify('######');
                 break;
         }
         return strtoupper($id_number);

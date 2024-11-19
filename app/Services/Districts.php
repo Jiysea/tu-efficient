@@ -14,7 +14,7 @@ class Districts
         $districts = null;
 
         # Davao del Sur
-        if ($city_municipality === 'Davao City') {
+        if ($city_municipality === 'City of Davao') {
             $districts = [
                 '1st District',
                 '2nd District',

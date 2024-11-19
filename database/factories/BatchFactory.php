@@ -17,30 +17,17 @@ class BatchFactory extends Factory
      */
     public function definition(): array
     {
-
         return [
-            'implementations_id' => rand(1, 3),
-            'batch_num' => $this->batchNumberGenerator(),
+            'implementations_id' => 0,
+            'batch_num' => '',
+            'sector_title' => null,
+            'district' => '',
             'barangay_name' => '',
             'slots_allocated' => 0,
             'submission_status' => 'unopened', // submitted unopened revalidate encoding
-            'approval_status' => 'approved', // approved pending
+            'approval_status' => 'pending', // approved pending
             'created_at' => now(),
             'updated_at' => now(),
         ];
-    }
-
-    public function batchNumberGenerator()
-    {
-        $prefix = config('settings.batch_number_prefix', 'DCFO-BN-');
-        $number = fake()->bothify($prefix . '######');
-        $existingNumber = Batch::where('batch_num', $number)->first();
-
-        while ($existingNumber) {
-            $number = fake()->bothify($prefix . '######');
-            $existingNumber = Batch::where('batch_num', $number)->first(); // Check if the new number exists
-        }
-
-        return $number;
     }
 }

@@ -336,7 +336,6 @@ class Dashboard extends Component
 
     # ----------------------------------------------------------------------------------------------
 
-    #[On('start-change')]
     public function setStartDate($value)
     {
         $this->reset('searchProject');
@@ -357,7 +356,6 @@ class Dashboard extends Component
         $this->setCharts();
     }
 
-    #[On('end-change')]
     public function setEndDate($value)
     {
         $this->reset('searchProject');
@@ -526,6 +524,14 @@ class Dashboard extends Component
     }
 
     #[Computed]
+    public function sectorsCount()
+    {
+        $sectorsCount = $this->batchesSectoral->total();
+
+        return $sectorsCount;
+    }
+
+    #[Computed]
     public function batches()
     {
         $batches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
@@ -544,6 +550,30 @@ class Dashboard extends Component
             ->where('implementations.id', isset($this->implementationId) ? decrypt($this->implementationId) : null)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->groupBy(['batches.id', 'batches.barangay_name'])
+            ->paginate(3);
+
+        return $batches;
+    }
+
+    #[Computed]
+    public function batchesSectoral()
+    {
+        $batches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
+            ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
+            ->select([
+                'batches.id',
+                'batches.sector_title',
+                DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
+            ])
+            ->where('implementations.users_id', Auth::id())
+            ->where('implementations.id', isset($this->implementationId) ? decrypt($this->implementationId) : null)
+            ->whereBetween('batches.created_at', [$this->start, $this->end])
+            ->groupBy(['batches.id', 'batches.sector_title',])
             ->paginate(3);
 
         return $batches;

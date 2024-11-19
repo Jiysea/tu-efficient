@@ -6,6 +6,7 @@ use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\CitiesMunicipalities;
 use App\Services\Districts;
+use App\Services\LogIt;
 use App\Services\MoneyFormat;
 use App\Services\Provinces;
 use Illuminate\Support\Facades\Auth;
@@ -30,8 +31,7 @@ class CreateProjectModal extends Component
     public $province;
     #[Validate]
     public $city_municipality;
-    #[Validate]
-    public $district;
+    public $is_sectoral = 0;
     #[Validate]
     public $budget_amount;
     #[Validate]
@@ -55,18 +55,17 @@ class CreateProjectModal extends Component
 
                     if ($exists) {
                         # Fail the validation if the project number with the prefix already exists
-                        $fail('This :attribute already exists.');
+                        $fail('This project number already exists. Refresh to regenerate.');
                     }
                 },
             ],
             'project_title' => 'nullable',
+            'is_sectoral' => 'required|integer',
             'purpose' => 'required',
-            'district' => 'required',
             'province' => 'required',
             'city_municipality' => 'required',
             'budget_amount' => [
                 'required',
-
                 function ($attribute, $value, $fail) {
 
                     # Checks if the number is a valid number
@@ -102,7 +101,16 @@ class CreateProjectModal extends Component
                     }
                 },
             ],
-            'total_slots' => 'required|integer|min:1',
+            'total_slots' => [
+                'required',
+                'integer',
+                function ($a, $value, $fail) {
+                    if (!isset($this->budget_amount) || empty($this->budget_amount)) {
+                        $fail('Need to add a budget amount.');
+                    }
+                },
+                'min:1',
+            ],
             'days_of_work' => 'required|integer|min:1',
         ];
     }
@@ -112,15 +120,17 @@ class CreateProjectModal extends Component
     {
         return [
             'project_num.required' => 'This field is required.',
+            'is_sectoral.required' => 'Please select a type of implementation.',
             'purpose.required' => 'Please select a purpose.',
-            'district.required' => 'This field is required.',
             'province.required' => 'This field is required.',
             'city_municipality.required' => 'This field is required.',
             'budget_amount.required' => 'This field is required.',
             'minimum_wage.required' => 'This field is required.',
             'total_slots.required' => 'This field is required.',
             'days_of_work.required' => 'This field is required.',
+
             'project_num.integer' => 'Project Number should be a number.',
+            'is_sectoral.integer' => 'Invalid implementation type.',
             'total_slots.integer' => 'Total Slots should be a number.',
             'total_slots.min' => 'Total Slots should be > 0.',
             'days_of_work.integer' => 'Days should be a number.',
@@ -143,11 +153,16 @@ class CreateProjectModal extends Component
 
     }
 
+    public function regenerateProjectNum()
+    {
+        $this->generateProjectNum();
+    }
+
     public function setLocationFields()
     {
-        if (strtolower(Auth::user()->field_office) === 'davao city') {
+        if (strtolower(Auth::user()->field_office) === 'City of Davao') {
             $this->province = 'Davao del Sur';
-            $this->city_municipality = 'Davao City';
+            $this->city_municipality = 'City of Davao';
         }
     }
 
@@ -156,16 +171,16 @@ class CreateProjectModal extends Component
     {
         $this->validate();
 
-        $this->project_num = $this->projectNumPrefix . $this->project_num;
+        $this->project_num = $this->projectNumPrefix . now()->format('Y-') . $this->project_num;
         $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
         $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
 
-        Implementation::create([
+        $implementation = Implementation::create([
             'users_id' => Auth()->id(),
             'project_num' => $this->project_num,
             'project_title' => $this->project_title,
             'purpose' => $this->purpose,
-            'district' => $this->district,
+            'is_sectoral' => $this->is_sectoral,
             'province' => $this->province,
             'city_municipality' => $this->city_municipality,
             'budget_amount' => $this->budget_amount,
@@ -174,8 +189,10 @@ class CreateProjectModal extends Component
             'days_of_work' => $this->days_of_work
         ]);
 
-        $this->dispatch('create-project');
+        LogIt::set_create_project($implementation);
         $this->resetProject();
+        $this->js('createProjectModal = false;');
+        $this->dispatch('create-project');
     }
 
     # a livewire action for toggling the auto computation for total slots
@@ -198,6 +215,12 @@ class CreateProjectModal extends Component
 
             $this->validateOnly('days_of_work');
             $this->validateOnly('total_slots');
+        } else {
+            if (!$this->total_slots) {
+                $this->reset('total_slots');
+                $this->resetValidation(['total_slots']);
+            }
+
         }
     }
 
@@ -217,24 +240,9 @@ class CreateProjectModal extends Component
         return $c->getCitiesMunicipalities($this->province);
     }
 
-    # Gets all the districts (unless it's a lone district) according to the choosen city/municipality by the user
-    #[Computed]
-    public function districts()
-    {
-        $d = new Districts();
-        return $d->getDistricts($this->city_municipality, $this->province);
-    }
-
     public function updatedProvince()
     {
         $this->city_municipality = $this->cities_municipalities[0];
-        $this->district = $this->districts[0];
-
-    }
-
-    public function updatedCityMunicipality()
-    {
-        $this->district = $this->districts[0];
     }
 
     public function resetProject()
@@ -255,7 +263,6 @@ class CreateProjectModal extends Component
         $this->resetValidation();
         $this->province = $this->provinces[0];
         $this->city_municipality = $this->cities_municipalities[0];
-        $this->district = $this->districts[0];
     }
 
     public function mount()
@@ -268,7 +275,6 @@ class CreateProjectModal extends Component
 
         $this->province = $this->provinces[0];
         $this->city_municipality = $this->cities_municipalities[0];
-        $this->district = $this->districts[0];
 
         $this->generateProjectNum();
         $this->setLocationFields();

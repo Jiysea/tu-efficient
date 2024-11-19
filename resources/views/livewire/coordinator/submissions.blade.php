@@ -586,10 +586,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                 {{-- Special Cases --}}
                                 <div class="relative flex items-center gap-1 text-xs font-medium">
-                                    <p class="{{ $this->specialCases > 0 ? 'text-amber-900' : 'text-gray-700' }}">
+                                    <p class="{{ $this->specialCases > 0 ? 'text-red-900' : 'text-gray-700' }}">
                                         Special Cases: </p>
                                     <span
-                                        class="py-1 px-2 rounded {{ $this->specialCases > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700' }} ">{{ $this->specialCases }}</span>
+                                        class="py-1 px-2 rounded {{ $this->specialCases > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' }} ">{{ $this->specialCases }}</span>
                                 </div>
 
                                 {{-- Search Box --}}
@@ -679,14 +679,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             :class="{
                                                 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
                                                 'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
-                                                'bg-amber-200 text-amber-900 hover:bg-amber-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                'bg-amber-100 text-amber-700 hover:bg-amber-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                             }">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
                                                     'bg-blue-700': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
                                                     '': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
-                                                    'bg-amber-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
                                                     '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
@@ -1049,7 +1049,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                                 @if ($this->beneficiary->beneficiary_type === 'special case')
                                                     <button type="button" @click="$wire.viewCredential('special');"
-                                                        class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-amber-100 active:bg-amber-200 text-amber-950 hover:text-amber-700 duration-200 ease-in-out">
+                                                        class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-red-100 active:bg-red-200 text-red-950 hover:text-red-700 duration-200 ease-in-out">
                                                         {{ $this->beneficiary->beneficiary_type }}
 
                                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -1251,7 +1251,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <!-- Modal Header -->
                             <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                                 <h1 class="text-sm sm:text-base font-semibold text-blue-1100">
-                                    Delete Beneficiary
+                                    {{ $this->defaultArchive ? 'Archive' : 'Delete' }} this Beneficiary
                                 </h1>
 
                                 {{-- Close Button --}}
@@ -1271,12 +1271,21 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             {{-- Modal body --}}
                             <div class="grid w-full place-items-center py-5 px-3 md:px-16 text-blue-1100 text-xs">
 
-                                <p class="font-medium text-sm mb-2">
-                                    Are you sure about deleting this beneficiary?
-                                </p>
-                                <p class="text-gray-500 text-xs font-semibold mb-4">
-                                    This is action is irreversible
-                                </p>
+                                @if ($this->defaultArchive)
+                                    <p class="font-medium text-sm mb-2">
+                                        Are you sure about archiving this beneficiary?
+                                    </p>
+                                    <p class="text-gray-500 text-xs font-semibold mb-4">
+                                        You could restore this beneficiary back from the Archives page
+                                    </p>
+                                @else
+                                    <p class="font-medium text-sm mb-2">
+                                        Are you sure about deleting this beneficiary?
+                                    </p>
+                                    <p class="text-gray-500 text-xs font-semibold mb-4">
+                                        This is action is irreversible
+                                    </p>
+                                @endif
 
                                 <div class="flex items-center justify-center w-full gap-2">
 

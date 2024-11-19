@@ -34,9 +34,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     </path>
                 </svg>
             </div>
-            <div class="relative grid grid-cols-1 w-full h-full lg:grid-cols-5">
+
+            <div class="relative grid grid-cols-1 size-full lg:grid-cols-5">
+
                 {{-- List of Coordinators --}}
-                <div class="relative lg:col-span-full h-full w-full rounded bg-white shadow">
+                <div class="relative lg:col-span-full size-full rounded bg-white shadow">
 
                     {{-- Upper/Header --}}
                     <div class="relative h-10 flex items-center justify-between">
@@ -65,8 +67,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
 
                                     {{-- Loading Icon --}}
-                                    <svg class="size-4 animate-spin" wire:loading wire:target="searchUsers"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg class="size-3 text-indigo-500 animate-spin" wire:loading
+                                        wire:target="searchUsers" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
                                         </circle>
@@ -106,7 +109,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     </div>
 
                     @if ($this->users->isNotEmpty())
-                        {{-- List of Projects Table --}}
+                        {{-- List of Coordinators --}}
                         <div id="users-table"
                             class="relative min-h-[84vh] max-h-[84vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                             <table class="relative w-full text-sm text-left text-indigo-1100 whitespace-nowrap">
@@ -140,7 +143,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <tr wire:key="user-{{ $key }}" wire:loading.class="pointer-events-none"
                                             wire:target="viewCoordinator"
                                             @dblClick="$wire.viewCoordinator('{{ encrypt($user->id) }}');"
-                                            class="relative border-b {{ is_null($user->email_verified_at) ? 'bg-red-300 hover:bg-red-400 text-red-700 hover:text-red-900' : 'hover:bg-indigo-50 text-indigo-1100' }} whitespace-nowrap duration-200 cursor-pointer ease-in-out">
+                                            class="relative border-b whitespace-nowrap duration-200 cursor-pointer ease-in-out"
+                                            :class="{
+                                                'bg-red-300 hover:bg-red-400 text-red-700 hover:text-red-900': {{ json_encode(is_null($user->email_verified_at)) }},
+                                                'hover:bg-indigo-50 text-indigo-1100': {{ json_encode(!is_null($user->email_verified_at)) }}
+                                            }">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium">
                                                 {{ $key + 1 }}
                                             </th>
@@ -193,7 +200,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 <button type="button"
                                                     @click.stop="$wire.viewCoordinator('{{ encrypt($user->id) }}');"
                                                     id="beneficiaryRowButton-{{ $key }}"
-                                                    class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50">
+                                                    class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out "
+                                                    :class="{
+                                                        'hover:bg-red-700 focus:bg-red-700 text-red-900 hover:text-red-50 focus:text-red-50': {{ json_encode(is_null($user->email_verified_at)) }},
+                                                        'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50': {{ json_encode(!is_null($user->email_verified_at)) }}
+                                                    }">
 
                                                     {{-- View Icon --}}
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-5"

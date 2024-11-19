@@ -6,10 +6,10 @@ use App\Models\Batch;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\CitiesMunicipalities;
-use App\Services\Districts;
+use App\Services\LogIt;
 use App\Services\MoneyFormat;
 use App\Services\Provinces;
-use Hash;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -30,11 +30,11 @@ class ViewProject extends Component
     public $isApproved;
     public $deleteProjectModal = false;
     public $isAutoComputeEnabled = false;
+    public $projectNumPrefix;
     public $defaultMinimumWage;
 
     # ---------------------------------
 
-    public $projectNumPrefix;
     #[Validate]
     public $project_num;
     #[Validate]
@@ -46,7 +46,7 @@ class ViewProject extends Component
     #[Validate]
     public $city_municipality;
     #[Validate]
-    public $district;
+    public $is_sectoral = 0;
     #[Validate]
     public string $budget_amount;
     #[Validate]
@@ -63,26 +63,24 @@ class ViewProject extends Component
             'project_num' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    // Check for uniqueness of the prefixed value in the database
+                    # Check for uniqueness of the prefixed value in the database
                     $exists = DB::table('implementations')
                         ->where('project_num', $this->projectNumPrefix . $value)
-                        ->whereNotIn('id', [decrypt($this->passedProjectId)])
                         ->exists();
 
                     if ($exists) {
-                        // Fail the validation if the project number with the prefix already exists
-                        $fail('This :attribute already exists.');
+                        # Fail the validation if the project number with the prefix already exists
+                        $fail('This project number already exists. Refresh to regenerate.');
                     }
                 },
             ],
             'project_title' => 'nullable',
+            'is_sectoral' => 'required|integer',
             'purpose' => 'required',
-            'district' => 'required',
             'province' => 'required',
             'city_municipality' => 'required',
             'budget_amount' => [
                 'required',
-
                 function ($attribute, $value, $fail) {
 
                     # Checks if the number is a valid number
@@ -106,7 +104,6 @@ class ViewProject extends Component
             'minimum_wage' => [
                 'required',
                 function ($attribute, $value, $fail) {
-
                     # Checks if the number is a valid number
                     if (!MoneyFormat::isMaskInt($value)) {
 
@@ -119,7 +116,16 @@ class ViewProject extends Component
                     }
                 },
             ],
-            'total_slots' => 'required|integer|min:1',
+            'total_slots' => [
+                'required',
+                'integer',
+                function ($a, $value, $fail) {
+                    if (!isset($this->budget_amount) || empty($this->budget_amount)) {
+                        $fail('Need to add a budget amount.');
+                    }
+                },
+                'min:1',
+            ],
             'days_of_work' => 'required|integer|min:1',
         ];
     }
@@ -129,14 +135,17 @@ class ViewProject extends Component
     {
         return [
             'project_num.required' => 'This field is required.',
+            'is_sectoral.required' => 'Please select a type of implementation.',
             'purpose.required' => 'Please select a purpose.',
-            'district.required' => 'This field is required.',
             'province.required' => 'This field is required.',
             'city_municipality.required' => 'This field is required.',
             'budget_amount.required' => 'This field is required.',
             'minimum_wage.required' => 'This field is required.',
             'total_slots.required' => 'This field is required.',
             'days_of_work.required' => 'This field is required.',
+
+            'project_num.integer' => 'Project Number should be a number.',
+            'is_sectoral.integer' => 'Invalid implementation type.',
             'total_slots.integer' => 'Total Slots should be a number.',
             'total_slots.min' => 'Total Slots should be > 0.',
             'days_of_work.integer' => 'Days should be a number.',
@@ -168,28 +177,11 @@ class ViewProject extends Component
         return $c->getCitiesMunicipalities($this->province);
     }
 
-    # Gets all the districts (unless it's a lone district) according to the choosen city/municipality by the user
-    #[Computed]
-    public function districts()
-    {
-        $d = new Districts();
-        return $d->getDistricts($this->city_municipality, $this->province);
-    }
-
     # The `updated` hook by Livewire for `reactively` changing the elements according to the choosen province
     public function updatedProvince()
     {
         if ($this->editMode) {
             $this->city_municipality = $this->cities_municipalities[0];
-            $this->district = $this->districts[0];
-        }
-    }
-
-    # The `updated` hook by Livewire for `reactively` changing the elements according to the choosen city/municipality
-    public function updatedCityMunicipality()
-    {
-        if ($this->editMode) {
-            $this->district = $this->districts[0];
         }
     }
 
@@ -197,108 +189,36 @@ class ViewProject extends Component
     # Also disallows edits when there are any batches associated with this implementation project
     public function editProject()
     {
-        $this->validate(
-            [
-                'project_num' => [
-                    'required',
-                    function ($attribute, $value, $fail) {
-                        // Check for uniqueness of the prefixed value in the database
-                        $exists = DB::table('implementations')
-                            ->where('project_num', $this->projectNumPrefix . $value)
-                            ->whereNotIn('id', [decrypt($this->passedProjectId)])
-                            ->exists();
+        $this->validate();
 
-                        if ($exists) {
-                            // Fail the validation if the project number with the prefix already exists
-                            $fail('This :attribute already exists.');
-                        }
-                    },
-                ],
-                'project_title' => 'nullable',
-                'purpose' => 'required',
-                'district' => 'required',
-                'province' => 'required',
-                'city_municipality' => 'required',
-                'budget_amount' => [
-                    'required',
-
-                    function ($attribute, $value, $fail) {
-
-                        # Checks if the number is a valid number
-                        if (!MoneyFormat::isMaskInt($value)) {
-
-                            $fail('The should be a valid amount.');
-                        }
-
-                        # Checks if the number is a negative
-                        elseif (MoneyFormat::isNegative($value)) {
-                            $fail('The value should be nonnegative.');
-                        }
-                        # Checks if the number is less than the minimum wage
-                        elseif ($this->minimum_wage) {
-                            if (MoneyFormat::unmask($value ?? 0) < MoneyFormat::unmask($this->minimum_wage)) {
-                                $fail('The value should be > ₱' . MoneyFormat::mask($this->minimum_wage) . '.');
-                            }
-                        }
-                    },
-                ],
-                'minimum_wage' => [
-                    'required',
-                    function ($attribute, $value, $fail) {
-
-                        # Checks if the number is a valid number
-                        if (!MoneyFormat::isMaskInt($value)) {
-
-                            $fail('The value should be a valid amount.');
-                        }
-
-                        # Checks if the number is a negative
-                        elseif (MoneyFormat::isNegative($value)) {
-                            $fail('The value should be nonnegative.');
-                        }
-                    },
-                ],
-                'total_slots' => 'required|integer|min:1',
-                'days_of_work' => 'required|integer|min:1',
-            ],
-            [
-                'project_num.required' => 'This field is required.',
-                'purpose.required' => 'Please select a purpose.',
-                'district.required' => 'This field is required.',
-                'province.required' => 'This field is required.',
-                'city_municipality.required' => 'This field is required.',
-                'budget_amount.required' => 'This field is required.',
-                'minimum_wage.required' => 'This field is required.',
-                'total_slots.required' => 'This field is required.',
-                'days_of_work.required' => 'This field is required.',
-                'total_slots.integer' => 'Total Slots should be a number.',
-                'total_slots.min' => 'Total Slots should be > 0.',
-                'days_of_work.integer' => 'Days should be a number.',
-                'days_of_work.min' => 'Days should be > 0.',
-            ],
-        );
-        $this->project_num = $this->projectNumPrefix . $this->project_num;
+        $this->project_num = $this->projectNumPrefix . Carbon::parse($this->implementation->created_at)->format('Y-') . $this->project_num;
 
         $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
         $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
 
-        Implementation::where('id', decrypt($this->passedProjectId))
+        $implementation = Implementation::where('id', decrypt($this->passedProjectId))
             ->where('users_id', Auth::id())
-            ->update([
-                'project_num' => $this->project_num,
-                'project_title' => $this->project_title,
-                'budget_amount' => $this->budget_amount,
-                'minimum_wage' => $this->minimum_wage,
-                'total_slots' => $this->total_slots,
-                'days_of_work' => $this->days_of_work,
-                'province' => $this->province,
-                'city_municipality' => $this->city_municipality,
-                'district' => $this->district,
-                'purpose' => $this->purpose
-            ]);
+            ->first();
+
+        $implementation->project_num = $this->project_num;
+        $implementation->project_title = $this->project_title;
+        $implementation->is_sectoral = $this->is_sectoral;
+        $implementation->budget_amount = $this->budget_amount;
+        $implementation->minimum_wage = $this->minimum_wage;
+        $implementation->total_slots = $this->total_slots;
+        $implementation->days_of_work = $this->days_of_work;
+        $implementation->province = $this->province;
+        $implementation->city_municipality = $this->city_municipality;
+        $implementation->purpose = $this->purpose;
 
         $this->toggleEdit();
-        $this->dispatch('edit-project');
+
+        if ($implementation->isDirty()) {
+            $implementation->save();
+            LogIt::set_edit_project($implementation);
+            $this->dispatch('edit-project');
+        }
+
     }
 
     public function deleteProject()
@@ -307,9 +227,10 @@ class ViewProject extends Component
         $this->authorize('delete-implementation-focal', $project);
         $project->delete();
 
-        $this->editMode = false;
-        $this->dispatch('delete-project');
         $this->resetViewProject();
+        LogIt::set_delete_project($project);
+        $this->js('viewProjectModal = false;');
+        $this->dispatch('delete-project');
     }
 
     # a livewire action for toggling the auto computation for total slots
@@ -340,10 +261,10 @@ class ViewProject extends Component
         $this->editMode = !$this->editMode;
 
         if ($this->editMode) {
-            $this->project_num = intval(substr($this->implementation->project_num, strlen($this->projectNumPrefix)));
+            $this->project_num = intval(substr($this->implementation->project_num, -6));
             $this->province = $this->implementation->province;
             $this->city_municipality = $this->implementation->city_municipality;
-            $this->district = $this->implementation->district;
+            $this->is_sectoral = $this->implementation->is_sectoral;
             $this->budget_amount = MoneyFormat::mask($this->implementation->budget_amount);
             $this->minimum_wage = MoneyFormat::mask($this->implementation->minimum_wage);
             $this->total_slots = $this->implementation->total_slots;
@@ -360,7 +281,7 @@ class ViewProject extends Component
                 'purpose',
                 'province',
                 'city_municipality',
-                'district',
+                'is_sectoral',
                 'budget_amount',
                 'total_slots',
                 'days_of_work',
@@ -377,7 +298,7 @@ class ViewProject extends Component
             'purpose',
             'province',
             'city_municipality',
-            'district',
+            'is_sectoral',
             'budget_amount',
             'total_slots',
             'days_of_work',

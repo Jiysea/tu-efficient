@@ -6,9 +6,10 @@ use App\Models\Batch as Batches;
 use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
+use App\Models\User;
 use App\Models\UserSetting;
 use App\Services\Essential;
-use App\Services\GenerateActivityLogs;
+use App\Services\LogIt;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use DateTime;
@@ -234,9 +235,8 @@ class ProcessImportSimilarity implements ShouldQueue
             $list[] = $beneficiary;
         }
 
-        if (in_array($list, ['success' => true])) {
-            $barangay_name = Batches::find($this->batches_id)->barangay_name;
-            GenerateActivityLogs::set_import_beneficiaries_success_log($this->users_id, $barangay_name, $successCounter);
+        if ($successCounter > 0 && in_array($list, ['success' => true])) {
+            LogIt::set_import_success(User::find($this->users_id), $batch, $successCounter);
         }
 
         # End Game

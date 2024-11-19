@@ -137,7 +137,7 @@
                         </span>
 
                         {{-- Archives --}}
-                        {{-- <span x-data="{ hover: false }">
+                        <span x-data="{ hover: false }">
                             <a href="{{ route('focal.archives') }}" wire:loading.attr="disabled"
                                 @mouseover="hover = true" @mouseleave="hover = false"
                                 class="flex items-center gap-3 p-2 rounded-lg outline-none duration-300 ease-in-out text-indigo-50 hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 focus:bg-indigo-1000 group">
@@ -159,7 +159,7 @@
                                     Archives
                                 </div>
                             </a>
-                        </span> --}}
+                        </span>
 
                         {{-- Activity Logs --}}
                         <span x-data="{ hover: false }">
@@ -422,7 +422,7 @@
                     </li>
 
                     {{-- Archives --}}
-                    {{-- <li x-data="{ hover: false }" class="relative">
+                    <li x-data="{ hover: false }" class="relative">
                         <a href="{{ route('focal.archives') }}" wire:loading.attr="disabled"
                             @mouseover="hover = true" @mouseleave="hover = false"
                             class="flex items-center mx-2 p-2 text-indigo-50 rounded-lg hover:text-indigo-300 focus:text-indigo-300 hover:bg-indigo-1000 outline-none focus:bg-indigo-1000 group duration-300 ease-in-out">
@@ -454,7 +454,7 @@
                                 <p>Archives</p>
                             </div>
                         </div>
-                    </li> --}}
+                    </li>
 
                     {{-- Activity Logs --}}
                     <li x-data="{ hover: false }" class="relative">

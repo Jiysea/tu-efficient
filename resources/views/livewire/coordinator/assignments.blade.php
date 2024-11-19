@@ -296,7 +296,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             batch #
                                         </th>
                                         <th scope="col" class="pr-2 py-2">
-                                            barangay
+                                            barangay/sector
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
                                             slots
@@ -334,7 +334,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $batch->batch_num }}
                                             </td>
                                             <td class="pr-2 py-2">
-                                                {{ $batch->barangay_name }}
+                                                @if ($batch->is_sectoral)
+                                                    {{ $batch->sector_title }}
+                                                @else
+                                                    {{ $batch->barangay_name }}
+                                                @endif
                                             </td>
                                             <td class="pr-2 py-2 text-center">
                                                 {{ $this->beneficiarySlots[$key] }}
@@ -480,9 +484,16 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </p>
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
-                                Location: <p class="font-normal ps-2 truncate">Brgy.
-                                    {{ $this->location->barangay_name . ', ' . $this->location->district . ', ' . $this->location->city_municipality }}
-                                </p>
+                                @if ($this->location->is_sectoral)
+                                    Sector Title: <p class="font-normal ps-2 truncate">
+                                        {{ $this->location->sector_title }}
+                                    </p>
+                                @else
+                                    Location: <p class="font-normal ps-2 truncate">Brgy.
+                                        {{ $this->location->barangay_name . ', ' . $this->location->district . ', ' . $this->location->city_municipality }}
+                                    </p>
+                                @endif
+
                             </div>
                             <div class="flex items-center justify-start ms-2 my-1">
                                 Access Code: <p class="ps-2 font-normal">

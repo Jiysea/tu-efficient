@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Coordinator;
 
+use App\Models\Archive;
 use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\UserSetting;
 use App\Services\Annex;
-use App\Services\GenerateActivityLogs;
+use App\Services\LogIt;
 use Carbon\Carbon;
 use DB;
 use Hash;
@@ -38,6 +39,7 @@ class Submissions extends Component
     #[Locked]
     public $exportBatchId;
     public $batchNumPrefix;
+    public $defaultArchive;
     public $showAlert = false;
     public $alertMessage = '';
     public $identity;
@@ -695,7 +697,7 @@ class Submissions extends Component
             $this->alertMessage = 'Successfully approved the batch assignment!';
             $this->dispatch('show-alert');
 
-            GenerateActivityLogs::set_approve_batch(Auth::id(), $batch);
+            LogIt::set_approve_batch(auth()->user(), $batch);
         } else {
             $this->showAlert = true;
             $this->alertMessage = 'Cannot approve batch assignment when it is not submitted';
@@ -752,15 +754,50 @@ class Submissions extends Component
 
             $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
                 ->get();
+            if ($this->defaultArchive) {
 
-            foreach ($credentials as $credential) {
-                if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
-                    Storage::delete($credential->image_file_path);
+                # Archive their credentials first
+                foreach ($credentials as $credential) {
+                    Archive::create([
+                        'last_id' => $credential->id,
+                        'source_table' => 'credentials',
+                        'data' => $credential->toArray(),
+                    ]);
+                    $credential->delete();
                 }
 
-                $credential->delete();
+                # then archive the Beneficiary record
+                Archive::create([
+                    'last_id' => $beneficiary->id,
+                    'source_table' => 'beneficiaries',
+                    'data' => $beneficiary->toArray(),
+                ]);
+                $beneficiary->delete();
+
+                LogIt::set_archive_beneficiary($beneficiary);
+
+                $this->resetViewBeneficiary();
+                $this->js('viewBeneficiaryModal = false;');
+                $this->dispatch('archive-beneficiary');
+                $this->showAlert = true;
+                $this->alertMessage = 'Moved beneficiary to Archives';
             }
-            $beneficiary->delete();
+
+            # otherwise, we could just delete it.
+            else {
+                foreach ($credentials as $credential) {
+                    if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
+                        Storage::delete($credential->image_file_path);
+                    }
+                    $credential->delete();
+                }
+
+                $beneficiary->delete();
+
+                LogIt::set_delete_beneficiary($beneficiary, auth()->id());
+                $this->showAlert = true;
+                $this->alertMessage = 'Successfully deleted a beneficiary';
+            }
 
             $dateTimeFromEnd = $this->end;
             $value = substr($dateTimeFromEnd, 0, 10);
@@ -772,8 +809,6 @@ class Submissions extends Component
             $this->beneficiaryId = null;
             $this->selectedBeneficiaryRow = -1;
 
-            $this->showAlert = true;
-            $this->alertMessage = 'Successfully deleted a beneficiary!';
             $this->dispatch('show-alert');
             $this->dispatch('init-reload')->self();
 
@@ -912,6 +947,7 @@ class Submissions extends Component
         $settings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
         $this->batchNumPrefix = $settings->get('batch_num_prefix', config('settings.batch_number_prefix'));
+        $this->defaultArchive = intval($settings->get('default_archive', config('settings.default_archive')));
 
     }
 

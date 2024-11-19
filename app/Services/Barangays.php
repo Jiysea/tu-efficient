@@ -71,7 +71,7 @@ class Barangays
                 'Tubod',
                 'Union'
             ];
-        } else if ($city_municipality === 'Davao City') {
+        } else if ($city_municipality === 'City of Davao') {
             if ($district === '1st District') {
                 $barangays = [
                     '1-A',

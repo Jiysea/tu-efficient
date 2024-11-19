@@ -24,7 +24,7 @@
                     <div class="flex items-center justify-center">
                         {{-- Loading State for Changes --}}
                         <div class="z-50 text-indigo-900" wire:loading
-                            wire:target="editBatch, liveUpdateRemainingSlots, toggleEditBatch, view_barangay_name, addToastCoordinator, removeToastCoordinator, deleteBatch">
+                            wire:target="editBatch, liveUpdateRemainingSlots, toggleEditBatch, addToastCoordinator, removeToastCoordinator, deleteBatch, slots_allocated, barangay_name, district">
                             <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -52,148 +52,235 @@
                 {{-- Modal body --}}
                 @if ($passedBatchId)
                     <form wire:submit.prevent="editBatch" class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
 
                             {{-- Edit Mode is ON --}}
                             @if ($editMode)
 
                                 {{-- Batch Number --}}
-                                <div class="relative flex flex-1 flex-col mb-4">
-                                    <label for="view_batch_num"
-                                        class="flex items-center justify-between mb-1 font-medium text-indigo-1100 ">Batch
-                                        Number <span
-                                            class="absolute -z-0 -top-1 right-0 bg-indigo-100 font-medium text-indigo-700 rounded px-2 pt-1 pb-2">prefix:
-                                            <strong>{{ substr($batchNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($batchNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong>
-                                        </span>
-                                    </label>
-                                    <input disabled type="text" id="view_batch_num" autocomplete="off"
-                                        wire:model.blur="view_batch_num"
-                                        class="text-xs z-10 duration-200 disabled:bg-gray-50 disabled:placeholder-gray-700 disabled:text-gray-700 disabled:border-gray-300 {{ $errors->has('view_batch_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
-                                        placeholder="Type project number">
-                                    @error('view_batch_num')
-                                        <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
-                                            {{ $message }}
-                                        </p>
-                                    @enderror
-
+                                <div class="flex flex-1 flex-col relative">
+                                    <p class="block mb-1 font-medium text-indigo-1100">
+                                        Batch Number
+                                    </p>
+                                    <span
+                                        class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
+                                        {{ $this->batch?->batch_num }}
+                                    </span>
                                 </div>
 
-                                {{-- Barangay --}}
-                                <div x-data="{ show: false, view_barangay_name: $wire.entangle('view_barangay_name') }" class="relative flex flex-col mb-4">
-                                    @if ($isEmpty)
-                                        <p class="block mb-1 font-medium text-indigo-1100 ">
-                                            Barangay <span class="text-red-700 font-normal text-xs">*</span>
-                                        </p>
+                                @if ($is_sectoral)
+                                    {{-- Sector Title --}}
+                                    <div class="flex flex-1 flex-col sm:col-span-2 relative">
 
-                                        {{-- Barangay Button --}}
-                                        <button type="button" id="view_barangay_name" @click="show = !show;"
-                                            class="text-xs flex items-center justify-between px-4 {{ $errors->has('view_barangay_name') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full py-2.5 duration-200 ease-in-out">
-                                            <span x-text="view_barangay_name"></span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                fill="currentColor" class="size-3 duration-200 ease-in-out">
-                                                <path fill-rule="evenodd"
-                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
+                                        <label for="sector_title"
+                                            class="flex items-center justify-between mb-1 font-medium text-indigo-1100 ">
+                                            <p>
+                                                <span class="relative">Sector Title
+                                                    <span
+                                                        class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                                    </span>
+                                                </span>
+                                            </p>
+                                        </label>
+                                        <div class="relative">
+                                            <input type="text" id="sector_title" autocomplete="off"
+                                                wire:model.live.debounce.300ms="sector_title"
+                                                class="text-xs {{ $errors->has('sector_title') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full py-2.5 duration-200 ease-in-out"
+                                                placeholder="Type sector title">
+                                        </div>
+                                        @error('sector_title')
+                                            <p class="mt-2 text-red-500 absolute left-2 top-full text-xs">
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                    </div>
+                                @else
+                                    {{-- District --}}
+                                    <div x-data="{ show: false, district: $wire.entangle('district') }" class="relative flex flex-col">
+                                        @if ($isEmpty)
+                                            <p class="block mb-1 font-medium text-indigo-1100 ">
+                                                <span class="relative">District
+                                                    <span
+                                                        class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                                    </span>
+                                                </span>
+                                            </p>
 
-                                        {{-- Barangay Dropdown --}}
-                                        <div x-show="show"
-                                            @click.away=" 
+                                            {{-- District Button --}}
+                                            <button type="button" id="district" @click="show = !show;"
+                                                class="text-xs flex items-center justify-between px-4 {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full py-2.5 duration-200 ease-in-out">
+                                                <span x-text="district"></span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-3 duration-200 ease-in-out">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+
+                                            {{-- District Dropdown --}}
+                                            <div x-show="show" @click.away="if(show == true) { show = !show; }"
+                                                class="w-full end-0 top-full absolute text-indigo-1100 bg-white shadow-lg border z-50 border-indigo-500 rounded p-3 mt-2">
+                                                {{-- List of Districts --}}
+                                                <ul
+                                                    class="p-2 border border-indigo-300 rounded text-xs overflow-y-auto h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-700">
+                                                    @forelse ($this->districts as $key => $dist)
+                                                        <li wire:key={{ $key }}>
+                                                            <button type="button"
+                                                                @click="show = !show; district = '{{ $dist }}'; $wire.resetBarangays();"
+                                                                wire:loading.attr="disabled"
+                                                                aria-label="{{ __('Districts') }}"
+                                                                class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">{{ $dist }}</button>
+                                                        </li>
+                                                    @empty
+                                                        <div class="h-full w-full text-xs text-gray-500 p-2">
+                                                            No districts found
+                                                        </div>
+                                                    @endforelse
+                                                </ul>
+                                            </div>
+                                            @error('district')
+                                                <p class="text-red-500 absolute left-2 top-full text-xs">
+                                                    {{ $message }}
+                                                </p>
+                                            @enderror
+                                        @else
+                                            <p class="block mb-1 font-medium text-indigo-1100">
+                                                District
+                                            </p>
+                                            <span
+                                                class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->district }}</span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Barangay --}}
+                                    <div x-data="{ show: false, barangay_name: $wire.entangle('barangay_name') }" class="relative flex flex-col">
+                                        @if ($isEmpty)
+                                            <p class="block mb-1 font-medium text-indigo-1100 ">
+                                                <span class="relative">Barangay
+                                                    <span
+                                                        class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                                    </span>
+                                                </span>
+                                            </p>
+
+                                            {{-- Barangay Button --}}
+                                            <button type="button" id="barangay_name" @click="show = !show;"
+                                                class="text-xs flex items-center justify-between px-4 {{ $errors->has('barangay_name') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full py-2.5 duration-200 ease-in-out">
+                                                @if ($barangay_name)
+                                                    <span x-text="barangay_name"></span>
+                                                @else
+                                                    <span>Select a barangay...</span>
+                                                @endif
+
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-3 duration-200 ease-in-out">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+
+                                            {{-- Barangay Dropdown --}}
+                                            <div x-show="show"
+                                                @click.away=" 
                                                     if(show == true) 
                                                     { 
                                                         show = !show; 
                                                         $wire.set('searchBarangay', null);
                                                     }"
-                                            class="w-full end-0 top-full absolute text-indigo-1100 bg-white shadow-lg border z-50 border-indigo-300 rounded p-3 mt-2">
-                                            <div class="relative flex items-center justify-center py-1 group">
-                                                {{-- Search Icon --}}
-                                                <svg wire:loading.remove wire:target="searchBarangay"
-                                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                    class="absolute start-0 ps-2 size-6 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none">
-                                                    <path fill-rule="evenodd"
-                                                        d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                                {{-- Loading Icon --}}
-                                                <svg wire:loading wire:target="searchBarangay"
-                                                    class="absolute start-0 ms-2 size-4 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none animate-spin"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                    viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4">
-                                                    </circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                    </path>
-                                                </svg>
-                                                {{-- Search Input Box --}}
-                                                <input id="searchBarangay"
-                                                    wire:model.live.debounce.500ms="searchBarangay" type="text"
-                                                    autocomplete="off"
-                                                    class="rounded w-full ps-8 text-xs text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
-                                                    placeholder="Search barangay">
+                                                class="w-full end-0 top-full absolute text-indigo-1100 bg-white shadow-lg border z-50 border-indigo-500 rounded p-3 mt-2">
+                                                <div class="relative flex items-center justify-center py-1 group">
+                                                    {{-- Search Icon --}}
+                                                    <svg wire:loading.remove wire:target="searchBarangay"
+                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                        class="absolute start-0 ps-2 size-6 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none">
+                                                        <path fill-rule="evenodd"
+                                                            d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                    {{-- Loading Icon --}}
+                                                    <svg wire:loading wire:target="searchBarangay"
+                                                        class="absolute start-0 ms-2 size-4 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none animate-spin"
+                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4">
+                                                        </circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                        </path>
+                                                    </svg>
+                                                    {{-- Search Input Box --}}
+                                                    <input id="searchBarangay"
+                                                        wire:model.live.debounce.500ms="searchBarangay" type="text"
+                                                        autocomplete="off"
+                                                        class="rounded w-full ps-8 text-xs text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
+                                                        placeholder="Search barangay">
+                                                </div>
+                                                {{-- List of Barangays --}}
+                                                <ul
+                                                    class="mt-2 text-xs overflow-y-auto h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-700">
+                                                    @forelse ($this->barangays as $key => $barangay)
+                                                        <li wire:key={{ $key }}>
+                                                            <button type="button"
+                                                                @click="show = !show; barangay_name = '{{ $barangay }}'; $wire.$refresh();"
+                                                                wire:loading.attr="disabled"
+                                                                aria-label="{{ __('Barangays') }}"
+                                                                class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">{{ $barangay }}</button>
+                                                        </li>
+                                                    @empty
+                                                        <div class="h-full w-full text-xs text-gray-500 p-2">
+                                                            No barangays found
+                                                        </div>
+                                                    @endforelse
+                                                </ul>
                                             </div>
-                                            {{-- List of Barangays --}}
-                                            <ul
-                                                class="mt-2 text-xs overflow-y-auto h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-700">
-                                                @forelse ($this->barangays as $key => $barangay)
-                                                    <li wire:key={{ $key }}>
-                                                        <button type="button"
-                                                            @click="show = !show; view_barangay_name = '{{ $barangay }}'; $wire.$refresh();"
-                                                            wire:loading.attr="disabled"
-                                                            aria-label="{{ __('Barangays') }}"
-                                                            class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">{{ $barangay }}</button>
-                                                    </li>
-                                                @empty
-                                                    <div class="h-full w-full text-xs text-gray-500 p-2">
-                                                        No barangays found
-                                                    </div>
-                                                @endforelse
-                                            </ul>
-                                        </div>
-                                        @error('view_barangay_name')
-                                            <p class="text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
-                                                {{ $message }}
+                                            @error('barangay_name')
+                                                <p class="text-red-500 absolute left-2 top-full text-xs">
+                                                    {{ $message }}
+                                                </p>
+                                            @enderror
+                                        @else
+                                            <p class="block mb-1 font-medium text-indigo-1100">
+                                                Barangay
                                             </p>
-                                        @enderror
-                                    @else
-                                        <p class="block mb-1 font-medium text-indigo-1100">
-                                            Barangay
-                                        </p>
-                                        <span
-                                            class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->barangay_name }}</span>
-                                    @endif
-                                </div>
+                                            <span
+                                                class="flex flex-1 text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->barangay_name }}</span>
+                                        @endif
+                                    </div>
+                                @endif
 
                                 {{-- Slots --}}
-                                <div class="flex flex-1 flex-col relative mb-4">
+                                <div class="flex flex-1 flex-col relative">
                                     @if ($isEmpty)
-                                        <label for="view_slots_allocated"
+                                        <label for="slots_allocated"
                                             class="flex items-center justify-between mb-1 font-medium text-indigo-1100 ">
                                             <p>
-                                                Allocated Slots
-                                                <span class="text-red-700 font-normal text-xs">*</span>
+                                                <span class="relative">Allocated Slots
+                                                    <span
+                                                        class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                                    </span>
+                                                </span>
                                             </p>
 
                                             <span
                                                 class="{{ $remainingSlots === 0 ? 'text-red-900 bg-red-200' : 'text-indigo-1000 bg-indigo-200' }} absolute -top-1 right-0 rounded-md pt-1 px-2 pb-2">
                                                 <span class="font-normal">Remaining:</span>
-                                                <span class="ps-1 font-medium">{{ $remainingSlots }}
+                                                <span class="ps-0.5 font-semibold">{{ $remainingSlots }}
                                                 </span>
                                             </span>
 
                                         </label>
                                         <div class="relative">
-                                            <input type="number" min="0" id="view_slots_allocated"
-                                                autocomplete="off"
-                                                wire:model.live.debounce.300ms="view_slots_allocated"
-                                                class="text-xs {{ $errors->has('view_slots_allocated') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full py-2.5 duration-200 ease-in-out"
+                                            <input type="number" min="0" id="slots_allocated"
+                                                autocomplete="off" wire:model.live.debounce.300ms="slots_allocated"
+                                                class="text-xs {{ $errors->has('slots_allocated') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full py-2.5 duration-200 ease-in-out"
                                                 placeholder="Type slots allocation">
                                         </div>
-                                        @error('view_slots_allocated')
-                                            <p class="mt-2 text-red-500 absolute left-2 -bottom-4 z-10 text-xs">
+                                        @error('slots_allocated')
+                                            <p class="mt-2 text-red-500 absolute left-2 top-full text-xs">
                                                 {{ $message }}
                                             </p>
                                         @enderror
@@ -207,20 +294,44 @@
                                 </div>
 
                                 {{-- Coordinators --}}
-                                <div x-data="{ show: false, currentCoordinator: $wire.entangle('currentCoordinator'), selectedCoordinatorKey: $wire.entangle('selectedCoordinatorKey') }" class="flex flex-col relative mb-4">
+                                <div x-data="{ show: false, currentCoordinator: $wire.entangle('currentCoordinator'), selectedCoordinatorKey: $wire.entangle('selectedCoordinatorKey') }" class="flex flex-col sm:col-span-2 relative">
                                     <p class="block mb-1 font-medium text-indigo-1100">
-                                        Add Coordinator <span class="text-red-700 font-normal text-xs">*</span>
+                                        <span class="relative">Add Coordinator <span
+                                                class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                            </span>
+                                        </span>
                                     </p>
 
-                                    <div class="relative z-50 h-full">
+                                    <div class="flex items-center gap-6 relative h-full">
+
+                                        {{-- Dropdown Button --}}
                                         <button type="button" id="coordinator_name" @click="show = !show;"
-                                            class="w-full h-full border bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600 outline-none text-xs px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out">
+                                            class="size-full border bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600 outline-none text-xs px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out">
                                             <span x-text="currentCoordinator"></span>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                fill="currentColor" class="size-4 ms-3 duration-200 ease-in-out">
+                                                fill="currentColor" class="size-3">
                                                 <path fill-rule="evenodd"
                                                     d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
                                                     clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+
+                                        {{-- Add Coordinator button --}}
+                                        <button type="button"
+                                            @if ($this->coordinators->isNotEmpty()) wire:click="addToastCoordinator" @else disabled @endif
+                                            class="p-2.5 rounded outline-none duration-200 ease-in-out
+                                                    {{ $this->coordinators->isNotEmpty()
+                                                        ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 focus:ring-indigo-700 focus:ring-2'
+                                                        : 'text-gray-300 bg-gray-300' }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M185.508 17.497 C 112.997 31.335,91.364 123.481,150.324 167.363 C 197.412 202.410,265.699 178.292,281.071 121.187 C 296.645 63.334,244.096 6.316,185.508 17.497 M148.828 217.621 C 91.057 226.723,48.389 277.005,50.178 333.878 C 50.910 357.134,62.844 373.715,84.375 381.392 L 89.453 383.203 157.609 383.423 C 233.023 383.666,229.021 383.926,231.535 378.627 C 233.606 374.264,233.085 371.831,227.714 360.768 C 216.193 337.036,214.139 312.579,221.575 287.660 C 227.224 268.732,238.842 251.751,255.079 238.691 C 267.401 228.781,267.383 220.875,255.034 218.143 C 247.176 216.405,159.291 215.973,148.828 217.621 M308.984 251.257 C 300.620 255.814,300.000 257.855,300.000 280.828 L 300.000 300.000 280.828 300.000 C 263.520 300.000,261.375 300.144,258.758 301.486 C 246.735 307.652,246.781 325.608,258.835 331.615 C 262.750 333.566,263.071 333.594,281.366 333.594 L 299.925 333.594 300.158 353.389 L 300.391 373.185 302.627 376.410 C 308.347 384.659,321.056 385.964,328.419 379.060 C 333.174 374.601,333.558 372.598,333.577 352.148 L 333.594 333.594 352.148 333.577 C 372.598 333.558,374.601 333.174,379.060 328.419 C 385.964 321.056,384.659 308.347,376.410 302.627 L 373.185 300.391 353.389 300.158 L 333.594 299.925 333.594 281.366 C 333.594 259.946,332.886 257.117,326.408 252.627 C 322.369 249.829,312.964 249.089,308.984 251.257 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
                                             </svg>
                                         </button>
 
@@ -232,7 +343,7 @@
                                                         $wire.set('searchCoordinator', null);
                                                         }
                                                         "
-                                            class="w-full end-0 absolute text-indigo-1100 bg-white shadow-lg border border-indigo-300 rounded p-3 mt-2">
+                                            class="w-full min-w-[20rem] top-full right-0 z-50 absolute text-indigo-1100 bg-white shadow-lg border border-indigo-300 rounded p-3 mt-2">
                                             <div class="relative flex items-center justify-center py-1 group">
                                                 {{-- Search Icon --}}
                                                 <svg wire:loading.remove wire:target="searchCoordinator"
@@ -299,26 +410,7 @@
                                 </div>
 
                                 {{-- Assigned Coordinators --}}
-                                <div class="relative flex mb-4 gap-4 sm:col-span-2">
-
-                                    {{-- Arrow button --}}
-                                    <button type="button"
-                                        @if ($this->coordinators->isNotEmpty()) wire:click="addToastCoordinator" @else disabled @endif
-                                        class="z-40 p-2.5 grid place-items-center place-self-end rounded border-2 outline-none duration-200 ease-in-out
-                                                        {{ $this->coordinators->isNotEmpty()
-                                                            ? 'text-indigo-700 hover:text-indigo-50 active:text-indigo-300 border-indigo-700 focus:ring-indigo-700 focus:ring-2 hover:border-transparent hover:bg-indigo-800 active:bg-indigo-900'
-                                                            : 'text-gray-300 border-gray-300' }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M277.913 100.212 C 268.376 103.320,263.354 115.296,267.916 124.055 C 268.746 125.649,281.931 139.434,297.217 154.688 L 325.008 182.422 176.371 182.813 L 27.734 183.203 24.044 185.372 C 11.976 192.467,13.880 212.729,26.953 216.320 C 29.173 216.930,72.861 217.180,177.711 217.183 L 325.343 217.188 296.350 246.289 C 268.003 274.743,267.339 275.480,266.516 279.416 C 263.782 292.490,275.629 303.458,288.672 299.926 C 292.603 298.862,379.406 212.826,382.053 207.371 C 383.922 203.517,384.072 197.196,382.390 193.139 C 380.867 189.467,295.574 103.760,291.158 101.464 C 287.389 99.505,281.724 98.970,277.913 100.212 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd">
-                                                </path>
-                                            </g>
-                                        </svg>
-                                    </button>
+                                <div class="relative flex gap-4 col-span-full">
 
                                     {{-- Toast Area --}}
                                     <div class="relative flex flex-1 flex-col overflow-auto">
@@ -326,18 +418,18 @@
                                             Assigned Coordinators
                                         </p>
                                         <span
-                                            class="flex flex-1 py-1 overflow-x-scroll rounded border {{ $errors->has('view_assigned_coordinators') ? 'border-red-300 bg-red-50 scrollbar-track-red-50 scrollbar-thumb-red-700' : 'border-indigo-300 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700' }} scrollbar-thin">
+                                            class="flex gap-2 h-12 py-1.5 px-2 overflow-x-scroll rounded border {{ $errors->has('assigned_coordinators') ? 'border-red-300 bg-red-50 scrollbar-track-red-50 scrollbar-thumb-red-700' : 'border-indigo-300 scrollbar-track-indigo-50 scrollbar-thumb-indigo-700' }} scrollbar-thin">
 
                                             {{-- A Toast of Coordinators --}}
-                                            @foreach ($view_assigned_coordinators as $key => $assignedCoordinator)
+                                            @forelse ($assigned_coordinators as $key => $assignedCoordinator)
                                                 <span
-                                                    class=" py-1 px-2 mx-1 rounded whitespace-nowrap duration-200 ease-in-out bg-indigo-100 text-indigo-700">
+                                                    class="flex items-center gap-1 ps-2 rounded whitespace-nowrap duration-200 ease-in-out bg-indigo-200 text-indigo-1000">
                                                     {{ $this->getFullName($assignedCoordinator) }}
 
                                                     {{-- X button --}}
                                                     <button type="button"
                                                         wire:click="removeToastCoordinator({{ $key }})"
-                                                        class="ms-1 p-1 text-indigo-1100 hover:text-indigo-900 active:text-indigo-1000 duration-200 ease-in-out">
+                                                        class="p-2 outline-none text-indigo-1100 hover:text-indigo-900 active:text-indigo-1000 duration-200 ease-in-out">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-2"
                                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                             height="400" viewBox="0, 0, 400,400">
@@ -351,11 +443,14 @@
                                                         </svg>
                                                     </button>
                                                 </span>
-                                            @endforeach
+                                            @empty
+                                                <span class="text-gray-500">Added Coordinators will be shown
+                                                    here!</span>
+                                            @endforelse
                                         </span>
                                     </div>
-                                    @error('view_assigned_coordinators')
-                                        <p class="text-red-500 absolute left-16 top-full z-10 mt-1 text-xs">
+                                    @error('assigned_coordinators')
+                                        <p class="text-red-500 absolute left-16 top-full mt-1 text-xs">
                                             {{ $message }}
                                         </p>
                                     @enderror
@@ -381,10 +476,10 @@
 
                                     {{-- SAVE BUTTON --}}
                                     <div class="flex items-center justify-center">
-                                        <button type="submit" wire:target="editBatch"
-                                            class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">
+                                        <button type="submit"
+                                            class="flex flex-1 items-center justify-center gap-2 duration-200 ease-in-out px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                             SAVE
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ms-2"
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
                                                 <g>
@@ -396,13 +491,14 @@
                                             </svg>
                                         </button>
 
-                                        {{-- CANCEL | X Button --}}
+                                        {{-- X/Cancel Button --}}
                                         <button type="button" wire:click.prevent="toggleEditBatch"
                                             wire:loading.attr="disabled" wire:target="toggleEditBatch"
                                             class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-3 rounded outline-none font-bold text-sm border border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50">
 
-                                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 14 14">
+                                            <svg class="size-3.5" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 14 14">
                                                 <path stroke="currentColor" stroke-linecap="round"
                                                     stroke-linejoin="round" stroke-width="2"
                                                     d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
@@ -416,7 +512,7 @@
                             @if (!$editMode)
 
                                 {{-- Batch Number OFF --}}
-                                <div class="relative flex flex-col mb-4">
+                                <div class="relative flex flex-col">
                                     <p class="block mb-1 font-medium text-indigo-1100">
                                         Batch Number
                                     </p>
@@ -425,7 +521,7 @@
                                 </div>
 
                                 {{-- City/Municipality OFF --}}
-                                <div class="relative flex flex-col mb-4">
+                                <div class="relative flex flex-col">
                                     <p class="block mb-1 font-medium text-indigo-1100">
                                         City/Municipality
                                     </p>
@@ -434,7 +530,7 @@
                                 </div>
 
                                 {{-- Edit/Delete Buttons OFF --}}
-                                <div x-data="{ deleteBatchModal: $wire.entangle('deleteBatchModal') }" class="flex justify-center items-center">
+                                <div x-data="{ deleteBatchModal: $wire.entangle('deleteBatchModal') }" class="flex justify-center items-end">
                                     <button type="button" wire:loading.attr="disabled" wire:target="toggleEditBatch"
                                         @if ($this->batch?->approval_status !== 'approved') wire:click.prevent="toggleEditBatch" @else disabled @endif
                                         class="duration-200 ease-in-out flex flex-1 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm disabled:border disabled:cursor-not-allowed disabled:border-gray-500 disabled:bg-gray-100 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
@@ -454,7 +550,7 @@
                                     {{-- Delete/Trash Button --}}
                                     <button type="button"
                                         @if ($isEmpty) @click="deleteBatchModal = !deleteBatchModal;" @else disabled @endif
-                                        class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm border disabled:cursor-not-allowed disabled:border-gray-500 disabled:bg-gray-100 disabled:text-gray-500 border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50">
+                                        class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                             viewBox="0, 0, 400,400">
@@ -516,14 +612,14 @@
                                                             (This is action is
                                                             irreversible)
                                                         </p>
-                                                        <div class="flex items-center justify-center w-full gap-4">
+                                                        <div class="flex items-center justify-center w-full gap-2">
                                                             <button type="button" @click="deleteBatchModal = false;"
-                                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-indigo-700 hover:border-transparent active:border-transparent hover:bg-indigo-800 active:bg-indigo-900 text-indigo-700 hover:text-indigo-50 active:text-indigo-50">
-                                                                CONFIRM
+                                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                                                CANCEL
                                                             </button>
                                                             <button type="button"
                                                                 @click="$wire.deleteBatch(); deleteBatchModal = false;"
-                                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
                                                                 CONFIRM
                                                             </button>
                                                         </div>
@@ -534,26 +630,37 @@
                                     </div>
                                 </div>
 
-                                {{-- District OFF --}}
-                                <div class="relative flex flex-col mb-4">
-                                    <p class="block mb-1 font-medium text-indigo-1100">
-                                        District
-                                    </p>
-                                    <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->implementation?->district }}</span>
-                                </div>
+                                @if ($is_sectoral)
+                                    {{-- Sector Title OFF --}}
+                                    <div class="relative flex flex-col sm:col-span-2">
+                                        <p class="mb-1 font-medium text-indigo-1100 ">
+                                            Sector Title
+                                        </p>
+                                        <span
+                                            class="min-w-0 flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium truncate">{{ $this->batch?->sector_title }}</span>
+                                    </div>
+                                @else
+                                    {{-- District OFF --}}
+                                    <div class="relative flex flex-col">
+                                        <p class="block mb-1 font-medium text-indigo-1100">
+                                            District
+                                        </p>
+                                        <span
+                                            class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->district }}</span>
+                                    </div>
 
-                                {{-- Barangay OFF --}}
-                                <div class="relative flex flex-col mb-4">
-                                    <p class="block mb-1 font-medium text-indigo-1100">
-                                        Barangay
-                                    </p>
-                                    <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->barangay_name }}</span>
-                                </div>
+                                    {{-- Barangay OFF --}}
+                                    <div class="relative flex flex-col">
+                                        <p class="block mb-1 font-medium text-indigo-1100">
+                                            Barangay
+                                        </p>
+                                        <span
+                                            class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $this->batch?->barangay_name }}</span>
+                                    </div>
+                                @endif
 
                                 {{-- Slots OFF --}}
-                                <div class="relative flex flex-col mb-4">
+                                <div class="relative flex flex-col">
                                     <p class="block mb-1 font-medium text-indigo-1100">
                                         Alloted Slots
                                     </p>
@@ -562,7 +669,7 @@
                                 </div>
 
                                 {{-- Assigned Coordinators OFF --}}
-                                <div class="relative flex flex-col mb-4 col-span-full">
+                                <div class="relative flex flex-col col-span-full">
                                     <p class="block mb-3 text-indigo-1100 mx-auto font-semibold">
                                         Assigned Coordinators <span
                                             class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 ms-1 font-medium">{{ sizeof($this->assignedCoordinators) }}</span>

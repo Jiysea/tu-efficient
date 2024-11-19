@@ -8,7 +8,7 @@ use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Essential;
-use App\Services\GenerateActivityLogs;
+use App\Services\LogIt;
 use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;

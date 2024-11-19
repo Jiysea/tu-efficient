@@ -3,12 +3,9 @@
 </x-slot>
 
 <div x-data="{ open: true, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
-
-
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });">
-
 
     <div :class="{
         'md:ml-20': open === false,
@@ -194,7 +191,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             total slots
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
-                                            days of work
+                                            type
                                         </th>
                                         <th scope="col" class="px-2 py-2 text-center">
 
@@ -206,11 +203,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <tr wire:key="implementation-{{ $key }}"
                                             @click="$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}');"
                                             @dblclick="$wire.viewProject('{{ encrypt($implementation->id) }}')"
-                                            class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-200 text-indigo-900 hover:bg-gray-300' : ' hover:bg-gray-50' }} whitespace-nowrap cursor-pointer">
+                                            class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-50' : ' hover:bg-gray-50' }} whitespace-nowrap cursor-pointer">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
                                                     'bg-indigo-700': {{ json_encode($selectedImplementationRow === $key) }},
-                                                    '': {{ json_encode($selectedImplementationRow !== $key) }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
@@ -224,7 +220,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $implementation->total_slots }}
                                             </td>
                                             <td class="pr-2 py-2 text-center">
-                                                {{ $implementation->days_of_work }}
+                                                <span
+                                                    class="{{ $implementation->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-indigo-200 text-indigo-900' }} rounded-full px-2 py-1 text-xs font-semibold">{{ $implementation->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
                                             </td>
                                             <td class="py-1">
 
@@ -264,18 +261,33 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             class="relative bg-white px-4 pb-4 pt-2 h-[36vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                    viewBox="0, 0, 400,400">
-                                    <g>
-                                        <path
-                                            d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
-                                            stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                    </g>
-                                </svg>
-                                <p>No projects found.</p>
-                                <p>Try creating a <span class=" text-indigo-900">new project</span>.</p>
+                                @if (isset($searchProjects) && !empty($searchProjects))
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No projects found.</p>
+                                    <p>Try a different <span class=" text-indigo-900">search term</span>.</p>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No projects found.</p>
+                                    <p>Try creating a <span class=" text-indigo-900">new project</span>.</p>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -307,15 +319,16 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                         {{-- Assign Button --}}
                         <div class="relative mx-2 flex items-center">
-                            @if ($this->remainingBatchSlots || $this->remainingBatchSlots === 0)
+                            @if (isset($this->remainingBatchSlots))
                                 <p class="text-xs text-indigo-1100 capitalize font-light me-1">unallocated slots:</p>
                                 <div
-                                    class="{{ $this->remainingBatchSlots > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700' }} rounded-md py-1 px-2 text-xs me-2">
+                                    class="{{ $this->remainingBatchSlots > 0 ? 'bg-amber-100 text-amber-700' : 'bg-green-200 text-green-900' }} rounded-md py-1 px-2 text-xs me-2">
                                     {{ $this->remainingBatchSlots }}</div>
                             @endif
                             <button data-popover-target="assign-btn" data-popover-trigger="hover"
-                                @if (!$this->remainingBatchSlots || $this->remainingBatchSlots === null || $this->remainingBatchSlots === 0) disabled @endif
-                                @if ($implementationId) @click="assignBatchesModal = !assignBatchesModal;" @endif
+                                @if (!$this->remainingBatchSlots) disabled 
+                                @else
+                                    @click="assignBatchesModal = !assignBatchesModal;" @endif
                                 class="flex items-center rounded-md px-3 py-1 text-sm font-bold duration-200 ease-in-out {{ $this->remainingBatchSlots > 0 ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500' : 'bg-indigo-300 text-indigo-50' }}">
                                 ASSIGN
                                 <svg class="size-4 ml-2" xmlns="http://www.w3.org/2000/svg"
@@ -352,7 +365,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             {{-- Selected Row Indicator --}}
                                         </th>
                                         <th scope="col" class="ps-4 py-2">
-                                            barangay
+                                            {{ $this->implementation->is_sectoral ? 'sector title' : 'barangay' }}
                                         </th>
                                         <th scope="col" class="px-2 py-2 text-center">
                                             slots
@@ -370,16 +383,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <tr wire:key="batch-{{ $key }}"
                                             @dblclick="$wire.viewBatch('{{ encrypt($batch->id) }}')"
                                             @click="$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
-                                            class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-200' : ' hover:bg-gray-50' }}">
+                                            class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-50' : ' hover:bg-gray-50' }}">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
                                                     'bg-indigo-700': {{ json_encode($selectedBatchRow === $key) }},
-                                                    '': {{ json_encode($selectedBatchRow !== $key) }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
                                             <th scope="row" class="z-0 ps-4 py-2 font-medium">
-                                                {{ $batch->barangay_name }}
+                                                {{ $this->implementation->is_sectoral ? $batch->sector_title : $batch->barangay_name }}
                                             </th>
                                             <td class="px-2 py-2 text-center">
                                                 {{ $batch->current_slots . ' / ' . $batch->slots_allocated }}

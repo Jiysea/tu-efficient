@@ -19,7 +19,7 @@
                     <div class="flex items-center justify-center">
 
                         {{-- Loading State for Changes --}}
-                        <div class="z-50 text-indigo-900" wire:loading wire:target="autoCompute">
+                        <div class="z-50 text-indigo-900" wire:loading wire:target="autoCompute, is_sectoral, purpose">
                             <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -60,13 +60,40 @@
                                     <strong>{{ substr($projectNumPrefix ?? config('settings.project_number_prefix'), 0, strlen($projectNumPrefix ?? config('settings.project_number_prefix')) - 1) }}</strong>
                                 </span>
                             </label>
-                            <input disabled type="number" id="project_num" autocomplete="off"
-                                wire:model.blur="project_num"
-                                class="text-xs z-10 duration-200 disabled:bg-gray-50 disabled:placeholder-gray-700 disabled:text-gray-700 disabled:border-gray-300 {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
-                                placeholder="Type project number">
+                            <div class="relative">
+                                <input disabled type="number" id="project_num" autocomplete="off"
+                                    wire:model.blur="project_num"
+                                    class="text-xs z-10 duration-200 disabled:bg-gray-50 disabled:placeholder-gray-700 disabled:text-gray-700 disabled:border-gray-300 {{ $errors->has('project_num') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5 "
+                                    placeholder="Type project number">
+                                <button type="button" wire:click="regenerateProjectNum"
+                                    class="absolute right-0 top-0 flex items-center justify-center text-indigo-700 p-2.5">
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5" wire:loading.remove
+                                        wire:target="regenerateProjectNum" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                        width="400" height="400" viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M184.034 33.711 C 114.672 39.820,55.552 90.170,38.271 157.852 C 34.351 173.206,40.480 183.520,53.558 183.577 C 62.787 183.617,68.089 178.632,71.401 166.797 C 102.421 55.968,246.260 30.959,309.547 125.391 L 314.259 132.422 296.387 132.813 C 279.134 133.190,278.395 133.271,275.035 135.156 C 263.607 141.568,263.607 158.432,275.035 164.844 L 278.516 166.797 316.797 166.797 L 355.078 166.797 358.768 164.628 C 361.161 163.221,363.221 161.161,364.628 158.768 L 366.797 155.078 366.797 116.797 L 366.797 78.516 364.844 75.035 C 358.432 63.608,341.534 63.608,335.171 75.035 C 333.490 78.054,333.179 79.796,332.827 88.179 L 332.422 97.841 327.228 91.694 C 292.487 50.579,238.897 28.879,184.034 33.711 M338.392 218.093 C 333.770 220.380,330.973 224.545,328.901 232.225 C 308.348 308.399,232.580 350.056,158.274 326.034 C 130.394 317.021,102.164 294.712,87.585 270.170 L 85.876 267.294 103.680 267.045 C 124.073 266.761,126.130 266.189,130.825 259.503 C 136.233 251.800,133.362 239.867,124.965 235.156 L 121.484 233.203 83.203 233.203 L 44.922 233.203 41.232 235.372 C 38.839 236.779,36.779 238.839,35.372 241.232 L 33.203 244.922 33.203 283.203 L 33.203 321.484 35.156 324.965 C 41.568 336.392,58.459 336.392,64.832 324.965 C 66.533 321.916,66.823 320.243,67.176 311.471 L 67.578 301.458 70.703 305.595 C 75.375 311.779,89.344 325.539,96.875 331.374 C 191.959 405.054,330.316 359.016,361.388 243.359 C 366.623 223.874,354.228 210.254,338.392 218.093 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+
+                                    {{-- Loading --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5 animate-spin" wire:loading
+                                        wire:target="regenerateProjectNum" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                        width="400" height="400" viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M184.034 33.711 C 114.672 39.820,55.552 90.170,38.271 157.852 C 34.351 173.206,40.480 183.520,53.558 183.577 C 62.787 183.617,68.089 178.632,71.401 166.797 C 102.421 55.968,246.260 30.959,309.547 125.391 L 314.259 132.422 296.387 132.813 C 279.134 133.190,278.395 133.271,275.035 135.156 C 263.607 141.568,263.607 158.432,275.035 164.844 L 278.516 166.797 316.797 166.797 L 355.078 166.797 358.768 164.628 C 361.161 163.221,363.221 161.161,364.628 158.768 L 366.797 155.078 366.797 116.797 L 366.797 78.516 364.844 75.035 C 358.432 63.608,341.534 63.608,335.171 75.035 C 333.490 78.054,333.179 79.796,332.827 88.179 L 332.422 97.841 327.228 91.694 C 292.487 50.579,238.897 28.879,184.034 33.711 M338.392 218.093 C 333.770 220.380,330.973 224.545,328.901 232.225 C 308.348 308.399,232.580 350.056,158.274 326.034 C 130.394 317.021,102.164 294.712,87.585 270.170 L 85.876 267.294 103.680 267.045 C 124.073 266.761,126.130 266.189,130.825 259.503 C 136.233 251.800,133.362 239.867,124.965 235.156 L 121.484 233.203 83.203 233.203 L 44.922 233.203 41.232 235.372 C 38.839 236.779,36.779 238.839,35.372 241.232 L 33.203 244.922 33.203 283.203 L 33.203 321.484 35.156 324.965 C 41.568 336.392,58.459 336.392,64.832 324.965 C 66.533 321.916,66.823 320.243,67.176 311.471 L 67.578 301.458 70.703 305.595 C 75.375 311.779,89.344 325.539,96.875 331.374 C 191.959 405.054,330.316 359.016,361.388 243.359 C 366.623 223.874,354.228 210.254,338.392 218.093 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                </button>
+                            </div>
                             @error('project_num')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
@@ -78,8 +105,9 @@
                                 class="text-xs duration-200 {{ $errors->has('project_title') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5       "
                                 placeholder="Type project title">
                             @error('project_title')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
@@ -101,19 +129,14 @@
                                     </p>
                                 </div>
                                 <input x-mask:dynamic="$money($input)" type="text" min="0" autocomplete="off"
-                                    id="budget_amount" wire:model.blur="budget_amount"
-                                    @blur="
-                                    $wire.autoCompute();
-                                    if($el.value == '') {
-                                        $wire.budget_amount = null;
-                                    }
-                                    "
+                                    id="budget_amount" @blur="$wire.autoCompute(); $wire.budget_amount = $el.value;"
                                     class="text-xs duration-200 {{ $errors->has('budget_amount') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} ps-11 border rounded block w-full pe-2.5 py-2.5"
                                     placeholder="Type total budget">
                             </div>
                             @error('budget_amount')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
@@ -148,20 +171,16 @@
                                         ₱
                                     </p>
                                 </div>
-                                <input x-mask:dynamic="$money($input)" type="text" min="0" autocomplete="off"
-                                    id="minimum_wage" wire:model.blur="minimum_wage"
-                                    @blur="
-                                    $wire.autoCompute();
-                                    if($el.value == '') {
-                                        $wire.minimum_wage = null;
-                                    }
-                                    "
+                                <input x-mask:dynamic="$money($input)" type="text" min="0"
+                                    autocomplete="off" id="minimum_wage" wire:model="minimum_wage"
+                                    @blur="$wire.autoCompute(); $wire.minimum_wage = $el.value;"
                                     class="text-xs duration-200 {{ $errors->has('minimum_wage') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} ps-11 border rounded block w-full pe-2.5 py-2.5"
                                     placeholder="Type wage amount">
                             </div>
                             @error('minimum_wage')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
@@ -178,8 +197,9 @@
                                 class="text-xs duration-300 ease-in-out {{ $isAutoComputeEnabled ? 'bg-gray-200 border-gray-300 text-indigo-1100 focus:ring-gray-800 focus:border-gray-800' : 'bg-indigo-50 autofill:bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} {{ $errors->has('total_slots') ? 'border-red-500 border bg-red-200 autofill:bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : '' }} rounded border block w-full p-2.5"
                                 placeholder="Type total slots">
                             @error('total_slots')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
@@ -192,67 +212,37 @@
                                 class="text-xs duration-200 {{ $errors->has('days_of_work') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
                                 placeholder="Type days of work">
                             @error('days_of_work')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
                         {{-- Province --}}
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
-                            {{-- <label for="province" class="block mb-1 font-medium text-indigo-1100 ">Province</label> --}}
-                            {{-- <select id="province" autocomplete="off" wire:model.live="province"
-                                class="text-xs duration-200 {{ $errors->has('province') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                                @foreach ($this->provinces as $province)
-                                    <option>{{ $province }}
-                                    </option>
-                                @endforeach
-                            </select> --}}
                             <p class="block mb-1 font-medium text-indigo-1100 ">Province</p>
                             <div
                                 class="text-xs border rounded block w-full p-2.5 bg-gray-50 border-gray-300 text-gray-700">
                                 {{ $province }}
                             </div>
                             @error('province')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
                         {{-- City/Municipality --}}
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
-                            {{-- <label for="city_municipality" class="block mb-1 font-medium text-indigo-1100 ">
-                                City/Municipality</label> --}}
-                            {{-- <select id="city_municipality" autocomplete="off" wire:model.live="city_municipality"
-                                wire:key="{{ $province }}"
-                                class="text-xs duration-200 {{ $errors->has('city_municipality') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                                @foreach ($this->cities_municipalities as $city_municipality)
-                                    <option>{{ $city_municipality }}</option>
-                                @endforeach
-                            </select> --}}
                             <p class="block mb-1 font-medium text-indigo-1100 ">City/Municipality</p>
                             <div
                                 class="text-xs border rounded block w-full p-2.5 bg-gray-50 border-gray-300 text-gray-700">
                                 {{ $city_municipality }}
                             </div>
                             @error('city_municipality')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        {{-- District --}}
-                        <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
-                            <label for="district" class="block mb-1  font-medium text-indigo-1100 ">District</label>
-                            <select id="district" autocomplete="off" wire:model.live="district"
-                                wire:key="{{ $district }}"
-                                class="text-xs duration-200 cursor-pointer {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
-                                @foreach ($this->districts as $district)
-                                    <option>{{ $district }}</option>
-                                @endforeach
-                            </select>
-                            @error('district')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
@@ -266,8 +256,36 @@
                                 <option>DUE TO DISPLACEMENT/DISADVANTAGE</option>
                             </select>
                             @error('purpose')
-                                <p class="text-red-500 z-10 text-xs mt-1">
-                                    {{ $message }}</p>
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Sectoral or Non-Sectoral --}}
+                        <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
+                            <span class="block mb-1 font-medium text-indigo-1100">Type of Implementation</span>
+
+                            <span class="flex items-center justify-center gap-2">
+                                {{-- Sectoral --}}
+                                <label for="sectoral-radio"
+                                    class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ $is_sectoral ? 'bg-rose-700 hover:bg-rose-800 active:bg-rose-900 text-rose-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
+                                    Sectoral
+                                    <input type="radio" class="hidden absolute inset-0" id="sectoral-radio"
+                                        value="1" wire:model.live="is_sectoral">
+                                </label>
+                                {{-- Non-Sectoral --}}
+                                <label for="non-sectoral-radio"
+                                    class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ !$is_sectoral ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
+                                    Non-Sectoral
+                                    <input type="radio" class="hidden absolute inset-0" id="non-sectoral-radio"
+                                        value="0" wire:model.live="is_sectoral">
+                                </label>
+                            </span>
+                            @error('is_sectoral')
+                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
                     </div>

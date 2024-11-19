@@ -11,8 +11,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('mobile_verified_at')->nullable(); // Timestamp when verified
-            $table->boolean('ongoing_verification')->default(false);
+            $table->timestamp('mobile_verified_at')->after('email_verified_at')->nullable(); // Timestamp when verified
+            $table->boolean('ongoing_verification')->after('mobile_verified_at')->default(false);
         });
     }
 

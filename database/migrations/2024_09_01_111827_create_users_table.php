@@ -21,9 +21,9 @@ return new class extends Migration {
             $table->string('contact_num');
             $table->string('regional_office')->nullable();
             $table->string('field_office')->nullable();
-            $table->string('user_type'); // Super Admin, Regional Focal, Focal, Coordinator
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('user_type'); // Focal, Coordinator
             $table->timestamp('last_login')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
         });
 

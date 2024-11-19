@@ -21,24 +21,24 @@ class ImplementationFactory extends Factory
      */
     public function definition(): array
     {
-        $startDate = Carbon::createFromDate(2023, 9, 29); // Start date (YYYY, MM, DD)
-        $endDate = Carbon::createFromDate(2024, 9, 29); // End date (YYYY, MM, DD)
+        $startDate = Carbon::createFromDate(2023, 1, 1); // Start date (YYYY, MM, DD)
+        $endDate = Carbon::createFromDate(2024, 11, 1); // End date (YYYY, MM, DD)
 
         $budgetAmount = fake()->numberBetween(100000000, 250000000);
         $minimumWage = mt_rand(config('settings.minimum_wage', 481.00) * 100, 61800);
         $daysOfWork = fake()->randomElement([10, 15]);
+        $sectoral = fake()->randomElement([0, 1]);
         $total_slots = $this->calculateTotalSlots($budgetAmount, $minimumWage, $daysOfWork);
-        $district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
         $currentDate = $this->dateRandomizer($startDate, $endDate);
 
         return [
             'users_id' => 1,
-            'project_num' => fake()->bothify(config('settings.project_number_prefix', 'XII-DCFO-') . '######'),
+            'project_num' => fake()->bothify(config('settings.project_number_prefix', 'XII-DCFO-') . $currentDate->format('Y-') . '######'),
             'project_title' => '',
             'purpose' => 'DUE TO DISPLACEMENT/DISADVANTAGE',
             'province' => 'Davao del Sur',
             'city_municipality' => 'Davao City',
-            'district' => $district,
+            'is_sectoral' => $sectoral,
             'budget_amount' => $budgetAmount,
             'minimum_wage' => $minimumWage,
             'total_slots' => $total_slots,

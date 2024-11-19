@@ -6,4 +6,5 @@ return [
     'batch_number_prefix' => env('BATCH_NUMBER_PREFIX', 'DCFO-BN-'),
     'senior_age_threshold' => env('SENIOR_AGE_THRESHOLD', 60),
     'maximum_income' => env('MAXIMUM_INCOME', 1500000),
+    'default_archive' => env('DEFAULT_ARCHIVE', 1),
 ];

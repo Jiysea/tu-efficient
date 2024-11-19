@@ -120,8 +120,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                             </div>
-                            <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
-                                datepicker-max-date="{{ $defaultStart }}"
+                            <input type="text" id="start-date" @change-date.camel="$wire.setStartDate($el.value);"
+                                name="start" value="{{ $defaultStart }}" datepicker-max-date="{{ $defaultStart }}"
                                 class="bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
                                 placeholder="Select date start">
                         </div>
@@ -142,8 +142,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </g>
                                 </svg>
                             </div>
-                            <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
-                                datepicker-min-date="{{ $defaultEnd }}"
+                            <input type="text" id="end-date" @change-date.camel="$wire.setEndDate($el.value);"
+                                name="end" value="{{ $defaultEnd }}" datepicker-min-date="{{ $defaultEnd }}"
                                 class="bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
                                 placeholder="Select date end">
                         </div>
@@ -152,6 +152,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 {{-- Loading State --}}
                 <svg class="absolute right-2 text-indigo-900 size-6 animate-spin" wire:loading
+                    wire:target="setStartDate, setEndDate, printSummary, showExport, previousPage, nextPage, selectImplementation"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                         stroke-width="4">
@@ -240,18 +241,22 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                         {{-- Summary of Beneficiaries Dropdown --}}
                         <div class="flex items-center justify-between w-full lg:h-[10%]">
-                            <h1 class="text-base md:text-xl font-bold ms-3">Summary of Beneficiaries
+                            <h1 class="hidden text-xl md:block font-bold ms-3">
+                                Summary of Beneficiaries
+                            </h1>
+                            <h1 class="text-base md:hidden font-bold ms-3">
+                                Summary
                             </h1>
 
                             {{-- Projects Dropdown --}}
-                            <div x-data="{ show: false }" class="relative w-44 sm:w-52 z-30">
+                            <div x-data="{ show: false }" class="relative z-30">
 
                                 {{-- Button --}}
                                 <button type="button"
                                     @if ($this->projectCounters->total_implementations > 0) @click="show = !show;"
                                 @else
                                 disabled @endif
-                                    class="flex items-center justify-between w-full border-2 outline-none text-xs sm:text-sm font-bold px-3 py-2 rounded
+                                    class="flex items-center justify-between gap-2 whitespace-nowrap w-full border-2 outline-none text-xs sm:text-sm font-bold px-3 py-2 rounded
                                     disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
                                     bg-indigo-100 hover:bg-indigo-800 active:bg-indigo-900 
                                     text-indigo-700 hover:text-indigo-50 active:text-indigo-50
@@ -259,7 +264,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     {{ $currentImplementation }}
 
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                        class="size-5">
+                                        class="size-3.5 md:size-5">
                                         <path fill-rule="evenodd"
                                             d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
                                             clip-rule="evenodd" />
@@ -272,7 +277,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         'block': show,
                                         'hidden': !show,
                                     }"
-                                    class="hidden end-0 absolute text-indigo-1100 bg-white w-60 shadow-lg border border-indigo-100 rounded p-3 mt-2">
+                                    class="hidden end-0 absolute text-indigo-1100 bg-white whitespace-nowrap shadow-lg border border-indigo-100 rounded min-w-56 p-3 mt-2">
                                     <div class="relative flex items-center justify-center py-1 text-indigo-700">
 
                                         <div class="absolute flex items-center justify-center left-2">
@@ -298,8 +303,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     clip-rule="evenodd" />
                                             </svg>
                                         </div>
-                                        <input id="searchProject" wire:model.live="searchProject" type="text"
-                                            autocomplete="off"
+                                        <input id="searchProject" wire:model.live.350ms="searchProject"
+                                            type="text" autocomplete="off"
                                             class="rounded w-full ps-8 text-xs text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
                                             placeholder="Search project number">
                                     </div>
@@ -312,13 +317,47 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                         wire:click="selectImplementation({{ $key }})"
                                                         @click="show= !show;" wire:loading.attr="disabled"
                                                         aria-label="{{ __('Implementation') }}"
-                                                        class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">{{ $implementation['project_num'] }}</button>
+                                                        class="font-medium w-full flex items-center justify-start gap-2 px-3 py-1.5 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
+                                                        <span
+                                                            class="p-1 rounded {{ $implementation->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }} font-semibold">{{ $implementation->is_sectoral ? 'ST' : 'NS' }}</span>
+                                                        {{ $implementation->project_num }}
+                                                    </button>
                                                 </li>
                                             @endforeach
                                         @else
                                             <div
-                                                class="flex flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
-                                                Nothing to see here...
+                                                class="flex flex-col font-medium flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
+                                                @if (isset($searchProject) && !empty($searchProject))
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
+                                                        <g>
+                                                            <path
+                                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd"></path>
+                                                        </g>
+                                                    </svg>
+                                                    <p>No projects found.</p>
+                                                    <p>Try a different <span class=" text-indigo-900">search
+                                                            term</span>.</p>
+                                                @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
+                                                        <g>
+                                                            <path
+                                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd"></path>
+                                                        </g>
+                                                    </svg>
+                                                    <p>No projects found.</p>
+                                                    <p>Try creating a <span class=" text-indigo-900">new
+                                                            project</span> in Implementations page.</p>
+                                                @endif
                                             </div>
                                         @endif
                                     </ul>
@@ -334,11 +373,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <div class="flex justify-between mb-3">
 
                                 {{-- Per Implementation --}}
-                                <div class="flex justify-center items-center">
+                                <div class="flex justify-center items-center gap-2">
 
                                     {{-- Title of the Chart --}}
-                                    <div class="flex items-center justify-center text-indigo-900 me-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-1 me-2"
+                                    <div class="flex items-center justify-center gap-2 text-indigo-900">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                             viewBox="0, 0, 400,400">
                                             <g>
@@ -347,14 +386,19 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                             </g>
                                         </svg>
-                                        <h1 class="text-base md:text-xl font-bold leading-none">Per Implementation
-                                            </h5>
+                                        <h1 class="text-base md:text-xl font-bold leading-none">
+                                            Per Implementation
+                                        </h1>
+                                        <span
+                                            class="text-xs md:text-sm px-3 py-1 rounded {{ $this->implementation->is_sectoral ? 'bg-rose-100 text-rose-700' : 'bg-indigo-100 text-indigo-700' }} font-semibold">
+                                            {{ $this->implementation->is_sectoral ? 'Sectoral' : 'Non-Sectoral' }}
+                                        </span>
                                     </div>
 
                                     {{-- The "?" Popover --}}
                                     <svg data-popover-target="chart-info" data-popover-placement="bottom"
                                         tabindex="-1"
-                                        class="size-3.5 text-gray-500 hover:text-indigo-700 focus:outline-none duration-300 ease-in-out cursor-pointer ms-1"
+                                        class="size-3.5 text-gray-500 hover:text-indigo-700 focus:outline-none duration-300 ease-in-out cursor-pointer"
                                         aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                                         viewBox="0 0 20 20">
                                         <path
@@ -375,10 +419,18 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 </p>
                                             </div>
                                             <div>
-                                                <h3 class="font-semibold text-indigo-500">Print & Export</h3>
+                                                <h3 class="font-semibold text-indigo-500">Print and Export</h3>
                                                 <p>The information presented here can be <br>
                                                     can be printed as A4 paper size and also <br>
                                                     exported as XLSX or CSV files.
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-semibold text-indigo-500">Sectoral and Non-Sectoral
+                                                </h3>
+                                                <p>It indicates whether the implementation <br>
+                                                    project has specific targets or it is <br>
+                                                    based on barangays only, respectively.
                                                 </p>
                                             </div>
                                         </div>
@@ -473,7 +525,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             </g>
                                         </svg>
                                         <h2 class="text-gray-500 text-xs sm:text-sm font-medium text-center">
-                                            No beneficiaries found in any batches or barangays
+                                            No beneficiaries found in any batches.
                                         </h2>
                                     </div>
                                 @endif
@@ -617,91 +669,184 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     <div class="col-span-1 flex flex-col shadow rounded justify-between max-lg:h-[75vh] bg-white">
 
                         {{-- Beneficiaries by Barangay --}}
-                        <div class="flex flex-col flex-1">
-                            <div class="flex flex-row items-center justify-between my-2 mx-4">
-                                <div class="flex items-center justify-center gap-2 text-indigo-900">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 md:size-5"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M282.414 1.440 C 278.885 3.592,183.587 75.652,180.736 78.324 C 177.599 81.264,176.562 85.358,176.563 94.812 C 176.563 104.573,176.060 104.654,192.718 92.207 C 214.111 76.223,224.685 73.867,239.308 81.831 C 243.789 84.271,354.858 167.996,359.642 172.540 C 370.400 182.757,370.609 183.804,370.917 229.102 L 371.176 267.188 381.368 267.188 C 392.949 267.188,395.826 266.334,398.425 262.129 C 400.837 258.227,400.906 84.698,398.497 80.748 C 397.182 78.592,303.499 6.827,295.387 1.762 C 291.825 -0.462,285.779 -0.612,282.414 1.440 M107.676 84.359 C 105.067 85.147,4.705 160.934,1.975 164.179 L -0.019 166.549 0.186 255.868 L 0.391 345.187 2.344 347.277 C 6.410 351.628,5.799 351.563,42.149 351.563 L 75.781 351.563 75.781 272.820 C 75.781 186.928,75.655 189.515,80.252 181.068 C 83.629 174.864,87.964 171.206,124.483 143.750 C 143.628 129.355,159.305 117.402,159.320 117.188 C 159.380 116.342,117.804 85.489,115.426 84.614 C 112.497 83.537,110.605 83.475,107.676 84.359 M219.818 100.826 C 215.546 102.107,101.395 189.006,99.806 192.188 C 98.527 194.747,98.440 201.187,98.440 292.969 C 98.440 402.393,98.028 394.353,103.826 398.227 L 106.481 400.000 144.256 400.000 L 182.031 400.000 182.031 320.950 C 182.031 231.395,181.601 237.442,188.236 233.713 C 192.857 231.116,255.549 231.399,259.075 234.033 C 264.951 238.421,264.428 230.383,264.666 319.979 L 264.879 400.000 302.557 399.997 C 345.359 399.994,343.875 400.210,346.903 393.539 C 349.181 388.521,349.257 197.582,346.983 192.578 C 345.752 189.868,337.943 183.684,288.281 146.093 C 221.331 95.417,226.488 98.827,219.818 100.826 M204.688 327.344 L 204.688 400.000 223.438 400.000 L 242.188 400.000 242.188 327.344 L 242.188 254.688 223.438 254.688 L 204.688 254.688 204.688 327.344 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                        </g>
-                                    </svg>
-                                    <p class="text-base md:text-xl font-bold">
-                                        By Barangay
+                        @if (!$this->implementation->is_sectoral)
+                            <div class="flex flex-col flex-1">
+                                <div class="flex flex-row items-center justify-between my-2 mx-4">
+                                    <div class="flex items-center justify-center gap-2 text-indigo-900">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 md:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M194.141 46.901 C 158.281 51.676,144.428 96.671,171.188 121.446 C 191.560 140.307,225.988 134.509,238.286 110.147 C 254.478 78.071,229.439 42.200,194.141 46.901 M120.365 57.918 C 109.608 59.702,98.078 68.313,93.195 78.210 C 89.275 86.153,89.276 86.253,93.242 88.982 C 103.342 95.931,109.956 106.799,112.854 121.208 L 113.270 123.275 119.078 121.431 C 130.268 117.877,139.313 118.293,150.678 122.883 L 155.375 124.780 157.861 122.215 L 160.347 119.650 158.790 117.442 C 150.160 105.212,147.585 86.895,152.526 72.878 L 154.513 67.240 152.061 65.371 C 143.287 58.685,131.893 56.006,120.365 57.918 M266.797 57.843 C 259.714 59.295,251.048 63.790,247.260 67.975 C 245.881 69.499,245.876 69.747,247.153 73.796 C 251.146 86.465,249.598 102.176,243.295 112.929 C 240.911 116.998,240.946 117.753,243.668 121.036 L 245.887 123.713 252.244 121.612 C 260.740 118.804,268.298 118.246,275.781 119.876 C 279.004 120.577,282.522 121.341,283.600 121.573 C 285.472 121.976,285.603 121.759,286.570 116.661 C 288.740 105.213,297.836 92.169,307.721 86.328 C 312.433 83.544,312.375 83.878,309.180 77.854 C 301.335 63.064,283.168 54.487,266.797 57.843 M321.395 88.321 C 307.641 92.681,297.763 103.007,294.181 116.766 C 292.453 123.402,292.589 126.304,294.678 127.422 C 302.838 131.790,311.116 144.022,314.400 156.566 L 316.016 162.742 320.313 164.206 C 350.793 174.595,380.846 144.272,370.335 113.734 C 363.371 93.504,341.261 82.023,321.395 88.321 M61.328 88.265 C 25.461 93.987,15.227 141.033,45.526 160.904 C 58.379 169.333,83.249 169.475,84.717 161.128 C 86.865 148.921,96.081 134.256,104.867 129.066 C 107.589 127.458,107.723 124.304,105.394 116.684 C 99.487 97.362,80.611 85.189,61.328 88.265 M121.484 128.096 C 83.787 139.471,84.056 191.917,121.875 204.318 C 132.254 207.721,154.688 203.702,154.688 198.439 C 154.688 192.588,162.098 178.761,168.699 172.295 C 173.360 167.729,173.809 164.573,171.131 155.207 C 165.068 134.006,142.585 121.729,121.484 128.096 M255.469 128.340 C 234.842 135.399,220.775 160.335,232.370 169.289 C 240.517 175.581,247.403 186.634,249.461 196.723 C 250.912 203.836,254.970 205.801,267.969 205.684 C 298.479 205.411,316.557 174.099,302.178 146.435 C 294.111 130.915,272.457 122.527,255.469 128.340 M172.852 135.699 C 169.782 136.107,169.796 135.783,172.649 140.378 C 175.513 144.990,178.024 151.967,178.586 156.874 C 179.476 164.635,178.846 164.226,185.737 161.518 C 195.722 157.593,205.947 157.553,219.301 161.388 C 220.678 161.784,221.095 161.514,221.382 160.043 C 223.158 150.950,223.965 148.346,226.703 142.875 C 228.428 139.429,229.600 136.371,229.309 136.078 C 228.729 135.498,176.974 135.150,172.852 135.699 M190.926 168.790 C 162.114 177.924,152.969 213.737,174.064 234.831 C 198.337 259.105,239.436 243.694,241.952 209.375 C 243.931 182.374,216.614 160.646,190.926 168.790 M315.613 170.426 C 315.578 178.478,310.295 191.425,304.247 198.279 C 302.238 200.556,300.725 202.515,300.883 202.633 C 301.042 202.751,302.754 203.433,304.688 204.148 C 328.660 213.018,343.750 236.189,343.750 264.131 L 343.750 272.656 347.901 272.656 C 360.979 272.656,382.777 267.994,396.289 262.307 L 400.000 260.745 400.000 236.005 C 400.000 201.142,396.494 190.873,380.469 178.794 C 368.911 170.082,362.997 168.641,336.914 168.181 L 315.625 167.805 315.613 170.426 M39.144 170.739 C 24.808 173.849,11.662 184.308,5.223 197.725 C 0.261 208.064,0.000 210.054,0.000 237.523 L -0.000 261.687 2.930 263.173 C 12.853 268.208,41.036 274.219,54.717 274.219 C 55.877 274.219,56.091 272.820,56.480 262.695 C 57.564 234.458,73.009 212.707,97.874 204.402 C 99.070 204.003,98.769 203.333,95.711 199.577 C 89.391 191.819,84.421 179.747,84.387 172.070 L 84.375 169.531 64.258 169.593 C 50.235 169.637,42.627 169.984,39.144 170.739 M108.984 208.357 C 90.552 210.802,73.470 225.302,67.748 243.359 C 66.102 248.554,66.016 250.136,66.016 274.975 L 66.016 301.123 73.828 303.315 C 88.950 307.558,106.596 310.873,120.508 312.084 L 125.781 312.544 125.809 304.123 C 125.900 275.786,140.754 252.905,164.844 243.992 C 166.777 243.277,168.476 242.608,168.618 242.506 C 168.760 242.404,167.264 240.340,165.292 237.920 C 159.307 230.572,155.214 221.159,154.233 212.486 L 153.704 207.813 132.516 207.930 C 120.863 207.994,110.273 208.186,108.984 208.357 M250.768 209.497 C 250.709 217.388,245.538 230.296,239.435 237.789 C 235.606 242.489,235.388 242.969,237.077 242.969 C 239.110 242.969,251.213 249.622,255.943 253.339 C 270.483 264.765,277.687 280.204,278.675 302.049 L 279.157 312.713 286.478 312.198 C 301.860 311.117,320.331 306.963,330.273 302.348 L 335.156 300.082 335.156 276.338 C 335.156 243.228,333.241 236.397,320.314 223.399 C 307.411 210.425,301.249 208.442,272.461 208.000 L 250.781 207.666 250.768 209.497 M178.906 249.175 C 158.169 252.154,141.821 266.535,136.228 286.719 C 135.011 291.110,134.817 295.172,134.793 316.756 L 134.766 341.716 142.188 343.909 C 185.461 356.695,235.935 356.310,265.356 342.971 L 270.502 340.637 270.108 316.217 C 269.682 289.788,269.319 287.091,264.927 277.734 C 258.759 264.594,246.659 254.534,231.850 250.233 C 227.179 248.876,186.628 248.066,178.906 249.175 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                        <p class="text-base md:text-xl font-bold">
+                                            By Barangay
+                                        </p>
+                                    </div>
+                                    <p
+                                        class="text-sm md:text-base px-4 rounded-lg font-bold
+                                    {{ $this->batchesCount <= 0 || !isset($this->batchesCount) ? 'bg-red-100 text-red-900' : 'bg-indigo-100 text-indigo-900' }} ">
+                                        {{ $this->batchesCount }}
                                     </p>
                                 </div>
-                                <p
-                                    class="text-sm md:text-base px-4 rounded-lg font-bold
-                                    {{ $this->batchesCount <= 0 || !isset($this->batchesCount) ? 'bg-red-100 text-red-900' : 'bg-indigo-100 text-indigo-900' }} ">
-                                    {{ $this->batchesCount }}
-                                </p>
-                            </div>
 
-                            @if ($this->batches->isNotEmpty())
-                                @foreach ($this->batches as $key => $batch)
-                                    <div wire:key="{{ $key }}"
-                                        class="flex flex-row items-center rounded-lg bg-indigo-50 shadow-sm p-2 mx-4 my-2">
-                                        <div class="flex flex-col w-full text-xs">
-                                            {{-- Barangay Name --}}
-                                            <p class="text-sm sm:text-base mx-1 mb-2 font-bold">
-                                                {{ $batch->barangay_name }}</p>
-                                            <div
-                                                class="flex flex-row items-center justify-between font-semibold mb-1 gap-x-2 px-2">
-                                                <div class="flex justify-between w-full">
-                                                    <p class="text-[#e74c3c]">Total Male</p>
-                                                    <p>{{ $batch->total_male }}</p>
+                                @if ($this->batches->isNotEmpty())
+                                    @foreach ($this->batches as $key => $batch)
+                                        <div wire:key="{{ $key }}"
+                                            class="flex flex-row items-center rounded-lg bg-indigo-50 shadow-sm p-2 mx-4 my-2">
+                                            <div class="flex flex-col w-full text-xs">
+                                                {{-- Barangay Name --}}
+                                                <p class="text-sm sm:text-base mx-1 mb-2 font-bold">
+                                                    {{ $batch->barangay_name }}</p>
+                                                <div
+                                                    class="flex flex-row items-center justify-between font-semibold mb-1 gap-x-2 px-2">
+                                                    <div class="flex justify-between w-full">
+                                                        <p class="text-[#e74c3c]">Total Male</p>
+                                                        <p>{{ $batch->total_male }}</p>
+                                                    </div>
+                                                    <div class="flex justify-between w-full">
+                                                        <p class="text-[#d4ac0d]">Total Female</p>
+                                                        <p>{{ $batch->total_female }}</p>
+                                                    </div>
                                                 </div>
-                                                <div class="flex justify-between w-full">
-                                                    <p class="text-[#d4ac0d]">Total Female</p>
-                                                    <p>{{ $batch->total_female }}</p>
+                                                <div
+                                                    class="flex flex-row items-center justify-between mb-1 gap-x-2 px-2">
+                                                    <div class="flex justify-between w-full">
+                                                        <p>(M) Seniors</p>
+                                                        <p>{{ $batch->total_senior_male }}</p>
+                                                    </div>
+                                                    <div class="flex justify-between w-full">
+                                                        <p>(F) Seniors</p>
+                                                        <p>{{ $batch->total_senior_female }}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="flex flex-row items-center justify-between mb-1 gap-x-2 px-2">
-                                                <div class="flex justify-between w-full">
-                                                    <p>(M) Seniors</p>
-                                                    <p>{{ $batch->total_senior_male }}</p>
-                                                </div>
-                                                <div class="flex justify-between w-full">
-                                                    <p>(F) Seniors</p>
-                                                    <p>{{ $batch->total_senior_female }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex flex-row items-center justify-between mb-1 gap-x-2 px-2">
-                                                <div class="flex justify-between w-full">
-                                                    <p>(M) PWDs</p>
-                                                    <p>{{ $batch->total_pwd_male }}</p>
-                                                </div>
-                                                <div class="flex justify-between w-full">
-                                                    <p class="">(F) PWDs</p>
-                                                    <p class="">{{ $batch->total_pwd_female }}</p>
+                                                <div
+                                                    class="flex flex-row items-center justify-between mb-1 gap-x-2 px-2">
+                                                    <div class="flex justify-between w-full">
+                                                        <p>(M) PWDs</p>
+                                                        <p>{{ $batch->total_pwd_male }}</p>
+                                                    </div>
+                                                    <div class="flex justify-between w-full">
+                                                        <p class="">(F) PWDs</p>
+                                                        <p class="">{{ $batch->total_pwd_female }}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="z-10 flex flex-1 rounded flex-col items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-20 mb-4 text-gray-400"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd">
-                                            </path>
-                                        </g>
-                                    </svg>
+                                    @endforeach
+                                @else
+                                    <div class="z-10 flex flex-1 rounded flex-col items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-20 mb-4 text-gray-400"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                </path>
+                                            </g>
+                                        </svg>
 
-                                    <h2 class="text-gray-500 text-xs sm:text-sm font-medium text-center">
-                                        No beneficiaries found <br> in any batches or barangays
-                                    </h2>
+                                        <h2 class="text-gray-500 text-xs sm:text-sm font-medium text-center">
+                                            No beneficiaries found <br class="hidden lg:inline"> in any batches
+                                        </h2>
+                                    </div>
+                                @endif
+                            </div>
+                            {{ $this->batches->links() }}
+                        @else
+                            <div class="flex flex-col flex-1">
+                                <div class="flex flex-row items-center justify-between my-2 mx-4">
+                                    <div class="flex items-center justify-center gap-2 text-indigo-900">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 md:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M174.877 1.190 C 150.230 4.553,145.323 7.118,145.315 16.640 C 145.307 26.849,151.399 30.195,165.022 27.466 C 235.741 13.300,306.821 42.988,346.982 103.464 C 394.840 175.532,381.979 273.808,317.169 331.266 L 311.494 336.298 312.155 331.626 C 313.932 319.082,310.321 313.281,300.737 313.281 C 291.377 313.281,290.080 315.708,285.491 341.797 C 279.828 373.988,278.913 372.711,311.789 378.500 C 335.304 382.641,337.028 382.601,341.231 377.815 C 348.164 369.919,343.315 359.191,332.031 357.457 C 325.345 356.430,325.282 356.361,328.629 353.676 C 398.280 297.789,420.248 193.555,379.705 111.328 C 342.140 35.140,257.930 -10.140,174.877 1.190 M63.753 18.780 C 50.680 22.692,54.137 40.576,68.359 42.606 C 74.490 43.480,74.610 43.845,69.981 47.539 C 1.836 101.915,-19.878 207.319,20.306 288.672 C 60.277 369.595,148.022 413.201,237.722 396.720 C 251.001 394.280,254.682 391.347,254.682 383.203 C 254.682 373.806,248.046 369.648,237.016 372.133 C 164.554 388.459,87.265 354.512,48.417 289.295 C 5.781 217.721,20.650 123.307,83.208 68.384 L 88.502 63.737 87.832 68.392 C 86.012 81.038,89.622 86.719,99.479 86.719 C 108.691 86.719,109.696 84.796,114.481 58.033 C 120.189 26.105,121.001 27.251,88.634 21.552 C 66.884 17.722,67.178 17.755,63.753 18.780 M180.469 80.061 C 128.992 88.795,87.063 130.739,80.096 180.469 C 79.825 182.402,79.419 184.951,79.193 186.133 L 78.782 188.281 133.532 188.281 L 188.281 188.281 188.281 133.594 C 188.281 90.322,188.077 78.923,187.305 78.986 C 186.768 79.030,183.691 79.514,180.469 80.061 M211.719 137.293 L 211.719 195.709 252.619 236.603 L 293.519 277.498 296.280 274.101 C 324.959 238.804,329.302 183.391,306.647 141.797 C 288.913 109.237,253.587 84.324,219.141 80.083 C 216.992 79.819,214.443 79.439,213.477 79.239 L 211.719 78.876 211.719 137.293 M79.193 213.867 C 79.419 215.049,79.825 217.598,80.096 219.531 C 82.636 237.663,96.013 267.615,105.342 276.057 C 106.609 277.203,108.970 275.021,139.481 244.504 L 172.259 211.719 125.520 211.719 L 78.782 211.719 79.193 213.867 M161.053 254.963 L 122.502 293.519 125.900 296.280 C 134.974 303.653,149.914 311.490,162.519 315.489 C 200.346 327.490,245.191 319.770,274.100 296.280 L 277.498 293.519 238.947 254.963 C 217.744 233.757,200.218 216.406,200.000 216.406 C 199.782 216.406,182.256 233.757,161.053 254.963 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                        <p class="text-base md:text-xl font-bold">
+                                            By Sector
+                                        </p>
+                                    </div>
+                                    <p
+                                        class="text-sm md:text-base px-4 rounded-lg font-bold
+                                    {{ $this->sectorsCount <= 0 || !isset($this->sectorsCount) ? 'bg-red-100 text-red-900' : 'bg-indigo-100 text-indigo-900' }} ">
+                                        {{ $this->sectorsCount }}
+                                    </p>
                                 </div>
-                            @endif
-                        </div>
-                        {{ $this->batches->links() }}
+
+                                @if ($this->batchesSectoral->isNotEmpty())
+                                    @foreach ($this->batchesSectoral as $key => $batch)
+                                        <div wire:key="{{ $key }}"
+                                            class="flex flex-row items-center rounded-lg bg-indigo-50 shadow-sm p-2 mx-4 my-2">
+                                            <div class="flex flex-col w-full text-xs">
+                                                {{-- Barangay Name --}}
+                                                <p class="text-sm sm:text-base mx-1 mb-2 font-bold">
+                                                    {{ $batch->sector_title }}</p>
+                                                <div
+                                                    class="flex flex-row items-center justify-between font-semibold mb-1 gap-x-2 px-2">
+                                                    <div class="flex justify-between w-full">
+                                                        <p class="text-[#e74c3c]">Total Male</p>
+                                                        <p>{{ $batch->total_male }}</p>
+                                                    </div>
+                                                    <div class="flex justify-between w-full">
+                                                        <p class="text-[#d4ac0d]">Total Female</p>
+                                                        <p>{{ $batch->total_female }}</p>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="flex flex-row items-center justify-between mb-1 gap-x-2 px-2">
+                                                    <div class="flex justify-between w-full">
+                                                        <p>(M) Seniors</p>
+                                                        <p>{{ $batch->total_senior_male }}</p>
+                                                    </div>
+                                                    <div class="flex justify-between w-full">
+                                                        <p>(F) Seniors</p>
+                                                        <p>{{ $batch->total_senior_female }}</p>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="flex flex-row items-center justify-between mb-1 gap-x-2 px-2">
+                                                    <div class="flex justify-between w-full">
+                                                        <p>(M) PWDs</p>
+                                                        <p>{{ $batch->total_pwd_male }}</p>
+                                                    </div>
+                                                    <div class="flex justify-between w-full">
+                                                        <p class="">(F) PWDs</p>
+                                                        <p class="">{{ $batch->total_pwd_female }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="z-10 flex flex-1 rounded flex-col items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-20 mb-4 text-gray-400"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M361.328 21.811 C 359.379 22.724,352.051 29.460,341.860 39.707 L 325.516 56.139 321.272 52.356 C 301.715 34.925,269.109 39.019,254.742 60.709 C 251.063 66.265,251.390 67.408,258.836 75.011 C 266.104 82.432,270.444 88.466,274.963 97.437 L 278.026 103.516 268.162 113.440 L 258.298 123.365 256.955 118.128 C 243.467 65.556,170.755 58.467,147.133 107.420 C 131.423 139.978,149.016 179.981,183.203 189.436 C 185.781 190.149,188.399 190.899,189.021 191.104 C 189.763 191.348,184.710 196.921,174.310 207.331 L 158.468 223.186 152.185 224.148 C 118.892 229.245,91.977 256.511,88.620 288.544 L 88.116 293.359 55.031 326.563 C 36.835 344.824,21.579 360.755,21.130 361.965 C 17.143 372.692,27.305 382.854,38.035 378.871 C 41.347 377.642,376.344 42.597,378.187 38.672 C 383.292 27.794,372.211 16.712,361.328 21.811 M97.405 42.638 C 47.755 54.661,54.862 127.932,105.980 131.036 C 115.178 131.595,116.649 130.496,117.474 122.444 C 119.154 106.042,127.994 88.362,141.155 75.080 C 148.610 67.556,148.903 66.533,145.237 60.820 C 135.825 46.153,115.226 38.322,97.405 42.638 M70.703 149.594 C 43.318 155.622,25.834 177.504,24.497 207.422 C 23.213 236.172,37.373 251.487,65.294 251.543 C 76.009 251.565,75.484 251.833,80.526 243.758 C 92.892 223.950,111.306 210.306,134.809 203.537 C 145.766 200.382,146.518 197.670,138.775 189.234 C 129.672 179.314,123.881 169.218,120.304 157.031 C 117.658 148.016,118.857 148.427,95.421 148.500 C 81.928 148.541,73.861 148.898,70.703 149.594 M317.578 149.212 C 313.524 150.902,267.969 198.052,267.969 200.558 C 267.969 202.998,270.851 206.250,273.014 206.250 C 274.644 206.250,288.145 213.131,293.050 216.462 C 303.829 223.781,314.373 234.794,320.299 244.922 C 324.195 251.580,324.162 251.565,334.706 251.543 C 345.372 251.522,349.106 250.852,355.379 247.835 C 387.793 232.245,380.574 173.557,343.994 155.278 C 335.107 150.837,321.292 147.665,317.578 149.212 M179.490 286.525 C 115.477 350.543,115.913 350.065,117.963 353.895 C 120.270 358.206,126.481 358.549,203.058 358.601 C 280.844 358.653,277.095 358.886,287.819 353.340 C 327.739 332.694,320.301 261.346,275.391 234.126 C 266.620 228.810,252.712 224.219,245.381 224.219 L 241.793 224.219 179.490 286.525 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                </path>
+                                            </g>
+                                        </svg>
+
+                                        <h2 class="text-gray-500 text-xs sm:text-sm font-medium text-center">
+                                            No beneficiaries found <br class="hidden lg:inline"> in any batches
+                                        </h2>
+                                    </div>
+                                @endif
+                            </div>
+                            {{ $this->batchesSectoral->links() }}
+                        @endif
+
                     </div>
                 </div>
             </div>
@@ -1121,21 +1266,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         });
 
         document.addEventListener('livewire:navigated', () => {
-
-            const datepickerStart = document.getElementById('start-date');
-            const datepickerEnd = document.getElementById('end-date');
-
-            datepickerStart.addEventListener('changeDate', function(event) {
-                $wire.dispatchSelf('start-change', {
-                    value: datepickerStart.value
-                });
-            });
-
-            datepickerEnd.addEventListener('changeDate', function(event) {
-                $wire.dispatchSelf('end-change', {
-                    value: datepickerEnd.value
-                });
-            });
 
             let data = @json($this->summaryCount);
 
