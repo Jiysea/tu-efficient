@@ -93,9 +93,11 @@ class AddBeneficiariesModal extends Component
     public $id_number;
     #[Validate]
     public $spouse_first_name;
+    #[Validate]
     public $spouse_middle_name;
     #[Validate]
     public $spouse_last_name;
+    #[Validate]
     public $spouse_extension_name;
 
     # --------------------------------------------
@@ -238,6 +240,7 @@ class AddBeneficiariesModal extends Component
             'id_number' => 'required',
             'spouse_first_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -272,6 +275,7 @@ class AddBeneficiariesModal extends Component
             ],
             'spouse_last_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -325,6 +329,8 @@ class AddBeneficiariesModal extends Component
             'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
+            'spouse_first_name.required_if' => 'This field is required.',
+            'spouse_last_name.required_if' => 'This field is required.',
 
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',

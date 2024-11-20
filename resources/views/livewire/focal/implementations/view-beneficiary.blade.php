@@ -46,7 +46,7 @@
                 <hr class="">
 
                 @if ($this->beneficiary)
-                    <form wire:submit.prevent="editBeneficiary" class="p-4 md:p-5">
+                    <form wire:submit.prevent="editBeneficiary" class="px-5 pt-5 pb-10">
 
                         {{-- IF Edit Mode is ON --}}
                         @if ($editMode)
@@ -621,7 +621,7 @@
                                 </div>
 
                                 {{-- First Name --}}
-                                <div class=" relative col-span-full sm:col-span-2 xl:col-span-3  pb-1">
+                                <div class=" relative col-span-full sm:col-span-2 xl:col-span-3 pb-1">
                                     <label for="first_name" class="block mb-1 font-medium text-indigo-1100">
                                         <span class="relative">First Name
                                             <span
@@ -861,8 +861,7 @@
                                 </div>
 
                                 {{-- Civil Status --}}
-                                <div
-                                    class=" relative col-span-full sm:col-span-1 md:col-span-2 lg:lg:col-span-1 xl:col-span-1  pb-1">
+                                <div class=" relative col-span-full sm:col-span-1 md:col-span-2 lg:lg:col-span-1 xl:col-span-1  pb-1">
                                     <p class="mb-1 font-medium text-indigo-1100 ">Civil Status</p>
                                     <div x-data="{ open: false, civil_status: $wire.entangle('civil_status') }" x-on:keydown.escape.prevent.stop="open = false;"
                                         class="relative">
@@ -884,9 +883,9 @@
                                         <!-- Panel -->
                                         <div x-show="open"
                                             @click.away="
-                                if(open) {
-                                open = false;
-                                }"
+                                                if(open) {
+                                                open = false;
+                                                }"
                                             class="absolute left-0 mt-2 w-full z-50 rounded bg-indigo-50 shadow-lg border border-indigo-500">
                                             <button type="button"
                                                 @click="civil_status = 'Single'; open = false; $wire.$refresh();"

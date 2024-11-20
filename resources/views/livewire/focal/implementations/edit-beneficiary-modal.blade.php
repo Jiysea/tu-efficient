@@ -46,8 +46,8 @@
                 <hr class="">
 
                 <!-- Modal body -->
-                <form wire:submit.prevent="editBeneficiary" class="p-4 md:p-5">
-                    <div class="grid gap-2.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
+                <form wire:submit.prevent="editBeneficiary" class="px-5 pt-5 pb-10">
+                    <div class="grid gap-x-2.5 gap-y-6 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
                         <div x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }" class="order-first relative col-span-full">

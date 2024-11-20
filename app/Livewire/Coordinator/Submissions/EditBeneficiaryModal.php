@@ -41,7 +41,6 @@ class EditBeneficiaryModal extends Component
     #[Locked]
     public $maximumIncome;
     public $is_sectoral;
-    public $searchBarangay;
 
     # ------------------------------------
 
@@ -55,6 +54,7 @@ class EditBeneficiaryModal extends Component
     public $isIneligible = false;
     public $expanded = false;
     public $addReasonModal = false;
+    public $searchBarangay;
 
     # ----------------------------------------------
 
@@ -100,9 +100,11 @@ class EditBeneficiaryModal extends Component
     public $id_number;
     #[Validate]
     public $spouse_first_name;
+    #[Validate]
     public $spouse_middle_name;
     #[Validate]
     public $spouse_last_name;
+    #[Validate]
     public $spouse_extension_name;
 
     # --------------------------------------------
@@ -247,6 +249,7 @@ class EditBeneficiaryModal extends Component
             'id_number' => 'required',
             'spouse_first_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -281,6 +284,7 @@ class EditBeneficiaryModal extends Component
             ],
             'spouse_last_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -331,6 +335,8 @@ class EditBeneficiaryModal extends Component
             'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
+            'spouse_first_name.required_if' => 'This field is required.',
+            'spouse_last_name.required_if' => 'This field is required.',
 
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',
@@ -361,6 +367,33 @@ class EditBeneficiaryModal extends Component
 
     # END OF ADD REASON MODAL AREA
     # ----------------------------------------------------------------------------------------------
+
+    public function setFieldName($field_name)
+    {
+        if ($field_name === 'first_name') {
+            $this->first_name = $this->oldValues['first_name'];
+        }
+
+        if ($field_name === 'middle_name') {
+            $this->middle_name = $this->oldValues['middle_name'];
+        }
+
+        if ($field_name === 'last_name') {
+            $this->last_name = $this->oldValues['last_name'];
+        }
+
+        if ($field_name === 'extension_name') {
+            $this->extension_name = $this->oldValues['extension_name'];
+        }
+
+        if ($field_name === 'first_name') {
+            $this->first_name = $this->oldValues['first_name'];
+        }
+
+        if ($field_name === 'beneficiary_type') {
+            $this->beneficiary_type = $this->oldValues['beneficiary_type'];
+        }
+    }
 
     # a livewire action executes after clicking the `Save` button
     public function editBeneficiary()
@@ -413,16 +446,16 @@ class EditBeneficiaryModal extends Component
             $batch = Batch::find($this->beneficiary->batches_id);
             $implementation = Implementation::find($batch->implementations_id);
 
-            $beneficiary = Beneficiary::where('id', decrypt($this->passedBeneficiaryId))
+            $beneficiary = Beneficiary::where('id', decrypt($this->beneficiaryId))
                 ->where('updated_at', '<', Carbon::now())
                 ->first();
 
-            $identity = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
+            $identity = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
                 ->where('for_duplicates', 'no')
                 ->where('updated_at', '<', Carbon::now())
                 ->first();
 
-            $special_case = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
+            $special_case = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
                 ->where('for_duplicates', 'yes')
                 ->where('updated_at', '<', Carbon::now())
                 ->first();
@@ -431,7 +464,7 @@ class EditBeneficiaryModal extends Component
             # then send an optimistic lock notification and close the modal to refresh the records.
             if (!$beneficiary) {
                 $this->dispatch('optimistic-lock', message: 'This record has been updated by someone else. Refreshing...');
-                $this->resetViewBeneficiary();
+                $this->resetEditBeneficiary();
                 return;
             } else {
                 $beneficiary->fill([
@@ -441,13 +474,13 @@ class EditBeneficiaryModal extends Component
                     'last_name' => strtoupper($this->last_name),
                     'extension_name' => $this->extension_name ? strtoupper($this->extension_name) : null,
                     'birthdate' => $this->birthdate,
-                    'barangay_name' => $this->barangay_name,
+                    'barangay_name' => $this->barangay_name ?? null,
                     'contact_num' => $this->contact_num,
                     'occupation' => $this->occupation ?? null,
                     'avg_monthly_income' => $this->avg_monthly_income ?? null,
                     'city_municipality' => $implementation->city_municipality,
                     'province' => $implementation->province,
-                    'district' => $this->district,
+                    'district' => $this->district ?? null,
                     'type_of_id' => $this->type_of_id,
                     'id_number' => $this->id_number,
                     'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
@@ -524,7 +557,8 @@ class EditBeneficiaryModal extends Component
                 $this->dispatch('edit-beneficiary');
             }
 
-            $this->resetViewBeneficiary();
+            $this->js('editBeneficiaryModal = false;');
+            $this->resetEditBeneficiary();
         });
 
     }
@@ -564,7 +598,7 @@ class EditBeneficiaryModal extends Component
                 $this->extension_name = null;
             }
 
-            $this->similarityResults = JaccardSimilarity::getResultsFromEdit($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold, $this->beneficiaryId);
+            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold, $this->beneficiaryId);
             $this->setCheckers($this->similarityResults);
 
             if (!isset($this->similarityResults)) {
@@ -689,10 +723,6 @@ class EditBeneficiaryModal extends Component
                 if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
                     $this->type_of_id = 'Barangay ID';
                 }
-                if ($this->isSpecialCase && $this->birthdate !== $this->oldValues['birthdate']) {
-                    $this->confirmTypeChangeModal = true;
-                    $this->confirmChangeType = 'birthdate';
-                }
 
             } else {
                 $this->birthdate = null;
@@ -741,6 +771,8 @@ class EditBeneficiaryModal extends Component
         $this->birthdate = Carbon::parse($this->beneficiary->birthdate)->format('m-d-Y');
         $this->sex = ucwords($this->beneficiary->sex);
         $this->contact_num = "0" . substr($this->beneficiary->contact_num, 3);
+        $this->district = $this->beneficiary->district ?? null;
+        $this->barangay_name = $this->beneficiary->barangay_name ?? null;
         $this->occupation = $this->beneficiary->occupation ?? null;
         $this->civil_status = ucwords($this->beneficiary->civil_status);
         $this->avg_monthly_income = $this->beneficiary->avg_monthly_income ? MoneyFormat::mask($this->beneficiary->avg_monthly_income) : null;
@@ -800,7 +832,7 @@ class EditBeneficiaryModal extends Component
     public function credentials()
     {
         if ($this->beneficiaryId) {
-            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+            $credentials = Credential::where('beneficiaries_id', $this->beneficiaryId ? decrypt($this->beneficiaryId) : null)
                 ->get();
 
             return $credentials;
@@ -818,7 +850,7 @@ class EditBeneficiaryModal extends Component
     public function beneficiary()
     {
         if ($this->beneficiaryId) {
-            $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
+            $beneficiary = Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
             return $beneficiary;
         }
     }
@@ -827,7 +859,7 @@ class EditBeneficiaryModal extends Component
     public function batch()
     {
         if ($this->beneficiaryId) {
-            $batch = Batch::find($this->beneficiary->batches_id);
+            $batch = Batch::find($this->beneficiary?->batches_id);
             return $batch;
         }
     }

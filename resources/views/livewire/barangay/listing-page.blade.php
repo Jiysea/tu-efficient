@@ -84,36 +84,63 @@
                             </svg>
                             Beneficiaries <span class="rounded text-xs px-2 py-1 font-medium"
                                 :class="{
-                                    'bg-red-100 text-red-700': {{ json_encode($this->beneficiaryCount === 0) }},
-                                    'bg-amber-100 text-amber-700': {{ json_encode($this->beneficiaryCount !== $this->batch->slots_allocated) }},
+                                    'bg-amber-100 text-amber-700': {{ json_encode($this->beneficiaryCount < $this->batch->slots_allocated) }},
                                     'bg-green-100 text-green-700': {{ json_encode($this->beneficiaryCount === $this->batch->slots_allocated) }},
                                 }">{{ $this->beneficiaryCount . ' / ' . $this->batch->slots_allocated }}</span>
                         </span>
 
-                        {{-- Barangay Name | Location --}}
+                        {{-- Location | Sector Title --}}
                         <div class="flex flex-col text-xs ms-4 gap-y-0.5 text-green-900 font-medium">
-                            <span class="flex items-center">
 
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4 me-1 stroke-green-900"
-                                    width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
-                                    <path
-                                        d="M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM48,120l80-80,80,80v88H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48Zm96,88H112V160h32Z">
-                                    </path>
-                                </svg>
-                                <p class="me-1">Barangay:</p> <span
-                                    class="text-green-1100 font-normal">{{ $this->batchInformation['barangay'] }}</span>
-                            </span>
-                            <span class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-4 me-1 stroke-green-900">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                                </svg>
-                                <p class="me-1">Location:</p> <span
-                                    class="text-green-1100 font-normal">{{ $this->batchInformation['location'] }}</span>
-                            </span>
+                            @if ($this->implementation?->is_sectoral)
+                                <span class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 me-1 stroke-green-900"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M174.877 1.190 C 150.230 4.553,145.323 7.118,145.315 16.640 C 145.307 26.849,151.399 30.195,165.022 27.466 C 235.741 13.300,306.821 42.988,346.982 103.464 C 394.840 175.532,381.979 273.808,317.169 331.266 L 311.494 336.298 312.155 331.626 C 313.932 319.082,310.321 313.281,300.737 313.281 C 291.377 313.281,290.080 315.708,285.491 341.797 C 279.828 373.988,278.913 372.711,311.789 378.500 C 335.304 382.641,337.028 382.601,341.231 377.815 C 348.164 369.919,343.315 359.191,332.031 357.457 C 325.345 356.430,325.282 356.361,328.629 353.676 C 398.280 297.789,420.248 193.555,379.705 111.328 C 342.140 35.140,257.930 -10.140,174.877 1.190 M63.753 18.780 C 50.680 22.692,54.137 40.576,68.359 42.606 C 74.490 43.480,74.610 43.845,69.981 47.539 C 1.836 101.915,-19.878 207.319,20.306 288.672 C 60.277 369.595,148.022 413.201,237.722 396.720 C 251.001 394.280,254.682 391.347,254.682 383.203 C 254.682 373.806,248.046 369.648,237.016 372.133 C 164.554 388.459,87.265 354.512,48.417 289.295 C 5.781 217.721,20.650 123.307,83.208 68.384 L 88.502 63.737 87.832 68.392 C 86.012 81.038,89.622 86.719,99.479 86.719 C 108.691 86.719,109.696 84.796,114.481 58.033 C 120.189 26.105,121.001 27.251,88.634 21.552 C 66.884 17.722,67.178 17.755,63.753 18.780 M180.469 80.061 C 128.992 88.795,87.063 130.739,80.096 180.469 C 79.825 182.402,79.419 184.951,79.193 186.133 L 78.782 188.281 133.532 188.281 L 188.281 188.281 188.281 133.594 C 188.281 90.322,188.077 78.923,187.305 78.986 C 186.768 79.030,183.691 79.514,180.469 80.061 M211.719 137.293 L 211.719 195.709 252.619 236.603 L 293.519 277.498 296.280 274.101 C 324.959 238.804,329.302 183.391,306.647 141.797 C 288.913 109.237,253.587 84.324,219.141 80.083 C 216.992 79.819,214.443 79.439,213.477 79.239 L 211.719 78.876 211.719 137.293 M79.193 213.867 C 79.419 215.049,79.825 217.598,80.096 219.531 C 82.636 237.663,96.013 267.615,105.342 276.057 C 106.609 277.203,108.970 275.021,139.481 244.504 L 172.259 211.719 125.520 211.719 L 78.782 211.719 79.193 213.867 M161.053 254.963 L 122.502 293.519 125.900 296.280 C 134.974 303.653,149.914 311.490,162.519 315.489 C 200.346 327.490,245.191 319.770,274.100 296.280 L 277.498 293.519 238.947 254.963 C 217.744 233.757,200.218 216.406,200.000 216.406 C 199.782 216.406,182.256 233.757,161.053 254.963 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p class="me-1">
+                                        Sector:
+                                    </p>
+                                    <span class="text-green-1100 font-normal">
+                                        {{ $this->batch?->sector_title }}
+                                    </span>
+                                </span>
+                            @else
+                                <span class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 me-1 stroke-green-900"
+                                        width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
+                                        <path
+                                            d="M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM48,120l80-80,80,80v88H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48Zm96,88H112V160h32Z">
+                                        </path>
+                                    </svg>
+                                    <p class="me-1">
+                                        Barangay:
+                                    </p>
+                                    <span class="text-green-1100 font-normal">
+                                        {{ $this->batch?->barangay_name }}
+                                    </span>
+                                </span>
+                                <span class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-4 me-1 stroke-green-900">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                    </svg>
+                                    <p class="me-1">
+                                        Location:
+                                    </p>
+                                    <span class="text-green-1100 font-normal">
+                                        {{ $this->implementation?->province . ', ' . $this->implementation?->city_municipality . ', ' . $this->batch?->district }}
+                                    </span>
+                                </span>
+                            @endif
                         </div>
                     </div>
 
@@ -208,12 +235,18 @@
                                     <tr wire:key="beneficiary-{{ $key }}"
                                         wire:loading.class="pointer-events-none"
                                         wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}')"
-                                        class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-gray-100 text-green-1000 hover:bg-gray-200' : ' hover:bg-gray-50' }} border-b divide-x whitespace-nowrap cursor-pointer">
+                                        class="relative {{ $selectedBeneficiaryRow === $key ? 'bg-gray-100 text-green-1000 hover:bg-gray-200' : ' hover:bg-gray-50' }} border-b divide-x whitespace-nowrap cursor-pointer"
+                                        :class="{
+                                            'bg-gray-100 text-green-1000 hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
+                                            'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                            'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                            'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                        }">
                                         <td class="absolute h-full w-1 left-0 z-50"
                                             :class="{
                                                 'bg-green-700': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
                                                 '': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
-                                                'bg-amber-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
+                                                'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
                                                 '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
                                             }">
                                             {{-- Selected Row Indicator --}}
@@ -567,7 +600,7 @@
 
                                             @if ($this->beneficiary->beneficiary_type === 'special case')
                                                 <button type="button" @click="$wire.viewCredential('special');"
-                                                    class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-amber-100 active:bg-amber-200 text-amber-950 hover:text-amber-700 duration-200 ease-in-out">
+                                                    class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-red-100 active:bg-red-200 text-red-950 hover:text-red-700 duration-200 ease-in-out">
                                                     {{ $this->beneficiary->beneficiary_type }}
 
                                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -790,12 +823,12 @@
                         <hr class="">
 
                         {{-- Modal body --}}
-                        <div class="grid w-full place-items-center pt-5 pb-10 px-8 md:px-16 text-green-1100 text-xs">
+                        <div class="grid w-full place-items-center py-5 px-16 text-green-1100 text-xs">
 
                             <p class="font-medium text-sm mb-2">
                                 Are you sure about deleting this beneficiary?
                             </p>
-                            <p class="text-gray-500 text-xs font-semibold mb-4">
+                            <p class="text-gray-500 text-xs font-normal mb-4">
                                 This is action is irreversible
                             </p>
 

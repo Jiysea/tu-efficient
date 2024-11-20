@@ -185,13 +185,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <h1 class="font-bold text-base">Beneficiaries</h1>
 
                                 {{-- Beneficiary Count --}}
-                                <span class="rounded px-2 py-1 text-xs font-medium"
-                                    :class="{
-                                        'bg-green-200 text-green-900': {{ json_encode($this->beneficiarySlots['num_of_beneficiaries'] === $this->beneficiarySlots['slots_allocated']) }},
-                                        'bg-amber-100 text-amber-700': {{ json_encode($this->beneficiarySlots['num_of_beneficiaries'] > 0 && $this->beneficiarySlots['num_of_beneficiaries'] < $this->beneficiarySlots['slots_allocated']) }},
-                                        'bg-red-100 text-red-700': {{ json_encode($this->batches->isEmpty() || $this->beneficiaries->isEmpty()) }},
-                                    }">
-                                    {{ $this->batches->isNotEmpty() ? $this->beneficiarySlots['num_of_beneficiaries'] . ' / ' . $this->beneficiarySlots['slots_allocated'] : 'N / A' }}</span>
+                                @if ($this->batches->isNotEmpty())
+                                    <span class="rounded px-2 py-1 text-xs font-medium"
+                                        :class="{
+                                            'bg-green-200 text-green-900': {{ json_encode($this->beneficiarySlots['num_of_beneficiaries'] === $this->beneficiarySlots['slots_allocated']) }},
+                                            'bg-amber-100 text-amber-700': {{ json_encode($this->beneficiarySlots['num_of_beneficiaries'] >= 0 && $this->beneficiarySlots['num_of_beneficiaries'] < $this->beneficiarySlots['slots_allocated']) }},
+                                        }">
+                                        {{ $this->beneficiarySlots['num_of_beneficiaries'] . ' / ' . $this->beneficiarySlots['slots_allocated'] }}</span>
+                                @endif
                             </div>
 
                             {{-- Batches Dropdown --}}
@@ -454,12 +455,19 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             @if ($this->batches->isNotEmpty())
                                                 @foreach ($this->batches as $key => $batch)
                                                     <li wire:key="batch-{{ $key }}">
-                                                        <button type="button" @click="open = !open;"
+                                                        <button type="button"
+                                                            @click="open = !open; $wire.dispatchSelf('scroll-top-beneficiaries');"
                                                             wire:loading.class="pointer-events-none"
                                                             wire:click="selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
                                                             class="flex items-center gap-2 w-full px-1 py-2 text-xs hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
+                                                            <span
+                                                                class="rounded px-1.5 py-0.5 uppercase {{ $batch->is_sectoral ? 'bg-indigo-200 text-indigo-800' : 'bg-rose-200 text-rose-800' }}">
+                                                                {{ $batch->is_sectoral ? 'ST' : 'NS' }}
+                                                            </span>
+
                                                             <span class="text-left">{{ $batch->batch_num }} /
-                                                                {{ $batch->barangay_name }}</span>
+                                                                {{ $batch->barangay_name ?? $batch->sector_title }}
+                                                            </span>
 
                                                             {{-- Approval Status --}}
                                                             @if ($batch->approval_status === 'approved')
@@ -568,13 +576,43 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
 
                         {{-- 2nd Row --}}
-                        <div class="flex items-center justify-end">
+                        <div class="flex items-center justify-end text-xs">
 
-                            {{-- Barangay --}}
-                            <div
-                                class="flex flex-1 items-center gap-2 {{ $this->batch ? 'text-blue-900' : 'text-red-900' }} ">
+                            {{-- Barangay/Sector Title --}}
+                            <div class="flex flex-1 items-center gap-1">
+                                @if (!is_null($this->batch?->is_sectoral))
+                                    <p class="text-blue-1100">
+                                        @if ($this->batch?->is_sectoral)
+                                            Sector:
+                                        @elseif($this->batch?->is_sectoral === 0)
+                                            Barangay:
+                                        @endif
+                                    </p>
+                                @endif
+
                                 <span
-                                    class="font-medium text-xs rounded px-2 py-1 bg-blue-100 text-blue-700">{{ $this->batch ? 'Barangay ' . $this->batch->barangay_name : 'No Batch Choosen' }}</span>
+                                    class="font-medium rounded px-2 py-1 {{ $this->batch ? 'text-blue-700 bg-blue-100' : 'text-red-700 bg-red-100' }} ">
+                                    @if ($this->batch?->is_sectoral)
+                                        {{ $this->batch?->sector_title }}
+                                    @elseif($this->batch?->is_sectoral === 0)
+                                        {{ $this->batch?->barangay_name }}
+                                    @else
+                                        No Batch Choosen
+                                    @endif
+                                </span>
+
+                                @if (!is_null($this->batch?->is_sectoral))
+
+                                    <span
+                                        class="rounded px-2 py-1 uppercase {{ $this->batch?->is_sectoral ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700' }}">
+                                        @if ($this->batch?->is_sectoral)
+                                            ST
+                                        @elseif($this->batch?->is_sectoral === 0)
+                                            NS
+                                        @endif
+                                    </span>
+
+                                @endif
                             </div>
                         </div>
 
@@ -597,7 +635,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                     {{-- Search Icon --}}
                                     <div
-                                        class="{{ $this->beneficiaries->isEmpty() || (is_null($batchId) && empty($batchId)) ? 'text-gray-500' : 'text-blue-500' }} absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        class="{{ is_null($batchId) && empty($batchId) ? 'text-gray-500' : 'text-blue-500' }} absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
 
                                         {{-- Loading Icon --}}
                                         <svg class="size-3 animate-spin" wire:loading
@@ -620,10 +658,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                         </svg>
                                     </div>
-                                    <input @if ($this->beneficiaries->isEmpty() || (!isset($batchId) && empty($batchId))) disabled @endif type="text"
+                                    <input @if (!isset($batchId) && empty($batchId)) disabled @endif type="text"
                                         id="beneficiary-search" maxlength="100" autocomplete="off"
                                         wire:model.live.debounce.350ms="searchBeneficiaries"
-                                        class="{{ $this->beneficiaries->isEmpty() || (!isset($batchId) && empty($batchId)) ? 'placeholder-gray-500 border-gray-300 bg-gray-50' : 'text-blue-1100 placeholder-blue-500 border-blue-300 bg-blue-50 focus:ring-blue-500 focus:border-blue-500' }} caret-blue-700 w-full ps-6 py-1.5 border outline-none text-xs rounded duration-200 ease-in-out"
+                                        class="{{ !isset($batchId) && empty($batchId) ? 'placeholder-gray-500 border-gray-300 bg-gray-50' : 'text-blue-1100 placeholder-blue-500 border-blue-300 bg-blue-50 focus:ring-blue-500 focus:border-blue-500' }} caret-blue-700 w-full ps-6 py-1.5 border outline-none text-xs rounded duration-200 ease-in-out"
                                         placeholder="Search for beneficiaries">
                                 </div>
 
@@ -1275,14 +1313,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     <p class="font-medium text-sm mb-2">
                                         Are you sure about archiving this beneficiary?
                                     </p>
-                                    <p class="text-gray-500 text-xs font-semibold mb-4">
+                                    <p class="text-gray-500 text-xs font-normal mb-4">
                                         You could restore this beneficiary back from the Archives page
                                     </p>
                                 @else
                                     <p class="font-medium text-sm mb-2">
                                         Are you sure about deleting this beneficiary?
                                     </p>
-                                    <p class="text-gray-500 text-xs font-semibold mb-4">
+                                    <p class="text-gray-500 text-xs font-normal mb-4">
                                         This is action is irreversible
                                     </p>
                                 @endif

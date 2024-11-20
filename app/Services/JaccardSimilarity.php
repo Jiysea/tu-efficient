@@ -452,7 +452,7 @@ class JaccardSimilarity
 
         if ($extension_name && $extension_name !== '-' && $extension_name !== '' && !is_null($extension_name)) {
             $extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $extension_name)));
-            $filteredInputString .= ' ' . self::filterIllegalCharacters($extension_name);
+            $filteredInputString .= ' ' . self::filterIllegalCharacters($extension_name, true);
         } else {
             $extension_name = null;
         }

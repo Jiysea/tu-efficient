@@ -30,7 +30,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => $user->created_at ?? now(),
-            'description' => $old . ' changed their name to ' . $old . '. Field office: ' . $user->field_office . '.'
+            'description' => $old . ' changed their name to ' . $new . '. Field office: ' . $user->field_office . '.'
         ]);
     }
 
@@ -61,14 +61,12 @@ class LogIt
         ]);
     }
 
-    # ----------------------------------------------------------------------------------------------
-
     public static function set_settings_password_change(User|Authenticatable $user)
     {
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' changed their password.',
+            'description' => self::full_name($user) . ' changed their password. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -77,7 +75,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Minimum wage changed from ₱' . $old_wage . ' to ₱' . $new_wage . ' in ' . $user->field_office . ' field office.',
+            'description' => 'Minimum wage changed from ₱' . $old_wage . ' to ₱' . $new_wage . '. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -86,7 +84,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Changed the Implementation Project number prefix from \'' . $old_prefix . '\' to \'' . $new_prefix . '\' in ' . $user->field_office . ' field office.',
+            'description' => 'Changed the Implementation Project number prefix from \'' . $old_prefix . '\' to \'' . $new_prefix . '\'. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -95,7 +93,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Changed the Batch number prefix from \'' . $old_prefix . '\' to \'' . $new_prefix . '\' in ' . $user->field_office . ' field office.',
+            'description' => 'Changed the Batch number prefix from \'' . $old_prefix . '\' to \'' . $new_prefix . '\'. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -104,7 +102,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Maximum average monthly income changed from ₱' . $old_income . ' to ₱' . $new_income . ' in ' . $user->field_office . ' field office.',
+            'description' => 'Maximum average monthly income changed from ₱' . $old_income . ' to ₱' . $new_income . '. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -113,7 +111,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Duplication threshold changed from ' . $old_threshold . '% to ' . $new_threshold . '% in ' . $user->field_office . ' field office.',
+            'description' => 'Duplication threshold changed from ' . $old_threshold . '% to ' . $new_threshold . '%. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -122,9 +120,11 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => ($new_value ? 'Enabled' : 'Disabled') . ' default archive setting in ' . $user->field_office . ' field office.',
+            'description' => self::full_name($user) . ' ' . ($new_value ? 'Enabled' : 'Disabled') . ' their \'Default Archive\' setting. ' . $user->field_office . ' field office.',
         ]);
     }
+
+    # ----------------------------------------------------------------------------------------------
 
     public static function set_create_project(Implementation $implementation)
     {
@@ -340,6 +340,28 @@ class LogIt
         ]);
     }
 
+    public static function set_barangay_add_beneficiary(Beneficiary $beneficiary)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
+        SystemsLog::factory()->create([
+            'users_id' => null,
+            'log_timestamp' => now(),
+            'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.)',
+        ]);
+    }
+
+    public static function set_barangay_edit_beneficiary(Beneficiary $beneficiary)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
+        SystemsLog::factory()->create([
+            'users_id' => null,
+            'log_timestamp' => now(),
+            'description' => 'A barangay official modified ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.)',
+        ]);
+    }
+
     public static function set_barangay_submit(string $barangay_name, string $project_num, string $batch_num, int $added_count, int $slots_allocated, int $special_cases)
     {
         SystemsLog::factory()->create([
@@ -367,12 +389,14 @@ class LogIt
         ]);
     }
 
-    public static function set_barangay_delete_beneficiary(string $barangay_name, string $project_num, string $batch_num, string $full_name)
+    public static function set_barangay_delete_beneficiary(Beneficiary $beneficiary)
     {
+        $batch = Batch::find($beneficiary->batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
         SystemsLog::factory()->create([
             'users_id' => null,
             'log_timestamp' => now(),
-            'description' => 'A barangay official deleted ' . $full_name . ' from the Brgy. ' . $barangay_name . ' list. (Project: ' . $project_num . ' / Batch: ' . $batch_num . ')',
+            'description' => 'A barangay official deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
         ]);
     }
 

@@ -141,12 +141,9 @@ class ListingPage extends Component
     #[Computed]
     public function implementation()
     {
-        if ($this->accessCode) {
-            $implementation = Implementation::find($this->batch->implementations_id)
-                ->first();
+        $implementation = Implementation::find($this->batch?->implementations_id);
 
-            return $implementation;
-        }
+        return $implementation;
     }
 
     #[Computed]
@@ -167,10 +164,8 @@ class ListingPage extends Component
     #[Computed]
     public function beneficiary()
     {
-        if ($this->beneficiaryId) {
-            $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
-            return $beneficiary;
-        }
+        $beneficiary = Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+        return $beneficiary;
     }
 
     #[Computed]
@@ -253,18 +248,6 @@ class ListingPage extends Component
 
             return $credentials;
         }
-    }
-
-    #[Computed]
-    public function batchInformation()
-    {
-
-        $batchInformation = [
-            'barangay' => $this->batch->barangay_name,
-            'location' => $this->implementation->province . ', ' . $this->implementation->city_municipality . ', ' . $this->implementation->district
-        ];
-
-        return $batchInformation;
     }
 
     #[Computed]
@@ -371,7 +354,7 @@ class ListingPage extends Component
             }
             $beneficiary->delete();
 
-            LogIt::set_barangay_delete_beneficiary($old->barangay_name, $this->implementation->project_num, $this->batch->batch_num, $this->full_name($old));
+            LogIt::set_barangay_delete_beneficiary($beneficiary);
             $this->beneficiaryId = null;
             $this->selectedBeneficiaryRow = -1;
 
@@ -441,9 +424,6 @@ class ListingPage extends Component
 
     public function render()
     {
-        $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
-        $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
-
         return view('livewire.barangay.listing-page')
             ->title("Brgy. " . $this->batch->barangay_name . " | TU-Efficient");
     }

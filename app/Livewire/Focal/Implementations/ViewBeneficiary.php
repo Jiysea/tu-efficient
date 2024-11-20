@@ -108,9 +108,11 @@ class ViewBeneficiary extends Component
     public $id_number;
     #[Validate]
     public $spouse_first_name;
+    #[Validate]
     public $spouse_middle_name;
     #[Validate]
     public $spouse_last_name;
+    #[Validate]
     public $spouse_extension_name;
     #[Validate]
     public $reason_image_file_path;
@@ -253,6 +255,7 @@ class ViewBeneficiary extends Component
             'id_number' => 'required',
             'spouse_first_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -287,6 +290,7 @@ class ViewBeneficiary extends Component
             ],
             'spouse_last_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -337,6 +341,8 @@ class ViewBeneficiary extends Component
             'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
+            'spouse_first_name.required_if' => 'This field is required.',
+            'spouse_last_name.required_if' => 'This field is required.',
 
             'contact_num.digits' => 'Valid number should be 11 digits.',
             'contact_num.starts_with' => 'Valid number should start with \'09\'',
@@ -935,12 +941,30 @@ class ViewBeneficiary extends Component
         return $ids;
     }
 
-    public function setFieldName($field)
+    public function setFieldName($field_name)
     {
-        if ($field === 'middle_name') {
-            $this->middle_name = $this->beneficiary?->middle_name;
-        } elseif ($field === 'extension_name') {
-            $this->extension_name = $this->beneficiary?->extension_name;
+        if ($field_name === 'first_name') {
+            $this->first_name = $this->oldValues['first_name'];
+        }
+
+        if ($field_name === 'middle_name') {
+            $this->middle_name = $this->oldValues['middle_name'];
+        }
+
+        if ($field_name === 'last_name') {
+            $this->last_name = $this->oldValues['last_name'];
+        }
+
+        if ($field_name === 'extension_name') {
+            $this->extension_name = $this->oldValues['extension_name'];
+        }
+
+        if ($field_name === 'first_name') {
+            $this->first_name = $this->oldValues['first_name'];
+        }
+
+        if ($field_name === 'beneficiary_type') {
+            $this->beneficiary_type = $this->oldValues['beneficiary_type'];
         }
     }
 

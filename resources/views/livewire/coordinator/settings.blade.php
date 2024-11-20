@@ -42,28 +42,8 @@
                     </a>
                     <ol class="text-gray-500 text-xs font-normal ms-6 mt-2 mb-6">
                         <li class="mt-1">
-                            <a href="#minimum_wage">
-                                Minimum Wage
-                            </a>
-                        </li>
-                        <li class="mt-1">
                             <a href="#duplication_threshold">
                                 Duplication Threshold
-                            </a>
-                        </li>
-                        <li class="mt-1">
-                            <a href="#project_number_prefix">
-                                Project Number Prefix
-                            </a>
-                        </li>
-                        <li class="mt-1">
-                            <a href="#batch_number_prefix">
-                                Batch Number Prefix
-                            </a>
-                        </li>
-                        <li class="mt-1">
-                            <a href="#maximum_income">
-                                Maximum Income
                             </a>
                         </li>
                         <li class="mt-1">
@@ -180,8 +160,8 @@
                                             </svg>
                                         @else
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5 text-red-600"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                height="400" viewBox="0, 0, 400,400">
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                                viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
                                                         d="M177.897 17.596 C 52.789 32.733,-20.336 167.583,35.137 280.859 C 93.796 400.641,258.989 419.540,342.434 316.016 C 445.776 187.805,341.046 -2.144,177.897 17.596 M146.875 125.950 C 148.929 126.558,155.874 132.993,174.805 151.829 L 200.000 176.899 225.195 151.829 C 245.280 131.845,251.022 126.556,253.503 125.759 C 264.454 122.238,275.000 129.525,275.000 140.611 C 275.000 147.712,274.055 148.915,247.831 175.195 L 223.080 200.000 247.831 224.805 C 274.055 251.085,275.000 252.288,275.000 259.389 C 275.000 270.771,263.377 278.313,252.691 273.865 C 250.529 272.965,242.208 265.198,224.805 247.831 L 200.000 223.080 175.195 247.769 C 154.392 268.476,149.792 272.681,146.680 273.836 C 134.111 278.498,121.488 265.871,126.173 253.320 C 127.331 250.217,131.595 245.550,152.234 224.799 L 176.909 199.989 152.163 175.190 C 135.672 158.663,127.014 149.422,126.209 147.486 C 122.989 139.749,126.122 130.459,133.203 126.748 C 137.920 124.276,140.678 124.115,146.875 125.950 "
@@ -349,292 +329,6 @@
                 {{-- Body --}}
                 <div class="flex flex-col size-full text-sm px-5">
 
-                    {{-- Global --}}
-                    <div class="mb-2">
-                        <h1 class="text-base font-medium text-zinc-50">Global Settings</h1>
-                        <p class="text-xs text-zinc-500">Changing the values here will affect the whole system.
-                        </p>
-                    </div>
-
-                    <div
-                        class="relative flex flex-col mb-6 size-full border border-[#442E30] rounded-lg divide-y divide-[#442E30]">
-
-
-                        {{-- Minimum Wage --}}
-                        <span id="minimum_wage" class="relative flex items-center justify-between gap-10 p-5 w-full">
-                            <span class="flex flex-col">
-                                <h1 class="font-medium text-indigo-300">Minimum Wage</h1>
-                                <p class="text-xs text-zinc-500">It's the default minimum wage for calculating the
-                                    total
-                                    slots on implementation projects.</p>
-                            </span>
-
-                            <div class="relative">
-                                {{-- State Indicator --}}
-                                <div x-data="{ show: false, timeoutId: null }"
-                                    @minimum-wage-save.window="
-                                    show = true;
-                                    clearTimeout(timeoutId);
-                                    timeoutId = setTimeout(() => show = false, 3000);"
-                                    class="absolute right-full top-0 flex items-center gap-2 h-full me-2">
-
-                                    {{-- Loading Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-4 text-indigo-50 animate-spin" wire:loading
-                                        wire:target="minimum_wage" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
-
-                                    {{-- Save Indicator --}}
-                                    <span x-cloak x-show="show" x-transition.opacity
-                                        class="flex items-center gap-2 text-green-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                            </g>
-                                        </svg>
-                                    </span>
-                                </div>
-
-                                <span class="relative">
-                                    <span
-                                        class="absolute left-0 text-xs md:text-sm px-3 py-1.5 rounded-l pointer-events-none {{ $errors->has('minimum_wage') ? 'bg-[#2D1E20] text-red-500' : 'bg-zinc-900 text-zinc-500' }} select-none">
-                                        ₱
-                                    </span>
-                                    <input x-mask:dynamic="$money($input)" type="text" inputmode="numeric"
-                                        min="0" autocomplete="off" id="minimum_wage"
-                                        wire:model.live.debounce.1000ms="minimum_wage"
-                                        class="{{ $errors->has('minimum_wage') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-11 pe-3 py-1.5 duration-200 ease-in-out rounded"
-                                        placeholder="0.00">
-                                </span>
-                                @error('minimum_wage')
-                                    <p class="absolute top-full right-0 mt-1 text-red-500 text-xs">{{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-                        </span>
-
-                        {{-- Project Number Prefix --}}
-                        <span id="project_number_prefix" class="flex items-center justify-between gap-10 p-5 w-full">
-                            <span class="flex flex-col">
-                                <h1 class="font-medium text-indigo-300">Project Number Prefix</h1>
-                                <p class="text-xs text-zinc-500">This will affect all of the existing projects.</p>
-                            </span>
-
-                            <div x-data="{ show: false, timeoutId: null }"
-                                @project-number-prefix-save.window="
-                                show = true;
-                                clearTimeout(timeoutId);
-                                timeoutId = setTimeout(() => show = false, 3000);"
-                                class="relative">
-                                <input type="text" autocomplete="off" id="project_number_prefix"
-                                    wire:model.live="project_number_prefix"
-                                    class="{{ $errors->has('project_number_prefix') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-3 pe-11 py-1.5 duration-200 ease-in-out rounded"
-                                    placeholder="Type prefix">
-
-                                <button type="button" wire:click="saveProject" wire:loading.attr="disabled"
-                                    @if (
-                                        $this->settings->get('project_number_prefix', config('settings.project_number_prefix')) ===
-                                            $project_number_prefix || $errors->has('project_number_prefix')) disabled @endif
-                                    class="absolute flex items-center justify-center top-0 right-0 p-2 rounded duration-200 ease-in-out"
-                                    :class="{
-                                        'text-red-500 bg-[#362123]': {{ json_encode($errors->has('project_number_prefix')) }},
-                                        'text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900': {{ json_encode($this->settings->get('project_number_prefix', config('settings.project_number_prefix')) !== $project_number_prefix && !$errors->has('project_number_prefix')) }},
-                                        'bg-zinc-900 text-zinc-500': {{ json_encode($this->settings->get('project_number_prefix', config('settings.project_number_prefix')) === $project_number_prefix && !$errors->has('project_number_prefix')) }}
-                                    }">
-
-                                    {{-- Check Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" x-cloak x-show="show" wire:loading.remove
-                                        wire:target="saveProject, project_number_prefix" class="size-4 text-green-500"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd">
-                                            </path>
-                                        </g>
-                                    </svg>
-
-                                    {{-- Loading State --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-3 md:size-4 animate-spin"
-                                        wire:loading wire:target="saveProject, project_number_prefix" fill="none"
-                                        viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
-
-                                    {{-- Save Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" x-show="!show" class="size-3 md:size-4"
-                                        wire:loading.remove wire:target="saveProject, project_number_prefix"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M38.095 14.017 C 26.775 17.636,17.071 27.593,13.739 39.009 C 11.642 46.193,11.873 354.876,13.980 361.648 C 19.802 380.355,32.269 387.500,59.086 387.500 L 74.919 387.500 75.172 328.320 C 75.419 270.395,75.459 269.037,77.083 264.259 C 81.184 252.188,90.624 243.010,102.734 239.319 C 110.072 237.083,291.047 237.108,297.656 239.346 C 309.831 243.469,318.888 252.402,322.917 264.259 C 324.541 269.037,324.581 270.395,324.828 328.320 L 325.081 387.500 340.987 387.500 C 367.924 387.500,380.708 380.015,386.261 360.991 C 388.052 354.858,388.165 97.267,386.379 93.907 C 385.025 91.358,308.141 14.589,305.715 13.363 C 304.653 12.826,298.546 12.500,289.541 12.500 L 275.072 12.500 274.805 64.648 C 274.607 103.235,274.287 117.544,273.576 119.670 C 271.146 126.930,264.002 133.923,256.768 136.121 C 252.067 137.550,147.936 137.551,143.236 136.122 C 135.869 133.883,128.898 127.062,126.424 119.670 C 125.713 117.544,125.393 103.235,125.195 64.648 L 124.928 12.500 83.753 12.542 C 46.038 12.580,42.201 12.704,38.095 14.017 M150.000 62.500 L 150.000 112.500 200.000 112.500 L 250.000 112.500 250.000 62.500 L 250.000 12.500 200.000 12.500 L 150.000 12.500 150.000 62.500 M105.657 264.058 C 99.653 267.719,100.006 263.657,100.003 329.102 L 100.000 387.500 200.000 387.500 L 300.000 387.500 299.997 329.102 C 299.994 263.657,300.347 267.719,294.343 264.058 C 290.342 261.619,109.658 261.619,105.657 264.058 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd">
-                                            </path>
-                                        </g>
-                                    </svg>
-                                </button>
-                                @error('project_number_prefix')
-                                    <p class="absolute top-full right-0 mt-1 text-red-500 text-xs">{{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-                        </span>
-
-                        {{-- Batch Number Prefix --}}
-                        <span id="batch_number_prefix" class="flex items-center justify-between gap-10 p-5 w-full">
-                            <span class="flex flex-col">
-                                <h1 class="font-medium text-indigo-300">Batch Number Prefix</h1>
-                                <p class="text-xs text-zinc-500">This will affect all of the existing batches.</p>
-                            </span>
-
-                            <div x-data="{ show: false, timeoutId: null }"
-                                @batch-number-prefix-save.window="
-                                show = true;
-                                clearTimeout(timeoutId);
-                                timeoutId = setTimeout(() => show = false, 3000);"
-                                class="relative">
-                                <input type="text" autocomplete="off" id="batch_number_prefix"
-                                    wire:model.live="batch_number_prefix"
-                                    class="{{ $errors->has('batch_number_prefix') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-3 pe-11 py-1.5 duration-200 ease-in-out rounded"
-                                    placeholder="Type prefix">
-
-                                <button type="button" wire:click="saveBatch" wire:loading.attr="disabled"
-                                    @if (
-                                        $this->settings->get('batch_number_prefix', config('settings.batch_number_prefix')) === $batch_number_prefix ||
-                                            $errors->has('batch_number_prefix')) disabled @endif
-                                    class="absolute flex items-center justify-center top-0 right-0 p-2 rounded duration-200 ease-in-out"
-                                    :class="{
-                                        'text-red-500 bg-[#362123]': {{ json_encode($errors->has('batch_number_prefix')) }},
-                                        'text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900': {{ json_encode($this->settings->get('batch_number_prefix', config('settings.batch_number_prefix')) !== $batch_number_prefix && !$errors->has('batch_number_prefix')) }},
-                                        'bg-zinc-900 text-zinc-500': {{ json_encode($this->settings->get('batch_number_prefix', config('settings.batch_number_prefix')) === $batch_number_prefix && !$errors->has('batch_number_prefix')) }}
-                                    }">
-
-                                    {{-- Check Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" x-cloak x-show="show" wire:loading.remove
-                                        wire:target="saveBatch, batch_number_prefix" class="size-4 text-green-500"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd">
-                                            </path>
-                                        </g>
-                                    </svg>
-
-                                    {{-- Loading State --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-3 md:size-4 animate-spin"
-                                        wire:loading wire:target="saveBatch, batch_number_prefix" fill="none"
-                                        viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
-
-                                    {{-- Save Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" x-show="!show" class="size-3 md:size-4"
-                                        wire:loading.remove wire:target="saveBatch, batch_number_prefix"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M38.095 14.017 C 26.775 17.636,17.071 27.593,13.739 39.009 C 11.642 46.193,11.873 354.876,13.980 361.648 C 19.802 380.355,32.269 387.500,59.086 387.500 L 74.919 387.500 75.172 328.320 C 75.419 270.395,75.459 269.037,77.083 264.259 C 81.184 252.188,90.624 243.010,102.734 239.319 C 110.072 237.083,291.047 237.108,297.656 239.346 C 309.831 243.469,318.888 252.402,322.917 264.259 C 324.541 269.037,324.581 270.395,324.828 328.320 L 325.081 387.500 340.987 387.500 C 367.924 387.500,380.708 380.015,386.261 360.991 C 388.052 354.858,388.165 97.267,386.379 93.907 C 385.025 91.358,308.141 14.589,305.715 13.363 C 304.653 12.826,298.546 12.500,289.541 12.500 L 275.072 12.500 274.805 64.648 C 274.607 103.235,274.287 117.544,273.576 119.670 C 271.146 126.930,264.002 133.923,256.768 136.121 C 252.067 137.550,147.936 137.551,143.236 136.122 C 135.869 133.883,128.898 127.062,126.424 119.670 C 125.713 117.544,125.393 103.235,125.195 64.648 L 124.928 12.500 83.753 12.542 C 46.038 12.580,42.201 12.704,38.095 14.017 M150.000 62.500 L 150.000 112.500 200.000 112.500 L 250.000 112.500 250.000 62.500 L 250.000 12.500 200.000 12.500 L 150.000 12.500 150.000 62.500 M105.657 264.058 C 99.653 267.719,100.006 263.657,100.003 329.102 L 100.000 387.500 200.000 387.500 L 300.000 387.500 299.997 329.102 C 299.994 263.657,300.347 267.719,294.343 264.058 C 290.342 261.619,109.658 261.619,105.657 264.058 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd">
-                                            </path>
-                                        </g>
-                                    </svg>
-                                </button>
-                                @error('batch_number_prefix')
-                                    <p class="absolute top-full right-0 mt-1 text-red-500 text-xs">{{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-                        </span>
-
-                        {{-- Maximum Income --}}
-                        <span id="maximum_income" class="flex items-center justify-between gap-10 p-5 w-full">
-                            <span class="flex flex-col">
-                                <h1 class="font-medium text-indigo-300">Maximum Income</h1>
-                                <p class="text-xs text-zinc-500">It's the default ceiling for the average monthly
-                                    income.
-                                </p>
-                            </span>
-
-                            <div class="relative">
-                                {{-- State Indicator --}}
-                                <div x-data="{ show: false, timeoutId: null }"
-                                    @maximum-income-save.window="
-                                    show = true;
-                                    clearTimeout(timeoutId);
-                                    timeoutId = setTimeout(() => show = false, 3000);"
-                                    class="absolute right-full top-0 flex items-center gap-2 h-full me-2">
-
-                                    {{-- Loading Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-4 text-indigo-50 animate-spin" wire:loading
-                                        wire:target="maximum_income" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
-
-                                    {{-- Save Indicator --}}
-                                    <span x-cloak x-show="show" x-transition.opacity
-                                        class="flex items-center gap-2 text-green-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                            </g>
-                                        </svg>
-                                    </span>
-                                </div>
-
-                                <span class="relative">
-                                    <span
-                                        class="absolute left-0 text-xs md:text-sm px-3 py-1.5 rounded-l pointer-events-none {{ $errors->has('maximum_income') ? 'bg-[#2D1E20] text-red-500' : 'bg-zinc-900 text-zinc-500' }} select-none">
-                                        ₱
-                                    </span>
-                                    <input x-mask:dynamic="$money($input)" type="text" inputmode="numeric"
-                                        min="0" autocomplete="off" id="maximum_income"
-                                        wire:model.live.debounce.1000ms="maximum_income"
-                                        class="{{ $errors->has('maximum_income') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-11 pe-3 py-1.5 duration-200 ease-in-out rounded"
-                                        placeholder="Type minimum wage">
-                                </span>
-                                @error('maximum_income')
-                                    <p class="absolute top-full right-0 mt-1 text-red-500 text-xs">{{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-                        </span>
-                    </div>
-
                     {{-- Personal --}}
                     <div class="mb-2">
                         <h1 class="text-base font-medium text-zinc-50">Personal Settings</h1>
@@ -780,6 +474,7 @@
             {{-- The Modal --}}
             <div class="w-full sm:w-auto">
                 <div class="relative bg-zinc-900 rounded-md shadow">
+
                     <!-- Modal Header -->
                     <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                         <span class="flex items-center justify-center">
@@ -920,7 +615,6 @@
                                     </g>
                                 </svg>
                             </button>
-
                         </div>
                     </div>
                 </div>

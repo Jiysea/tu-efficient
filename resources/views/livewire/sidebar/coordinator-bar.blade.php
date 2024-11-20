@@ -153,7 +153,7 @@
 
                                 {{-- Settings --}}
                                 <span>
-                                    <a href=" {{-- route('focal.settings') --}} " aria-label="{{ __('Settings') }}"
+                                    <a href="{{ route('coordinator.settings') }}" aria-label="{{ __('Settings') }}"
                                         class=" flex items-center text-blue-1100 px-4 justify-start py-2 hover:bg-blue-200 hover:text-blue-900 duration-300 ease-in-out cursor-pointer">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -351,7 +351,7 @@
 
                                 {{-- Settings --}}
                                 <li>
-                                    <a aria-label="{{ __('Settings') }}"
+                                    <a href="{{ route('coordinator.settings') }}" aria-label="{{ __('Settings') }}"
                                         class=" flex items-center text-blue-1100 px-4 justify-start py-2 hover:bg-blue-200 hover:text-blue-900 duration-300 ease-in-out cursor-pointer">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"

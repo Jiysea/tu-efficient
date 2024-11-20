@@ -786,7 +786,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <div wire:key="{{ $key }}"
                                             class="flex flex-row items-center rounded-lg bg-indigo-50 shadow-sm p-2 mx-4 my-2">
                                             <div class="flex flex-col w-full text-xs">
-                                                {{-- Barangay Name --}}
+                                                {{-- Sector Title --}}
                                                 <p class="text-sm sm:text-base mx-1 mb-2 font-bold">
                                                     {{ $batch->sector_title }}</p>
                                                 <div

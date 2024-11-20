@@ -51,7 +51,7 @@
                 <hr class="">
 
                 <!-- Modal body -->
-                <form wire:submit.prevent="saveBeneficiary" class="p-4 md:p-5">
+                <form wire:submit.prevent="saveBeneficiary" class="px-5 pt-5 pb-10">
                     <div
                         class="grid gap-x-2.5 gap-y-6 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 

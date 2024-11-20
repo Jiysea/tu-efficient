@@ -10,6 +10,7 @@ use App\Livewire\Focal\Archives;
 use App\Livewire\Focal\Dashboard;
 use App\Livewire\Focal\Implementations;
 use App\Livewire\Focal\Settings;
+use App\Livewire\Coordinator\Settings as CSettings;
 use App\Livewire\Focal\UserManagement;
 use App\Livewire\Login;
 use Illuminate\Support\Facades\Route;
@@ -46,7 +47,7 @@ Route::middleware(['auth', 'verified', 'verified.mobile'])->group(function () {
     Route::get('/coordinator/forms', Forms::class)->name('coordinator.forms');
 
     Route::get('/focal/settings', Settings::class)->name('focal.settings');
-    // Route::get('/focal/settings', Settings::class)->name('coordinator.settings');
+    Route::get('/coordinator/settings', CSettings::class)->name('coordinator.settings');
 
     # For Printing
     Route::get('/print-summary', function () {

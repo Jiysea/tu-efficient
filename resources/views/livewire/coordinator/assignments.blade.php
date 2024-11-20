@@ -567,9 +567,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </thead>
                                 <tbody class="text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        <tr class="border-b hover:bg-gray-50 whitespace-nowrap">
-                                            <th scope="row"
-                                                class="ps-3 py-2 font-semibold text-blue-1100 whitespace-nowrap">
+                                        <tr
+                                            class="border-b whitespace-nowrap
+                                            {{ $beneficiary->beneficiary_type === 'special case' ? 'bg-red-100 hover:bg-red-200 text-red-700' : 'hover:bg-gray-50 text-blue-1100' }}">
+                                            <th scope="row" class="ps-3 py-2 font-semibold whitespace-nowrap">
                                                 {{ $key + 1 }}
                                             </th>
                                             <td class="px-2 py-2">

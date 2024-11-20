@@ -6,7 +6,10 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Credential;
 use App\Models\Implementation;
+use App\Models\User;
 use App\Models\UserSetting;
+use App\Services\Barangays;
+use App\Services\Districts;
 use App\Services\Essential;
 use App\Services\LogIt;
 use App\Services\JaccardSimilarity;
@@ -37,6 +40,8 @@ class AddBeneficiariesModal extends Component
     public $duplicationThreshold;
     #[Locked]
     public $maximumIncome;
+    #[Locked]
+    public $is_sectoral;
 
     # ------------------------------------
 
@@ -48,9 +53,14 @@ class AddBeneficiariesModal extends Component
     public $isSamePending = false;
     public $isIneligible = false;
     public $addReasonModal = false;
+    public $searchBarangay;
 
     # ----------------------------------------------
 
+    #[Validate]
+    public $district;
+    #[Validate]
+    public $barangay_name;
     #[Validate]
     public $first_name;
     #[Validate]
@@ -83,9 +93,11 @@ class AddBeneficiariesModal extends Component
     public $id_number;
     #[Validate]
     public $spouse_first_name;
+    #[Validate]
     public $spouse_middle_name;
     #[Validate]
     public $spouse_last_name;
+    #[Validate]
     public $spouse_extension_name;
 
     # --------------------------------------------
@@ -158,7 +170,14 @@ class AddBeneficiariesModal extends Component
                     }
                 },
             ],
-            'birthdate' => 'required',
+            'birthdate' => [
+                'required',
+                function ($a, $value, $fail) {
+                    if (is_null(Essential::extract_date($value))) {
+                        $fail('Invalid date format.');
+                    }
+                }
+            ],
             'contact_num' => [
                 'required',
                 function ($attr, $value, $fail) {
@@ -168,6 +187,14 @@ class AddBeneficiariesModal extends Component
                 },
                 'starts_with:09',
                 'digits:11',
+            ],
+            'district' => [
+                'exclude_if:is_sectoral,0',
+                'required_if:is_sectoral,1',
+            ],
+            'barangay_name' => [
+                'exclude_if:is_sectoral,0',
+                'required_if:is_sectoral,1',
             ],
             'occupation' => [
                 'required',
@@ -213,18 +240,67 @@ class AddBeneficiariesModal extends Component
             'id_number' => 'required',
             'spouse_first_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
+
                 function ($attr, $value, $fail) {
-                    if (!isset($value) && empty($value)) {
-                        $fail('This field is required.');
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (Essential::hasIllegal($value)) {
+                        $fail('Illegal characters are not allowed.');
                     }
+                    # throws validation error whenever the name has a number
+                    elseif (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+
+                },
+            ],
+            'spouse_middle_name' => [
+                'exclude_unless:civil_status,Married',
+
+                function ($attr, $value, $fail) {
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (Essential::hasIllegal($value)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    elseif (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+
                 },
             ],
             'spouse_last_name' => [
                 'exclude_unless:civil_status,Married',
+                'required_if:civil_status,Married',
+
                 function ($attr, $value, $fail) {
-                    if (!isset($value) && empty($value)) {
-                        $fail('This field is required.');
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (Essential::hasIllegal($value)) {
+                        $fail('Illegal characters are not allowed.');
                     }
+                    # throws validation error whenever the name has a number
+                    elseif (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+                },
+            ],
+            'spouse_extension_name' => [
+                'exclude_unless:civil_status,Married',
+
+                function ($attr, $value, $fail) {
+
+                    # throws validation errors whenever it detects illegal characters on names
+                    if (Essential::hasIllegal($value, true)) {
+                        $fail('Illegal characters are not allowed.');
+                    }
+                    # throws validation error whenever the name has a number
+                    elseif (Essential::hasNumber($value)) {
+                        $fail('Numbers on names are not allowed.');
+                    }
+
                 },
             ],
             'reason_image_file_path' => [
@@ -248,13 +324,18 @@ class AddBeneficiariesModal extends Component
             'last_name.required' => 'This field is required.',
             'birthdate.required' => 'This field is required.',
             'contact_num.required' => 'Contact number is required.',
-            'contact_num.digits' => 'Valid number should be 11 digits.',
-            'contact_num.starts_with' => 'Valid number should start with \'09\'',
+            'district.required_if' => 'This field is required.',
+            'barangay_name.required_if' => 'This field is required.',
             'occupation.required' => 'This field is required.',
             'avg_monthly_income.required' => 'This field is required.',
             'dependent.required' => 'This field is required.',
             'avg_monthly_income.required_unless' => 'This field is required.',
             'id_number.required' => 'This field is required.',
+            'spouse_first_name.required_if' => 'This field is required.',
+            'spouse_last_name.required_if' => 'This field is required.',
+
+            'contact_num.digits' => 'Valid number should be 11 digits.',
+            'contact_num.starts_with' => 'Valid number should start with \'09\'',
 
             'image_file_path.required' => 'An ID proof is required.',
             'image_file_path.image' => 'It should be an image type.',
@@ -295,8 +376,6 @@ class AddBeneficiariesModal extends Component
         $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
         $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
         $this->contact_num = '+63' . substr($this->contact_num, 1);
-        $batch = Batch::find(decrypt($this->batchId));
-        $implementation = Implementation::find($batch->implementations_id);
 
         if (strtolower($this->middle_name) === 'n/a' || strtolower($this->middle_name) === 'none' || strtolower($this->middle_name) == '-' || empty($this->middle_name)) {
             $this->middle_name = null;
@@ -331,7 +410,15 @@ class AddBeneficiariesModal extends Component
         }
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
-        DB::transaction(function () use ($batch, $implementation) {
+        DB::transaction(function () {
+            $batch = Batch::find(decrypt($this->batchId));
+            $implementation = Implementation::find($batch->implementations_id);
+
+            if (!$this->is_sectoral) {
+                $this->district = $batch->district;
+                $this->barangay_name = $batch->barangay_name;
+            }
+
             $beneficiary = Beneficiary::create([
                 'batches_id' => decrypt($this->batchId),
                 'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
@@ -339,13 +426,13 @@ class AddBeneficiariesModal extends Component
                 'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
                 'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
                 'birthdate' => $this->birthdate,
-                'barangay_name' => $batch->barangay_name,
+                'barangay_name' => $this->barangay_name,
                 'contact_num' => $this->contact_num,
                 'occupation' => $this->occupation ?? null,
                 'avg_monthly_income' => $this->avg_monthly_income ?? null,
                 'city_municipality' => $implementation->city_municipality,
                 'province' => $implementation->province,
-                'district' => $implementation->district,
+                'district' => $this->district,
                 'type_of_id' => $this->type_of_id,
                 'id_number' => $this->id_number,
                 'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
@@ -390,7 +477,7 @@ class AddBeneficiariesModal extends Component
                     'for_duplicates' => 'yes',
                 ]);
             }
-
+            LogIt::set_barangay_add_beneficiary($beneficiary);
         });
         $this->dispatch('add-beneficiaries');
         $this->resetBeneficiaries();
@@ -516,9 +603,41 @@ class AddBeneficiariesModal extends Component
     }
 
     #[Computed]
+    public function implementation()
+    {
+        return Implementation::find($this->batch?->implementations_id);
+    }
+
+    #[Computed]
     public function batch()
     {
         return Batch::find($this->batchId ? decrypt($this->batchId) : null);
+    }
+
+    # Gets all the districts (unless it's a lone district) according to the choosen city/municipality by the user
+    #[Computed]
+    public function districts()
+    {
+        $d = new Districts();
+        return $d->getDistricts($this->implementation?->city_municipality, $this->implementation?->province);
+    }
+
+    # this function returns all of the barangays based on the project's location
+    #[Computed]
+    public function barangays()
+    {
+        $b = new Barangays();
+        # this returns an array
+        $barangays = $b->getBarangays($this->implementation?->city_municipality, $this->district);
+
+        # If searchBarangay is set, filter the barangays array
+        if ($this->searchBarangay) {
+            $barangays = array_values(array_filter($barangays, function ($barangay) {
+                return stripos($barangay, $this->searchBarangay) !== false; # Case-insensitive search
+            }));
+        }
+
+        return $barangays ?? [];
     }
 
     public function updated($property)
@@ -600,27 +719,35 @@ class AddBeneficiariesModal extends Component
         return $full_name;
     }
 
+    public function resetBarangays()
+    {
+        $this->reset('barangay_name');
+        $this->resetValidation('barangay_name');
+    }
+
     public function resetBeneficiaries()
     {
         $this->resetExcept(
             'batchId',
-            'duplicationThreshold',
             'maximumIncome',
+            'duplicationThreshold'
         );
         $this->resetValidation();
     }
 
     public function mount()
     {
-        # gets the settings of the user
-        $settings = UserSetting::where('users_id', Auth::id())
+        # gets the settings of the focal
+        $userFocal = User::find($this->implementation->users_id);
+        $settings = UserSetting::where('users_id', $userFocal->id)
             ->pluck('value', 'key');
-        $this->duplicationThreshold = floatval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->duplicationThreshold = $settings->get('duplication_threshold', config('settings.duplication_threshold'));
         $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
     }
 
     public function render()
     {
+        $this->is_sectoral = $this->implementation?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
 

@@ -205,7 +205,8 @@ class Assignments extends Component
                 'beneficiaries.last_name',
                 'beneficiaries.extension_name',
                 'beneficiaries.birthdate',
-                'beneficiaries.contact_num'
+                'beneficiaries.contact_num',
+                'beneficiaries.beneficiary_type',
             ])
             ->orderBy('beneficiaries.last_name', 'asc')
             ->take($this->beneficiaries_on_page)
