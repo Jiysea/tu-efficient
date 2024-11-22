@@ -16,6 +16,23 @@ class RecordPreview extends Component
     #[Reactive]
     #[Locked]
     public $archiveId;
+    #[Locked]
+    public $passedCredentialId;
+    public $viewCredentialsModal = false;
+
+    public function viewCredential($type)
+    {
+        if ($type === 'identity') {
+            $this->passedCredentialId = encrypt($this->identity['id']);
+            $this->viewCredentialsModal = true;
+
+        } elseif ($type === 'special') {
+
+            $this->passedCredentialId = encrypt($this->special_case['id']);
+            $this->viewCredentialsModal = true;
+
+        }
+    }
 
     #[Computed]
     public function archive()

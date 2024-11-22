@@ -1,4 +1,5 @@
-<div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-indigo-50">
+<div x-data="{ viewCredentialsModal: $wire.entangle('viewCredentialsModal') }"
+    class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-indigo-50">
 
     @if ($archiveId)
         {{-- Whole Thing --}}
@@ -268,11 +269,11 @@
                                 Type of Beneficiary </p>
 
                             @if ($this->archive->data['beneficiary_type'] === 'special case')
-                                <button type="button" @click="$wire.viewCredential('special');"
-                                    class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-amber-100 active:bg-amber-200 text-amber-950 hover:text-amber-700 duration-200 ease-in-out">
+                                <button type="button" @click=""
+                                    class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-red-100 active:bg-red-200 text-red-950 hover:text-red-700 duration-200 ease-in-out">
                                     {{ $this->archive->data['beneficiary_type'] }}
 
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2 size-4"
+                                    {{-- <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2 size-4"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -281,7 +282,7 @@
                                                 stroke="none" fill="currentColor" fill-rule="evenodd">
                                             </path>
                                         </g>
-                                    </svg>
+                                    </svg> --}}
                                 </button>
                             @else
                                 <span
@@ -402,4 +403,8 @@
             </div>
         </div>
     @endif
+
+    {{-- View Credential Modal --}}
+    <livewire:focal.implementations.view-credentials-modal :$passedCredentialId />
+
 </div>

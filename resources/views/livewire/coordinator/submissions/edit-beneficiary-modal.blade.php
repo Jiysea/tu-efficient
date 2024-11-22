@@ -223,151 +223,43 @@
                                                         {{ $result['batch_num'] }}
                                                     </td>
                                                     <td class="p-2">
-                                                        <span data-popover-target="first-{{ $key }}"
-                                                            data-popover-trigger="hover"
+                                                        <span
                                                             class="{{ mb_strtoupper($first_name, 'UTF-8') === mb_strtoupper($result['first_name'], 'UTF-8') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} z-50 rounded py-0.5 px-1.5">
                                                             {{ $result['first_name'] }}
                                                         </span>
-                                                        <div data-popover id="edit_first-{{ $key }}"
-                                                            role="tooltip"
-                                                            class="absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                <p>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500 rounded"></span>
-                                                                    <span>Same first name as input</span>
-                                                                </div>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500 rounded"></span>
-                                                                    <span>Different from input</span>
-                                                                </div>
-                                                                </p>
-                                                            </div>
-                                                            <div data-popper-arrow></div>
-                                                        </div>
                                                     </td>
                                                     <td class="p-2">
-                                                        <span data-popover-target="middle-{{ $key }}"
-                                                            data-popover-trigger="hover"
+                                                        <span
                                                             class="{{ mb_strtoupper($middle_name, 'UTF-8') === mb_strtoupper($result['middle_name'], 'UTF-8') || !isset($middle_name) === !isset($result['middle_name']) || empty($middle_name) === empty($result['middle_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['middle_name'] ?? '-' }}
                                                         </span>
-                                                        <div data-popover id="edit_middle-{{ $key }}"
-                                                            role="tooltip"
-                                                            class="absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                <p>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500 rounded"></span>
-                                                                    <span>Same middle name as input</span>
-                                                                </div>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500 rounded"></span>
-                                                                    <span>Different from input</span>
-                                                                </div>
-                                                                </p>
-                                                            </div>
-                                                            <div data-popper-arrow></div>
-                                                        </div>
                                                     </td>
                                                     <td class="p-2">
-                                                        <span data-popover-target="last-{{ $key }}"
-                                                            data-popover-trigger="hover"
+                                                        <span
                                                             class="{{ mb_strtoupper($last_name, 'UTF-8') === mb_strtoupper($result['last_name'], 'UTF-8') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['last_name'] }}
                                                         </span>
-                                                        <div data-popover id="edit_last-{{ $key }}"
-                                                            role="tooltip"
-                                                            class="absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                <p>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500 rounded"></span>
-                                                                    <span>Same last name as input</span>
-                                                                </div>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500 rounded"></span>
-                                                                    <span>Different from input</span>
-                                                                </div>
-                                                                </p>
-                                                            </div>
-                                                            <div data-popper-arrow></div>
-                                                        </div>
                                                     </td>
                                                     <td class="p-2">
-                                                        <span data-popover-target="ext-{{ $key }}"
-                                                            data-popover-trigger="hover"
+                                                        <span
                                                             class="{{ mb_strtoupper($extension_name, 'UTF-8') === mb_strtoupper($result['extension_name'], 'UTF-8') || !isset($extension_name) === !isset($result['extension_name']) || empty($extension_name) === empty($result['extension_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['extension_name'] ?? '-' }}
                                                         </span>
-                                                        <div data-popover id="edit_ext-{{ $key }}"
-                                                            role="tooltip"
-                                                            class="absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                <p>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500 rounded"></span>
-                                                                    <span>Same extension name as input</span>
-                                                                </div>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500 rounded"></span>
-                                                                    <span>Different from input</span>
-                                                                </div>
-                                                                </p>
-                                                            </div>
-                                                            <div data-popper-arrow></div>
-                                                        </div>
                                                     </td>
                                                     <td class="p-2">
-                                                        <span data-popover-target="birthdate-{{ $key }}"
-                                                            data-popover-trigger="hover"
+                                                        <span
                                                             class="{{ \Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
                                                         </span>
-                                                        <div data-popover id="edit_birthdate-{{ $key }}"
-                                                            role="tooltip"
-                                                            class="absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                <p>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500 rounded"></span>
-                                                                    <span>Same birthdate as input</span>
-                                                                </div>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500 rounded"></span>
-                                                                    <span>Different from input</span>
-                                                                </div>
-                                                                </p>
-                                                            </div>
-                                                            <div data-popper-arrow></div>
-                                                        </div>
                                                     </td>
                                                     <td class="p-2">
                                                         {{ $result['contact_num'] }}
                                                     </td>
                                                     <td class="p-2">
-                                                        <span data-popover-target="barangay-{{ $key }}"
-                                                            data-popover-trigger="hover"
+                                                        <span
                                                             class="{{ $this->batch?->barangay_name === $result['barangay_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['barangay_name'] }}
                                                         </span>
-                                                        <div data-popover id="edit_barangay-{{ $key }}"
-                                                            role="tooltip"
-                                                            class="absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                            <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                <p>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-red-500 rounded"></span>
-                                                                    <span>Same barangay</span>
-                                                                </div>
-                                                                <div class="flex items-center gap-2"><span
-                                                                        class="p-1.5 bg-amber-500 rounded"></span>
-                                                                    <span>Different barangay</span>
-                                                                </div>
-                                                                </p>
-                                                            </div>
-                                                            <div data-popper-arrow></div>
-                                                        </div>
                                                     </td>
                                                     <td class="p-2 capitalize">
                                                         {{ $result['sex'] }}

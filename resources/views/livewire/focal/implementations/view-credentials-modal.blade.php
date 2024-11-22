@@ -64,11 +64,11 @@
                                         </div>
 
                                         {{-- ID Picture --}}
-                                        @if ($this->credentials->image_file_path)
+                                        @if ($this->credentials?->image_file_path)
                                             <button type="button" @click="viewImageModal = !viewImageModal;"
                                                 class="relative flex items-center justify-center col-span-1 bg-indigo-50 w-[90%] aspect-square rounded overflow-hidden group">
 
-                                                <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}"
+                                                <img src="{{ route('credentials.show', ['filename' => $this->credentials?->image_file_path]) }}"
                                                     class="w-[95%] rounded object-contain" alt="ID Picture">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -135,11 +135,11 @@
                                         </div>
 
                                         {{-- ID Picture --}}
-                                        @if ($this->credentials->image_file_path)
+                                        @if ($this->credentials?->image_file_path)
                                             <button type="button" @click="viewImageModal = !viewImageModal;"
                                                 class="relative flex items-center justify-center col-span-1 bg-indigo-50 w-[90%] aspect-square rounded overflow-hidden group">
 
-                                                <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}"
+                                                <img src="{{ route('credentials.show', ['filename' => $this->credentials?->image_file_path]) }}"
                                                     class="w-[95%] rounded object-contain" alt="ID Picture">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -231,8 +231,8 @@
                                     {{-- Modal Body --}}
                                     <div
                                         class="relative flex items-center justify-center col-span-1 w-[50%] aspect-square rounded">
-                                        @if ($this->credentials->image_file_path)
-                                            <img src="{{ route('credentials.show', ['filename' => $this->credentials->image_file_path]) }}"
+                                        @if ($this->credentials?->image_file_path)
+                                            <img src="{{ route('credentials.show', ['filename' => $this->credentials?->image_file_path]) }}"
                                                 class="w-[95%] rounded object-contain" alt="ID Picture">
                                         @endif
                                     </div>

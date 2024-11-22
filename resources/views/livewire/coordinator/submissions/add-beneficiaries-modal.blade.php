@@ -169,129 +169,26 @@
                                                 <th scope="col" class="p-2">
                                                     batch number
                                                 </th>
-                                                <th scope="col" class="relative p-2 normal-case">
-                                                    <span data-popover-target="first" data-popover-trigger="hover">first
-                                                        name</span>
-                                                    <div data-popover id="first" role="tooltip"
-                                                        class="normal-case absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                        <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                            <p>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-red-500 rounded"></span>
-                                                                <span>Same first name as input</span>
-                                                            </div>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-amber-500 rounded"></span>
-                                                                <span>Different from input</span>
-                                                            </div>
-                                                            </p>
-                                                        </div>
-                                                        <div data-popper-arrow></div>
-                                                    </div>
-
+                                                <th scope="col" class="relative p-2">
+                                                    first name
                                                 </th>
-                                                <th scope="col" class="relative p-2 normal-case">
-                                                    <span data-popover-target="middle"
-                                                        data-popover-trigger="hover">middle name</span>
-                                                    <div data-popover id="middle" role="tooltip"
-                                                        class="normal-case absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                        <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                            <p>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-red-500 rounded"></span>
-                                                                <span>Same middle name as input</span>
-                                                            </div>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-amber-500 rounded"></span>
-                                                                <span>Different from input</span>
-                                                            </div>
-                                                            </p>
-                                                        </div>
-                                                        <div data-popper-arrow></div>
-                                                    </div>
+                                                <th scope="col" class="relative p-2">
+                                                    middle name
                                                 </th>
-                                                <th scope="col" class="relative p-2 normal-case">
-                                                    <span data-popover-target="last" data-popover-trigger="hover">last
-                                                        name</span>
-                                                    <div data-popover id="last" role="tooltip"
-                                                        class="normal-case absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                        <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                            <p>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-red-500 rounded"></span>
-                                                                <span>Same last name as input</span>
-                                                            </div>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-amber-500 rounded"></span>
-                                                                <span>Different from input</span>
-                                                            </div>
-                                                            </p>
-                                                        </div>
-                                                        <div data-popper-arrow></div>
-                                                    </div>
+                                                <th scope="col" class="relative p-2">
+                                                    last name
                                                 </th>
-                                                <th scope="col" class="relative p-2 normal-case">
-                                                    <span data-popover-target="ext"
-                                                        data-popover-trigger="hover">ext.</span>
-                                                    <div data-popover id="ext" role="tooltip"
-                                                        class="normal-case absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                        <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                            <p>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-red-500 rounded"></span>
-                                                                <span>Same extension name as input</span>
-                                                            </div>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-amber-500 rounded"></span>
-                                                                <span>Different from input</span>
-                                                            </div>
-                                                            </p>
-                                                        </div>
-                                                        <div data-popper-arrow></div>
-                                                    </div>
+                                                <th scope="col" class="relative p-2">
+                                                    ext.
                                                 </th>
-                                                <th scope="col" class="relative p-2 normal-case">
-                                                    <span data-popover-target="birthdate-sim"
-                                                        data-popover-trigger="hover">birthdate</span>
-                                                    <div data-popover id="birthdate-sim" role="tooltip"
-                                                        class="normal-case absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                        <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                            <p>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-red-500 rounded"></span>
-                                                                <span>Same birthdate as input</span>
-                                                            </div>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-amber-500 rounded"></span>
-                                                                <span>Different from input</span>
-                                                            </div>
-                                                            </p>
-                                                        </div>
-                                                        <div data-popper-arrow></div>
-                                                    </div>
+                                                <th scope="col" class="relative p-2">
+                                                    birthdate
                                                 </th>
                                                 <th scope="col" class="p-2">
                                                     contact #
                                                 </th>
                                                 <th scope="col" class="relative p-2">
-                                                    <span data-popover-target="barangay-sim"
-                                                        data-popover-trigger="hover">barangay</span>
-                                                    <div data-popover id="barangay-sim" role="tooltip"
-                                                        class="normal-case absolute z-30 invisible inline-block text-blue-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                        <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                            <p>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-red-500 rounded"></span>
-                                                                <span>Same barangay</span>
-                                                            </div>
-                                                            <div class="flex items-center gap-2"><span
-                                                                    class="p-1.5 bg-amber-500 rounded"></span>
-                                                                <span>Different barangay</span>
-                                                            </div>
-                                                            </p>
-                                                        </div>
-                                                        <div data-popper-arrow></div>
-                                                    </div>
+                                                    barangay
                                                 </th>
                                                 <th scope="col" class="p-2">
                                                     sex
@@ -371,7 +268,6 @@
                                                             class="{{ $this->batch?->barangay_name === $result['barangay_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                             {{ $result['barangay_name'] }}
                                                         </span>
-
                                                     </td>
                                                     <td class="p-2 capitalize">
                                                         {{ $result['sex'] }}

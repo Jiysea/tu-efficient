@@ -509,8 +509,10 @@ class EditBeneficiaryModal extends Component
             if ($identity) {
                 if ($this->image_file_path) {
                     $file = $this->image_file_path->store(path: 'credentials');
-                    if (Storage::exists($identity->image_file_path)) {
-                        Storage::delete($identity->image_file_path);
+                    if ($identity->image_file_path) {
+                        if (Storage::exists($identity->image_file_path)) {
+                            Storage::delete($identity->image_file_path);
+                        }
                     }
                     $identity->fill([
                         'image_file_path' => $file,
@@ -526,8 +528,10 @@ class EditBeneficiaryModal extends Component
             if ($special_case) {
                 if ($this->reason_image_file_path) {
                     $file = $this->reason_image_file_path->store(path: 'credentials');
-                    if (Storage::exists($special_case->image_file_path)) {
-                        Storage::delete($special_case->image_file_path);
+                    if ($special_case->image_file_path) {
+                        if (Storage::exists($special_case->image_file_path)) {
+                            Storage::delete($special_case->image_file_path);
+                        }
                     }
                     $special_case->fill([
                         'image_description' => $this->image_description,
@@ -535,8 +539,10 @@ class EditBeneficiaryModal extends Component
                     ]);
                 } elseif (!isset($this->reason_saved_image_path) || empty($this->reason_saved_image_path)) {
                     $file = null;
-                    if (Storage::exists($special_case->image_file_path)) {
-                        Storage::delete($special_case->image_file_path);
+                    if ($special_case->image_file_path) {
+                        if (Storage::exists($special_case->image_file_path)) {
+                            Storage::delete($special_case->image_file_path);
+                        }
                     }
                     $special_case->fill([
                         'image_description' => $this->image_description,

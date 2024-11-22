@@ -299,6 +299,9 @@ class Implementations extends Component
         if ($key === $this->selectedImplementationRow) {
             $this->selectedImplementationRow = -1;
             $this->implementationId = null;
+            unset($this->implementations);
+            unset($this->batches);
+            unset($this->beneficiaries);
         } else {
             $this->selectedImplementationRow = $key;
             $this->implementationId = $encryptedId;
@@ -317,6 +320,9 @@ class Implementations extends Component
         if ($key === $this->selectedBatchRow) {
             $this->selectedBatchRow = -1;
             $this->batchId = null;
+            unset($this->implementations);
+            unset($this->batches);
+            unset($this->beneficiaries);
         } else {
             $this->selectedBatchRow = $key;
             $this->batchId = $encryptedId;

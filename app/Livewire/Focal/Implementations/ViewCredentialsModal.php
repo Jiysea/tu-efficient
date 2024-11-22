@@ -20,11 +20,10 @@ class ViewCredentialsModal extends Component
     #[Computed]
     public function credentials()
     {
-        if ($this->passedCredentialId) {
-            $credentials = Credential::find(decrypt($this->passedCredentialId));
+        $credentials = Credential::find($this->passedCredentialId ? decrypt($this->passedCredentialId) : null);
 
-            return $credentials;
-        }
+        return $credentials;
+
     }
 
     #[Computed]

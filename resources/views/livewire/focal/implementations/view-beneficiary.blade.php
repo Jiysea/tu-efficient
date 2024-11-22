@@ -228,159 +228,43 @@
                                                                 {{ $result['batch_num'] }}
                                                             </td>
                                                             <td class="p-2">
-                                                                <span data-popover-target="first-{{ $key }}"
-                                                                    data-popover-trigger="hover"
+                                                                <span
                                                                     class="{{ mb_strtoupper($first_name, 'UTF-8') === mb_strtoupper($result['first_name'], 'UTF-8') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} z-50 rounded py-0.5 px-1.5">
                                                                     {{ $result['first_name'] }}
                                                                 </span>
-                                                                <div data-popover id="first-{{ $key }}"
-                                                                    role="tooltip"
-                                                                    class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                                    <div
-                                                                        class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                        <p>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-red-500 rounded"></span>
-                                                                            <span>Same first name as input</span>
-                                                                        </div>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-amber-500 rounded"></span>
-                                                                            <span>Different from input</span>
-                                                                        </div>
-                                                                        </p>
-                                                                    </div>
-                                                                    <div data-popper-arrow></div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="p-2">
-                                                                <span data-popover-target="middle-{{ $key }}"
-                                                                    data-popover-trigger="hover"
-                                                                    class="{{ mb_strtoupper($middle_name, 'UTF-8') === mb_strtoupper($result['middle_name'], 'UTF-8') || !isset($middle_name) === !isset($result['middle_name']) || empty($middle_name) === empty($result['middle_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                                    {{ $result['middle_name'] ?? '-' }}
-                                                                </span>
-                                                                <div data-popover id="middle-{{ $key }}"
-                                                                    role="tooltip"
-                                                                    class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                                    <div
-                                                                        class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                        <p>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-red-500 rounded"></span>
-                                                                            <span>Same middle name as input</span>
-                                                                        </div>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-amber-500 rounded"></span>
-                                                                            <span>Different from input</span>
-                                                                        </div>
-                                                                        </p>
-                                                                    </div>
-                                                                    <div data-popper-arrow></div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="p-2">
-                                                                <span data-popover-target="last-{{ $key }}"
-                                                                    data-popover-trigger="hover"
-                                                                    class="{{ mb_strtoupper($last_name, 'UTF-8') === mb_strtoupper($result['last_name'], 'UTF-8') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                                    {{ $result['last_name'] }}
-                                                                </span>
-                                                                <div data-popover id="last-{{ $key }}"
-                                                                    role="tooltip"
-                                                                    class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                                    <div
-                                                                        class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                        <p>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-red-500 rounded"></span>
-                                                                            <span>Same last name as input</span>
-                                                                        </div>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-amber-500 rounded"></span>
-                                                                            <span>Different from input</span>
-                                                                        </div>
-                                                                        </p>
-                                                                    </div>
-                                                                    <div data-popper-arrow></div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="p-2">
-                                                                <span data-popover-target="ext-{{ $key }}"
-                                                                    data-popover-trigger="hover"
-                                                                    class="{{ mb_strtoupper($extension_name, 'UTF-8') === mb_strtoupper($result['extension_name'], 'UTF-8') || !isset($extension_name) === !isset($result['extension_name']) || empty($extension_name) === empty($result['extension_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
-                                                                    {{ $result['extension_name'] ?? '-' }}
-                                                                </span>
-                                                                <div data-popover id="ext-{{ $key }}"
-                                                                    role="tooltip"
-                                                                    class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                                    <div
-                                                                        class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                        <p>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-red-500 rounded"></span>
-                                                                            <span>Same extension name as input</span>
-                                                                        </div>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-amber-500 rounded"></span>
-                                                                            <span>Different from input</span>
-                                                                        </div>
-                                                                        </p>
-                                                                    </div>
-                                                                    <div data-popper-arrow></div>
-                                                                </div>
                                                             </td>
                                                             <td class="p-2">
                                                                 <span
-                                                                    data-popover-target="birthdate-{{ $key }}"
-                                                                    data-popover-trigger="hover"
+                                                                    class="{{ mb_strtoupper($middle_name, 'UTF-8') === mb_strtoupper($result['middle_name'], 'UTF-8') || !isset($middle_name) === !isset($result['middle_name']) || empty($middle_name) === empty($result['middle_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                                    {{ $result['middle_name'] ?? '-' }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="p-2">
+                                                                <span
+                                                                    class="{{ mb_strtoupper($last_name, 'UTF-8') === mb_strtoupper($result['last_name'], 'UTF-8') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                                    {{ $result['last_name'] }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="p-2">
+                                                                <span
+                                                                    class="{{ mb_strtoupper($extension_name, 'UTF-8') === mb_strtoupper($result['extension_name'], 'UTF-8') || !isset($extension_name) === !isset($result['extension_name']) || empty($extension_name) === empty($result['extension_name']) ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
+                                                                    {{ $result['extension_name'] ?? '-' }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="p-2">
+                                                                <span
                                                                     class="{{ \Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d') === \Carbon\Carbon::parse($result['birthdate'])->format('Y-m-d') ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                                     {{ \Carbon\Carbon::parse($result['birthdate'])->format('M d, Y') }}
                                                                 </span>
-                                                                <div data-popover id="birthdate-{{ $key }}"
-                                                                    role="tooltip"
-                                                                    class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                                    <div
-                                                                        class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                        <p>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-red-500 rounded"></span>
-                                                                            <span>Same birthdate as input</span>
-                                                                        </div>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-amber-500 rounded"></span>
-                                                                            <span>Different from input</span>
-                                                                        </div>
-                                                                        </p>
-                                                                    </div>
-                                                                    <div data-popper-arrow></div>
-                                                                </div>
                                                             </td>
                                                             <td class="p-2">
                                                                 {{ $result['contact_num'] }}
                                                             </td>
                                                             <td class="p-2">
                                                                 <span
-                                                                    data-popover-target="barangay-{{ $key }}"
-                                                                    data-popover-trigger="hover"
                                                                     class="{{ $this->batch?->barangay_name === $result['barangay_name'] ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }} rounded py-0.5 px-1.5">
                                                                     {{ $result['barangay_name'] }}
                                                                 </span>
-                                                                <div data-popover id="barangay-{{ $key }}"
-                                                                    role="tooltip"
-                                                                    class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                                    <div
-                                                                        class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                                        <p>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-red-500 rounded"></span>
-                                                                            <span>Same barangay</span>
-                                                                        </div>
-                                                                        <div class="flex items-center gap-2"><span
-                                                                                class="p-1.5 bg-amber-500 rounded"></span>
-                                                                            <span>Different barangay</span>
-                                                                        </div>
-                                                                        </p>
-                                                                    </div>
-                                                                    <div data-popper-arrow></div>
-                                                                </div>
                                                             </td>
                                                             <td class="p-2 capitalize">
                                                                 {{ $result['sex'] }}
@@ -493,7 +377,7 @@
                                                                             </div>
 
                                                                             {{-- Image Area --}}
-                                                                            <label for="reason_image_file_path"
+                                                                            <label for="edit_reason_image_file_path"
                                                                                 class="{{ $errors->has('reason_image_file_path') ? 'border-red-300 bg-red-50 text-red-500' : 'border-indigo-300 bg-indigo-50 text-gray-500' }} flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded cursor-pointer">
 
                                                                                 {{-- Image Preview --}}
@@ -565,7 +449,7 @@
                                                                                 </div>
 
                                                                                 {{-- The Image itself --}}
-                                                                                <input id="reason_image_file_path"
+                                                                                <input id="edit_reason_image_file_path"
                                                                                     wire:model="reason_image_file_path"
                                                                                     type="file"
                                                                                     accept=".png,.jpg,.jpeg"
@@ -583,7 +467,7 @@
                                                                     <div
                                                                         class="relative flex flex-col justify-between col-span-full sm:col-span-2 pb-4">
                                                                         <div class="flex flex-col">
-                                                                            <label for="image_description"
+                                                                            <label for="edit_image_description"
                                                                                 class="relative block mb-1 font-medium text-indigo-1100 ">
                                                                                 <span class="relative">Description
                                                                                     <span
@@ -591,7 +475,7 @@
                                                                                     </span>
                                                                                 </span>
                                                                             </label>
-                                                                            <textarea type="text" id="image_description" autocomplete="off" wire:model.blur="image_description"
+                                                                            <textarea type="text" id="edit_image_description" autocomplete="off" wire:model.blur="image_description"
                                                                                 maxlength="255" rows="4"
                                                                                 class="resize-none h-full text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('image_description') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                                                                 placeholder="What is the reason for this special case?"></textarea>
@@ -622,14 +506,14 @@
 
                                 {{-- First Name --}}
                                 <div class=" relative col-span-full sm:col-span-2 xl:col-span-3 pb-1">
-                                    <label for="first_name" class="block mb-1 font-medium text-indigo-1100">
+                                    <label for="edit_first_name" class="block mb-1 font-medium text-indigo-1100">
                                         <span class="relative">First Name
                                             <span
                                                 class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                             </span>
                                         </span>
                                     </label>
-                                    <input type="text" id="first_name" autocomplete="off"
+                                    <input type="text" id="edit_first_name" autocomplete="off"
                                         wire:model.blur="first_name" @blur="$wire.nameCheck();"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="Type first name">
@@ -641,9 +525,10 @@
                                 {{-- Middle Name --}}
                                 <div
                                     class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-2  pb-1">
-                                    <label for="middle_name" class="block mb-1  font-medium text-indigo-1100 ">Middle
+                                    <label for="edit_middle_name"
+                                        class="block mb-1  font-medium text-indigo-1100 ">Middle
                                         Name</label>
-                                    <input type="text" id="middle_name" autocomplete="off"
+                                    <input type="text" id="edit_middle_name" autocomplete="off"
                                         wire:model.blur="middle_name" @blur="$wire.nameCheck();"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('middle_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="(optional)">
@@ -654,14 +539,14 @@
 
                                 {{-- Last Name --}}
                                 <div class=" relative col-span-full sm:col-span-2  pb-1">
-                                    <label for="last_name" class="block mb-1  font-medium text-indigo-1100 ">
+                                    <label for="edit_last_name" class="block mb-1  font-medium text-indigo-1100 ">
                                         <span class="relative">Last Name
                                             <span
                                                 class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                             </span>
                                         </span>
                                     </label>
-                                    <input type="text" id="last_name" autocomplete="off"
+                                    <input type="text" id="edit_last_name" autocomplete="off"
                                         wire:model.blur="last_name" @blur="$wire.nameCheck();"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="Type last name">
@@ -673,9 +558,10 @@
                                 {{-- Extension Name --}}
                                 <div
                                     class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-1  pb-1">
-                                    <label for="extension_name" class="block mb-1 font-medium text-indigo-1100 ">Ext.
+                                    <label for="edit_extension_name"
+                                        class="block mb-1 font-medium text-indigo-1100 ">Ext.
                                         Name</label>
-                                    <input type="text" id="extension_name" autocomplete="off"
+                                    <input type="text" id="edit_extension_name" autocomplete="off"
                                         wire:model.blur="extension_name" @blur="$wire.nameCheck();"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('extension_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="III, Sr., etc.">
@@ -687,7 +573,7 @@
 
                                 {{-- Birthdate --}}
                                 <div x-data="{ birthdate: $wire.entangle('birthdate') }" class=" relative col-span-full sm:col-span-2  pb-1">
-                                    <label for="birthdate" class="block mb-1  font-medium text-indigo-1100 ">
+                                    <label for="edit_birthdate" class="block mb-1  font-medium text-indigo-1100 ">
                                         <span class="relative">Birthdate
                                             <span
                                                 class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
@@ -705,8 +591,8 @@
                                     </div>
                                     <input type="text" datepicker datepicker-autohide
                                         datepicker-format="mm-dd-yyyy" datepicker-min-date='{{ $minDate }}'
-                                        datepicker-max-date='{{ $maxDate }}' id="birthdate" autocomplete="off"
-                                        wire:model.blur="birthdate"
+                                        datepicker-max-date='{{ $maxDate }}' id="edit_birthdate"
+                                        autocomplete="off" wire:model.blur="birthdate"
                                         @change-date.camel="$wire.set('birthdate', $el.value); $wire.nameCheck();"
                                         class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="Select date">
@@ -717,7 +603,7 @@
 
                                 {{-- Contact Number --}}
                                 <div class=" relative col-span-full sm:col-span-2  pb-1">
-                                    <label for="contact_num" class="block mb-1 font-medium text-indigo-1100 ">
+                                    <label for="edit_contact_num" class="block mb-1 font-medium text-indigo-1100 ">
                                         <span class="relative">Contact Number
                                             <span
                                                 class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
@@ -734,7 +620,7 @@
                                         </div>
                                         <input x-mask="99999999999" type="text" min="0"
                                             @blur="if($el.value == '') { $wire.contact_num = null; }"
-                                            autocomplete="off" id="contact_num" wire:model.blur="contact_num"
+                                            autocomplete="off" id="edit_contact_num" wire:model.blur="contact_num"
                                             class="text-xs outline-none border ps-12 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('contact_num') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50  border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                             placeholder="ex. 09123456789">
                                     </div>
@@ -747,10 +633,10 @@
 
                                 {{-- E-payment Account Number --}}
                                 <div class=" relative col-span-full sm:col-span-2  pb-1">
-                                    <label for="e_payment_acc_num"
+                                    <label for="edit_e_payment_acc_num"
                                         class="block mb-1 font-medium text-indigo-1100 ">E-payment
                                         Account No.</label>
-                                    <input type="text" id="e_payment_acc_num" autocomplete="off"
+                                    <input type="text" id="edit_e_payment_acc_num" autocomplete="off"
                                         wire:model.blur="e_payment_acc_num"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600"
                                         placeholder="Type e-payment account number">
@@ -803,14 +689,14 @@
 
                                 {{-- Occupation --}}
                                 <div x-data="{ avg: $wire.entangle('avg_monthly_income') }" class=" relative col-span-full sm:col-span-2  pb-1">
-                                    <label for="occupation" class="block mb-1  font-medium text-indigo-1100 ">
+                                    <label for="edit_occupation" class="block mb-1  font-medium text-indigo-1100 ">
                                         <span class="relative">Occupation
                                             <span
                                                 class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                             </span>
                                         </span>
                                     </label>
-                                    <input type="text" id="occupation" autocomplete="off"
+                                    <input type="text" id="edit_occupation" autocomplete="off"
                                         wire:model.blur="occupation"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('occupation') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="Type occupation">
@@ -861,7 +747,8 @@
                                 </div>
 
                                 {{-- Civil Status --}}
-                                <div class=" relative col-span-full sm:col-span-1 md:col-span-2 lg:lg:col-span-1 xl:col-span-1  pb-1">
+                                <div
+                                    class=" relative col-span-full sm:col-span-1 md:col-span-2 lg:lg:col-span-1 xl:col-span-1  pb-1">
                                     <p class="mb-1 font-medium text-indigo-1100 ">Civil Status</p>
                                     <div x-data="{ open: false, civil_status: $wire.entangle('civil_status') }" x-on:keydown.escape.prevent.stop="open = false;"
                                         class="relative">
@@ -904,7 +791,8 @@
 
                                 {{-- Average Monthly Income --}}
                                 <div x-data="{ occ: $wire.entangle('occupation') }" class=" relative col-span-full sm:col-span-2  pb-1">
-                                    <label for="avg_monthly_income" class="block mb-1  font-medium text-indigo-1100 ">
+                                    <label for="edit_avg_monthly_income"
+                                        class="block mb-1  font-medium text-indigo-1100 ">
                                         <span class="relative">Average Monthly Income
                                             <span
                                                 class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
@@ -920,7 +808,7 @@
                                             </p>
                                         </div>
                                         <input x-mask:dynamic="$money($input)" type="text" min="0"
-                                            autocomplete="off" id="avg_monthly_income"
+                                            autocomplete="off" id="edit_avg_monthly_income"
                                             @input="$wire.avg_monthly_income = $el.value;"
                                             class="text-xs outline-none border ps-10 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('avg_monthly_income') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50  border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                             placeholder="0.00">
@@ -934,7 +822,7 @@
                                 {{-- Dependent --}}
                                 <div class=" relative col-span-full sm:col-span-2 xl:col-span-3  pb-1">
                                     <div class="flex items-center">
-                                        <label for="dependent"
+                                        <label for="edit_dependent"
                                             class="relative flex items-center gap-1.5 mb-1 font-medium text-indigo-1100">
                                             Dependent <span class="text-gray-500">(must be 18+ years old)</span>
                                             <span
@@ -943,7 +831,7 @@
                                         </label>
 
                                     </div>
-                                    <input type="text" id="dependent" autocomplete="off"
+                                    <input type="text" id="edit_dependent" autocomplete="off"
                                         wire:model.blur="dependent"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('dependent') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="Type dependent's name">
@@ -1001,11 +889,11 @@
                                 {{-- Skills Training Needed --}}
                                 <div
                                     class=" relative col-span-full sm:col-span-2 {{ $is_sectoral ? 'lg:col-span-2' : '' }} md:col-span-6 xl:col-span-2 pb-1">
-                                    <label for="skills_training"
+                                    <label for="edit_skills_training"
                                         class="block mb-1  font-medium text-indigo-1100 ">Skills
                                         Training
                                         Needed</label>
-                                    <input type="text" id="skills_training" autocomplete="off"
+                                    <input type="text" id="edit_skills_training" autocomplete="off"
                                         wire:model.blur="skills_training"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600"
                                         placeholder="(optional)">
@@ -1220,14 +1108,14 @@
 
                                 {{-- ID Number --}}
                                 <div class=" relative col-span-full sm:col-span-1 md:col-span-2 lg:col-span-2  pb-1">
-                                    <label for="id_number" class="block mb-1 font-medium text-indigo-1100 ">
+                                    <label for="edit_id_number" class="block mb-1 font-medium text-indigo-1100 ">
                                         <span class="relative">ID Number
                                             <span
                                                 class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                             </span>
                                         </span>
                                     </label>
-                                    <input type="text" id="id_number" autocomplete="off"
+                                    <input type="text" id="edit_id_number" autocomplete="off"
                                         wire:model.blur="id_number"
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('id_number') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                         placeholder="Type ID number">
@@ -1325,7 +1213,7 @@
                                         </div>
 
                                         {{-- Image Area --}}
-                                        <label for="image_file_path" x-data="{ uploading: false, progress: 0 }"
+                                        <label for="edit_image_file_path" x-data="{ uploading: false, progress: 0 }"
                                             x-on:livewire-upload-start="uploading = true"
                                             x-on:livewire-upload-finish="uploading = false; progress = 0;"
                                             x-on:livewire-upload-cancel="uploading = false"
@@ -1391,8 +1279,8 @@
                                             </div>
 
                                             {{-- The Image itself --}}
-                                            <input id="image_file_path" wire:model="image_file_path" type="file"
-                                                accept=".png,.jpg,.jpeg" class="hidden" />
+                                            <input id="edit_image_file_path" wire:model="image_file_path"
+                                                type="file" accept=".png,.jpg,.jpeg" class="hidden" />
                                         </label>
                                     </div>
                                     @error('image_file_path')
@@ -1404,7 +1292,7 @@
 
                                 {{-- Spouse First Name --}}
                                 <div class=" relative col-span-full sm:col-span-2 xl:col-span-3  pb-1">
-                                    <label for="spouse_first_name"
+                                    <label for="edit_spouse_first_name"
                                         class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">
                                         <span class="relative"> Spouse
                                             First Name @if ($civil_status === 'Married')
@@ -1414,7 +1302,7 @@
                                             @endif
                                         </span>
                                     </label>
-                                    <input type="text" id="spouse_first_name" autocomplete="off"
+                                    <input type="text" id="edit_spouse_first_name" autocomplete="off"
                                         wire:model.blur="spouse_first_name"
                                         @if ($civil_status === 'Single') disabled @endif
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
@@ -1430,10 +1318,10 @@
                                 {{-- Spouse Middle Name --}}
                                 <div
                                     class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-2  pb-1">
-                                    <label for="spouse_middle_name"
+                                    <label for="edit_spouse_middle_name"
                                         class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
                                         Middle Name </label>
-                                    <input type="text" id="spouse_middle_name" autocomplete="off"
+                                    <input type="text" id="edit_spouse_middle_name" autocomplete="off"
                                         wire:model.blur="spouse_middle_name"
                                         @if ($civil_status === 'Single') disabled @endif
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
@@ -1448,7 +1336,7 @@
 
                                 {{-- Spouse Last Name --}}
                                 <div class=" relative flex flex-col col-span-full sm:col-span-2  pb-1">
-                                    <label for="spouse_last_name"
+                                    <label for="edit_spouse_last_name"
                                         class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}"><span
                                             class="relative"> Spouse
                                             Last Name @if ($civil_status === 'Married')
@@ -1458,7 +1346,7 @@
                                             @endif
                                         </span>
                                     </label>
-                                    <input type="text" id="spouse_last_name" autocomplete="off"
+                                    <input type="text" id="edit_spouse_last_name" autocomplete="off"
                                         wire:model.blur="spouse_last_name"
                                         @if ($civil_status === 'Single') disabled @endif
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
@@ -1475,10 +1363,10 @@
                                 {{-- Spouse Extension Name --}}
                                 <div
                                     class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-1  pb-1">
-                                    <label for="spouse_extension_name"
+                                    <label for="edit_spouse_extension_name"
                                         class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-indigo-1100' : 'text-gray-400' }}">Spouse
                                         Ext. Name</label>
-                                    <input type="text" id="spouse_extension_name" autocomplete="off"
+                                    <input type="text" id="edit_spouse_extension_name" autocomplete="off"
                                         wire:model.blur="spouse_extension_name"
                                         @if ($civil_status === 'Single') disabled @endif
                                         class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
