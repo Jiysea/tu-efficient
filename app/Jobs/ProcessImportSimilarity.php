@@ -8,6 +8,8 @@ use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\User;
 use App\Models\UserSetting;
+use App\Services\Barangays;
+use App\Services\Districts;
 use App\Services\Essential;
 use App\Services\LogIt;
 use App\Services\JaccardSimilarity;
@@ -201,27 +203,30 @@ class ProcessImportSimilarity implements ShouldQueue
                     if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = 'underemployed';
                     } else {
-                        $value = strtolower($value);
+                        $value = null;
                     }
                 }
 
                 # Project Location Values assigned based on the selected batch in `Implementations` page
                 elseif ($keyCell === 'G') {
-                    $value = $batch->barangay_name;
+                    $value = self::resolveBarangay($cell->getValue());
                 } elseif ($keyCell === 'H') {
                     $value = $implementation->city_municipality;
                 } elseif ($keyCell === 'I') {
                     $value = $implementation->province;
                 } elseif ($keyCell === 'J') {
-                    $value = $implementation->district;
+                    $value = self::resolveDistrict($cell->getValue());
                 }
 
                 $beneficiary[$columnNames[$keyCell]] = $value;
 
             }
 
+            # Add the batches_id first to prevent the user from opening other batches while it is still fresh
+            $list['batches_id'] = encrypt($this->batches_id);
+
             # Also validate each row and flag a row that has some validation errors
-            $beneficiary = self::validateAndReturn($beneficiary, $this->maximumIncome);
+            $beneficiary = self::validateAndReturn($beneficiary, $this->maximumIncome, $this->batches_id);
 
             # Then we start the similarity checker
             $beneficiary = self::checkSimilaritiesAndReturn($beneficiary, $this->duplicationThreshold);
@@ -232,7 +237,7 @@ class ProcessImportSimilarity implements ShouldQueue
             if ($beneficiary['success'])
                 $successCounter++;
             # Compile them all to the list
-            $list[] = $beneficiary;
+            $list['beneficiaries'][] = $beneficiary;
         }
 
         if ($successCounter > 0 && in_array($list, ['success' => true])) {
@@ -240,11 +245,26 @@ class ProcessImportSimilarity implements ShouldQueue
         }
 
         # End Game
-        cache(["importing_" . $this->users_id => $list], now()->addMinutes(10));
+        $time = now()->addMinutes(10)->addSecond();
+        cache(
+            [
+                "importing_" . $this->users_id => $list,
+            ],
+            $time
+        );
+
+        cache(
+            [
+                "importing_expiration_" . $this->users_id => ($time->format('Y-m-d H:i:s'))
+            ],
+            $time
+        );
     }
 
-    protected static function validateAndReturn(array $beneficiary, string $maximumIncome)
+    protected static function validateAndReturn(array $beneficiary, string $maximumIncome, int $batches_id)
     {
+        $batch = Batches::find($batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
         $list = $beneficiary;
 
         # First Name
@@ -276,7 +296,7 @@ class ProcessImportSimilarity implements ShouldQueue
         # Birthdate
         $errors = [];
         $errors['required'] = self::required($beneficiary['birthdate']);
-        $errors['date'] = $beneficiary['birthdate'] === null ? 'Invalid date format. Please use yyyy/mm/dd.' : null;
+        $errors['date'] = $beneficiary['birthdate'] === null ? 'Invalid date format. Please use YYYY/MM/DD.' : null;
         $list['errors']['birthdate'] = $errors;
 
         # Contact Number
@@ -288,6 +308,36 @@ class ProcessImportSimilarity implements ShouldQueue
         if (empty(array_filter($errors, fn($value) => !is_null(($value)))))
             $list['contact_num'] = self::filter_contact_num($beneficiary['contact_num']);
         $list['errors']['contact_num'] = $errors;
+
+        # Sex
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['sex']);
+        $errors['invalid'] = self::checkInvalidValue($beneficiary['sex'], 'sex');
+        $list['errors']['sex'] = $errors;
+
+        # Civil Status
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['civil_status']);
+        $errors['invalid'] = self::checkInvalidValue($beneficiary['civil_status'], 'civil status');
+        $list['errors']['civil_status'] = $errors;
+
+        # Beneficiary Type
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['beneficiary_type']);
+        $errors['invalid'] = self::checkInvalidValue($beneficiary['beneficiary_type'], 'beneficiary type');
+        $list['errors']['beneficiary_type'] = $errors;
+
+        # District
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['district']);
+        $errors['invalid'] = self::checkValidDistrict($beneficiary['district'], $implementation);
+        $list['errors']['district'] = $errors;
+
+        # Barangay Name
+        $errors = [];
+        $errors['required'] = self::required($beneficiary['barangay_name']);
+        $errors['invalid'] = self::checkValidBarangay($beneficiary['barangay_name'], $beneficiary['district'] ?? null, $implementation);
+        $list['errors']['barangay_name'] = $errors;
 
         # Average Monthly Income
         $errors = [];
@@ -399,43 +449,44 @@ class ProcessImportSimilarity implements ShouldQueue
     protected static function insertUniqueRows(array $beneficiary, $batches_id)
     {
         $list = $beneficiary;
+        $batch = Batches::find($batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
+        $beneficiaryCount = self::checkBeneficiaryCount($batch);
 
-        if (!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) {
+        if ((!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) && $batch->slots_allocated <= $beneficiaryCount) {
 
-            DB::transaction(function () use ($beneficiary, $batches_id) {
-                $batch = Batches::find($batches_id);
-                $implementation = Implementation::find($batch->implementations_id);
+            DB::transaction(function () use ($implementation, $batch, $beneficiary, $batches_id) {
 
                 $beneficiaryModel = Beneficiary::create([
                     'batches_id' => $batches_id,
-                    'first_name' => $beneficiary['first_name'],
-                    'middle_name' => $beneficiary['middle_name'],
-                    'last_name' => $beneficiary['last_name'],
-                    'extension_name' => $beneficiary['extension_name'],
+                    'first_name' => mb_strtoupper($beneficiary['first_name'], "UTF-8"),
+                    'middle_name' => $beneficiary['middle_name'] ? mb_strtoupper($beneficiary['middle_name'], "UTF-8") : null,
+                    'last_name' => mb_strtoupper($beneficiary['last_name'], "UTF-8"),
+                    'extension_name' => $beneficiary['extension_name'] ? mb_strtoupper($beneficiary['extension_name'], "UTF-8") : null,
                     'birthdate' => $beneficiary['birthdate'],
-                    'barangay_name' => $batch->barangay_name,
+                    'barangay_name' => ucwords(mb_strtolower($beneficiary['barangay_name'], 'UTF-8')) ?? $batch->barangay_name,
                     'contact_num' => $beneficiary['contact_num'],
-                    'occupation' => $beneficiary['occupation'],
+                    'occupation' => ucwords($beneficiary['occupation']),
                     'avg_monthly_income' => $beneficiary['avg_monthly_income'],
                     'city_municipality' => $implementation->city_municipality,
                     'province' => $implementation->province,
-                    'district' => $implementation->district,
+                    'district' => ucwords(mb_strtolower($beneficiary['district'], 'UTF-8')) ?? $batch->district,
                     'type_of_id' => $beneficiary['type_of_id'],
                     'id_number' => $beneficiary['id_number'],
                     'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
-                    'beneficiary_type' => $beneficiary['beneficiary_type'],
-                    'sex' => $beneficiary['sex'],
+                    'beneficiary_type' => mb_strtolower($beneficiary['beneficiary_type'], 'UTF-8'),
+                    'sex' => mb_strtolower($beneficiary['sex'], 'UTF-8'),
                     'civil_status' => $beneficiary['civil_status'],
                     'age' => self::beneficiaryAge($beneficiary['birthdate']),
-                    'dependent' => $beneficiary['dependent'],
+                    'dependent' => mb_strtoupper($beneficiary['dependent'], "UTF-8"),
                     'self_employment' => $beneficiary['self_employment'],
                     'skills_training' => $beneficiary['skills_training'],
                     'is_pwd' => $beneficiary['is_pwd'],
                     'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                    'spouse_first_name' => $beneficiary['spouse_first_name'],
-                    'spouse_middle_name' => $beneficiary['spouse_middle_name'],
-                    'spouse_last_name' => $beneficiary['spouse_last_name'],
-                    'spouse_extension_name' => $beneficiary['spouse_extension_name'],
+                    'spouse_first_name' => $beneficiary['spouse_first_name'] ? mb_strtoupper($beneficiary['spouse_first_name'], "UTF-8") : null,
+                    'spouse_middle_name' => $beneficiary['spouse_middle_name'] ? mb_strtoupper($beneficiary['spouse_middle_name'], "UTF-8") : null,
+                    'spouse_last_name' => $beneficiary['spouse_last_name'] ? mb_strtoupper($beneficiary['spouse_last_name'], "UTF-8") : null,
+                    'spouse_extension_name' => $beneficiary['spouse_extension_name'] ? mb_strtoupper($beneficiary['spouse_extension_name'], "UTF-8") : null,
                 ]);
 
                 Credential::create([
@@ -458,6 +509,98 @@ class ProcessImportSimilarity implements ShouldQueue
     }
 
     # Some validation rules ------------------------------------------------------------------------
+
+    static function checkInvalidValue($value, $field)
+    {
+        if ($value) {
+            return null;
+        }
+
+        return 'Invalid ' . $field . ' value.';
+    }
+
+    static function checkValidDistrict($district, Implementation $implementation)
+    {
+        foreach (Districts::getDistricts($implementation->city_municipality, $implementation->province) as $dist) {
+            if ($dist === $district) {
+                return null;
+            }
+        }
+
+        return 'Invalid district.';
+    }
+
+    static function checkValidBarangay($barangay_name, $district, Implementation $implementation)
+    {
+        if ($district) {
+
+            foreach (Barangays::getBarangays($implementation->city_municipality, $district) as $bar) {
+                if ($bar === $barangay_name) {
+                    return null;
+                }
+            }
+
+            return 'The barangay does not belong to the district.';
+
+        } else {
+            foreach (Barangays::getBarangays($implementation->city_municipality, '1st District') as $bar) {
+                if ($bar === $barangay_name) {
+                    return null;
+                }
+            }
+
+            foreach (Barangays::getBarangays($implementation->city_municipality, '2nd District') as $bar) {
+                if ($bar === $barangay_name) {
+                    return null;
+                }
+            }
+
+            foreach (Barangays::getBarangays($implementation->city_municipality, '3rd District') as $bar) {
+                if ($bar === $barangay_name) {
+                    return null;
+                }
+            }
+
+            return 'The barangay does not exist. Please check the values from \'List (do not modify)\' worksheet.';
+        }
+    }
+
+    static function resolveDistrict($district)
+    {
+        if ($district) {
+            if (
+                mb_strtolower($district, "UTF-8") === '1st' ||
+                mb_strtolower($district, "UTF-8") === '1st district' ||
+                mb_strtolower($district, "UTF-8") === '1'
+            ) {
+                return '1st District';
+            } elseif (
+                mb_strtolower($district, "UTF-8") === '2nd' ||
+                mb_strtolower($district, "UTF-8") === '2nd district' ||
+                mb_strtolower($district, "UTF-8") === '2'
+            ) {
+                return '2nd District';
+            } elseif (
+                mb_strtolower($district, "UTF-8") === '3rd' ||
+                mb_strtolower($district, "UTF-8") === '3rd district' ||
+                mb_strtolower($district, "UTF-8") === '3'
+            ) {
+                return '3rd District';
+            }
+        }
+
+        return null;
+    }
+
+    static function resolveBarangay($barangay_name)
+    {
+        if ($barangay_name) {
+            $short = mb_strtolower($barangay_name, "UTF-8");
+            return ucwords($short);
+        }
+
+        return null;
+    }
 
     # throws validation error if it's not set or it's empty
     static function required($data)
@@ -617,7 +760,7 @@ class ProcessImportSimilarity implements ShouldQueue
 
     # End of Some validation rules ------------------------------------------------------------------------
 
-    static function checkNameErrors($errors, $keys = ['first_name', 'middle_name', 'last_name', 'extension_name'])
+    static function checkNameErrors($errors, $keys = ['first_name', 'middle_name', 'last_name', 'extension_name', 'birthdate'])
     {
         foreach ($keys as $key) {
             foreach ($errors[$key] as $value) {
@@ -628,6 +771,7 @@ class ProcessImportSimilarity implements ShouldQueue
         }
         return false;
     }
+
     static function checkIfErrors($errors)
     {
         $keys = array_keys($errors);
@@ -641,6 +785,12 @@ class ProcessImportSimilarity implements ShouldQueue
 
         }
         return false;
+    }
+
+    static function checkBeneficiaryCount(Batches $batch)
+    {
+        $count = Beneficiary::where('batches_id', $batch->id)->count();
+        return $count;
     }
 
     static function beneficiaryAge($birthdate)
@@ -659,7 +809,7 @@ class ProcessImportSimilarity implements ShouldQueue
         }
     }
 
-    static function extract_dateTime($message, $returnFormat = 'Y/m/d')
+    static function extract_dateTime($message, $returnFormat = 'Y-m-d')
     {
         $date_patterns = [
             '/\b\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y-m-d',

@@ -9,7 +9,7 @@ class Barangays
      *  @param string $district (optional) The selected district by the user
      *  @return string[]|null Returns an array of barangays if true, returns null if false
      */
-    public function getBarangays(string $city_municipality, string $district = null): array|null
+    public static function getBarangays(string $city_municipality, string $district = null): array|null
     {
         $barangays = null;
 

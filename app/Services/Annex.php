@@ -7,6 +7,7 @@ use App\Models\Implementation;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\NamedRange;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -19,12 +20,12 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class Annex
 {
-    public static function sampleImport(Spreadsheet $spreadsheet, int $number_of_rows, mixed $batch)
+    public static function sampleImport(Spreadsheet $spreadsheet, int $number_of_rows, mixed $batch, mixed $implementation)
     {
         ## Retrieve the active sheet
         $sheet = $spreadsheet->getActiveSheet();
 
-        $sheet1 = self::initializeList($spreadsheet, $batch);
+        $sheet1 = self::initializeList($spreadsheet, $batch, $implementation);
 
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -126,7 +127,7 @@ class Annex
         $sheet->getStyle([1, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
         $curRow += 3;
 
-        # INSTRUCTION SECTION ------------------------------------------------------------------------------------------
+        # LEGEND SECTION ------------------------------------------------------------------------------------------
 
         $sheet->getStyle([1, $curRow, $maxCol, $curRow + 5])->getFont()->setSize(10);
         $sheet->getStyle([1, $curRow, $maxCol, $curRow + 5])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
@@ -178,7 +179,34 @@ class Annex
 
         $curRow += 5;
 
-        # INSTRUCTION SECTION ------------------------------------------------------------------------------------------
+        # LEGEND SECTION ------------------------------------------------------------------------------------------
+
+        # INSTRUCTIONS SECTION ------------------------------------------------------------------------------------------
+
+        $sheet->mergeCells('H6:J9');
+        $sheet->getStyle('H6')->getAlignment()->setWrapText(true);
+        $sheet->getStyle('H6')->getFont()->setBold(true);
+        $sheet->getStyle('H6')->getFont()->setSize(16);
+        $sheet->getStyle('H6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('H6')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->setCellValue('H6', 'ADDITIONAL INFO:');
+
+        # Guide to Adding barangays
+        $sheet->mergeCells('K6:P7');
+        $sheet->getStyle('K6')->getAlignment()->setWrapText(true);
+        $sheet->getStyle('K6:P7')->getFont()->getColor()->setRGB('D2CFAA');
+        $sheet->getStyle('K6:P7')->getFill()->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('7A7100');
+        $sheet->setCellValue('K6', 'For the \'BRGY.\' field, you can check the list of valid barangays on \'Lists (do not modify\' worksheet based on its district (F1 to H1).');
+
+        # Guide to Optional fields
+        $sheet->mergeCells('K8:P9');
+        $sheet->getStyle('K8')->getAlignment()->setWrapText(true);
+        $sheet->getStyle('K8:P9')->getFont()->getColor()->setRGB('B7DBFF');
+        $sheet->getStyle('K8:P9')->getFill()->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('1A62AA');
+        $sheet->setCellValue('K8', 'For optional fields, you can choose to leave it blank or type \'-\' and it will pick up a default value.');
+        # INSTRUCTIONS SECTION ------------------------------------------------------------------------------------------
 
         # Write the Column Headers and set its colors and borders
         $sheet->getRowDimension($curRow)->setRowHeight(75);
@@ -202,6 +230,7 @@ class Annex
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()->setName('Arial');
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
             $sheet->getStyle([1, $curRow])->getFill()
                 ->setFillType(Fill::FILL_SOLID)
                 ->getStartColor()->setRGB('E3C2BD');
@@ -209,36 +238,47 @@ class Annex
             # No. 
             $sheet->setCellValue([1, $curRow], $num);
 
-            # Barangay
-            $sheet->setCellValue([7, $curRow], mb_strtoupper($batch->barangay_name, 'UTF-8'));
-
             # City
             $sheet->setCellValue([8, $curRow], mb_strtoupper($city, 'UTF-8'));
 
             # Province
-            $sheet->setCellValue([9, $curRow], mb_strtoupper($province, 'UTF-8'));
+            $sheet->setCellValue([9, $curRow], mb_strtoupper(substr($province, 0, 5) === 'DAVAO' ? substr($province, 6) : $province, 'UTF-8'));
 
-            # District
-            $sheet->setCellValue([10, $curRow], mb_strtoupper($district, 'UTF-8'));
+            if (!$implementation->is_sectoral) {
+                # District
+                $sheet->setCellValue([10, $curRow], mb_strtoupper($district, 'UTF-8'));
+
+                # Barangay
+                $sheet->setCellValue([7, $curRow], mb_strtoupper($batch->barangay_name, 'UTF-8'));
+            }
+
+            # Beneficiary Type
+            $sheet->setCellValue([15, $curRow], 'UNDEREMPLOYED');
+
+            # Self-Employment
+            $sheet->setCellValue([22, $curRow], 'NO');
+
+            # is PWD
+            $sheet->setCellValue([28, $curRow], 'NO');
 
             foreach ($columnHeaders as $key => $header) {
 
                 # First to Extension
-                if (in_array($key + 1, ['2', '4', '6', '12', '13', '15', '16', '19', '20', '21'])) {
+                if (in_array($key + 1, ['2', '4', '6', '7', '12', '13', '15', '16', '19', '20', '21'])) {
                     $sheet->getStyle([$key + 1, $curRow])->getFill()
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setRGB('F0FEC3');
                 }
 
                 # Dropdown Lists
-                if (in_array($key + 1, ['11', '17', '18', '22', '28'])) {
+                if (in_array($key + 1, ['10', '11', '17', '18', '22', '28'])) {
                     $sheet->getStyle([$key + 1, $curRow])->getFill()
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setRGB('7B85C7');
                 }
 
                 # Shouldn't modify or delete
-                if (in_array($key + 1, ['7', '8', '9', '10'])) {
+                if (in_array($key + 1, ['8', '9',])) {
                     $sheet->getStyle([$key + 1, $curRow])->getFill()
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setRGB('E3C2BD');
@@ -251,6 +291,27 @@ class Annex
                         ->getStartColor()->setRGB('E2E2E3');
                 }
 
+                if (!$implementation->is_sectoral) {
+                    if ((1 + $key) === 7 || (1 + $key) === 10) {
+                        $sheet->getStyle([$key + 1, $curRow])->getFill()
+                            ->setFillType(Fill::FILL_SOLID)
+                            ->getStartColor()->setRGB('E3C2BD');
+                    }
+
+                } elseif ($implementation->is_sectoral) {
+                    # Districts
+                    if ((1 + $key) === 10) {
+                        $dataValidation = $sheet->getCell([1 + $key, $curRow])->getDataValidation();
+                        $dataValidation->setType(DataValidation::TYPE_LIST);
+                        $dataValidation->setErrorStyle(DataValidation::STYLE_STOP);
+                        $dataValidation->setAllowBlank(false);
+                        $dataValidation->setShowInputMessage(true);
+                        $dataValidation->setShowErrorMessage(true);
+                        $dataValidation->setShowDropDown(true);
+                        $dataValidation->setFormula1('\'Lists (do not modify)\'!$E$2:$E$4');
+                    }
+                }
+
                 # Type of ID
                 if ((1 + $key) === 11) {
                     $dataValidation = $sheet->getCell([1 + $key, $curRow])->getDataValidation();
@@ -260,7 +321,7 @@ class Annex
                     $dataValidation->setShowInputMessage(true);
                     $dataValidation->setShowErrorMessage(true);
                     $dataValidation->setShowDropDown(true);
-                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$A$1:$A$18');
+                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$A$2:$A$19');
                 }
 
                 # Sex
@@ -272,7 +333,7 @@ class Annex
                     $dataValidation->setShowInputMessage(true);
                     $dataValidation->setShowErrorMessage(true);
                     $dataValidation->setShowDropDown(true);
-                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$B$1:$B$2');
+                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$B$2:$B$3');
                 }
 
                 # Civil Status
@@ -284,10 +345,10 @@ class Annex
                     $dataValidation->setShowInputMessage(true);
                     $dataValidation->setShowErrorMessage(true);
                     $dataValidation->setShowDropDown(true);
-                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$C$1:$C$4');
+                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$C$2:$C$5');
                 }
 
-                # Interested in Self-Employment or Wage Employment
+                # Interested in Self-Employment or Wage Employment && is PWD
                 elseif ((1 + $key) === 22 || (1 + $key) === 28) {
                     $dataValidation = $sheet->getCell([1 + $key, $curRow])->getDataValidation();
                     $dataValidation->setType(DataValidation::TYPE_LIST);
@@ -296,8 +357,20 @@ class Annex
                     $dataValidation->setShowInputMessage(true);
                     $dataValidation->setShowErrorMessage(true);
                     $dataValidation->setShowDropDown(true);
-                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$D$1:$D$2');
+                    $dataValidation->setFormula1('\'Lists (do not modify)\'!$D$2:$D$3');
                 }
+
+                # Barangays
+                // elseif ((1 + $key) === 7) {
+                //     $dataValidation = $sheet->getCell([1 + $key, $curRow])->getDataValidation();
+                //     $dataValidation->setType(DataValidation::TYPE_LIST);
+                //     $dataValidation->setErrorStyle(DataValidation::STYLE_STOP);
+                //     $dataValidation->setAllowBlank(false);
+                //     $dataValidation->setShowInputMessage(true);
+                //     $dataValidation->setShowErrorMessage(true);
+                //     $dataValidation->setShowDropDown(true);
+                //     $dataValidation->setFormula1("=INDIRECT(J{$curRow})");
+                // }
 
             }
 
@@ -363,7 +436,7 @@ class Annex
         return $beneficiaries;
     }
 
-    protected static function initializeList(Spreadsheet $spreadsheet, mixed $batch)
+    protected static function initializeList(Spreadsheet $spreadsheet, mixed $batch, mixed $implementation)
     {
         $sheet = new Worksheet($spreadsheet, 'Lists (do not modify)');
         $spreadsheet->addSheet($sheet);
@@ -407,33 +480,115 @@ class Annex
             'NO'
         ];
 
+        $initDistricts = Districts::getDistricts($implementation?->city_municipality, $implementation?->province);
+        $districts = [];
+        foreach ($initDistricts as $district) {
+            $districts[] = mb_strtoupper(substr($district, 0, 3), "UTF-8");
+        }
+        $b1 = [];
+        $b2 = [];
+        $b3 = [];
+        foreach (Barangays::getBarangays($implementation?->city_municipality, '1st District') as $b) {
+            $b1[] = mb_strtoupper($b, "UTF-8");
+        }
+        foreach (Barangays::getBarangays($implementation?->city_municipality, '2nd District') as $b) {
+            $b2[] = mb_strtoupper($b, "UTF-8");
+        }
+        foreach (Barangays::getBarangays($implementation?->city_municipality, '3rd District') as $b) {
+            $b3[] = mb_strtoupper($b, "UTF-8");
+        }
+
+        $barangays = [
+            '1ST' => $b1,
+            '2ND' => $b2,
+            '3RD' => $b3,
+        ];
+
         # Type of ID
+        $sheet->setCellValue([1, 1], 'Type of ID');
+        $sheet->getStyle([1, 1])->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('71717A');
         foreach ($type_of_id as $key => $row) {
-            $sheet->setCellValue([1, $key + 1], $row);
+            $sheet->setCellValue([1, $key + 2], $row);
         }
 
         # Sex
+        $sheet->setCellValue([2, 1], 'Sex');
+        $sheet->getStyle([2, 1])->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('71717A');
         foreach ($sex as $key => $row) {
-            $sheet->setCellValue([2, $key + 1], $row);
+            $sheet->setCellValue([2, $key + 2], $row);
         }
 
         # Civil Status
+        $sheet->setCellValue([3, 1], 'Civil Status');
+        $sheet->getStyle([3, 1])->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('71717A');
         foreach ($civil_status as $key => $row) {
-            $sheet->setCellValue([3, $key + 1], $row);
+            $sheet->setCellValue([3, $key + 2], $row);
         }
 
         # Yes No
+        $sheet->setCellValue([4, 1], 'IS Questions');
+        $sheet->getStyle([4, 1])->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('71717A');
         foreach ($yes_no as $key => $row) {
-            $sheet->setCellValue([4, $key + 1], $row);
+            $sheet->setCellValue([4, $key + 2], $row);
+        }
+
+        # Districts
+        $sheet->setCellValue([5, 1], 'Districts');
+        $sheet->getStyle([5, 1])->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('71717A');
+        foreach ($districts as $key => $row) {
+            $sheet->setCellValue([5, $key + 2], $row);
         }
 
         # Barangays
-        // foreach ($yes_no as $key => $row) {
-        //     $sheet->setCellValue([5, $key + 1], $row);
+        $col = 6;
+        foreach ($barangays as $district => $subBarangays) {
+            $sheet->setCellValue([$col, 1], $district);
+            $sheet->getStyle([$col, 1])->getFill()
+                ->setFillType(Fill::FILL_SOLID)
+                ->getStartColor()->setRGB('71717A');
+            $row = 2; // Data starts at row 2
+            foreach ($subBarangays as $barangay) {
+                $sheet->setCellValue([$col, $row], $barangay);
+                $row++;
+            }
+            $col++;
+        }
+
+        // Create Named Ranges for Subcategories
+        // $spreadsheet->addNamedRange(new NamedRange('1ST', $sheet, '=\'Lists (do not modify)\'!F2:F55'));
+        // $spreadsheet->addNamedRange(new NamedRange('2ND', $sheet, '=\'Lists (do not modify)\'!G2:G47'));
+        // $spreadsheet->addNamedRange(new NamedRange('3RD', $sheet, '=\'Lists (do not modify)\'!H2:H83'));
+
+        // # Barangays2
+        // $sheet->setCellValue([7, 1], 'Barangays2');
+        // $sheet->getStyle([7, 1])->getFill()
+        //     ->setFillType(Fill::FILL_SOLID)
+        //     ->getStartColor()->setRGB('71717A');
+        // foreach ($barangays2 as $key => $row) {
+        //     $sheet->setCellValue([7, $key + 2], $row);
+        // }
+
+        // # Barangays3
+        // $sheet->setCellValue([8, 1], 'Barangays3');
+        // $sheet->getStyle([8, 1])->getFill()
+        //     ->setFillType(Fill::FILL_SOLID)
+        //     ->getStartColor()->setRGB('71717A');
+        // foreach ($barangays3 as $key => $row) {
+        //     $sheet->setCellValue([8, $key + 2], $row);
         // }
 
         # OR: Auto-size all columns (for example, columns A to Z)
-        foreach (range('A', 'E') as $columnID) {
+        foreach (range('A', 'H') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
 

@@ -382,7 +382,7 @@ class ListingPage extends Component
                 ]);
             $batch->save();
 
-            LogIt::set_barangay_submit($batch->barangay_name, $this->implementation->project_num, $batch->batch_num, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount);
+            LogIt::set_barangay_submit($batch, $this->implementation, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount);
         });
 
         $this->submitBatchModal = false;

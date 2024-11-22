@@ -483,33 +483,36 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     List Overview
                                 </p>
                             </div>
-                            <div class="flex items-center justify-start ms-2 my-1">
-                                @if ($this->location->is_sectoral)
-                                    Sector Title: <p class="font-normal ps-2 truncate">
-                                        {{ $this->location->sector_title }}
-                                    </p>
-                                @else
-                                    Location: <p class="font-normal ps-2 truncate">Brgy.
-                                        {{ $this->location->barangay_name . ', ' . $this->location->district . ', ' . $this->location->city_municipality }}
-                                    </p>
-                                @endif
-
-                            </div>
-                            <div class="flex items-center justify-start ms-2 my-1">
-                                Access Code: <p class="ps-2 font-normal">
-                                    @if ($this->accessCode)
-                                        <span
-                                            class="bg-blue-300 text-blue-1000 rounded py-1 px-2 select-all">{{ $this->accessCode->access_code }}</span>
+                            <div
+                                class="flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700">
+                                <div class="flex items-start justify-start px-2 my-1">
+                                    @if ($this->location->is_sectoral)
+                                        Sector Title: <p class="font-normal ps-2 truncate">
+                                            {{ $this->location->sector_title }}
+                                        </p>
                                     @else
-                                        <span
-                                            class="font-semibold bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase">not
-                                            accessible</span>
+                                        Location: <p class="font-normal ps-2 whitespace-normal">Brgy.
+                                            {{ $this->location->barangay_name . ', ' . $this->location->district . ', ' . $this->location->city_municipality }}
+                                        </p>
                                     @endif
-                                </p>
-                            </div>
-                            <div class="flex items-center justify-start ms-2 my-1">
-                                Submissions: <p class="font-normal ps-2">
-                                    {{ $this->submissions }}</p>
+
+                                </div>
+                                <div class="flex items-center justify-start px-2 my-1">
+                                    Access Code: <p class="ps-2 font-normal">
+                                        @if ($this->accessCode)
+                                            <span
+                                                class="bg-blue-300 text-blue-1000 rounded py-1 px-2 select-all">{{ $this->accessCode->access_code }}</span>
+                                        @else
+                                            <span
+                                                class="font-semibold bg-amber-300 text-amber-950 rounded py-1 px-2 uppercase">not
+                                                accessible</span>
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="flex items-center justify-start px-2 my-1">
+                                    Submissions: <p class="font-normal ps-2">
+                                        {{ $this->submissions }}</p>
+                                </div>
                             </div>
                         @else
                             <div class="relative bg-white p-2 h-[18.5vh] min-w-full flex items-center justify-center">
@@ -530,7 +533,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     <div class="flex items-center justify-end h-[1.5rem] w-full text-sm">
 
                         <button type="button" wire:click="viewList"
-                            @if (!$batchId || $this->beneficiaries->isEmpty()) disabled @endif
+                            @if (!$batchId) disabled @endif
                             class="flex items-center justify-center rounded px-3 py-1 text-sm font-bold duration-200 ease-in-out disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500">
 
                             VIEW LIST

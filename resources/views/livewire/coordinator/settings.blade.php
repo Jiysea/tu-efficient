@@ -6,14 +6,14 @@
     change_password: $wire.entangle('change_password'),
     editFullnameModal: $wire.entangle('editFullnameModal'),
 }" class="flex justify-center items-center min-h-screen">
-    <div class="relative flex flex-col text-indigo-50">
+    <div class="relative flex flex-col text-blue-50">
 
         {{-- Navigation --}}
         <nav
-            class="hidden lg:w-6ms-64 lg:flex fixed left-0 top-0 flex-col items-start overflow-y-auto  scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700 py-10 px-5">
+            class="hidden lg:w-6ms-64 lg:flex fixed left-0 top-0 flex-col items-start overflow-y-auto  scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700 py-10 px-5">
             <span class="flex items-center justify-center mb-4">
                 <a href="{{ route('focal.dashboard') }}"
-                    class="flex items-center justify-center text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 rounded p-2">
+                    class="flex items-center justify-center text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 rounded p-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="size-5" xmlns:xlink="http://www.w3.org/1999/xlink"
                         width="400" height="400" viewBox="0, 0, 400,400">
                         <g>
@@ -62,7 +62,7 @@
             {{-- # General --}}
             <div class="relative flex flex-col">
                 <h1 id="general" class="flex gap-3 font-semibold text-3xl mb-10">
-                    <span class="font-normal text-indigo-700 text-3xl">#</span>
+                    <span class="font-normal text-blue-700 text-3xl">#</span>
                     General
                 </h1>
 
@@ -90,11 +90,11 @@
                                 {{ $this->full_name(auth()->user()) }}
 
                                 {{-- Edit Button --}}
-                                <button type="button" class="flex items-center justify-center gap-2 text-indigo-700"
+                                <button type="button" class="flex items-center justify-center gap-2 text-blue-700"
                                     wire:click="setFullNameValues">
 
                                     {{-- Loading State --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-indigo-50 animate-spin"
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-blue-50 animate-spin"
                                         wire:loading wire:target="setFullNameValues" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
@@ -131,7 +131,7 @@
                                 </button>
                             </span>
                             <span
-                                class="capitalize text-sm font-semibold py-1 px-3 rounded text-center bg-[#212121] text-indigo-700 select-none">
+                                class="capitalize text-sm font-semibold py-1 px-3 rounded text-center bg-[#212121] text-blue-700 select-none">
                                 {{ auth()->user()->user_type }}
                             </span>
                         </div>
@@ -141,10 +141,10 @@
 
                             {{-- Email --}}
                             <span id="email" class="flex items-center justify-between gap-4">
-                                <h1 class="font-medium text-indigo-300">Email Address</h1>
+                                <h1 class="font-medium text-blue-300">Email Address</h1>
 
                                 <span
-                                    class="flex items-center gap-2 text-zinc-500 selection:bg-indigo-900 selection:text-indigo-50 outline-none text-xs">
+                                    class="flex items-center gap-2 text-zinc-500 selection:bg-blue-900 selection:text-blue-50 outline-none text-xs">
                                     {{ auth()->user()->email }}
                                     <span class="flex items-center justify-center">
                                         @if (auth()->user()->isEmailVerified())
@@ -176,10 +176,10 @@
 
                             {{-- Mobile/Contact Number --}}
                             <span id="contact_num" class="flex items-center justify-between gap-4">
-                                <h1 class="font-medium text-indigo-300">Contact Number</h1>
+                                <h1 class="font-medium text-blue-300">Contact Number</h1>
 
                                 <span
-                                    class="flex items-center gap-2 text-zinc-500 selection:bg-indigo-900 selection:text-indigo-50 outline-none text-xs">
+                                    class="flex items-center gap-2 text-zinc-500 selection:bg-blue-900 selection:text-blue-50 outline-none text-xs">
                                     {{ auth()->user()->contact_num }}
                                     <span class="flex items-center justify-center">
                                         @if (auth()->user()->isMobileVerified())
@@ -215,20 +215,20 @@
 
                             {{-- Regional Office --}}
                             <span id="regional_office" class="flex items-center justify-between gap-4">
-                                <h1 class="font-medium text-indigo-300">Regional Office</h1>
+                                <h1 class="font-medium text-blue-300">Regional Office</h1>
 
                                 <span
-                                    class="flex items-center justify-between text-zinc-500 selection:bg-indigo-900 selection:text-indigo-50 outline-none text-xs">
+                                    class="flex items-center justify-between text-zinc-500 selection:bg-blue-900 selection:text-blue-50 outline-none text-xs">
                                     {{ auth()->user()->regional_office }}
                                 </span>
                             </span>
 
                             {{-- Field Office --}}
                             <span id="field_office" class="flex items-center justify-between gap-4">
-                                <h1 class="font-medium text-indigo-300">Field Office</h1>
+                                <h1 class="font-medium text-blue-300">Field Office</h1>
 
                                 <span
-                                    class="flex items-center justify-between text-zinc-500 selection:bg-indigo-900 selection:text-indigo-50 outline-none text-xs">
+                                    class="flex items-center justify-between text-zinc-500 selection:bg-blue-900 selection:text-blue-50 outline-none text-xs">
                                     {{ auth()->user()->field_office }}
                                 </span>
                             </span>
@@ -238,7 +238,7 @@
                         <div class="flex flex-1 gap-2 w-full">
                             <button x-show="!change_password" type="button"
                                 @click="change_password = !change_password;"
-                                class="text-center px-3 py-1 rounded font-bold text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900">
+                                class="text-center px-3 py-1 rounded font-bold text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900">
                                 Change Password
                             </button>
 
@@ -247,11 +247,11 @@
 
                                 {{-- Password --}}
                                 <span class="relative flex flex-col gap-1">
-                                    <label for="password" class="text-indigo-300 text-sm font-medium">New
+                                    <label for="password" class="text-blue-300 text-sm font-medium">New
                                         Password</label>
                                     <input type="password" autocomplete="off" id="password"
                                         wire:model.blur="password"
-                                        class="{{ $errors->has('password') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-[#212121] placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none px-3 py-1 text-sm duration-200 ease-in-out rounded"
+                                        class="{{ $errors->has('password') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-[#212121] placeholder-zinc-500 selection:bg-blue-900 selection:text-blue-50' }} border-none focus:ring-0 outline-none px-3 py-1 text-sm duration-200 ease-in-out rounded"
                                         placeholder="Type new password">
                                     @error('password')
                                         <p class="absolute top-full left-0 mt-1 text-red-500 text-xs">{{ $message }}
@@ -263,11 +263,11 @@
                                 <span class="relative flex items-end gap-2">
                                     <span class="relative flex flex-col gap-1">
                                         <label for="password_confirmation"
-                                            class="text-indigo-300 text-sm font-medium">Confirm
+                                            class="text-blue-300 text-sm font-medium">Confirm
                                             Password</label>
                                         <input type="password" autocomplete="off" id="password_confirmation"
                                             wire:model.blur="password_confirmation"
-                                            class="{{ $errors->has('password_confirmation') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-[#212121] placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none px-3 py-1 text-sm duration-200 ease-in-out rounded"
+                                            class="{{ $errors->has('password_confirmation') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-[#212121] placeholder-zinc-500 selection:bg-blue-900 selection:text-blue-50' }} border-none focus:ring-0 outline-none px-3 py-1 text-sm duration-200 ease-in-out rounded"
                                             placeholder="Repeat the password">
                                         @error('password_confirmation')
                                             <p class="absolute top-full left-0 mt-1 text-red-500 text-xs">
@@ -280,12 +280,12 @@
                                 {{-- Buttons --}}
                                 <span class="relative flex h-full items-end gap-2">
                                     <button type="button" wire:click="changePassword"
-                                        class="text-center duration-200 ease-in-out w-20 py-1 rounded font-semibold text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900">
+                                        class="text-center duration-200 ease-in-out w-20 py-1 rounded font-semibold text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900">
                                         <p wire:loading.remove wire:target="changePassword">Save</p>
 
                                         {{-- Loading State --}}
                                         <svg xmlns="http://www.w3.org/2000/svg"
-                                            class="size-4 text-indigo-50 animate-spin" wire:loading
+                                            class="size-4 text-blue-50 animate-spin" wire:loading
                                             wire:target="changePassword" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
                                                 stroke="currentColor" stroke-width="4">
@@ -296,12 +296,12 @@
                                         </svg>
                                     </button>
                                     <button type="button" wire:click="resetPassword"
-                                        class="text-center duration-200 ease-in-out w-20 py-1 rounded font-semibold text-indigo-50 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900">
+                                        class="text-center duration-200 ease-in-out w-20 py-1 rounded font-semibold text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900">
                                         <p wire:loading.remove wire:target="resetPassword">Cancel</p>
 
                                         {{-- Loading State --}}
                                         <svg xmlns="http://www.w3.org/2000/svg"
-                                            class="size-4 text-indigo-50 animate-spin" wire:loading
+                                            class="size-4 text-blue-50 animate-spin" wire:loading
                                             wire:target="resetPassword" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
                                                 stroke="currentColor" stroke-width="4">
@@ -322,7 +322,7 @@
             <div class="relative w-full flex flex-col">
 
                 <h1 id="technical" class="flex gap-3 font-semibold text-3xl mb-10">
-                    <span class="font-normal text-indigo-700 text-3xl">#</span>
+                    <span class="font-normal text-blue-700 text-3xl">#</span>
                     Technical
                 </h1>
 
@@ -341,7 +341,7 @@
                         {{-- Duplication Threshold --}}
                         <span id="duplication_threshold" class="flex items-center justify-between gap-10 p-5 w-full">
                             <span class="flex flex-col">
-                                <h1 class="font-medium text-indigo-300">Duplication Threshold</h1>
+                                <h1 class="font-medium text-blue-300">Duplication Threshold</h1>
                                 <p class="text-xs text-zinc-500">It's the default threshold for the similarity
                                     percentage
                                     of
@@ -358,9 +358,9 @@
                                     class="absolute right-full top-0 flex items-center gap-2 h-full me-2">
 
                                     {{-- Loading Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-4 text-indigo-50 animate-spin" wire:loading
-                                        wire:target="duplication_threshold" fill="none" viewBox="0 0 24 24">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class=" size-4 text-blue-50 animate-spin"
+                                        wire:loading wire:target="duplication_threshold" fill="none"
+                                        viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
                                         </circle>
@@ -388,7 +388,7 @@
                                     <input type="text" inputmode="numeric" min="0" max="100"
                                         autocomplete="off" id="duplication_threshold"
                                         wire:model.live.debounce.1000ms="duplication_threshold"
-                                        class="{{ $errors->has('duplication_threshold') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} text-right border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-3 pe-11 py-1.5 duration-200 ease-in-out rounded"
+                                        class="{{ $errors->has('duplication_threshold') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-blue-900 selection:text-blue-50' }} text-right border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-3 pe-11 py-1.5 duration-200 ease-in-out rounded"
                                         placeholder="1-100">
                                     <span
                                         class="absolute right-0 text-xs md:text-sm px-3 py-1.5 rounded-r pointer-events-none {{ $errors->has('duplication_threshold') ? 'bg-[#2D1E20] text-red-500' : 'bg-zinc-900 text-zinc-500' }} select-none">
@@ -405,7 +405,7 @@
                         {{-- Default Archive --}}
                         <span id="default_archive" class="flex items-center justify-between gap-10 p-5 w-full">
                             <span class="flex flex-col">
-                                <h1 class="font-medium text-indigo-300">Default Archive</h1>
+                                <h1 class="font-medium text-blue-300">Default Archive</h1>
                                 <p class="text-xs text-zinc-500">Always default to moving beneficiaries to archive
                                     instead of deleting if enabled.</p>
                             </span>
@@ -420,9 +420,9 @@
                                     class="absolute right-full top-0 flex items-center gap-2 h-full me-2">
 
                                     {{-- Loading Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-4 text-indigo-50 animate-spin" wire:loading
-                                        wire:target="toggleDefaultArchive" fill="none" viewBox="0 0 24 24">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class=" size-4 text-blue-50 animate-spin"
+                                        wire:loading wire:target="toggleDefaultArchive" fill="none"
+                                        viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
                                         </circle>
@@ -449,9 +449,9 @@
                                 <span class="relative">
                                     <button wire:click="toggleDefaultArchive"
                                         class="w-10 h-5 flex items-center rounded-full transition-all
-                                            {{ $default_archive ? 'bg-indigo-700' : 'bg-zinc-900' }}">
+                                            {{ $default_archive ? 'bg-blue-700' : 'bg-zinc-900' }}">
                                         <div
-                                            class="size-5 bg-indigo-50 rounded-full shadow-md transform transition-all
+                                            class="size-5 bg-blue-50 rounded-full shadow-md transform transition-all
                                             {{ $default_archive ? 'translate-x-5' : 'translate-x-0' }}">
                                         </div>
                                     </button>
@@ -519,7 +519,7 @@
                             <label for="first_name" class="block mb-1 font-medium text-zinc-50 ">First
                                 Name</label>
                             <input type="text" id="first_name" autocomplete="off" wire:model.blur="first_name"
-                                class="{{ $errors->has('first_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
+                                class="{{ $errors->has('first_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-blue-900 selection:text-blue-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
                                 placeholder="Type first name">
                             @error('first_name')
                                 <p class="text-red-500 absolute left-0 top-full z-10 text-xs">{{ $message }}
@@ -532,7 +532,7 @@
                             <label for="middle_name" class="block mb-1  font-medium text-zinc-50 ">Middle
                                 Name</label>
                             <input type="text" id="middle_name" autocomplete="off" wire:model.blur="middle_name"
-                                class="{{ $errors->has('middle_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
+                                class="{{ $errors->has('middle_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-blue-900 selection:text-blue-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
                                 placeholder="(optional)">
                             @error('middle_name')
                                 <p class="text-red-500 absolute left-0 top-full z-10 text-xs">{{ $message }}
@@ -545,7 +545,7 @@
                             <label for="last_name" class="block mb-1  font-medium text-zinc-50 ">Last
                                 Name</label>
                             <input type="text" id="last_name" autocomplete="off" wire:model.blur="last_name"
-                                class="{{ $errors->has('last_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
+                                class="{{ $errors->has('last_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-blue-900 selection:text-blue-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
                                 placeholder="Type last name">
                             @error('last_name')
                                 <p class="text-red-500 absolute left-0 top-full z-10 text-xs">{{ $message }}
@@ -559,7 +559,7 @@
                                 Name</label>
                             <input type="text" id="extension_name" autocomplete="off"
                                 wire:model.blur="extension_name"
-                                class="{{ $errors->has('extension_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
+                                class="{{ $errors->has('extension_name') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-blue-900 selection:text-blue-50' }} border-none focus:ring-0 outline-none text-xs md:text-sm px-3 py-1.5 duration-200 ease-in-out rounded"
                                 placeholder="III, Sr., etc.">
                             @error('extension_name')
                                 <p class="text-red-500 absolute left-0 top-full z-10 text-xs">{{ $message }}
@@ -572,7 +572,7 @@
                             {{-- Save Button --}}
                             <button type="button" wire:loading.attr="disabled" wire:target="editFullName"
                                 wire:click="editFullName"
-                                class="py-1.5 px-3 font-bold flex items-center justify-center gap-1.5 rounded disabled:opacity-75 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 focus:ring-4 focus:outline-none focus:ring-indigo-300">
+                                class="py-1.5 px-3 font-bold flex items-center justify-center gap-1.5 rounded disabled:opacity-75 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:ring-4 focus:outline-none focus:ring-blue-300">
                                 <p>SAVE</p>
 
                                 {{-- Loading Icon --}}

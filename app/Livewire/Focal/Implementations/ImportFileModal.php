@@ -5,10 +5,13 @@ namespace App\Livewire\Focal\Implementations;
 use App\Jobs\ProcessImportSimilarity;
 use App\Models\Batch as Batches;
 use App\Models\Beneficiary;
+use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Annex;
 use App\Services\AnnexDGenerator;
 use App\Services\JaccardSimilarity;
+use App\Services\MoneyFormat;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
@@ -29,6 +32,8 @@ class ImportFileModal extends Component
     #[Reactive]
     #[Locked]
     public $batchId;
+    #[Locked]
+    public $errorId;
     public $selectedSheetIndex = null;
     public $duplicationThreshold;
     public $maximumIncome;
@@ -36,10 +41,13 @@ class ImportFileModal extends Component
     # -----------------------------------
 
     public $step = 1;
-    public $number_of_rows = 10;
+    public $errorPreviewModal = false;
     public $downloadSampleModal = false;
-    public $isResult = false;
+
+    # ----------------------------------------
+
     public $cachedResults = [];
+    public $cachedExpiration;
     public array $successResults = [];
     public array $perfectResults = [];
     public array $errorResults = [];
@@ -91,6 +99,12 @@ class ImportFileModal extends Component
         ];
     }
 
+    public function viewError($encryptedId)
+    {
+        $this->errorId = $encryptedId;
+        $this->errorPreviewModal = true;
+    }
+
     public function checkError()
     {
         if ($this->getErrorBag()->has('file_path')) {
@@ -112,7 +126,6 @@ class ImportFileModal extends Component
     public function finishImport()
     {
         $this->nextStep();
-
     }
 
     public function validateFile()
@@ -125,11 +138,33 @@ class ImportFileModal extends Component
         $this->importFinished = false;
         $jobBatch = Bus::batch([
             new ProcessImportSimilarity((string) $filePath, Auth::id(), $this->batch->id, $this->duplicationThreshold, $this->maximumIncome),
-        ])->dispatch();
+        ])->catch(function ($self, Throwable $e) {
+            dump($e);
+        })->dispatch();
 
         $this->jobsBatchId = $jobBatch->id;
 
         $this->nextStep();
+    }
+
+    public function refreshTime()
+    {
+        $time = now()->addMinutes(10)->addSecond();
+        cache(
+            [
+                "importing_" . auth()->id() => $this->cachedResults,
+            ],
+            $time
+        );
+
+        cache(
+            [
+                "importing_expiration_" . auth()->id() => ($time->format('Y-m-d H:i:s'))
+            ],
+            $time
+        );
+
+        $this->periodicallyCheckCache();
     }
 
     public function importProgress()
@@ -140,7 +175,7 @@ class ImportFileModal extends Component
             $this->importing = false;
             $this->importFinished = true;
             $this->importFailed = false;
-            $this->reset('successResults', 'errorResults', 'similarityResults', 'ineligibleResults');
+            $this->reset('successResults', 'perfectResults', 'errorResults', 'similarityResults', 'ineligibleResults');
             $this->cachedResults = cache("importing_" . Auth::id());
 
             # Queries the project number of this editted beneficiary
@@ -152,8 +187,8 @@ class ImportFileModal extends Component
                 ->first();
 
             if (isset($this->cachedResults) && !empty($this->cachedResults)) {
-
-                foreach ($this->cachedResults as $beneficiary) {
+                $this->periodicallyCheckCache();
+                foreach ($this->cachedResults['beneficiaries'] as $beneficiary) {
 
                     if ($beneficiary['success']) {
                         $this->successResults[] = $beneficiary;
@@ -219,7 +254,7 @@ class ImportFileModal extends Component
             $this->importing = false;
             $this->importFinished = true;
             $this->importFailed = true;
-            $this->reset('successResults', 'errorResults', 'similarityResults', 'ineligibleResults', 'file_path');
+            $this->reset('successResults', 'perfectResults', 'errorResults', 'similarityResults', 'ineligibleResults', 'file_path');
         }
     }
 
@@ -285,7 +320,7 @@ class ImportFileModal extends Component
         $this->validateOnly('slots_allocated');
         $spreadsheet = new Spreadsheet();
 
-        $spreadsheet = Annex::sampleImport($spreadsheet, $this->slots_allocated, $this->batch);
+        $spreadsheet = Annex::sampleImport($spreadsheet, $this->slots_allocated, $this->batch, $this->implementation);
 
         $writer = new Xlsx($spreadsheet);
         $fileName = 'STIF.xlsx';
@@ -295,22 +330,61 @@ class ImportFileModal extends Component
         $this->downloadSampleModal = false;
         # Download the file
         return response()->download($filePath)->deleteFileAfterSend(true);
+    }
 
+    #[Computed]
+    public function implementation()
+    {
+        $implementation = Implementation::find($this->batch?->implementations_id);
+
+        return $implementation;
     }
 
     #[Computed]
     public function batch()
     {
-        if ($this->batchId) {
-            $batch = Batches::find(decrypt($this->batchId));
+        $batch = Batches::find($this->batchId ? decrypt($this->batchId) : null);
 
-            return $batch;
+        return $batch;
+    }
+
+    #[Computed]
+    public function origBatch()
+    {
+        $batch = Batches::find($this->cachedResults ? decrypt($this->cachedResults['batches_id']) : null);
+
+        return $batch;
+    }
+
+    public function checkValidAvgIncome($value)
+    {
+        if ($value) {
+            if (!ctype_digit((string) $value)) {
+                return false;
+            } elseif (!MoneyFormat::isMaskInt($value)) {
+                return false;
+            } elseif (MoneyFormat::isNegative($value)) {
+                return false;
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    # wire:poll by 1 minute
+    public function periodicallyCheckCache()
+    {
+        $expiration = cache("importing_expiration_" . auth()->id());
+        $this->cachedExpiration = now()->diffAsCarbonInterval(Carbon::parse($expiration))->format('%I:%S');
+        if (!isset($this->cachedResults) && $this->step === 2) {
+            $this->resetImports();
         }
     }
 
     public function resetImports()
     {
-        if ($this->step === 3 || $this->importFinished && (!isset($this->file_path) || empty($this->file_path) || $this->importFailed)) {
+        if ($this->step === 3 || !isset($this->cachedResults) || $this->importFinished && (!isset($this->file_path) || empty($this->file_path) || $this->importFailed)) {
             $this->resetExcept('batchId', 'duplicationThreshold', 'maximumIncome');
         }
     }

@@ -398,9 +398,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     {{-- The "?" Popover --}}
                                     <svg data-popover-target="chart-info" data-popover-placement="bottom"
                                         tabindex="-1"
-                                        class="size-3.5 text-gray-500 hover:text-indigo-700 focus:outline-none duration-300 ease-in-out cursor-pointer"
-                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                        viewBox="0 0 20 20">
+                                        class="size-3.5 text-gray-500 hover:text-indigo-700 outline-none duration-300 ease-in-out cursor-pointer"
+                                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                         <path
                                             d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
                                     </svg>
@@ -441,70 +440,74 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 {{-- Print && Export button --}}
                                 <div class="flex items-center justify-center gap-2">
 
-                                    {{-- Print Button --}}
-                                    <button type="button"
-                                        @if ($this->batches->isNotEmpty()) wire:click="printSummary"
+                                    <span class="relative" x-data="{ pop: false }">
+                                        {{-- Print Button --}}
+                                        <button type="button" @mouseleave="pop = false;" @mouseenter="pop = true;"
+                                            @if ($this->batches->isNotEmpty()) wire:click="printSummary"
+                                            @else
+                                                disabled @endif
+                                            class="inline-flex items-center justify-center p-1.5 duration-200 ease-in-out outline-none rounded-md disabled:bg-white disabled:text-gray-500 text-red-500 hover:text-red-50 focus:text-red-50 active:text-red-50 hover:bg-red-800 focus:bg-red-800 active:bg-red-900 focus:ring-2 focus:ring-red-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M124.097 38.581 C 108.307 44.266,104.391 51.875,104.050 77.539 L 103.804 96.094 200.000 96.094 L 296.196 96.094 295.950 77.539 C 295.628 53.341,293.166 47.530,280.275 40.539 L 275.391 37.891 201.172 37.722 C 141.440 37.586,126.396 37.753,124.097 38.581 M73.438 121.531 C 57.106 125.052,42.955 138.554,38.653 154.723 C 36.900 161.309,36.966 255.134,38.728 261.934 C 43.270 279.462,57.931 292.606,76.367 295.678 L 79.688 296.231 79.688 270.936 C 79.688 238.426,80.677 234.235,90.771 224.007 C 102.288 212.337,100.272 212.548,200.000 212.548 C 299.759 212.548,297.603 212.321,309.330 224.049 C 319.253 233.972,320.312 238.495,320.312 270.936 L 320.313 296.231 323.633 295.678 C 342.069 292.606,356.730 279.462,361.272 261.934 C 363.034 255.134,363.100 161.309,361.347 154.723 C 356.995 138.368,342.831 124.986,326.172 121.488 C 318.193 119.813,81.221 119.853,73.438 121.531 M289.059 156.342 C 297.012 160.812,297.255 171.147,289.543 176.905 C 285.733 179.749,263.827 179.322,259.899 176.327 C 252.667 170.811,253.131 160.836,260.827 156.373 C 265.105 153.892,284.662 153.871,289.059 156.342 M109.277 239.405 C 103.650 243.229,103.834 241.304,104.078 293.917 L 104.297 341.016 106.375 345.449 C 109.153 351.374,113.792 356.243,119.725 359.461 L 124.609 362.109 200.000 362.109 L 275.391 362.109 280.275 359.461 C 286.208 356.243,290.847 351.374,293.625 345.449 L 295.703 341.016 295.922 293.960 C 296.167 241.112,296.342 242.837,290.362 239.141 L 287.706 237.500 199.894 237.500 L 112.081 237.500 109.277 239.405 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+
+                                            <span class="sr-only">Print this Implementation</span>
+                                        </button>
+
+                                        {{-- Popover --}}
+                                        <div x-cloak x-show="pop"
+                                            class="absolute z-50 top-full mt-1 whitespace-nowrap mx-auto right-0 lg:right-auto lg:left-1/2 lg:transform lg:-translate-x-1/2 rounded p-2 shadow text-xs lg:text-sm font-semibold lg:font-medium text-center border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                            @if ($this->batches->isNotEmpty())
+                                                Print this Implementation
+                                            @else
+                                                You may able to <span class="text-red-500">print</span> the summary
+                                                <br>
+                                                when there are beneficiaries <br>
+                                                in any batches or barangays.
+                                            @endif
+                                        </div>
+                                    </span>
+
+                                    <span class="relative" x-data="{ pop: false }">
+                                        {{-- Export Button --}}
+                                        <button type="button" @mouseleave="pop = false;" @mouseenter="pop = true;"
+                                            @if ($this->justCount > 0) wire:click="showExport"
                                         @else
                                         disabled @endif
-                                        data-tooltip-target="print-btn" data-tooltip-placement="bottom"
-                                        class="inline-flex items-center justify-center p-1.5 duration-200 ease-in-out outline-none rounded-md disabled:bg-white disabled:text-gray-500 text-red-500 hover:text-red-50 focus:text-red-50 active:text-red-50 hover:bg-red-800 focus:bg-red-800 active:bg-red-900 focus:ring-2 focus:ring-red-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M124.097 38.581 C 108.307 44.266,104.391 51.875,104.050 77.539 L 103.804 96.094 200.000 96.094 L 296.196 96.094 295.950 77.539 C 295.628 53.341,293.166 47.530,280.275 40.539 L 275.391 37.891 201.172 37.722 C 141.440 37.586,126.396 37.753,124.097 38.581 M73.438 121.531 C 57.106 125.052,42.955 138.554,38.653 154.723 C 36.900 161.309,36.966 255.134,38.728 261.934 C 43.270 279.462,57.931 292.606,76.367 295.678 L 79.688 296.231 79.688 270.936 C 79.688 238.426,80.677 234.235,90.771 224.007 C 102.288 212.337,100.272 212.548,200.000 212.548 C 299.759 212.548,297.603 212.321,309.330 224.049 C 319.253 233.972,320.312 238.495,320.312 270.936 L 320.313 296.231 323.633 295.678 C 342.069 292.606,356.730 279.462,361.272 261.934 C 363.034 255.134,363.100 161.309,361.347 154.723 C 356.995 138.368,342.831 124.986,326.172 121.488 C 318.193 119.813,81.221 119.853,73.438 121.531 M289.059 156.342 C 297.012 160.812,297.255 171.147,289.543 176.905 C 285.733 179.749,263.827 179.322,259.899 176.327 C 252.667 170.811,253.131 160.836,260.827 156.373 C 265.105 153.892,284.662 153.871,289.059 156.342 M109.277 239.405 C 103.650 243.229,103.834 241.304,104.078 293.917 L 104.297 341.016 106.375 345.449 C 109.153 351.374,113.792 356.243,119.725 359.461 L 124.609 362.109 200.000 362.109 L 275.391 362.109 280.275 359.461 C 286.208 356.243,290.847 351.374,293.625 345.449 L 295.703 341.016 295.922 293.960 C 296.167 241.112,296.342 242.837,290.362 239.141 L 287.706 237.500 199.894 237.500 L 112.081 237.500 109.277 239.405 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                            </g>
-                                        </svg>
+                                            class="inline-flex items-center justify-center p-1.5 duration-200 ease-in-out outline-none rounded-md disabled:bg-white disabled:text-gray-500 text-amber-500 hover:text-amber-50 focus:text-amber-50 active:text-amber-50 hover:bg-amber-800 focus:bg-amber-800 active:bg-amber-900 focus:ring-2 focus:ring-amber-300">
+                                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M205.223 139.115 C 208.456 140.341,259.848 191.840,261.742 195.752 C 266.646 205.882,255.514 216.701,245.595 211.446 C 244.365 210.794,236.504 203.379,228.125 194.967 L 212.891 179.672 212.500 242.123 C 212.115 303.671,212.086 304.605,210.499 306.731 C 204.772 314.399,195.433 314.184,190.039 306.258 L 188.281 303.675 188.281 241.528 L 188.281 179.380 172.461 195.051 C 160.663 206.736,155.883 210.967,153.660 211.688 C 144.244 214.742,135.529 205.084,139.108 195.559 C 139.978 193.241,188.052 144.418,193.281 140.540 C 196.591 138.086,201.092 137.549,205.223 139.115 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
 
-                                        <span class="sr-only">Print this Implementation</span>
-                                    </button>
+                                            <span class="sr-only">Export Options</span>
+                                        </button>
 
-                                    {{-- Popover for `Print` --}}
-                                    <div id="print-btn" role="tooltip"
-                                        class="text-center absolute z-30 invisible inline-block px-3 py-2 text-sm font-medium text-indigo-100 bg-gray-900 border-gray-300 border transition-opacity duration-300 rounded-lg shadow-sm opacity-0 tooltip ">
-                                        @if ($this->batches->isNotEmpty())
-                                            Print this Implementation
-                                        @else
-                                            You may able to <span class="text-red-500">print</span> the summary <br>
-                                            when there are beneficiaries <br>
-                                            in any batches or barangays.
-                                        @endif
-                                        <div class="tooltip-arrow" data-popper-arrow></div>
-                                    </div>
-
-                                    {{-- Export Button --}}
-                                    <button type="button"
-                                        @if ($this->justCount > 0) wire:click="showExport"
-                                        @else
-                                        disabled @endif
-                                        data-tooltip-target="export-btn" data-tooltip-placement="bottom"
-                                        class="inline-flex items-center justify-center p-1.5 duration-200 ease-in-out outline-none rounded-md disabled:bg-white disabled:text-gray-500 text-amber-500 hover:text-amber-50 focus:text-amber-50 active:text-amber-50 hover:bg-amber-800 focus:bg-amber-800 active:bg-amber-900 focus:ring-2 focus:ring-amber-300">
-                                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="size-5"
-                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                            viewBox="0, 0, 400,400">
-                                            <g>
-                                                <path
-                                                    d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M205.223 139.115 C 208.456 140.341,259.848 191.840,261.742 195.752 C 266.646 205.882,255.514 216.701,245.595 211.446 C 244.365 210.794,236.504 203.379,228.125 194.967 L 212.891 179.672 212.500 242.123 C 212.115 303.671,212.086 304.605,210.499 306.731 C 204.772 314.399,195.433 314.184,190.039 306.258 L 188.281 303.675 188.281 241.528 L 188.281 179.380 172.461 195.051 C 160.663 206.736,155.883 210.967,153.660 211.688 C 144.244 214.742,135.529 205.084,139.108 195.559 C 139.978 193.241,188.052 144.418,193.281 140.540 C 196.591 138.086,201.092 137.549,205.223 139.115 "
-                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                            </g>
-                                        </svg>
-
-                                        <span class="sr-only">Export Options</span>
-                                    </button>
-
-                                    {{-- Popover for `Export` --}}
-                                    <div id="export-btn" role="tooltip"
-                                        class="text-center absolute z-30 invisible inline-block px-3 py-2 text-sm font-medium text-indigo-100 bg-gray-900 border-gray-300 border transition-opacity duration-300 rounded-lg shadow-sm opacity-0 tooltip ">
-                                        @if ($this->justCount > 0)
-                                            Export Options
-                                        @else
-                                            You may able to <span class="text-amber-500">export</span> the summary <br>
-                                            when there are beneficiaries on <br>the implementation.
-                                        @endif
-                                        <div class="tooltip-arrow" data-popper-arrow></div>
-                                    </div>
+                                        {{-- Popover --}}
+                                        <div x-cloak x-show="pop"
+                                            class="absolute z-50 top-full mt-1 whitespace-nowrap mx-auto right-0 lg:right-auto lg:left-1/2 lg:transform lg:-translate-x-1/2 rounded p-2 shadow text-xs lg:text-sm font-semibold lg:font-medium text-center border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                            @if ($this->justCount > 0)
+                                                Export Options
+                                            @else
+                                                You may able to <span class="text-amber-500">export</span> the summary
+                                                <br>
+                                                when there are beneficiaries on <br>the implementation.
+                                            @endif
+                                        </div>
+                                    </span>
                                 </div>
                             </div>
 

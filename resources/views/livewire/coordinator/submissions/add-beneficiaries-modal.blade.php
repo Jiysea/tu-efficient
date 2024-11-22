@@ -866,6 +866,18 @@
                                         class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
                                         Married
                                     </button>
+
+                                    <button type="button"
+                                        @click="civil_status = 'Separated'; open = false; $wire.$refresh();"
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
+                                        Separated
+                                    </button>
+
+                                    <button type="button"
+                                        @click="civil_status = 'Widowed'; open = false; $wire.$refresh();"
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
+                                        Widowed
+                                    </button>
                                 </div>
                             </div>
                         </div>

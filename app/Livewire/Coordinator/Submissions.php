@@ -767,6 +767,9 @@ class Submissions extends Component
                         'data' => $credential->toArray(),
                     ]);
                     $credential->delete();
+                    if ($credential->for_duplicates === 'yes') {
+                        LogIt::set_archive_beneficiary_special_case($beneficiary, $credential, auth()->id());
+                    }
                 }
 
                 # then archive the Beneficiary record
@@ -777,7 +780,9 @@ class Submissions extends Component
                 ]);
                 $beneficiary->delete();
 
-                LogIt::set_archive_beneficiary($beneficiary);
+                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                    LogIt::set_archive_beneficiary($beneficiary, auth()->id());
+                }
 
                 $this->resetViewBeneficiary();
                 $this->js('viewBeneficiaryModal = false;');
@@ -792,11 +797,17 @@ class Submissions extends Component
                         Storage::delete($credential->image_file_path);
                     }
                     $credential->delete();
+                    if ($credential->for_duplicates === 'yes') {
+                        LogIt::set_delete_beneficiary_special_case($beneficiary, $credential, auth()->id());
+                    }
                 }
 
                 $beneficiary->delete();
 
-                LogIt::set_delete_beneficiary($beneficiary, auth()->id());
+                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                    LogIt::set_delete_beneficiary($beneficiary, auth()->id());
+                }
+
                 $this->showAlert = true;
                 $this->alertMessage = 'Successfully deleted a beneficiary';
             }

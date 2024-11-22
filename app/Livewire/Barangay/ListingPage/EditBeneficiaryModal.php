@@ -533,6 +533,7 @@ class EditBeneficiaryModal extends Component
 
                 if ($special_case->isDirty()) {
                     $special_case->save();
+                    LogIt::set_barangay_edit_beneficiary_special_case($beneficiary, $special_case);
                     $isChanged = true;
                 }
             }
@@ -894,17 +895,15 @@ class EditBeneficiaryModal extends Component
     #[Computed]
     public function districts()
     {
-        $d = new Districts();
-        return $d->getDistricts($this->implementation?->city_municipality, $this->implementation?->province);
+        return Districts::getDistricts($this->implementation?->city_municipality, $this->implementation?->province);
     }
 
     # this function returns all of the barangays based on the project's location
     #[Computed]
     public function barangays()
     {
-        $b = new Barangays();
         # this returns an array
-        $barangays = $b->getBarangays($this->implementation?->city_municipality, $this->district);
+        $barangays = Barangays::getBarangays($this->implementation?->city_municipality, $this->district);
 
         # If searchBarangay is set, filter the barangays array
         if ($this->searchBarangay) {

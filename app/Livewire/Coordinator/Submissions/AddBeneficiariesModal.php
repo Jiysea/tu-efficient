@@ -474,8 +474,12 @@ class AddBeneficiariesModal extends Component
                     'image_file_path' => $file,
                     'for_duplicates' => 'yes',
                 ]);
+
+                LogIt::set_add_beneficiary_special_case($beneficiary, auth()->id());
+            } else {
+                LogIt::set_add_beneficiary($beneficiary, auth()->id());
             }
-            LogIt::set_add_beneficiary($beneficiary);
+
         });
 
         $this->dispatch('add-beneficiaries');
@@ -658,17 +662,15 @@ class AddBeneficiariesModal extends Component
     #[Computed]
     public function districts()
     {
-        $d = new Districts();
-        return $d->getDistricts($this->implementation?->city_municipality, $this->implementation?->province);
+        return Districts::getDistricts($this->implementation?->city_municipality, $this->implementation?->province);
     }
 
     # this function returns all of the barangays based on the project's location
     #[Computed]
     public function barangays()
     {
-        $b = new Barangays();
         # this returns an array
-        $barangays = $b->getBarangays($this->implementation?->city_municipality, $this->district);
+        $barangays = Barangays::getBarangays($this->implementation?->city_municipality, $this->district);
 
         # If searchBarangay is set, filter the barangays array
         if ($this->searchBarangay) {
@@ -711,10 +713,13 @@ class AddBeneficiariesModal extends Component
     public function mount()
     {
         # gets the settings of the user
-        $settings = UserSetting::where('users_id', Auth::id())
+        $personalSettings = UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
-        $this->duplicationThreshold = floatval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
-        $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
+        $globalSettings = UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
+            ->where('users.user_type', 'focal')
+            ->pluck('user_settings.value', 'user_settings.key');
+        $this->duplicationThreshold = floatval($personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $globalSettings->get('maximum_income', config('settings.maximum_income'));
     }
 
     public function render()

@@ -9,7 +9,7 @@ class Districts
      *  @param string $province The selected province by the user
      *  @return string[]|null Returns an array of districts if true, returns null if false
      */
-    public function getDistricts($city_municipality, $province): array|null
+    public static function getDistricts($city_municipality, $province): array|null
     {
         $districts = null;
 

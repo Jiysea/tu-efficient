@@ -30,7 +30,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => $user->created_at ?? now(),
-            'description' => $old . ' changed their name to ' . $new . '. Field office: ' . $user->field_office . '.'
+            'description' => $old . ' changed their name to ' . $new . '. ' . $user->field_office . ' field office.'
         ]);
     }
 
@@ -48,7 +48,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $users_id,
             'log_timestamp' => $user->created_at ?? now(),
-            'description' => self::full_name($user) . ' from ' . $user->field_office . ' field office has been modified.'
+            'description' => 'Coordinator ' . self::full_name($user) . ' from ' . $user->field_office . ' field office has been modified.'
         ]);
     }
 
@@ -57,7 +57,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $users_id,
             'log_timestamp' => $user->created_at ?? now(),
-            'description' => self::full_name($user) . ' from ' . $user->field_office . ' field office has been deleted.'
+            'description' => 'Coordinator ' . self::full_name($user) . ' from ' . $user->field_office . ' field office has been deleted.'
         ]);
     }
 
@@ -66,7 +66,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' changed their password. ' . $user->field_office . ' field office.',
+            'description' => 'They changed their password. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -75,7 +75,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Minimum wage changed from ₱' . $old_wage . ' to ₱' . $new_wage . '. ' . $user->field_office . ' field office.',
+            'description' => 'Changed the \'Minimum Wage\' global settings from ₱' . $old_wage . ' to ₱' . $new_wage . '. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -84,7 +84,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Changed the Implementation Project number prefix from \'' . $old_prefix . '\' to \'' . $new_prefix . '\'. ' . $user->field_office . ' field office.',
+            'description' => 'Changed the \'Project Number Prefix\' global settings from ' . $old_prefix . ' to ' . $new_prefix . '. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -93,7 +93,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Changed the Batch number prefix from \'' . $old_prefix . '\' to \'' . $new_prefix . '\'. ' . $user->field_office . ' field office.',
+            'description' => 'Changed the \'Batch Number Prefix\' global settings from ' . $old_prefix . ' to ' . $new_prefix . '. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -102,7 +102,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Maximum average monthly income changed from ₱' . $old_income . ' to ₱' . $new_income . '. ' . $user->field_office . ' field office.',
+            'description' => 'Changed the \'Maximum Income\' global settings from ₱' . $old_income . ' to ₱' . $new_income . '. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -111,7 +111,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => 'Duplication threshold changed from ' . $old_threshold . '% to ' . $new_threshold . '%. ' . $user->field_office . ' field office.',
+            'description' => 'Changed their \'Duplication Threshold\' personal settings from ' . $old_threshold . '% to ' . $new_threshold . '%. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -120,7 +120,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' ' . ($new_value ? 'Enabled' : 'Disabled') . ' their \'Default Archive\' setting. ' . $user->field_office . ' field office.',
+            'description' => ($new_value ? 'Enabled' : 'Disabled') . ' their \'Default Archive\' personal settings. ' . $user->field_office . ' field office.',
         ]);
     }
 
@@ -140,7 +140,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
-            'description' => 'Created a batch \'' . $batch->batch_num . '\' -> in implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Created a batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
         ]);
     }
 
@@ -168,7 +168,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
-            'description' => 'Batch \' ' . $batch->batch_num . '\' has been forced set to approved.',
+            'description' => 'Batch \' ' . $batch->batch_num . '\' has been approved by force.',
         ]);
     }
 
@@ -178,7 +178,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' opened the batch \' ' . $batch->batch_num . '\' for access.',
+            'description' => 'Batch \' ' . $batch->batch_num . '\' has been opened for access.',
         ]);
     }
 
@@ -187,7 +187,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' has force submitted a batch \'' . $batch->batch_num . '\'.',
+            'description' => 'Batch \'' . $batch->batch_num . '\' has been submitted by force.',
         ]);
     }
 
@@ -201,12 +201,22 @@ class LogIt
         ]);
     }
 
+    public static function set_add_beneficiary_special_case(Beneficiary $beneficiary, int $users_id = null)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        SystemsLog::factory()->create([
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
+            'log_timestamp' => now(),
+            'description' => 'Added ' . self::full_name($beneficiary) . ' as a special case beneficiary from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+        ]);
+    }
+
     public static function set_import_success(User|Authenticatable $user, Batch $batch, int $added_count)
     {
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' successfully imported ' . $added_count . ' beneficiaries in batch \'' . $batch->batch_num . '\'.',
+            'description' => 'Successfully imported ' . $added_count . ' beneficiaries in batch \'' . $batch->batch_num . '\'.',
         ]);
     }
 
@@ -215,7 +225,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' imported ' . $special_count . ' special cases in batch \'' . $batch->batch_num . '\'.',
+            'description' => 'Imported ' . $special_count . ' special cases in batch \'' . $batch->batch_num . '\'.',
         ]);
     }
 
@@ -253,7 +263,7 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
-            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
         ]);
     }
 
@@ -296,36 +306,58 @@ class LogIt
         ]);
     }
 
-    public static function set_archive_beneficiary(Beneficiary $beneficiary)
+    public static function set_delete_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
         SystemsLog::factory()->create([
-            'users_id' => $implementation->users_id,
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
+            'log_timestamp' => now(),
+            'description' => 'Deleted ' . self::full_name($beneficiary) . ', a special case (description: \'' . $credential->image_description . '\') from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
+        ]);
+    }
+
+    public static function set_archive_beneficiary(Beneficiary $beneficiary, int $users_id = null)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
+        SystemsLog::factory()->create([
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
             'description' => 'Moved a beneficiary (' . self::full_name($beneficiary) . ') to Archives. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
         ]);
     }
 
-    public static function set_restore_archive(Archive $archive, int $users_id)
+    public static function set_archive_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
     {
-        $batch = Batch::find($archive->data['batches_id']);
+        $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
         SystemsLog::factory()->create([
-            'users_id' => $users_id,
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
-            'description' => 'Restored ' . self::full_name($archive->data) . ' back from Archives. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
+            'description' => 'Moved a beneficiary (' . self::full_name($beneficiary) . '), a special case (description: \'' . $credential->image_description . '\') to Archives. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
         ]);
     }
 
-    public static function set_permanently_delete_archive(Archive $archive, int $users_id)
+    public static function set_restore_archive(Archive $archive, int $users_id = null)
     {
         $batch = Batch::find($archive->data['batches_id']);
         $implementation = Implementation::find($batch->implementations_id);
         SystemsLog::factory()->create([
-            'users_id' => $users_id,
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
-            'description' => 'Permanently deleted ' . self::full_name($archive->data) . '. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
+            'description' => 'Restored ' . self::full_name($archive->data) . ' back from Archives. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'',
+        ]);
+    }
+
+    public static function set_permanently_delete_archive(Archive $archive, int $users_id = null)
+    {
+        $batch = Batch::find($archive->data['batches_id']);
+        $implementation = Implementation::find($batch->implementations_id);
+        SystemsLog::factory()->create([
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
+            'log_timestamp' => now(),
+            'description' => 'Permanently deleted ' . self::full_name($archive->data) . '. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
         ]);
     }
 
@@ -336,9 +368,11 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => $user->id,
             'log_timestamp' => now(),
-            'description' => self::full_name($user) . ' approved the batch \'' . $batch->batch_num . '\'.',
+            'description' => 'A batch \'' . $batch->batch_num . '\' has been approved.',
         ]);
     }
+
+    # Barangays ----------------------------------------------------------------------------------------------------------------------
 
     public static function set_barangay_add_beneficiary(Beneficiary $beneficiary)
     {
@@ -347,7 +381,18 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => null,
             'log_timestamp' => now(),
-            'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.)',
+            'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+        ]);
+    }
+
+    public static function set_barangay_added_special_case(Beneficiary $beneficiary)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
+        SystemsLog::factory()->create([
+            'users_id' => null,
+            'log_timestamp' => now(),
+            'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' as a special case beneficiary from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
         ]);
     }
 
@@ -358,34 +403,27 @@ class LogIt
         SystemsLog::factory()->create([
             'users_id' => null,
             'log_timestamp' => now(),
-            'description' => 'A barangay official modified ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.)',
+            'description' => 'A barangay official modified ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
         ]);
     }
 
-    public static function set_barangay_submit(string $barangay_name, string $project_num, string $batch_num, int $added_count, int $slots_allocated, int $special_cases)
+    public static function set_barangay_edit_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        $implementation = Implementation::find($batch->implementations_id);
+        SystemsLog::factory()->create([
+            'users_id' => null,
+            'log_timestamp' => now(),
+            'description' => 'A barangay official modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+        ]);
+    }
+
+    public static function set_barangay_submit(Batch $batch, Implementation $implementation, int $added_count, int $slots_allocated, int $special_cases)
     {
         SystemsLog::factory()->create([
             'users_id' => null,
             'log_timestamp' => now(),
-            'description' => 'A barangay official in Brgy. ' . $barangay_name . ' has submitted a list of (' . $added_count . ') / (' . $slots_allocated . ') beneficiaries with (' . $special_cases . ') special cases. (Project: ' . $project_num . ' / Batch: ' . $batch_num . ')',
-        ]);
-    }
-
-    public static function set_barangay_added_special_case(string $barangay_name, string $project_num, string $batch_num, string $full_name)
-    {
-        SystemsLog::factory()->create([
-            'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => $full_name . ' added as special case from Brgy. ' . $barangay_name . '. (Project: ' . $project_num . ' / Batch: ' . $batch_num . ')',
-        ]);
-    }
-
-    public static function set_barangay_modify_special_case(string $barangay_name, string $project_num, string $batch_num, string $full_name)
-    {
-        SystemsLog::factory()->create([
-            'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A barangay official modified ' . $full_name . '\'s special case from Brgy. ' . $barangay_name . '. (Project: ' . $project_num . ' / Batch: ' . $batch_num . ')',
+            'description' => 'A barangay official has submitted a list of (' . $added_count . ') / (' . $slots_allocated . ') beneficiaries with (' . $special_cases . ') special cases. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
         ]);
     }
 
@@ -399,6 +437,8 @@ class LogIt
             'description' => 'A barangay official deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
         ]);
     }
+
+    # Miscellaneous ----------------------------------------------------------------------------------------------------
 
     public static function set_log_exception(\Exception $exception)
     {
