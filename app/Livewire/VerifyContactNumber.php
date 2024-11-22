@@ -27,7 +27,7 @@ class VerifyContactNumber extends Component
     public function rules()
     {
         return [
-            'verification_code' => 'required|integer',
+            'verification_code' => 'required',
         ];
     }
 
@@ -35,7 +35,6 @@ class VerifyContactNumber extends Component
     {
         return [
             'verification_code.required' => 'This field is required.',
-            'verification_code.integer' => 'Verification code should be a number.'
         ];
     }
 
