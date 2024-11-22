@@ -45,7 +45,7 @@ class EmailVerification extends Component
 
         $executed = RateLimiter::attempt(
             'resendEmail:' . $user->id,
-            $perMinute = 1,
+            $perMinute = 3,
             function () use ($user) {
 
                 $user->sendEmailVerificationNotification();

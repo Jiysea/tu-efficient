@@ -58,6 +58,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </div>
                                 <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
+                                    @change-date.camel="$wire.setStartDate($el.value); $dispatchSelf('scroll-top-beneficiaries');"
                                     class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
                                     placeholder="Select date start">
                             </div>
@@ -80,6 +81,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </div>
                                 <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
+                                    @change-date.camel="$wire.setEndDate($el.value); $dispatchSelf('scroll-top-beneficiaries');"
                                     class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
                                     placeholder="Select date end">
                             </div>
@@ -1800,7 +1802,29 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     @else
                                                         <div
                                                             class="flex flex-col flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
-                                                            @if (isset($searchExportBatch) && !empty($searchExportBatch))
+                                                            @if (
+                                                                \Carbon\Carbon::parse($export_start)->format('Y-m-d') !==
+                                                                    \Carbon\Carbon::parse($defaultExportStart)->format('Y-m-d') ||
+                                                                    \Carbon\Carbon::parse($export_end)->format('Y-m-d') !==
+                                                                        \Carbon\Carbon::parse($defaultExportEnd)->format('Y-m-d'))
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                    class="size-12 mb-4 text-blue-900 opacity-65"
+                                                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                    width="400" height="400"
+                                                                    viewBox="0, 0, 400,400">
+                                                                    <g>
+                                                                        <path
+                                                                            d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                                            stroke="none" fill="currentColor"
+                                                                            fill-rule="evenodd"></path>
+                                                                    </g>
+                                                                </svg>
+                                                                <p>No batches found.</p>
+                                                                <p>Maybe try adjusting the <span
+                                                                        class=" text-blue-900">date
+                                                                        range</span>.
+                                                                </p>
+                                                            @elseif (isset($searchExportBatch) && !empty($searchExportBatch))
                                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                                     class="size-12 mb-4 text-blue-900 opacity-65"
                                                                     xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -1816,25 +1840,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                                 <p>No batches found.</p>
                                                                 <p>Maybe try a different <span
                                                                         class=" text-blue-900">search
-                                                                        term</span>?
-                                                                </p>
-                                                            @elseif ($export_start !== $defaultExportStart || $export_end !== $defaultExportEnd)
-                                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                                    class="size-12 mb-4 text-blue-900 opacity-65"
-                                                                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                                                                    width="400" height="400"
-                                                                    viewBox="0, 0, 400,400">
-                                                                    <g>
-                                                                        <path
-                                                                            d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
-                                                                            stroke="none" fill="currentColor"
-                                                                            fill-rule="evenodd"></path>
-                                                                    </g>
-                                                                </svg>
-                                                                <p>No batches found.</p>
-                                                                <p>Try adjusting the <span
-                                                                        class=" text-blue-900">filter
-                                                                        date</span>.
+                                                                        term</span>.
                                                                 </p>
                                                             @else
                                                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -1910,25 +1916,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
 @script
     <script>
-        const datepickerStart = document.getElementById('start-date');
-        const datepickerEnd = document.getElementById('end-date');
-
-        datepickerStart.addEventListener('changeDate', function(event) {
-
-            $wire.dispatchSelf('scroll-top-beneficiaries');
-            $wire.dispatchSelf('start-change', {
-                value: datepickerStart.value
-            });
-        });
-
-        datepickerEnd.addEventListener('changeDate', function(event) {
-
-            $wire.dispatchSelf('scroll-top-beneficiaries');
-            $wire.dispatchSelf('end-change', {
-                value: datepickerEnd.value
-            });
-        });
-
         $wire.on('init-reload', () => {
             setTimeout(() => {
                 initFlowbite();
@@ -1943,7 +1930,19 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     behavior: 'smooth'
                 });
             }
+        });
 
+        $wire.on('modifyStart', (event) => {
+            const start = document.getElementById('start-date');
+            start.value = event.newStart;
+
+            const datepicker = FlowbiteInstances.getInstance('Datepicker', 'submissions-date-range');
+            console.log(datepicker);
+            if (datepicker) {
+                datepicker.setDate(event.newStart);
+            }
+
+            $dispatchSelf('init-reload');
         });
     </script>
 @endscript

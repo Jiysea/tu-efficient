@@ -315,9 +315,11 @@ class Settings extends Component
         foreach ($implementations as $implementation) {
             // $year = Carbon::parse($implementation->created_at)->format('Y-');
             // $num = $year . substr($implementation->project_num, -6, 6);
-            $project_num = $implementation->project_num;
-            $implementation->project_num = substr_replace($project_num, $new, 0, strlen($old));
-            $implementation->save();
+            Implementation::withoutTimestamps(function () use ($implementation, $new, $old) {
+                $project_num = $implementation->project_num;
+                $implementation->project_num = substr_replace($project_num, $new, 0, strlen($old));
+                $implementation->save();
+            });
         }
 
         UserSetting::upsert(
@@ -343,9 +345,11 @@ class Settings extends Component
         foreach ($batches as $batch) {
             // $year = Carbon::parse($batch->created_at)->format('Y-');
             // $num = $year . substr($batch->batch_num, -12, 6) . mt_rand(10, 99);
-            $batch_num = $batch->batch_num;
-            $batch->batch_num = substr_replace($batch_num, $new, 0, strlen($old));
-            $batch->save();
+            Batch::withoutTimestamps(function () use ($batch, $new, $old) {
+                $batch_num = $batch->batch_num;
+                $batch->batch_num = substr_replace($batch_num, $new, 0, strlen($old));
+                $batch->save();
+            });
         }
 
         UserSetting::upsert(

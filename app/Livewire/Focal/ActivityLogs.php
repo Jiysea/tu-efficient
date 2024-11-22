@@ -57,7 +57,7 @@ class ActivityLogs extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
 
         if (strtotime($this->start) > strtotime($this->end)) {
-            $start = Carbon::parse($this->end)->subDay()->format('Y-m-d H:i:s');
+            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
             $this->start = $start;
             $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
         }

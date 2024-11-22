@@ -354,6 +354,21 @@ class ImportFileModal extends Component
         return $batch;
     }
 
+    #[Computed]
+    public function personalSettings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
+    #[Computed]
+    public function globalSettings()
+    {
+        return UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
+            ->where('users.user_type', 'focal')
+            ->pluck('user_settings.value', 'user_settings.key');
+    }
+
     public function checkValidAvgIncome($value)
     {
         if ($value) {
@@ -389,18 +404,13 @@ class ImportFileModal extends Component
 
     public function mount()
     {
-        # gets the matching mode settings of the user
-        $personalSettings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $globalSettings = UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
-            ->where('users.user_type', 'focal')
-            ->pluck('user_settings.value', 'user_settings.key');
-        $this->duplicationThreshold = intval($personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
-        $this->maximumIncome = $globalSettings->get('maximum_income', config('settings.maximum_income'));
+
     }
 
     public function render()
     {
+        $this->duplicationThreshold = intval($this->personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $this->globalSettings->get('maximum_income', config('settings.maximum_income'));
         return view('livewire.coordinator.submissions.import-file-modal');
     }
 }

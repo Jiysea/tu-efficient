@@ -27,6 +27,55 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">Archives</h1>
                 </div>
 
+                {{-- Date Range picker --}}
+                <div id="archives-date-range" date-rangepicker datepicker-autohide
+                    class="flex items-center gap-1 sm:gap-2 text-xs">
+
+                    {{-- Start --}}
+                    <div class="relative">
+                        <div
+                            class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
+                            </svg>
+                        </div>
+                        <input type="text" id="start-date"
+                            @change-date.camel="$wire.setStartDate($el.value); $dispatchSelf('scroll-top-archives');"
+                            name="start" value="{{ $defaultStart }}" datepicker-max-date="{{ $defaultStart }}"
+                            class="bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                            placeholder="Select date start">
+                    </div>
+
+                    <span class="text-indigo-1100">to</span>
+
+                    {{-- End --}}
+                    <div class="relative">
+                        <div
+                            class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
+                            </svg>
+                        </div>
+                        <input type="text" id="end-date"
+                            @change-date.camel="$wire.setEndDate($el.value); $dispatchSelf('scroll-top-archives');"
+                            name="end" value="{{ $defaultEnd }}" datepicker-min-date="{{ $defaultEnd }}"
+                            class="bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                            placeholder="Select date end">
+                    </div>
+                </div>
+
                 {{-- Loading State --}}
                 <svg class="absolute right-0 size-6 text-indigo-900 animate-spin" wire:loading.flex
                     wire:target="selectRestore, selectDelete, selectRow, restoreRow, permanentlyDelete"
@@ -203,7 +252,23 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
 
-                                @if ($searchArchives)
+                                @if (
+                                    \Carbon\Carbon::parse($start)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultStart)->format('Y-m-d') ||
+                                        \Carbon\Carbon::parse($end)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultEnd)->format('Y-m-d'))
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M194.922 29.970 C 193.633 30.569,191.523 32.180,190.234 33.549 L 187.891 36.039 187.686 74.465 C 187.488 111.728,187.529 112.968,189.046 115.437 C 193.783 123.146,206.242 123.146,210.942 115.437 C 212.434 112.989,212.494 111.432,212.497 75.311 L 212.500 37.731 210.742 35.148 C 207.041 29.711,200.257 27.490,194.922 29.970 M95.847 80.003 C 90.219 82.076,87.500 85.931,87.500 91.835 C 87.500 99.196,87.584 99.272,117.810 119.421 L 145.517 137.891 150.045 137.891 C 157.571 137.891,162.500 132.857,162.500 125.172 C 162.500 118.054,162.061 117.657,132.247 97.819 C 103.089 78.417,101.826 77.799,95.847 80.003 M295.574 79.645 C 290.041 82.015,240.096 116.438,238.703 118.842 C 233.509 127.804,240.986 139.236,251.281 138.076 C 256.425 137.496,309.227 102.364,311.199 98.209 C 316.208 87.654,305.785 75.271,295.574 79.645 M277.332 145.197 C 266.604 150.897,268.653 164.942,280.869 169.440 C 295.553 174.847,296.412 175.238,294.873 175.820 C 248.788 193.246,200.992 210.938,200.000 210.938 C 199.013 210.938,149.602 192.648,105.174 175.837 C 104.075 175.422,105.416 174.638,110.517 172.712 C 123.476 167.821,127.983 158.647,121.318 150.726 C 115.557 143.880,112.591 144.204,84.437 154.752 C 54.358 166.022,59.528 160.597,38.239 203.227 C 19.619 240.510,19.293 241.359,21.522 246.694 C 23.679 251.857,25.179 252.702,46.161 260.572 L 66.406 268.166 66.406 288.014 C 66.406 326.845,64.235 324.865,136.627 352.014 L 187.109 370.947 187.500 324.731 L 187.891 278.516 194.046 266.411 L 200.201 254.306 206.155 266.020 L 212.109 277.734 212.500 324.341 L 212.891 370.947 263.373 352.014 C 316.504 332.089,318.573 331.186,324.304 325.426 C 332.264 317.426,333.550 312.152,333.575 287.403 L 333.594 268.166 353.839 260.572 C 366.066 255.986,374.715 252.307,375.677 251.283 C 377.780 249.044,379.688 244.373,379.688 241.461 C 379.688 237.547,344.461 167.807,341.253 165.371 C 337.539 162.551,286.997 143.750,283.129 143.750 C 281.437 143.750,278.829 144.401,277.332 145.197 M128.654 212.293 L 181.917 232.270 171.815 252.463 C 166.259 263.569,161.447 272.656,161.121 272.656 C 158.254 272.656,53.337 236.333,51.716 234.779 C 50.875 233.973,73.170 191.438,74.217 191.851 C 74.862 192.107,99.359 201.305,128.654 212.293 M348.244 234.829 C 346.746 236.327,241.732 272.656,238.899 272.656 C 238.563 272.656,233.751 263.589,228.206 252.506 L 218.125 232.356 272.539 211.944 L 326.953 191.533 337.741 213.039 C 343.674 224.867,348.400 234.673,348.244 234.829 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No records found.</p>
+                                    <p>Maybe try a different <span class="text-indigo-700">date range</span>.
+                                    </p>
+                                @elseif ($searchArchives)
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -321,3 +386,35 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     <livewire:focal.archives.prompt-delete-modal :$actionId />
 
 </div>
+@script
+    <script>
+        $wire.on('init-reload', () => {
+            setTimeout(() => {
+                initFlowbite();
+            }, 1);
+        });
+
+        $wire.on('scroll-top-archives', () => {
+            const archivesTable = document.getElementById('archived-records-table');
+            if (archivesTable) {
+                archivesTable.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        });
+
+        $wire.on('modifyStart', (event) => {
+            const start = document.getElementById('start-date');
+            start.value = event.newStart;
+
+            const datepicker = FlowbiteInstances.getInstance('Datepicker', 'archives-date-range');
+            console.log(datepicker);
+            if (datepicker) {
+                datepicker.setDate(event.newStart);
+            }
+
+            $dispatchSelf('init-reload');
+        });
+    </script>
+@endscript

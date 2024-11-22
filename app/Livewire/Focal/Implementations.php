@@ -225,7 +225,7 @@ class Implementations extends Component
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    #[On('start-change')]
+
     public function setStartDate($value)
     {
         $choosenDate = date('Y-m-d', strtotime($value));
@@ -248,7 +248,6 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
-    #[On('end-change')]
     public function setEndDate($value)
     {
         $choosenDate = date('Y-m-d', strtotime($value));
@@ -257,6 +256,12 @@ class Implementations extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
         $this->implementations_on_page = 15;
         $this->beneficiaries_on_page = 15;
+
+        if (strtotime($this->start) > strtotime($this->end)) {
+            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
+            $this->start = $start;
+            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
+        }
 
         $this->passedProjectId = null;
         $this->passedBatchId = null;
@@ -328,7 +333,10 @@ class Implementations extends Component
     {
         $implementations = Implementation::where('users_id', Auth::id())
             ->whereBetween('created_at', [$this->start, $this->end])
-            ->where('project_num', 'LIKE', $this->projectNumPrefix . '%' . $this->searchProjects . '%')
+            ->when($this->searchProjects, function ($q) {
+                $q->where('project_num', 'LIKE', $this->projectNumPrefix . '%' . $this->searchProjects . '%')
+                    ->orWhere('project_title', 'LIKE', '%' . $this->searchProjects . '%');
+            })
             ->latest('updated_at')
             ->take($this->implementations_on_page)
             ->get();
@@ -794,18 +802,19 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
         $user = Auth::user();
         if ($user->user_type !== 'focal') {
             $this->redirectIntended();
         }
-
-        # setting up settings
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
-        $this->duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold')));
 
         # Setting default dates in the datepicker
         $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
@@ -831,6 +840,8 @@ class Implementations extends Component
 
     public function render()
     {
+        $this->projectNumPrefix = $this->settings->get('project_number_prefix', config('settings.project_number_prefix'));
+        $this->duplicationThreshold = intval($this->settings->get('duplication_threshold', config('settings.duplication_threshold')));
         return view('livewire.focal.implementations');
     }
 }

@@ -181,7 +181,6 @@ class AddCoordinatorsModal extends Component
         $this->reset();
     }
 
-
     public function render()
     {
         return view('livewire.focal.user-management.add-coordinators-modal');

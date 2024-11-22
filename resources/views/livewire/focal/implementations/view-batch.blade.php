@@ -786,16 +786,22 @@
                                 <div
                                     class="flex flex-col items-center justify-center gap-4 w-full pt-5 pb-10 px-3 md:px-16 text-xs">
 
-                                    <p class="font-medium text-sm mb-1">
-                                        Are you sure about force approving this batch?
-                                    </p>
+                                    <div class="flex flex-col items-center gap-1">
+                                        <p class="font-medium text-sm ">
+                                            Are you sure about force approving this batch?
+                                        </p>
+                                        <p class="font-normal text-xs text-gray-500">
+                                            This will enable all batches to be modifiable to you and the coordinators.
+                                        </p>
+                                    </div>
+
 
                                     <div class="relative flex items-center justify-center w-full">
                                         <div class="flex items-center justify-center">
                                             <div class="relative me-2">
                                                 <input type="password" id="password_force_approve"
                                                     wire:model.blur="password_force_approve"
-                                                    class="flex flex-1 {{ $errors->has('password_force_approve') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} rounded outline-none border py-2.5 text-sm select-all duration-200 ease-in-out"
+                                                    class="flex flex-1 {{ $errors->has('password_force_approve') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} focus:ring-0 rounded outline-none border py-2.5 text-sm select-all duration-200 ease-in-out"
                                                     placeholder="Enter your password">
                                                 @error('password_force_approve')
                                                     <p class="absolute top-full left-0 text-xs text-red-700">
@@ -832,7 +838,7 @@
 
                                 <!-- Modal Header -->
                                 <div class="relative flex items-center justify-between py-2 px-4 rounded-t-md">
-                                    <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">Change Batch to
+                                    <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">Set Batch to
                                         Pending
                                     </h1>
 
@@ -852,7 +858,8 @@
                                         </div>
 
                                         {{-- Close Modal --}}
-                                        <button type="button" @click="pendBatchModal = false;"
+                                        <button type="button"
+                                            @click="$wire.resetPasswords(); pendBatchModal = false;"
                                             class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 14 14">
@@ -870,15 +877,20 @@
                                 {{-- Modal body --}}
                                 <div
                                     class="flex flex-col items-center justify-center gap-4 w-full pt-5 pb-10 px-3 md:px-16 text-xs">
-                                    <p class="font-medium text-sm mb-1">
-                                        Are you sure about pending this batch?
-                                    </p>
+                                    <div class="flex flex-col items-center gap-1">
+                                        <p class="font-semibold text-sm ">
+                                            Are you sure about setting this batch to pending?
+                                        </p>
+                                        <p class="font-normal text-xs text-gray-500">
+                                            This will enable all batches to be modifiable to you and the coordinators.
+                                        </p>
+                                    </div>
                                     <div class="relative flex items-center justify-center w-full">
                                         <div class="flex items-center justify-center">
                                             <div class="relative me-2">
                                                 <input type="password" id="password_pend_batch"
                                                     wire:model.blur="password_pend_batch"
-                                                    class="flex {{ $errors->has('password_pend_batch') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
+                                                    class="flex {{ $errors->has('password_pend_batch') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'border-indigo-300 focus:border-indigo-500 bg-indigo-50' }} focus:ring-0 rounded outline-none border p-2.5 text-sm select-all duration-200 ease-in-out"
                                                     placeholder="Enter your password">
                                                 @error('password_pend_batch')
                                                     <p class="absolute top-full left-0 text-xs text-red-700">

@@ -265,14 +265,15 @@ class CreateProjectModal extends Component
         $this->city_municipality = $this->cities_municipalities[0];
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-
-        $this->defaultMinimumWage = $settings->get('minimum_wage', config('settings.minimum_wage'));
-        $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
-
         $this->province = $this->provinces[0];
         $this->city_municipality = $this->cities_municipalities[0];
 
@@ -282,6 +283,9 @@ class CreateProjectModal extends Component
 
     public function render()
     {
+        $this->defaultMinimumWage = $this->settings->get('minimum_wage', config('settings.minimum_wage'));
+        $this->projectNumPrefix = $this->settings->get('project_number_prefix', config('settings.project_number_prefix'));
+
         if (is_null($this->minimum_wage)) {
             $this->minimum_wage = $this->defaultMinimumWage;
             $this->resetValidation('minimum_wage');

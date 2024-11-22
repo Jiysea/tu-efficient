@@ -380,7 +380,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                     <p>No activity logs found.</p>
                                     <p>
-                                        Maybe try a different <span class=" text-indigo-900">date range</span>.
+                                        Maybe try adjusting the <span class=" text-indigo-900">date range</span>.
                                     </p>
                                 @elseif ($searchLogs)
                                     <svg xmlns="http://www.w3.org/2000/svg"

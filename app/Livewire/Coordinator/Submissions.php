@@ -265,7 +265,7 @@ class Submissions extends Component
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    #[On('start-change')]
+
     public function setStartDate($value)
     {
         $choosenDate = date('Y-m-d', strtotime($value));
@@ -291,7 +291,7 @@ class Submissions extends Component
         $this->dispatch('scroll-to-top')->self();
     }
 
-    #[On('end-change')]
+
     public function setEndDate($value)
     {
         $choosenDate = date('Y-m-d', strtotime($value));
@@ -307,6 +307,12 @@ class Submissions extends Component
             $this->batchId = null;
             $this->searchBatches = null;
             $this->searchBeneficiaries = null;
+        }
+
+        if (strtotime($this->start) > strtotime($this->end)) {
+            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
+            $this->start = $start;
+            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
         }
 
         $this->beneficiaryId = null;
@@ -823,7 +829,6 @@ class Submissions extends Component
             $this->beneficiaryId = null;
             $this->selectedBeneficiaryRow = -1;
 
-            $this->resetEditBeneficiary();
             $this->dispatch('show-alert');
             $this->dispatch('init-reload')->self();
 
@@ -906,15 +911,25 @@ class Submissions extends Component
         }
     }
 
+    #[Computed]
+    public function personalSettings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
+    #[Computed]
+    public function globalSettings()
+    {
+        return UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
+            ->where('users.user_type', 'focal')
+            ->pluck('user_settings.value', 'user_settings.key');
+    }
+
     public function resetPassword()
     {
         $this->reset('password_approve');
         $this->resetValidation(['password_approve']);
-    }
-
-    public function resetEditBeneficiary()
-    {
-        $this->resetExcept('beneficiaryId', 'duplicationThreshold', 'maximumIncome', 'defaultArchive');
     }
 
     # batchId and coordinatorId will only be NOT null when the user clicks `View List` from the assignments page
@@ -964,15 +979,12 @@ class Submissions extends Component
             $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
         }
 
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $this->batchNumPrefix = $settings->get('batch_num_prefix', config('settings.batch_number_prefix'));
-        $this->defaultArchive = intval($settings->get('default_archive', config('settings.default_archive')));
-
     }
 
     public function render()
     {
+        $this->batchNumPrefix = $this->globalSettings->get('batch_num_prefix', config('settings.batch_number_prefix'));
+        $this->defaultArchive = intval($this->personalSettings->get('default_archive', config('settings.default_archive')));
         return view('livewire.coordinator.submissions');
     }
 }

@@ -32,6 +32,10 @@ class Archives extends Component
     public $selectedRowKey = -1;
     public $searchArchives;
     public $alerts = [];
+    public $start;
+    public $end;
+    public $defaultStart;
+    public $defaultEnd;
 
     # -------------------------------------
 
@@ -48,6 +52,36 @@ class Archives extends Component
     public $isIneligible = false;
 
     # -------------------------------------
+
+    public function setStartDate($value)
+    {
+        $this->reset('searchArchives');
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+
+        $this->start = $choosenDate . ' ' . $currentTime;
+
+        $this->archiveId = null;
+
+    }
+
+    public function setEndDate($value)
+    {
+        $this->reset('searchArchives');
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->archiveId = null;
+
+        if (strtotime($this->start) > strtotime($this->end)) {
+            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
+            $this->start = $start;
+            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
+        }
+
+    }
 
     public function restoreRow()
     {
@@ -233,6 +267,7 @@ class Archives extends Component
     public function archives()
     {
         $archives = Archive::where('source_table', 'beneficiaries')
+            ->whereBetween('archived_at', [$this->start, $this->end])
             ->when($this->searchArchives, function ($q) {
                 $q->where('data->first_name', 'LIKE', '%' . $this->searchArchives . '%')
                     ->orWhere('data->middle_name', 'LIKE', '%' . $this->searchArchives . '%')
@@ -304,9 +339,7 @@ class Archives extends Component
             $extension_name = null;
         }
 
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $duplicationThreshold = floatval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $duplicationThreshold = floatval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
 
         $this->similarityResults = JaccardSimilarity::getResults($first_name, $middle_name, $last_name, $extension_name, Carbon::parse($birthdate)->format('Y-m-d'), $duplicationThreshold);
 
@@ -378,14 +411,25 @@ class Archives extends Component
         });
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
         if (auth()->user()->user_type !== 'focal') {
             $this->redirectIntended();
         }
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $this->defaultArchive = intval($settings->get('default_archive', config('settings.default_archive')));
+        $this->defaultArchive = intval($this->settings->get('default_archive', config('settings.default_archive')));
+
+        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
+        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+
+        $this->defaultStart = date('m/d/Y', strtotime($this->start));
+        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
     }
 
     public function render()

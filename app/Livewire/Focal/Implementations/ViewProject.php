@@ -347,17 +347,24 @@ class ViewProject extends Component
         }
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
 
-        $this->defaultMinimumWage = $settings->get('minimum_wage', config('settings.minimum_wage'));
-        $this->projectNumPrefix = $settings->get('project_number_prefix', config('settings.project_number_prefix'));
+
     }
 
     public function render()
     {
+        $this->defaultMinimumWage = $this->settings->get('minimum_wage', config('settings.minimum_wage'));
+        $this->projectNumPrefix = $this->settings->get('project_number_prefix', config('settings.project_number_prefix'));
+
         # Check if there's no batches made with this project yet
         $this->checkEmpty();
         $this->checkApproved();

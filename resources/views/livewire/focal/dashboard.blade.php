@@ -390,8 +390,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             Per Implementation
                                         </h1>
                                         <span
-                                            class="text-xs md:text-sm px-3 py-1 rounded {{ $this->implementation->is_sectoral ? 'bg-rose-100 text-rose-700' : 'bg-indigo-100 text-indigo-700' }} font-semibold">
-                                            {{ $this->implementation->is_sectoral ? 'Sectoral' : 'Non-Sectoral' }}
+                                            class="text-xs md:text-sm px-3 py-1 rounded {{ $this->implementation?->is_sectoral ? 'bg-rose-100 text-rose-700' : 'bg-indigo-100 text-indigo-700' }} font-semibold">
+                                            {{ $this->implementation?->is_sectoral ? 'Sectoral' : 'Non-Sectoral' }}
                                         </span>
                                     </div>
 
@@ -672,7 +672,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     <div class="col-span-1 flex flex-col shadow rounded justify-between max-lg:h-[75vh] bg-white">
 
                         {{-- Beneficiaries by Barangay --}}
-                        @if (!$this->implementation->is_sectoral)
+                        @if (!$this->implementation?->is_sectoral)
                             <div class="flex flex-col flex-1">
                                 <div class="flex flex-row items-center justify-between my-2 mx-4">
                                     <div class="flex items-center justify-center gap-2 text-indigo-900">
@@ -1248,6 +1248,19 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             setTimeout(() => {
                 initFlowbite();
             }, 1);
+        });
+
+        $wire.on('modifyStart', (event) => {
+            const start = document.getElementById('start-date');
+            start.value = event.newStart;
+
+            const datepicker = FlowbiteInstances.getInstance('Datepicker', 'dashboard-date-range');
+            console.log(datepicker);
+            if (datepicker) {
+                datepicker.setDate(event.newStart);
+            }
+
+            $dispatchSelf('init-reload');
         });
 
         $wire.on('openPrintWindow', (data) => {

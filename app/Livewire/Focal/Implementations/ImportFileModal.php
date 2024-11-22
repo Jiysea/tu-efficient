@@ -389,17 +389,22 @@ class ImportFileModal extends Component
         }
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
-        # gets the matching mode settings of the user
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $this->duplicationThreshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
-        $this->maximumIncome = $settings->get('maximum_income', config('settings.maximum_income'));
+
     }
 
     public function render()
     {
+        $this->duplicationThreshold = intval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $this->settings->get('maximum_income', config('settings.maximum_income'));
         return view('livewire.focal.implementations.import-file-modal');
     }
 }

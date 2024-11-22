@@ -1079,14 +1079,6 @@ class ViewBeneficiary extends Component
         return $barangays ?? [];
     }
 
-    #[Computed]
-    public function settings()
-    {
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        return $settings;
-    }
-
     public function revokeSpecialCase()
     {
         $this->reset(
@@ -1112,15 +1104,23 @@ class ViewBeneficiary extends Component
         $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold', 'maximumIncome', 'defaultArchive');
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
-        $this->duplicationThreshold = intval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
-        $this->maximumIncome = $this->settings->get('maximum_income', config('settings.maximum_income'));
-        $this->defaultArchive = $this->settings->get('default_archive', config('settings.default_archive'));
+
     }
 
     public function render()
     {
+        $this->duplicationThreshold = intval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $this->settings->get('maximum_income', config('settings.maximum_income'));
+        $this->defaultArchive = $this->settings->get('default_archive', config('settings.default_archive'));
         $this->is_sectoral = $this->implementation?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));

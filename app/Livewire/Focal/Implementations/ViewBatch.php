@@ -175,6 +175,9 @@ class ViewBatch extends Component
             'slots_allocated.min' => ':attribute should be > 0.',
             'slots_allocated.gte' => ':attribute should be nonnegative.',
             'slots_allocated.lte' => ':attribute should be less than total.',
+
+            'password_force_approve.required' => 'This field is required.',
+            'password_pend_batch.required' => 'This field is required.',
         ];
     }
 
@@ -224,6 +227,10 @@ class ViewBatch extends Component
         $this->pendBatchModal = false;
     }
 
+    public function resetPasswords()
+    {
+        $this->reset('password_force_approve, password_pend_batch');
+    }
 
     # ----------------------------------------------------------------------------------------------
 
@@ -814,16 +821,21 @@ class ViewBatch extends Component
         }
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $this->batchNumPrefix = $settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
         $this->setCoordinator();
     }
 
     public function render()
     {
+        $this->batchNumPrefix = $this->settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
         $this->is_sectoral = $this->implementation?->is_sectoral;
         # View Batch Modal
         $this->checkEmpty();

@@ -639,12 +639,15 @@ class AssignBatchesModal extends Component
         $this->resetValidation();
     }
 
+    #[Computed]
+    public function settings()
+    {
+        return UserSetting::where('users_id', Auth::id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
-        # setting up settings
-        $settings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $this->batchNumPrefix = $settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
         $this->setCoordinator();
         $this->generateBatchNum();
         $this->barangay_name = null;
@@ -653,6 +656,7 @@ class AssignBatchesModal extends Component
 
     public function render()
     {
+        $this->batchNumPrefix = $this->settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
         $this->is_sectoral = $this->implementation?->is_sectoral;
         # Assign Batches Modal
         if ($this->implementationId) {

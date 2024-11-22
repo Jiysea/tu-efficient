@@ -372,6 +372,12 @@ class Dashboard extends Component
             $this->currentImplementation = $this->implementations[0]->project_num;
         }
 
+        if (strtotime($this->start) > strtotime($this->end)) {
+            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
+            $this->start = $start;
+            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
+        }
+
         $this->resetPage();
         $this->setCharts();
     }

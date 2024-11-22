@@ -43,11 +43,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </svg>
                             </div>
                             <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
+                                @change-date.camel="$wire.setStartDate($el.value); $dispatchSelf('scroll-top-beneficiaries'); $dispatchSelf('scroll-top-batches');"
                                 class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
                                 placeholder="Select date start">
                         </div>
 
-                        <span class="text-indigo-1100">to</span>
+                        <span class="text-blue-1100">to</span>
 
                         {{-- End --}}
                         <div class="relative flex flex-1 w-[7rem] sm:w-[8rem]">
@@ -65,6 +66,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </svg>
                             </div>
                             <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
+                                @change-date.camel="$wire.setEndDate($el.value); $dispatchSelf('scroll-top-beneficiaries'); $dispatchSelf('scroll-top-batches');"
                                 class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
                                 placeholder="Select date end">
                         </div>
@@ -72,7 +74,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 </div>
 
                 {{-- Loading State --}}
-                <div class="flex items-center justify-end text-blue-900" wire:loading>
+                <div class="flex items-center justify-end text-blue-900" wire:loading
+                    wire:target="setStartDate, setEndDate, selectBatchRow">
                     <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -116,8 +119,22 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         <div class="flex items-center justify-end gap-2">
                             <div class="relative">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                    <svg class="size-3 text-blue-500" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+
+                                    {{-- Loading Icon --}}
+                                    <svg class="size-3 animate-spin" wire:loading wire:target="searchBatches"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Search Icon --}}
+                                    <svg class="size-3 text-blue-500" aria-hidden="true" wire:loading.remove
+                                        wire:target="searchBatches" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
@@ -125,7 +142,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 <input type="text" id="batch-search" maxlength="100" autocomplete="off"
                                     wire:model.live.debounce.350ms="searchBatches"
                                     class="duration-200 outline-none ease-in-out ps-7 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Search for batch numbers">
+                                    placeholder="Search for batches">
                             </div>
 
                             {{-- Filter Button --}}
@@ -411,9 +428,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             class="relative bg-white px-4 pb-4 pt-2 h-[82.5vh] w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded size-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                @if (in_array(false,
-                                        array_values(array_unique(array_merge($this->filter['approval_status'], $this->filter['submission_status']),
-                                                SORT_REGULAR))))
+                                @if (array_diff(Arr::flatten($this->filter), Arr::flatten($this->oldFilter)))
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -426,7 +441,9 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                     <p>No batches found.</p>
                                     <p>Try a different <span class=" text-blue-900">filter</span>.</p>
-                                @elseif ($start !== $defaultStart || $end !== $defaultEnd)
+                                @elseif (
+                                    \Carbon\Carbon::parse($start)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultStart)->format('Y-m-d') ||
+                                        \Carbon\Carbon::parse($end)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultEnd)->format('Y-m-d'))
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -438,7 +455,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>No batches found.</p>
-                                    <p>Try a different <span class=" text-blue-900">date range</span>.</p>
+                                    <p>Maybe try adjusting the <span class=" text-blue-900">date range</span>.</p>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
@@ -679,32 +696,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
 @script
     <script>
-        const datepickerStart = document.getElementById('start-date');
-        const datepickerEnd = document.getElementById('end-date');
-
-        datepickerStart.addEventListener('changeDate', function(event) {
-
-            $wire.dispatchSelf('start-change', {
-                value: datepickerStart.value
-            });
-
-            $wire.dispatchSelf('scroll-top-beneficiaries');
-            $wire.dispatchSelf('scroll-top-batches');
-
-
-        });
-
-        datepickerEnd.addEventListener('changeDate', function(event) {
-
-            $wire.dispatchSelf('end-change', {
-                value: datepickerEnd.value
-            });
-
-            $wire.dispatchSelf('scroll-top-beneficiaries');
-            $wire.dispatchSelf('scroll-top-batches');
-
-        });
-
         $wire.on('init-reload', () => {
             setTimeout(() => {
                 initFlowbite();
@@ -730,6 +721,19 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     behavior: 'smooth'
                 });
             }
+        });
+
+        $wire.on('modifyStart', (event) => {
+            const start = document.getElementById('start-date');
+            start.value = event.newStart;
+
+            const datepicker = FlowbiteInstances.getInstance('Datepicker', 'assignments-date-range');
+            console.log(datepicker);
+            if (datepicker) {
+                datepicker.setDate(event.newStart);
+            }
+
+            $dispatchSelf('init-reload');
         });
     </script>
 @endscript

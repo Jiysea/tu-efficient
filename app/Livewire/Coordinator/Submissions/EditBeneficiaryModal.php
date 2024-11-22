@@ -889,11 +889,18 @@ class EditBeneficiaryModal extends Component
     }
 
     #[Computed]
-    public function settings()
+    public function personalSettings()
     {
-        $settings = UserSetting::where('users_id', Auth::id())
+        return UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
-        return $settings;
+    }
+
+    #[Computed]
+    public function globalSettings()
+    {
+        return UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
+            ->where('users.user_type', 'focal')
+            ->pluck('user_settings.value', 'user_settings.key');
     }
 
     public function revokeSpecialCase()
@@ -928,17 +935,13 @@ class EditBeneficiaryModal extends Component
 
     public function mount()
     {
-        $personalSettings = UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
-        $globalSettings = UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
-            ->where('users.user_type', 'focal')
-            ->pluck('user_settings.value', 'user_settings.key');
-        $this->duplicationThreshold = intval($personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
-        $this->maximumIncome = $globalSettings->get('maximum_income', config('settings.maximum_income'));
+
     }
 
     public function render()
     {
+        $this->duplicationThreshold = intval($this->personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $this->globalSettings->get('maximum_income', config('settings.maximum_income'));
         $this->is_sectoral = $this->implementation?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
