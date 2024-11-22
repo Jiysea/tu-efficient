@@ -323,6 +323,7 @@ class AssignBatchesModal extends Component
             'slots_allocated',
             'assigned_coordinators',
             'ignoredCoordinatorIDs',
+            'searchBarangay',
         );
 
         $this->validateOnly('temporaryBatchesList');

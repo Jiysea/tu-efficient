@@ -203,7 +203,7 @@ class ProcessImportSimilarity implements ShouldQueue
                     if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = 'underemployed';
                     } else {
-                        $value = null;
+                        $value = mb_strtolower($cell->getValue(), "UTF-8");
                     }
                 }
 
@@ -535,7 +535,7 @@ class ProcessImportSimilarity implements ShouldQueue
         if ($district) {
 
             foreach (Barangays::getBarangays($implementation->city_municipality, $district) as $bar) {
-                if ($bar === $barangay_name) {
+                if (mb_strtolower($bar, "UTF-8") === mb_strtolower($barangay_name, "UTF-8")) {
                     return null;
                 }
             }
@@ -544,19 +544,19 @@ class ProcessImportSimilarity implements ShouldQueue
 
         } else {
             foreach (Barangays::getBarangays($implementation->city_municipality, '1st District') as $bar) {
-                if ($bar === $barangay_name) {
+                if (mb_strtolower($bar, "UTF-8") === mb_strtolower($barangay_name, "UTF-8")) {
                     return null;
                 }
             }
 
             foreach (Barangays::getBarangays($implementation->city_municipality, '2nd District') as $bar) {
-                if ($bar === $barangay_name) {
+                if (mb_strtolower($bar, "UTF-8") === mb_strtolower($barangay_name, "UTF-8")) {
                     return null;
                 }
             }
 
             foreach (Barangays::getBarangays($implementation->city_municipality, '3rd District') as $bar) {
-                if ($bar === $barangay_name) {
+                if (mb_strtolower($bar, "UTF-8") === mb_strtolower($barangay_name, "UTF-8")) {
                     return null;
                 }
             }
@@ -596,7 +596,54 @@ class ProcessImportSimilarity implements ShouldQueue
     {
         if ($barangay_name) {
             $short = mb_strtolower($barangay_name, "UTF-8");
-            return ucwords($short);
+            $barangay_name = ucwords($short);
+            if (
+                in_array(mb_strtoupper($barangay_name, 'UTF-8'), [
+                    '1-A',
+                    '2-A',
+                    '3-A',
+                    '4-A',
+                    '5-A',
+                    '6-A',
+                    '7-A',
+                    '8-A',
+                    '9-A',
+                    '10-A',
+                    '11-B',
+                    '12-B',
+                    '13-B',
+                    '14-B',
+                    '15-B',
+                    '16-B',
+                    '17-B',
+                    '18-B',
+                    '19-B',
+                    '20-B',
+                    '21-C',
+                    '22-C',
+                    '23-C',
+                    '24-C',
+                    '25-C',
+                    '26-C',
+                    '27-C',
+                    '28-C',
+                    '29-C',
+                    '30-C',
+                    '31-D',
+                    '32-D',
+                    '33-D',
+                    '34-D',
+                    '35-D',
+                    '36-D',
+                    '37-D',
+                    '38-D',
+                    '39-D',
+                    '40-D',
+                ])
+            ) {
+                return mb_strtoupper($barangay_name, 'UTF-8');
+            }
+            return $barangay_name;
         }
 
         return null;
