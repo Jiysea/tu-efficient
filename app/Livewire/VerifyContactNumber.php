@@ -116,7 +116,7 @@ class VerifyContactNumber extends Component
         # Retrieve request_id from the authenticated user
         if (!$request) {
             $this->alerts[] = [
-                'message' => 'Request ID not found.',
+                'message' => 'Incorrect verification code.',
                 'id' => uniqid(),
                 'color' => 'red'
             ];

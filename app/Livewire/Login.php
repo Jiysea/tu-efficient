@@ -68,10 +68,10 @@ class Login extends Component
 
             # For Email && Mobile Verification (disabled the mobile verification)
             if (!Auth::user()->isEmailVerified()) {
-                // Auth::user()->update(['ongoing_verification' => 1]);
+                Auth::user()->update(['ongoing_verification' => 1]);
                 $this->redirectRoute('verification.notice');
             } elseif (!Auth::user()->isOngoingVerification()) {
-                // Auth::user()->update(['ongoing_verification' => 1]);
+                Auth::user()->update(['ongoing_verification' => 1]);
             }
 
             # Logs the login date of the user (remove this when enabling mobile verification)
