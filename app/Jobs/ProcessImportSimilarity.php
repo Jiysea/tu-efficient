@@ -453,7 +453,7 @@ class ProcessImportSimilarity implements ShouldQueue
         $implementation = Implementation::find($batch->implementations_id);
         $beneficiaryCount = self::checkBeneficiaryCount($batch);
 
-        if ((!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) && $batch->slots_allocated <= $beneficiaryCount) {
+        if ((!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) && $batch->slots_allocated > $beneficiaryCount) {
 
             DB::transaction(function () use ($implementation, $batch, $beneficiary, $batches_id) {
 

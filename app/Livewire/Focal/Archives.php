@@ -278,7 +278,7 @@ class Archives extends Component
         $archivesList = collect();
         foreach ($archives as $archive) {
             $batchId = $archive->data['batches_id'];
-            $users_id = Implementation::find(Batch::find($batchId)->implementations_id)->users_id;
+            $users_id = Implementation::find(Batch::find($batchId)->implementations_id)?->users_id;
 
             if ($users_id === auth()->id()) {
                 $archivesList->push([
