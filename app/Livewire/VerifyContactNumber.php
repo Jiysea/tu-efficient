@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -146,6 +147,7 @@ class VerifyContactNumber extends Component
                 $user->update(['last_login' => now(), 'ongoing_verification' => 0]);
 
                 # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
+                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
                 session()->flash('heads-up', Auth::user()->last_login);
 
                 $this->redirectIntended();

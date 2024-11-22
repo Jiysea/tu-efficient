@@ -75,12 +75,12 @@ class Login extends Component
             }
 
             # Logs the login date of the user (remove this when enabling mobile verification)
-            User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
+            // User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
 
             if (strtolower(Auth::user()->user_type) === 'focal') {
 
                 # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
-                session()->flash('heads-up', Auth::user()->last_login);
+                // session()->flash('heads-up', Auth::user()->last_login);
 
                 $this->redirectRoute('focal.dashboard');
 
