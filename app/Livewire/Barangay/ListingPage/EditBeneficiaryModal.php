@@ -594,7 +594,6 @@ class EditBeneficiaryModal extends Component
                 $this->expanded = false;
             }
 
-            $this->dispatch('init-reload')->self();
         }
     }
 
@@ -715,7 +714,6 @@ class EditBeneficiaryModal extends Component
         $this->resetValidation();
         $this->nameCheck();
 
-        $this->dispatch('init-reload')->self();
     }
 
     protected function beneficiaryAge($birthdate)
@@ -981,6 +979,7 @@ class EditBeneficiaryModal extends Component
 
     public function render()
     {
+        $this->dispatch('init-reload')->self();
         $this->is_sectoral = $this->implementation?->is_sectoral;
         # gets the settings of the focal
         $this->duplicationThreshold = floatval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;

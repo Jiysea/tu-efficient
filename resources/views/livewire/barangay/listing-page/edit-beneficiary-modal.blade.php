@@ -266,7 +266,7 @@
                                                                         </div>
 
                                                                         {{-- The Image itself --}}
-                                                                        <input id="edit_edit_reason_image_file_path"
+                                                                        <input id="edit_reason_image_file_path"
                                                                             wire:model="reason_image_file_path"
                                                                             type="file" accept=".png,.jpg,.jpeg"
                                                                             class="hidden" />
@@ -318,14 +318,14 @@
 
                         {{-- First Name --}}
                         <div class=" relative col-span-full sm:col-span-2 xl:col-span-3 pb-1">
-                            <label for="first_name" class="block mb-1 font-medium text-green-1100">
+                            <label for="edit_first_name" class="block mb-1 font-medium text-green-1100">
                                 <span class="relative">First Name
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
                                 </span>
                             </label>
-                            <input type="text" id="first_name" autocomplete="off" wire:model.blur="first_name"
-                                @blur="$wire.nameCheck();"
+                            <input type="text" id="edit_first_name" autocomplete="off"
+                                wire:model.blur="first_name" @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Type first name">
                             @error('first_name')
@@ -336,10 +336,10 @@
                         {{-- Middle Name --}}
                         <div
                             class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-2  pb-1">
-                            <label for="middle_name" class="block mb-1  font-medium text-green-1100 ">Middle
+                            <label for="edit_middle_name" class="block mb-1  font-medium text-green-1100 ">Middle
                                 Name</label>
-                            <input type="text" id="middle_name" autocomplete="off" wire:model.blur="middle_name"
-                                @blur="$wire.nameCheck();"
+                            <input type="text" id="edit_middle_name" autocomplete="off"
+                                wire:model.blur="middle_name" @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('middle_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="(optional)">
                             @error('middle_name')
@@ -349,13 +349,13 @@
 
                         {{-- Last Name --}}
                         <div class=" relative col-span-full sm:col-span-2  pb-1">
-                            <label for="last_name" class="block mb-1  font-medium text-green-1100 ">
+                            <label for="edit_last_name" class="block mb-1  font-medium text-green-1100 ">
                                 <span class="relative">Last Name
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
                                 </span>
                             </label>
-                            <input type="text" id="last_name" autocomplete="off" wire:model.blur="last_name"
+                            <input type="text" id="edit_last_name" autocomplete="off" wire:model.blur="last_name"
                                 @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Type last name">
@@ -367,9 +367,9 @@
                         {{-- Extension Name --}}
                         <div
                             class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-1  pb-1">
-                            <label for="extension_name" class="block mb-1 font-medium text-green-1100 ">Ext.
+                            <label for="edit_extension_name" class="block mb-1 font-medium text-green-1100 ">Ext.
                                 Name</label>
-                            <input type="text" id="extension_name" autocomplete="off"
+                            <input type="text" id="edit_extension_name" autocomplete="off"
                                 wire:model.blur="extension_name" @blur="$wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('extension_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="III, Sr., etc.">
@@ -381,7 +381,7 @@
 
                         {{-- Birthdate --}}
                         <div x-data="{ birthdate: $wire.entangle('birthdate') }" class=" relative col-span-full sm:col-span-2  pb-1">
-                            <label for="birthdate" class="block mb-1  font-medium text-green-1100 ">
+                            <label for="edit_birthdate" class="block mb-1  font-medium text-green-1100 ">
                                 <span class="relative">Birthdate
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
@@ -397,7 +397,7 @@
                             </div>
                             <input type="text" datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                 datepicker-min-date='{{ $minDate }}' datepicker-max-date='{{ $maxDate }}'
-                                id="birthdate" autocomplete="off" wire:model.blur="birthdate"
+                                id="edit_birthdate" autocomplete="off" wire:model.blur="birthdate"
                                 @change-date.camel="$wire.set('birthdate', $el.value); $wire.nameCheck();"
                                 class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Select date">
@@ -408,7 +408,7 @@
 
                         {{-- Contact Number --}}
                         <div class=" relative col-span-full sm:col-span-2  pb-1">
-                            <label for="contact_num" class="block mb-1 font-medium text-green-1100 ">
+                            <label for="edit_contact_num" class="block mb-1 font-medium text-green-1100 ">
                                 <span class="relative">Contact Number
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
@@ -424,7 +424,7 @@
                                 </div>
                                 <input x-mask="99999999999" type="text" min="0"
                                     @blur="if($el.value == '') { $wire.contact_num = null; }" autocomplete="off"
-                                    id="contact_num" wire:model.blur="contact_num"
+                                    id="edit_contact_num" wire:model.blur="contact_num"
                                     class="text-xs outline-none border ps-12 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('contact_num') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50  border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                     placeholder="ex. 09123456789">
                             </div>
@@ -437,9 +437,10 @@
 
                         {{-- E-payment Account Number --}}
                         <div class=" relative col-span-full sm:col-span-2  pb-1">
-                            <label for="e_payment_acc_num" class="block mb-1 font-medium text-green-1100 ">E-payment
+                            <label for="edit_e_payment_acc_num"
+                                class="block mb-1 font-medium text-green-1100 ">E-payment
                                 Account No.</label>
-                            <input type="text" id="e_payment_acc_num" autocomplete="off"
+                            <input type="text" id="edit_e_payment_acc_num" autocomplete="off"
                                 wire:model.blur="e_payment_acc_num"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600"
                                 placeholder="Type e-payment account number">
@@ -492,13 +493,14 @@
 
                         {{-- Occupation --}}
                         <div x-data="{ avg: $wire.entangle('avg_monthly_income') }" class=" relative col-span-full sm:col-span-2  pb-1">
-                            <label for="occupation" class="block mb-1  font-medium text-green-1100 ">
+                            <label for="edit_occupation" class="block mb-1  font-medium text-green-1100 ">
                                 <span class="relative">Occupation
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
                                 </span>
                             </label>
-                            <input type="text" id="occupation" autocomplete="off" wire:model.blur="occupation"
+                            <input type="text" id="edit_occupation" autocomplete="off"
+                                wire:model.blur="occupation"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('occupation') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Type occupation">
                             @error('occupation')
@@ -592,7 +594,7 @@
 
                         {{-- Average Monthly Income --}}
                         <div x-data="{ occ: $wire.entangle('occupation') }" class=" relative col-span-full sm:col-span-2  pb-1">
-                            <label for="avg_monthly_income" class="block mb-1  font-medium text-green-1100 ">
+                            <label for="edit_avg_monthly_income" class="block mb-1  font-medium text-green-1100 ">
                                 <span class="relative">Average Monthly Income
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
@@ -607,7 +609,7 @@
                                     </p>
                                 </div>
                                 <input x-mask:dynamic="$money($input)" type="text" min="0"
-                                    autocomplete="off" id="avg_monthly_income"
+                                    autocomplete="off" id="edit_avg_monthly_income"
                                     @input="$wire.avg_monthly_income = $el.value;"
                                     class="text-xs outline-none border ps-10 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('avg_monthly_income') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50  border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                     placeholder="0.00">
@@ -621,7 +623,7 @@
                         {{-- Dependent --}}
                         <div class=" relative col-span-full sm:col-span-2 xl:col-span-3  pb-1">
                             <div class="flex items-center">
-                                <label for="dependent"
+                                <label for="edit_dependent"
                                     class="relative flex items-center gap-1.5 mb-1 font-medium text-green-1100">
                                     Dependent <span class="text-gray-500">(must be 18+ years old)</span>
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
@@ -629,7 +631,7 @@
                                 </label>
 
                             </div>
-                            <input type="text" id="dependent" autocomplete="off" wire:model.blur="dependent"
+                            <input type="text" id="edit_dependent" autocomplete="off" wire:model.blur="dependent"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('dependent') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Type dependent's name">
                             @error('dependent')
@@ -643,7 +645,7 @@
                             <p class="mb-1 font-medium text-green-1100">Interested in Wage or
                                 Self-Employment</p>
                             <div x-data="{ open: false, self_employment: $wire.entangle('self_employment') }" x-on:keydown.escape.prevent.stop="open = false;"
-                                x-id="['self-employment-button']" class="relative">
+                                class="relative">
                                 <!-- Button -->
                                 <button @click="open = !open;" :aria-expanded="open" type="button"
                                     class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-green-50 border-green-300 text-green-1100 outline-green-300 focus:outline-green-600 focus:border-green-600">
@@ -686,10 +688,10 @@
                         {{-- Skills Training Needed --}}
                         <div
                             class=" relative col-span-full sm:col-span-2 {{ $is_sectoral ? 'lg:col-span-2' : '' }} md:col-span-6 xl:col-span-2 pb-1">
-                            <label for="skills_training" class="block mb-1  font-medium text-green-1100 ">Skills
+                            <label for="edit_skills_training" class="block mb-1  font-medium text-green-1100 ">Skills
                                 Training
                                 Needed</label>
-                            <input type="text" id="skills_training" autocomplete="off"
+                            <input type="text" id="edit_skills_training" autocomplete="off"
                                 wire:model.blur="skills_training"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600"
                                 placeholder="(optional)">
@@ -706,7 +708,7 @@
                                         </span>
                                     </span>
                                 </p>
-                                <button type="button" id="district" @click="show = !show;"
+                                <button type="button" id="edit_district" @click="show = !show;"
                                     class="text-xs flex items-center justify-between outline-none border rounded w-full p-2 duration-200 ease-in-out {{ $errors->has('district') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }} ">
                                     @if ($district)
                                         <span x-text="district"></span>
@@ -759,7 +761,7 @@
                                         </span>
                                     </span>
                                 </span>
-                                <button type="button" id="barangay_name"
+                                <button type="button" id="edit_barangay_name"
                                     @if ($district) @click="show = !show;"
                                     @else
                                         disabled @endif
@@ -813,8 +815,9 @@
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                             </path>
                                         </svg>
-                                        <input id="searchBarangay" wire:model.live.debounce.300ms="searchBarangay"
-                                            type="text" autocomplete="off"
+                                        <input id="edit_searchBarangay"
+                                            wire:model.live.debounce.300ms="searchBarangay" type="text"
+                                            autocomplete="off"
                                             class="rounded w-full ps-8 text-xs text-green-1100 border-green-200 hover:placeholder-green-500 hover:border-green-500 focus:border-green-900 focus:ring-1 focus:ring-green-900 focus:outline-none duration-200 ease-in-out"
                                             placeholder="Search barangay">
                                     </div>
@@ -896,13 +899,13 @@
 
                         {{-- ID Number --}}
                         <div class=" relative col-span-full sm:col-span-1 md:col-span-2 lg:col-span-2  pb-1">
-                            <label for="id_number" class="block mb-1 font-medium text-green-1100 ">
+                            <label for="edit_id_number" class="block mb-1 font-medium text-green-1100 ">
                                 <span class="relative">ID Number
                                     <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
                                 </span>
                             </label>
-                            <input type="text" id="id_number" autocomplete="off" wire:model.blur="id_number"
+                            <input type="text" id="edit_id_number" autocomplete="off" wire:model.blur="id_number"
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('id_number') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Type ID number">
                             @error('id_number')
@@ -917,7 +920,7 @@
                                 <p class="inline mb-1 font-medium text-green-1100">Is PWD?</p>
                                 {{-- Popover Thingy --}}
                                 <div x-data="{ pop: false }" class="relative flex items-center"
-                                    id="is-pwd-question-mark">
+                                    id="edit_is-pwd-question-mark">
                                     <svg class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-green-700"
                                         aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                                         viewBox="0 0 20 20" @mouseleave="pop = false;" @mouseenter="pop = true;">
@@ -925,7 +928,7 @@
                                             d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
                                     </svg>
                                     {{-- Popover --}}
-                                    <div id="is-pwd-popover"
+                                    <div id="edit_is-pwd-popover"
                                         class="absolute z-50 bottom-full mb-2 left-0 md:left-auto md:right-0 text-xs whitespace-nowrap border border-gray-300 text-green-50 bg-gray-700 rounded p-2 shadow"
                                         x-show="pop">
                                         PWD stands for <b>P</b>erson <b>w</b>ith
@@ -980,7 +983,7 @@
 
                                     {{-- Popover Thingy --}}
                                     <div x-data="{ pop: false }" class="relative flex items-center"
-                                        id="identity-question-mark">
+                                        id="edit_identity-question-mark">
                                         <svg class="size-3 outline-none duration-200 ease-in-out cursor-pointer block mb-1 ms-1 rounded-full text-gray-500 hover:text-green-700"
                                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                                             viewBox="0 0 20 20" @mouseleave="pop = false;" @mouseenter="pop = true;">
@@ -988,7 +991,7 @@
                                                 d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
                                         </svg>
                                         {{-- Popover --}}
-                                        <div id="identity-popover"
+                                        <div id="edit_identity-popover"
                                             class="absolute -left-20 sm:left-0 bottom-full mb-2 z-50 text-xs whitespace-nowrap border border-gray-300 text-green-50 bg-gray-700 rounded p-2 shadow"
                                             x-show="pop">
                                             It's basically an image of a beneficiary's ID card <br>
@@ -1001,7 +1004,7 @@
                                 </div>
 
                                 {{-- Image Area --}}
-                                <label for="image_file_path" x-data="{ uploading: false, progress: 0 }"
+                                <label for="edit_image_file_path" x-data="{ uploading: false, progress: 0 }"
                                     x-on:livewire-upload-start="uploading = true"
                                     x-on:livewire-upload-finish="uploading = false; progress = 0;"
                                     x-on:livewire-upload-cancel="uploading = false"
@@ -1070,7 +1073,7 @@
                                     </div>
 
                                     {{-- The Image itself --}}
-                                    <input id="image_file_path" wire:model="image_file_path" type="file"
+                                    <input id="edit_image_file_path" wire:model="image_file_path" type="file"
                                         accept=".png,.jpg,.jpeg" class="hidden" />
                                 </label>
                                 @error('image_file_path')
@@ -1084,7 +1087,7 @@
 
                         {{-- Spouse First Name --}}
                         <div class=" relative col-span-full sm:col-span-2 xl:col-span-3  pb-1">
-                            <label for="spouse_first_name"
+                            <label for="edit_spouse_first_name"
                                 class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}">
                                 <span class="relative"> Spouse
                                     First Name @if ($civil_status === 'Married')
@@ -1093,7 +1096,7 @@
                                     @endif
                                 </span>
                             </label>
-                            <input type="text" id="spouse_first_name" autocomplete="off"
+                            <input type="text" id="edit_spouse_first_name" autocomplete="off"
                                 wire:model.blur="spouse_first_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                                 @if ($civil_status === 'Married') {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
@@ -1108,10 +1111,10 @@
                         {{-- Spouse Middle Name --}}
                         <div
                             class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-2  pb-1">
-                            <label for="spouse_middle_name"
+                            <label for="edit_spouse_middle_name"
                                 class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}">Spouse
                                 Middle Name </label>
-                            <input type="text" id="spouse_middle_name" autocomplete="off"
+                            <input type="text" id="edit_spouse_middle_name" autocomplete="off"
                                 wire:model.blur="spouse_middle_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                                 @if ($civil_status === 'Married') {{ $errors->has('spouse_middle_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
@@ -1125,7 +1128,7 @@
 
                         {{-- Spouse Last Name --}}
                         <div class=" relative flex flex-col col-span-full sm:col-span-2  pb-1">
-                            <label for="spouse_last_name"
+                            <label for="edit_spouse_last_name"
                                 class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}"><span
                                     class="relative"> Spouse
                                     Last Name @if ($civil_status === 'Married')
@@ -1134,7 +1137,7 @@
                                     @endif
                                 </span>
                             </label>
-                            <input type="text" id="spouse_last_name" autocomplete="off"
+                            <input type="text" id="edit_spouse_last_name" autocomplete="off"
                                 wire:model.blur="spouse_last_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                             
@@ -1150,10 +1153,10 @@
                         {{-- Spouse Extension Name --}}
                         <div
                             class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-1  pb-1">
-                            <label for="spouse_extension_name"
+                            <label for="edit_spouse_extension_name"
                                 class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}">Spouse
                                 Ext. Name</label>
-                            <input type="text" id="spouse_extension_name" autocomplete="off"
+                            <input type="text" id="edit_spouse_extension_name" autocomplete="off"
                                 wire:model.blur="spouse_extension_name"
                                 @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
