@@ -13,7 +13,7 @@
                     <div
                         class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-32 aspect-square">
 
-                        @if ($this->identity)
+                        @if ($this->identity['image_file_path'])
                             <button class="flex items-center justify-center rounded" @click="">
                                 <img class="w-[90%]"
                                     src="{{ route('credentials.show', ['filename' => $this->identity['image_file_path']]) }}">

@@ -593,6 +593,8 @@ class EditBeneficiaryModal extends Component
             if (!isset($this->similarityResults)) {
                 $this->expanded = false;
             }
+
+            $this->dispatch('init-reload')->self();
         }
     }
 

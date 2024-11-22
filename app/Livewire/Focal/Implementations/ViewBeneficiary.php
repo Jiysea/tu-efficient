@@ -731,6 +731,7 @@ class ViewBeneficiary extends Component
                         'last_id' => $credential->id,
                         'source_table' => 'credentials',
                         'data' => $credential->toArray(),
+                        'archived_at' => now()
                     ]);
                     $credential->delete();
                     if ($credential->for_duplicates === 'yes') {
@@ -743,6 +744,7 @@ class ViewBeneficiary extends Component
                     'last_id' => $beneficiary->id,
                     'source_table' => 'beneficiaries',
                     'data' => $beneficiary->toArray(),
+                    'archived_at' => now()
                 ]);
                 $beneficiary->delete();
 

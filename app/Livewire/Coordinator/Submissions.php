@@ -765,6 +765,7 @@ class Submissions extends Component
                         'last_id' => $credential->id,
                         'source_table' => 'credentials',
                         'data' => $credential->toArray(),
+                        'archived_at' => now()
                     ]);
                     $credential->delete();
                     if ($credential->for_duplicates === 'yes') {
@@ -777,6 +778,7 @@ class Submissions extends Component
                     'last_id' => $beneficiary->id,
                     'source_table' => 'beneficiaries',
                     'data' => $beneficiary->toArray(),
+                    'archived_at' => now()
                 ]);
                 $beneficiary->delete();
 
@@ -784,7 +786,6 @@ class Submissions extends Component
                     LogIt::set_archive_beneficiary($beneficiary, auth()->id());
                 }
 
-                $this->resetViewBeneficiary();
                 $this->js('viewBeneficiaryModal = false;');
                 $this->showAlert = true;
                 $this->alertMessage = 'Moved beneficiary to Archives';
@@ -822,6 +823,7 @@ class Submissions extends Component
             $this->beneficiaryId = null;
             $this->selectedBeneficiaryRow = -1;
 
+            $this->resetEditBeneficiary();
             $this->dispatch('show-alert');
             $this->dispatch('init-reload')->self();
 
@@ -908,6 +910,11 @@ class Submissions extends Component
     {
         $this->reset('password_approve');
         $this->resetValidation(['password_approve']);
+    }
+
+    public function resetEditBeneficiary()
+    {
+        $this->resetExcept('beneficiaryId', 'duplicationThreshold', 'maximumIncome', 'defaultArchive');
     }
 
     # batchId and coordinatorId will only be NOT null when the user clicks `View List` from the assignments page
