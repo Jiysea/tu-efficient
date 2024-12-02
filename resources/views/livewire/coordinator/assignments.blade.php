@@ -75,7 +75,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                 {{-- Loading State --}}
                 <div class="flex items-center justify-end text-blue-900" wire:loading
-                    wire:target="setStartDate, setEndDate, selectBatchRow">
+                    wire:target="setStartDate, setEndDate, selectBatchRow, applyFilter, viewList, viewAssignment">
                     <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -146,7 +146,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             </div>
 
                             {{-- Filter Button --}}
-                            <div x-cloak x-data="{ open: false }" class="relative">
+                            <div x-cloak x-data="{ open: false }" class="relative" @keydown.escape="open = false;">
                                 <!-- Button -->
                                 <button x-ref="button" @click="open = !open" :aria-expanded="open" type="button"
                                     class="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 hover:text-blue-100 active:text-blue-200 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-3 py-1 text-sm font-bold duration-200 ease-in-out">
@@ -164,6 +164,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                 <!-- Panel -->
                                 <div x-show="open" @click.outside="open = false;"
+                                    x-trap.inert.noautofocus.noscroll="open"
                                     class="absolute flex flex-col flex-1 gap-4 text-xs right-0 mt-2 p-4 z-50 rounded bg-white shadow-lg border border-gray-300">
 
                                     {{-- Approval Status --}}
@@ -173,33 +174,36 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </h2>
                                         <div x-data="{ approved: $wire.entangle('approvalStatuses.approved'), pending: $wire.entangle('approvalStatuses.pending'), }" class="flex items-center gap-3">
 
-                                            <label class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                            <label tabindex="0" @keydown.enter.self="$refs.approved.click()"
+                                                class="flex flex-1 items-center gap-1 rounded px-2 py-1 focus:outline-1"
                                                 :class="{
-                                                    'bg-blue-100 text-blue-700': approved,
-                                                    'bg-gray-50 text-gray-700': !approved,
+                                                    'bg-blue-100 text-blue-700 focus:outline-blue-300': approved,
+                                                    'bg-gray-50 text-gray-700 focus:outline-gray-300': !
+                                                        approved,
                                                 }"
                                                 for="approvedStatus">
-                                                <input id="approvedStatus" type="checkbox"
-                                                    wire:model="approvalStatuses.approved"
-                                                    class="size-3 rounded outline-none focus:ring-0"
+                                                <input id="approvedStatus" type="checkbox" x-ref="approved"
+                                                    tabindex="-1" wire:model="approvalStatuses.approved"
+                                                    class="size-3 rounded outline-none focus:ring-transparent focus:ring-offset-transparent appearance-none"
                                                     :class="{
-                                                        'border-blue-300': approved,
+                                                        'border-blue-300 text-blue-700': approved,
                                                         'border-gray-300': !approved,
                                                     }">
                                                 Approved
                                             </label>
 
-                                            <label class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                            <label tabindex="0" @keydown.enter.self="$refs.pending.click()"
+                                                class="flex flex-1 items-center gap-1 rounded px-2 py-1 focus:outline-1"
                                                 :class="{
-                                                    'bg-blue-100 text-blue-700': pending,
-                                                    'bg-gray-50 text-gray-700': !pending,
+                                                    'bg-blue-100 text-blue-700 focus:outline-blue-300': pending,
+                                                    'bg-gray-50 text-gray-700 focus:outline-gray-300': !pending,
                                                 }"
                                                 for="pendingStatus">
-                                                <input id="pendingStatus" type="checkbox"
-                                                    wire:model="approvalStatuses.pending"
-                                                    class="size-3 rounded outline-none focus:ring-0"
+                                                <input id="pendingStatus" type="checkbox" x-ref="pending"
+                                                    tabindex="-1" wire:model="approvalStatuses.pending"
+                                                    class="size-3 rounded outline-none focus:ring-transparent focus:ring-offset-transparent appearance-none"
                                                     :class="{
-                                                        'border-blue-300': pending,
+                                                        'border-blue-300 text-blue-700': pending,
                                                         'border-gray-300': !pending,
                                                     }">
                                                 Pending
@@ -216,33 +220,37 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         <div x-data="{ submitted: $wire.entangle('submissionStatuses.submitted'), encoding: $wire.entangle('submissionStatuses.encoding'), unopened: $wire.entangle('submissionStatuses.unopened'), revalidate: $wire.entangle('submissionStatuses.revalidate') }" class="flex flex-col justify-center gap-2">
                                             <div class="flex items-center gap-3">
 
-                                                <label class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                <label tabindex="0" @keydown.enter.self="$refs.submitted.click()"
+                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1 focus:outline-1"
                                                     :class="{
-                                                        'bg-blue-100 text-blue-700': submitted,
-                                                        'bg-gray-50 text-gray-700': !submitted,
+                                                        'bg-blue-100 text-blue-700 focus:outline-blue-300': submitted,
+                                                        'bg-gray-50 text-gray-700 focus:outline-gray-300': !
+                                                            submitted,
                                                     }"
                                                     for="submittedStatus">
-                                                    <input id="submittedStatus" type="checkbox"
-                                                        wire:model="submissionStatuses.submitted"
-                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                    <input id="submittedStatus" type="checkbox" x-ref="submitted"
+                                                        tabindex="-1" wire:model="submissionStatuses.submitted"
+                                                        class="size-3 rounded outline-none focus:ring-transparent focus:ring-offset-transparent appearance-none"
                                                         :class="{
-                                                            'border-blue-300': submitted,
+                                                            'border-blue-300 text-blue-700': submitted,
                                                             'border-gray-300': !submitted,
                                                         }">
                                                     Submitted
                                                 </label>
 
-                                                <label class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                <label tabindex="0" @keydown.enter.self="$refs.encoding.click()"
+                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1 focus:outline-1"
                                                     :class="{
-                                                        'bg-blue-100 text-blue-700': encoding,
-                                                        'bg-gray-50 text-gray-700': !encoding,
+                                                        'bg-blue-100 text-blue-700 focus:outline-blue-300': encoding,
+                                                        'bg-gray-50 text-gray-700 focus:outline-gray-300': !
+                                                            encoding,
                                                     }"
                                                     for="encodingStatus">
-                                                    <input id="encodingStatus" type="checkbox"
-                                                        wire:model="submissionStatuses.encoding"
-                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                    <input id="encodingStatus" type="checkbox" x-ref="encoding"
+                                                        tabindex="-1" wire:model="submissionStatuses.encoding"
+                                                        class="size-3 rounded outline-none focus:ring-transparent focus:ring-offset-transparent appearance-none"
                                                         :class="{
-                                                            'border-blue-300': encoding,
+                                                            'border-blue-300 text-blue-700': encoding,
                                                             'border-gray-300': !encoding,
                                                         }">
                                                     Encoding
@@ -251,34 +259,38 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             </div>
                                             <div class="flex items-center gap-3">
 
-                                                <label class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                <label tabindex="0" @keydown.enter.self="$refs.unopened.click()"
+                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1 focus:outline-1"
                                                     :class="{
-                                                        'bg-blue-100 text-blue-700': unopened,
-                                                        'bg-gray-50 text-gray-700': !unopened,
+                                                        'bg-blue-100 text-blue-700 focus:outline-blue-300': unopened,
+                                                        'bg-gray-50 text-gray-700 focus:outline-gray-300': !
+                                                            unopened,
                                                     }"
                                                     for="unopenedStatus">
-                                                    <input id="unopenedStatus" type="checkbox"
-                                                        wire:model="submissionStatuses.unopened"
-                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                    <input id="unopenedStatus" type="checkbox" x-ref="unopened"
+                                                        tabindex="-1" wire:model="submissionStatuses.unopened"
+                                                        class="size-3 rounded outline-none focus:ring-transparent focus:ring-offset-transparent appearance-none"
                                                         :class="{
-                                                            'border-blue-300': unopened,
+                                                            'border-blue-300 text-blue-700': unopened,
                                                             'border-gray-300': !unopened,
                                                         }">
                                                     Unopened
                                                 </label>
 
 
-                                                <label class="flex flex-1 items-center gap-1 rounded px-2 py-1"
+                                                <label tabindex="0" @keydown.enter.self="$refs.revalidate.click()"
+                                                    class="flex flex-1 items-center gap-1 rounded px-2 py-1 focus:outline-1"
                                                     :class="{
-                                                        'bg-blue-100 text-blue-700': revalidate,
-                                                        'bg-gray-50 text-gray-700': !revalidate,
+                                                        'bg-blue-100 text-blue-700 focus:outline-blue-300': revalidate,
+                                                        'bg-gray-50 text-gray-700 focus:outline-gray-300': !
+                                                            revalidate,
                                                     }"
                                                     for="revalidateStatus">
-                                                    <input id="revalidateStatus" type="checkbox"
-                                                        wire:model="submissionStatuses.revalidate"
-                                                        class="size-3 rounded outline-none focus:ring-0"
+                                                    <input id="revalidateStatus" type="checkbox" x-ref="revalidate"
+                                                        tabindex="-1" wire:model="submissionStatuses.revalidate"
+                                                        class="size-3 rounded outline-none focus:ring-transparent focus:ring-offset-transparent appearance-none"
                                                         :class="{
-                                                            'border-blue-300': revalidate,
+                                                            'border-blue-300 text-blue-700': revalidate,
                                                             'border-gray-300': !revalidate,
                                                         }">
                                                     Revalidate
@@ -291,7 +303,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     {{-- Apply Filter Button --}}
                                     <span class="w-full flex items-center justify-end">
                                         <button @click="$wire.applyFilter(); open = false;"
-                                            class="w-full flex items-center justify-center px-3 py-1.5 font-bold text-sm rounded bg-blue-700 text-blue-50">APPLY
+                                            class="w-full flex items-center justify-center px-3 py-1.5 font-bold text-sm rounded bg-blue-700 text-blue-50 hover:bg-blue-800 active:bg-blue-900 focus:outline-1 focus:outline-blue-900">APPLY
                                             FILTER</button>
                                     </span>
                                 </div>
@@ -690,7 +702,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             </svg>
             <p x-text="successMessage"></p>
         </div>
-
     </div>
 </div>
 
@@ -728,7 +739,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             start.value = event.newStart;
 
             const datepicker = FlowbiteInstances.getInstance('Datepicker', 'assignments-date-range');
-            console.log(datepicker);
             if (datepicker) {
                 datepicker.setDate(event.newStart);
             }

@@ -68,8 +68,51 @@ class Essential
         return trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $value)));
     }
 
-    public static function extract_date($message, $returnFormat = 'Y/m/d')
+    /**
+     * It extracts the date to check if it's a valid date among the listed formats
+     * and also returns the converted date value or its date format.
+     * 
+     * These are the list of valid formats:
+     * 
+     * [Dashed]
+     * • `Y-m-d`
+     * • `Y-d-m`
+     * • `m-d-Y`
+     * • `d-m-Y` (only works if `d` is over 12)
+     * • `m-Y-d`
+     * • `d-Y-m` (only works if `d` is over 12)
+     * 
+     * [Slashed]
+     * • `Y/m/d`
+     * • `Y/d/m`
+     * • `m/d/Y`
+     * • `d/m/Y` (only works if `d` is over 12)
+     * • `m/Y/d`
+     * • `d/Y/m` (only works if `d` is over 12)
+     * 
+     * [Dotted]
+     * • `Y.m.d`
+     * • `Y.d.m`
+     * • `m.d.Y`
+     * • `d.m.Y` (only works if `d` is over 12)
+     * • `m.Y.d`
+     * • `d.Y.m` (only works if `d` is over 12)
+     * 
+     * @param string|null $value The string value of the date you want to extract. If it's `null`, it will return `null`.
+     * @param bool $changeFormat If `true`, it will convert the date to another format. Otherwise `false`
+     * to return its date format.
+     * @param string $returnFormat The format used to convert or being returned
+     * @return string|null Returns a `string` converted date value or its format, otherwise returns
+     * `null` if the date value extracted is not among the listed valid formats.
+     * 
+     * 
+     */
+    public static function extract_date(string|null $value, bool $changeFormat = true, string $returnFormat = 'Y/m/d')
     {
+        if (!isset($value) || empty($value)) {
+            return null;
+        }
+
         $date_patterns = [
             '/\b\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])\b/' => 'Y-m-d',
             '/\b\d{4}-(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])\b/' => 'Y-d-m',
@@ -97,7 +140,7 @@ class Essential
         $dateTimeFormat = null;
 
         foreach ($date_patterns as $date_pattern => $format) {
-            if (preg_match($date_pattern, $message, $matches)) {
+            if (preg_match($date_pattern, $value, $matches)) {
                 $dateTimeFormat = $format;
                 $dateTimeStr = $matches[0];
                 break;
@@ -107,7 +150,12 @@ class Essential
         if ($dateTimeStr == null || $dateTimeFormat == null) {
             return null;
         }
-        $d = Carbon::createFromFormat($dateTimeFormat, $dateTimeStr);
-        return $d->format($returnFormat);
+
+        if ($changeFormat) {
+            $d = Carbon::createFromFormat($dateTimeFormat, $dateTimeStr);
+            return $d->format($returnFormat);
+        }
+
+        return $dateTimeFormat;
     }
 }

@@ -257,6 +257,26 @@ class LogIt
         ]);
     }
 
+    public static function set_edit_beneficiary_identity(Beneficiary $beneficiary, int $users_id = null)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        SystemsLog::factory()->create([
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
+            'log_timestamp' => now(),
+            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+        ]);
+    }
+
+    public static function set_remove_beneficiary_identity(Beneficiary $beneficiary, int $users_id = null)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        SystemsLog::factory()->create([
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
+            'log_timestamp' => now(),
+            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+        ]);
+    }
+
     public static function set_edit_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
     {
         $batch = Batch::find($beneficiary->batches_id);
@@ -264,6 +284,16 @@ class LogIt
             'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
             'log_timestamp' => now(),
             'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+        ]);
+    }
+
+    public static function set_remove_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
+    {
+        $batch = Batch::find($beneficiary->batches_id);
+        SystemsLog::factory()->create([
+            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
+            'log_timestamp' => now(),
+            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
         ]);
     }
 

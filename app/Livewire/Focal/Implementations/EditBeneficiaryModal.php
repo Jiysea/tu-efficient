@@ -642,7 +642,7 @@ class EditBeneficiaryModal extends Component
                 $this->extension_name = null;
             }
 
-            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold, $this->beneficiaryId);
+            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, $this->duplicationThreshold, $this->beneficiaryId);
             $this->setCheckers($this->similarityResults);
 
             if (!isset($this->similarityResults)) {

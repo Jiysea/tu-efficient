@@ -449,7 +449,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             start.value = event.newStart;
 
             const datepicker = FlowbiteInstances.getInstance('Datepicker', 'logs-date-range');
-            console.log(datepicker);
             if (datepicker) {
                 datepicker.setDate(event.newStart);
             }

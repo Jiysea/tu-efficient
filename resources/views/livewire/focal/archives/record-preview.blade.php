@@ -4,20 +4,40 @@
     @if ($archiveId)
         {{-- Whole Thing --}}
         <div class="grid grid-cols-11 gap-2 p-4 text-xs">
+
             {{-- Left Side --}}
-            <div class="flex flex-col col-span-full sm:col-span-3 items-center text-indigo-1100 gap-2">
+            <div
+                class="hidden sm:flex flex-col items-center col-span-full sm:col-span-3 order-2 sm:order-none text-indigo-1100 gap-2">
 
                 {{-- Identity Information --}}
                 <div class="flex flex-col items-center text-indigo-1100">
 
                     {{-- ID Image --}}
                     <div
-                        class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-32 aspect-square">
+                        class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-20 aspect-square">
 
                         @if ($this->identity['image_file_path'])
-                            <button class="flex items-center justify-center rounded" @click="">
-                                <img class="w-[90%]"
+                            <button tabindex="-1"
+                                class="relative flex items-center justify-center rounded size-20 aspect-square outline-none"
+                                wire:click="viewCredential('identity')">
+                                <img class="size-[90%] object-contain"
                                     src="{{ route('credentials.show', ['filename' => $this->identity['image_file_path']]) }}">
+
+                                <div class="absolute bg-black opacity-10 rounded size-full flex items-center justify-center"
+                                    wire:loading wire:target="viewCredential('identity')">
+                                    {{-- Darkness... --}}
+                                </div>
+
+                                <svg class="absolute flex items-center justify-center m-0 size-6 text-indigo-900 animate-spin z-10"
+                                    wire:loading wire:target="viewCredential('identity')"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4">
+                                    </circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
                             </button>
                         @else
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-[50%]"
@@ -30,19 +50,16 @@
                                     </path>
                                 </g>
                             </svg>
-                            <p class="font-medium text-xs mt-2">
-                                No image uploaded.
-                            </p>
                         @endif
                     </div>
 
                     {{-- Type of ID --}}
-                    <p class="font-semibold select-all text-center">
+                    <p class="font-semibold select-text text-center">
                         {{ $this->getIdType }}
                     </p>
 
                     {{-- ID Number --}}
-                    <p class="text-center select-all">
+                    <p class="text-center select-text">
                         {{ $this->archive->data['id_number'] }}
                     </p>
                 </div>
@@ -58,29 +75,42 @@
                     <div class="flex flex-1 flex-col px-2 py-1 gap-2">
                         {{-- Province --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 province </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['province'] }}</span>
                         </div>
 
                         {{-- City/Municipality --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 city / municipality </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['city_municipality'] }}</span>
                         </div>
 
                         {{-- District --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 district </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['district'] }}</span>
+                        </div>
+
+                        {{-- Barangay --}}
+                        <div class="flex flex-1 flex-col justify-center">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                                barangay </p>
+                            <span
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                                {{ $this->archive->data['barangay_name'] }}</span>
                         </div>
                     </div>
                 </div>
@@ -97,45 +127,203 @@
 
                         {{-- Spouse First Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 first name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['spouse_first_name'] ?? '-' }}</span>
                         </div>
 
                         {{-- Spouse Middle Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 middle name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['spouse_middle_name'] ?? '-' }}</span>
                         </div>
 
                         {{-- Spouse Last Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 last name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['spouse_last_name'] ?? '-' }}</span>
                         </div>
 
                         {{-- Spouse Extension Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 ext. name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['spouse_extension_name'] ?? '-' }}</span>
                         </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Identity Information --}}
+            <div
+                class="sm:hidden flex flex-col items-center col-span-full sm:col-span-3 order-1 sm:order-none text-indigo-1100">
+
+                {{-- ID Image --}}
+                <div
+                    class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-20 aspect-square">
+
+                    @if ($this->identity['image_file_path'])
+                        <button tabindex="-1"
+                            class="relative flex items-center justify-center rounded size-20 aspect-square outline-none"
+                            wire:click="viewCredential('identity')">
+                            <img class="size-[90%] object-contain"
+                                src="{{ route('credentials.show', ['filename' => $this->identity['image_file_path']]) }}">
+
+                            <div class="absolute bg-black opacity-10 rounded size-full flex items-center justify-center"
+                                wire:loading wire:target="viewCredential('identity')">
+                                {{-- Darkness... --}}
+                            </div>
+
+                            <svg class="absolute flex items-center justify-center m-0 size-6 text-indigo-900 animate-spin z-10"
+                                wire:loading wire:target="viewCredential('identity')" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </button>
+                    @else
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-[50%]"
+                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                            viewBox="0, 0, 400,400">
+                            <g>
+                                <path
+                                    d="M32.422 11.304 C 31.992 11.457,30.680 11.794,29.507 12.052 C 24.028 13.260,19.531 19.766,19.531 26.487 C 19.531 32.602,20.505 34.096,32.052 45.703 L 42.932 56.641 34.864 64.939 C 15.117 85.248,8.104 102.091,3.189 141.016 C -3.142 191.153,0.379 261.277,10.675 290.108 C 22.673 323.703,54.885 351.747,88.994 358.293 C 140.763 368.227,235.891 369.061,300.224 360.143 C 314.334 358.187,325.014 355.166,333.980 350.595 L 337.882 348.606 356.803 367.237 C 377.405 387.523,378.751 388.534,385.156 388.534 C 396.064 388.534,402.926 378.158,399.161 367.358 C 398.216 364.648,45.323 14.908,41.621 13.013 C 39.365 11.859,33.779 10.821,32.422 11.304 M173.685 26.603 C 149.478 27.530,105.181 31.289,103.940 32.521 C 103.744 32.716,109.721 38.980,117.221 46.441 L 130.859 60.008 143.750 58.937 C 190.711 55.035,239.415 56.114,289.049 62.156 C 323.242 66.318,344.750 80.309,357.596 106.748 C 367.951 128.058,373.239 201.260,367.335 241.563 L 366.797 245.235 356.492 231.797 C 310.216 171.453,298.664 162.344,271.006 164.387 C 260.988 165.127,245.312 170.115,245.313 172.562 C 245.313 173.401,380.320 307.031,381.167 307.031 C 382.090 307.031,388.660 292.643,390.518 286.555 C 403.517 243.958,402.683 139.537,389.046 102.170 C 377.740 71.192,349.876 45.280,318.284 36.368 C 294.697 29.713,221.504 24.771,173.685 26.603 M88.547 101.394 L 98.578 111.490 94.406 113.848 C 74.760 124.952,71.359 153.827,87.859 169.432 C 104.033 184.729,130.241 181.325,141.915 162.410 L 144.731 157.848 146.780 159.342 C 147.906 160.164,161.448 173.480,176.871 188.934 L 204.915 217.032 200.234 222.774 C 194.483 229.829,171.825 260.177,171.304 261.523 C 170.623 263.286,169.872 262.595,162.828 253.726 C 153.432 241.895,140.224 226.635,137.217 224.134 C 126.063 214.861,107.616 213.280,93.162 220.358 C 85.033 224.339,70.072 241.107,47.047 272.044 L 40.234 281.197 39.314 279.023 C 32.914 263.906,28.466 201.412,31.263 165.934 C 34.978 118.821,40.622 102.197,58.912 84.488 L 64.848 78.741 71.682 85.019 C 75.440 88.472,83.030 95.841,88.547 101.394 "
+                                    stroke="none" fill="currentColor" fill-rule="evenodd">
+                                </path>
+                            </g>
+                        </svg>
+                    @endif
+                </div>
+
+                {{-- Type of ID --}}
+                <p class="font-semibold select-text text-center">
+                    {{ $this->getIdType }}
+                </p>
+
+                {{-- ID Number --}}
+                <p class="text-center select-text">
+                    {{ $this->archive->data['id_number'] }}
+                </p>
+            </div>
+
+            {{-- Address Information --}}
+            <div
+                class="sm:hidden flex flex-col w-full col-span-full sm:col-span-3 sm:col-start-1 order-3 text-indigo-1100 gap-1">
+
+                {{-- Header --}}
+                <p class="font-bold text-sm lg:text-xs bg-gray-200 text-gray-700 rounded uppercase px-2 py-1">
+                    address</p>
+
+                {{-- Body --}}
+                <div class="flex flex-1 flex-col px-2 py-1 gap-2">
+                    {{-- Province --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            province </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['province'] }}</span>
+                    </div>
+
+                    {{-- City/Municipality --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            city / municipality </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['city_municipality'] }}</span>
+                    </div>
+
+                    {{-- District --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            district </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['district'] }}</span>
+                    </div>
+
+                    {{-- Barangay --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            barangay </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['barangay_name'] }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Spouse Information --}}
+            <div
+                class="sm:hidden flex flex-col w-full col-span-full sm:col-span-3 order-4 sm:order-none text-indigo-1100 gap-1">
+
+                {{-- Header --}}
+                <p class="font-bold text-sm lg:text-xs bg-gray-200 text-gray-700 rounded uppercase px-2 py-1">
+                    spouse info</p>
+
+                {{-- Body --}}
+                <div class="flex flex-1 flex-col px-2 py-1 gap-2">
+
+                    {{-- Spouse First Name --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            first name </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['spouse_first_name'] ?? '-' }}</span>
+                    </div>
+
+                    {{-- Spouse Middle Name --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            middle name </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['spouse_middle_name'] ?? '-' }}</span>
+                    </div>
+
+                    {{-- Spouse Last Name --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            last name </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['spouse_last_name'] ?? '-' }}</span>
+                    </div>
+
+                    {{-- Spouse Extension Name --}}
+                    <div class="flex flex-1 flex-col justify-center">
+                        <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
+                            ext. name </p>
+                        <span
+                            class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
+                            {{ $this->archive->data['spouse_extension_name'] ?? '-' }}</span>
                     </div>
                 </div>
             </div>
 
             {{-- Right Side --}}
-            <div class="flex col-span-full sm:col-span-8 flex-col text-indigo-1100 gap-1">
+            <div class="flex flex-col col-span-full sm:col-span-8 sm:col-start-4 order-2 text-indigo-1100 gap-1">
 
                 {{-- Header --}}
                 <p class="font-bold text-sm lg:text-xs bg-gray-200 text-gray-700 rounded uppercase px-2 py-1">
@@ -147,19 +335,21 @@
                     <div class="flex items-center whitespace-nowrap justify-between gap-2">
                         {{-- First Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 first name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['first_name'] }}</span>
                         </div>
 
                         {{-- Middle Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 middle name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['middle_name'] ?? '-' }}
                             </span>
                         </div>
@@ -168,19 +358,21 @@
                     <div class="flex items-center whitespace-nowrap justify-between gap-2">
                         {{-- Last Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 last name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['last_name'] }}</span>
                         </div>
 
                         {{-- Extension Name --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 ext. name </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['extension_name'] ?? '-' }}
                             </span>
                         </div>
@@ -189,29 +381,32 @@
                     <div class="flex items-center whitespace-nowrap justify-between gap-2">
                         {{-- Birthdate --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 birthdate </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ Carbon\Carbon::parse($this->archive->data['birthdate'])->format('M. d, Y') }}</span>
                         </div>
 
                         {{-- Age --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 age </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['age'] }}
                             </span>
                         </div>
 
                         {{-- Sex --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 sex </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-text">
                                 {{ $this->archive->data['sex'] }}</span>
                         </div>
                     </div>
@@ -219,19 +414,21 @@
                     <div class="flex items-center whitespace-nowrap justify-between gap-2">
                         {{-- Civil Status --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 civil status </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-text">
                                 {{ $this->archive->data['civil_status'] }}</span>
                         </div>
 
                         {{-- Contact Number --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 contact number </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['contact_num'] }}
                             </span>
                         </div>
@@ -240,19 +437,21 @@
                     <div class="flex items-center whitespace-nowrap justify-between gap-2">
                         {{-- Occupation --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 occupation </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['occupation'] ?? 'None' }}</span>
                         </div>
 
                         {{-- Avg Monthly Income --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium capitalize">
                                 avg. monthly income </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 @if ($this->archive->data['avg_monthly_income'] === null || $this->archive->data['avg_monthly_income'] === 0)
                                     {{ '-' }}
                                 @else
@@ -265,15 +464,29 @@
                     <div class="flex items-center whitespace-nowrap justify-between gap-2">
                         {{-- Type of Beneficiary --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium">
+                            <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium">
                                 Type of Beneficiary </p>
 
                             @if ($this->archive->data['beneficiary_type'] === 'special case')
-                                <button type="button" @click=""
-                                    class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-red-100 active:bg-red-200 text-red-950 hover:text-red-700 duration-200 ease-in-out">
+                                <button type="button" wire:click="viewCredential('special')"
+                                    class="relative flex items-center justify-between whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 rounded capitalize px-2 py-0.5 outline-none bg-red-100 active:bg-red-200 text-red-950 hover:text-red-700 duration-200 ease-in-out">
                                     {{ $this->archive->data['beneficiary_type'] }}
 
-                                    {{-- <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2 size-4"
+                                    {{-- Loading Icon --}}
+                                    <svg class="absolute right-2 size-4 animate-spin" wire:loading
+                                        wire:target="viewCredential('special')" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Eye Icon --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2 size-4"
+                                        wire:loading.remove wire:target="viewCredential('special')"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -282,11 +495,11 @@
                                                 stroke="none" fill="currentColor" fill-rule="evenodd">
                                             </path>
                                         </g>
-                                    </svg> --}}
+                                    </svg>
                                 </button>
                             @else
                                 <span
-                                    class="whitespace-normal rounded px-2 py-0.5 bg-indigo-50 text-indigo-1000 capitalize select-all">
+                                    class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 rounded px-2 py-0.5 bg-indigo-50 text-indigo-1000 capitalize select-text">
                                     {{ $this->archive->data['beneficiary_type'] }}
                                 </span>
                             @endif
@@ -295,10 +508,11 @@
 
                         {{-- Dependent --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 dependent </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['dependent'] ?? '-' }}
                             </span>
                         </div>
@@ -307,10 +521,11 @@
                     <div class="flex items-center whitespace-nowrap justify-between">
                         {{-- Interested in Self Employment or Wage Employment --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 interested in self employment or wage employment </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-text">
                                 {{ $this->archive->data['self_employment'] }}</span>
                         </div>
                     </div>
@@ -318,20 +533,21 @@
                     <div class="flex items-center whitespace-nowrap justify-between">
                         {{-- Skills Training --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 skills training </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['skills_training'] ?? '-' }}
                             </span>
                         </div>
 
                         {{-- e-Payment Account Number --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium">
+                            <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium">
                                 e-Payment Account Number </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 select-text">
                                 {{ $this->archive->data['e_payment_acc_num'] ?? '-' }}
                             </span>
                         </div>
@@ -340,47 +556,73 @@
                     <div class="flex items-center whitespace-nowrap justify-between gap-2">
                         {{-- is PWD --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 Person w/ Disability </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-text">
                                 {{ $this->archive->data['is_pwd'] }}</span>
                         </div>
 
                         {{-- is Senior Citizen --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 Senior Citizen </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-text">
                                 {{ $this->archive->data['is_senior_citizen'] }}
                             </span>
                         </div>
                     </div>
 
-                    <div class="flex items-center whitespace-nowrap justify-between gap-2">
-                        {{-- is PWD --}}
+                    <div class="hidden sm:flex items-center whitespace-nowrap justify-between gap-2">
+                        {{-- Date Added --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 Date Added </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-text">
                                 {{ \Carbon\Carbon::parse($this->archive->data['created_at'])->format('M d, Y @ h:i:sa') }}</span>
                         </div>
 
-                        {{-- is Senior Citizen --}}
+                        {{-- Last Updated --}}
                         <div class="flex flex-1 flex-col justify-center">
-                            <p class="select-all font-medium  capitalize">
+                            <p
+                                class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
                                 Last Updated </p>
                             <span
-                                class="whitespace-normal bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-all">
+                                class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-1000 rounded px-2 py-0.5 capitalize select-text">
                                 {{ \Carbon\Carbon::parse($this->archive->data['updated_at'])->format('M d, Y @ h:i:sa') }}
                             </span>
                         </div>
                     </div>
                 </div>
 
+            </div>
 
+            {{-- Dates (on max-sm) --}}
+            <div
+                class="sm:hidden flex items-center justify-between col-span-full order-5 whitespace-nowrap px-2 gap-2">
+                {{-- Date Added --}}
+                <div class="flex flex-1 flex-col justify-center">
+                    <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
+                        Date Added </p>
+                    <span
+                        class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-900 rounded px-2 py-0.5 capitalize select-text">
+                        {{ \Carbon\Carbon::parse($this->archive->data['created_at'])->format('M d, Y @ h:i:sa') }}</span>
+                </div>
+
+                {{-- Last Updated --}}
+                <div class="flex flex-1 flex-col justify-center">
+                    <p class="select-all selection:bg-indigo-700 selection:text-indigo-50 font-medium  capitalize">
+                        Last Updated </p>
+                    <span
+                        class="whitespace-nowrap overflow-x-auto scrollbar-none selection:bg-indigo-700 selection:text-indigo-50 bg-indigo-50 text-indigo-900 rounded px-2 py-0.5 capitalize select-text">
+                        {{ \Carbon\Carbon::parse($this->archive->data['updated_at'])->format('M d, Y @ h:i:sa') }}
+                    </span>
+                </div>
             </div>
         </div>
     @else
@@ -405,6 +647,6 @@
     @endif
 
     {{-- View Credential Modal --}}
-    <livewire:focal.implementations.view-credentials-modal :$passedCredentialId />
+    <livewire:focal.archives.view-archives-credential-modal :$passedCredentialArchiveId />
 
 </div>

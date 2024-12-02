@@ -4,7 +4,7 @@
     <div x-show="importFileModal" x-trap.noscroll="importFileModal"
         class="relative h-full overflow-y-auto p-4 flex items-center justify-center select-none">
 
-        <div class="size-full max-w-5xl">
+        <div class="w-full max-w-5xl">
 
             <!-- Modal content -->
             <div x-data="{ step: $wire.entangle('step'), errorPreviewModal: $wire.entangle('errorPreviewModal'), downloadSampleModal: $wire.entangle('downloadSampleModal') }" class="relative bg-white rounded-md shadow">
@@ -244,11 +244,11 @@
                             <!-- Progress Bar && Loading Icon -->
                             <div x-show="uploading" class="absolute flex items-center justify-center w-2/6 z-40">
                                 <div class="w-full bg-gray-300 rounded-lg h-2">
-                                    <div class=" h-full bg-indigo-500 rounded-lg"
+                                    <div class="h-full {{ $errors->has('file_path') ? 'bg-red-500' : 'bg-indigo-500' }} rounded-lg"
                                         x-bind:style="'width: ' + progress + '%'">
                                     </div>
                                 </div>
-                                <svg class="ms-2 size-5 text-indigo-900 animate-spin"
+                                <svg class="ms-2 size-5 {{ $errors->has('file_path') ? 'text-red-900' : 'text-indigo-900' }} animate-spin"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10"
                                         stroke="currentColor" stroke-width="4">
@@ -262,10 +262,9 @@
                             <label for="file_path" id="drop-zone"
                                 class="flex flex-col items-center justify-center w-full h-32 border-dashed rounded border-2
                                 {{ $errors->has('file_path')
-                                    ? 'bg-red-50 text-red-500 border-red-300'
-                                    : 'text-gray-500 hover:text-indigo-500 bg-gray-50 hover:bg-indigo-50
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-gray-300 hover:border-indigo-300' }}
-                                duration-500 ease-in-out cursor-pointer">
+                                    ? 'bg-red-50 hover:bg-orange-50 text-red-500 hover:text-orange-500 border-red-300 hover:border-orange-300'
+                                    : 'text-gray-500 hover:text-indigo-500 bg-gray-50 hover:bg-indigo-50 border-gray-300 hover:border-indigo-300' }} 
+                                    duration-500 ease-in-out cursor-pointer">
 
                                 <div class="relative flex flex-col items-center justify-center py-6">
                                     {{-- Default Preview --}}
@@ -285,7 +284,8 @@
 
                             {{-- Cancel (X) button --}}
                             <span x-show="uploading" class="absolute top-2 right-2 inline-flex z-50">
-                                <button class="text-gray-500 hover:text-indigo-50 duration-200 ease-in-out"
+                                <button
+                                    class="text-gray-500 {{ $errors->has('file_path') ? 'hover:text-red-700' : 'hover:text-indigo-700' }} duration-200 ease-in-out"
                                     type="button" @click="$wire.cancelUpload('file_path');"><svg class="size-3"
                                         aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 14 14">
@@ -322,7 +322,7 @@
                         </div>
 
                         {{-- File Preview --}}
-                        <div class="relative flex flex-col items-center justify-start w-full mt-4 h-40">
+                        <div class="relative flex flex-col items-center justify-start w-full mt-4 h-28">
                             @if ($file_path && !$errors->has('file_path'))
                                 <span
                                     class="flex justify-between items-center font-medium rounded-md shadow z-50 text-xs p-2 w-full bg-zinc-300 hover:bg-indigo-800 text-zinc-700 hover:text-indigo-50 duration-200 ease-in-out">
@@ -452,10 +452,10 @@
                             <div x-data="{ expanded: false }" class="w-full flex flex-col gap-4">
 
                                 <button type="button" @click="expanded = !expanded;"
-                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border border-indigo-300 text-indigo-1100 text-xs font-medium">
+                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border {{ sizeof($successResults) > 0 ? 'border-indigo-300 text-indigo-1100' : 'border-gray-300 text-gray-950' }} text-xs font-medium">
                                     <p>
                                         Successful Records <span
-                                            class="ms-2 rounded p-1.5 bg-indigo-100 text-indigo-700 font-medium text-xs">{{ sizeof($successResults) }}</span>
+                                            class="ms-2 rounded p-1.5 {{ sizeof($successResults) > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700' }} font-medium text-xs">{{ sizeof($successResults) }}</span>
                                     </p>
 
                                     {{-- Caret Icon --}}
@@ -693,10 +693,10 @@
                             <div x-data="{ expanded: false }" class="w-full flex flex-col gap-4">
 
                                 <button type="button" @click="expanded = !expanded;"
-                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border border-rose-300 text-rose-1100 text-xs font-medium">
+                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border {{ sizeof($perfectResults) > 0 ? 'border-rose-300 text-rose-950' : 'border-gray-300 text-gray-950' }} text-xs font-medium">
                                     <p>
                                         Rows with Perfect Duplicates <span
-                                            class="ms-2 rounded p-1.5 bg-rose-100 text-rose-700 font-medium text-xs">{{ sizeof($perfectResults) }}</span>
+                                            class="ms-2 rounded p-1.5 {{ sizeof($perfectResults) > 0 ? 'bg-rose-100 text-rose-700' : 'bg-gray-100 text-gray-700' }} font-medium text-xs">{{ sizeof($perfectResults) }}</span>
                                     </p>
 
                                     {{-- Caret Icon --}}
@@ -935,10 +935,10 @@
                             <div x-data="{ expanded: false }" class="w-full flex flex-col gap-4">
 
                                 <button type="button" @click="expanded = !expanded;"
-                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border border-red-300 text-red-950 text-xs font-medium">
+                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border {{ sizeof($errorResults) > 0 ? 'border-red-300 text-red-950' : 'border-gray-300 text-gray-950' }} text-xs font-medium">
                                     <p>
                                         Rows with Errors <span
-                                            class="ms-2 rounded p-1.5 bg-red-100 text-red-700 font-medium text-xs">{{ sizeof($errorResults) }}</span>
+                                            class="ms-2 rounded p-1.5 {{ sizeof($errorResults) > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' }} font-medium text-xs">{{ sizeof($errorResults) }}</span>
                                     </p>
 
                                     {{-- Caret Icon --}}
@@ -1180,10 +1180,10 @@
                             <div x-data="{ expanded: false }" class="w-full flex flex-col gap-4">
 
                                 <button type="button" @click="expanded = !expanded;"
-                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border border-amber-300 text-amber-950 text-xs font-medium">
+                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border {{ sizeof($similarityResults) > 0 ? 'border-amber-300 text-amber-950' : 'border-gray-300 text-gray-950' }} text-xs font-medium">
                                     <p>
                                         Rows with Possible Duplicates <span
-                                            class="ms-2 rounded p-1.5 bg-amber-100 text-amber-700 font-medium text-xs">{{ sizeof($this->similarityResults) }}</span>
+                                            class="ms-2 rounded p-1.5 {{ sizeof($similarityResults) > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700' }} font-medium text-xs">{{ sizeof($similarityResults) }}</span>
                                     </p>
 
                                     {{-- Caret Icon --}}
@@ -1420,10 +1420,10 @@
                             <div x-data="{ expanded: false }" class="w-full flex flex-col gap-4">
 
                                 <button type="button" @click="expanded = !expanded;"
-                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border border-orange-300 text-orange-950 text-xs font-medium">
+                                    class="w-full flex flex-1 items-center justify-between px-4 py-3 rounded border {{ sizeof($ineligibleResults) > 0 ? 'border-orange-300 text-orange-950' : 'border-gray-300 text-gray-950' }} text-xs font-medium">
                                     <p>
                                         Rows with Ineligible Beneficiaries <span
-                                            class="ms-2 rounded p-1.5 bg-orange-100 text-orange-700 font-medium text-xs">{{ sizeof($ineligibleResults) }}</span>
+                                            class="ms-2 rounded p-1.5 {{ sizeof($ineligibleResults) > 0 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700' }} font-medium text-xs">{{ sizeof($ineligibleResults) }}</span>
                                     </p>
 
                                     {{-- Caret Icon --}}
@@ -1890,13 +1890,39 @@
     <script>
         const inputFile = document.getElementById('file_path');
         const dropZone = document.getElementById('drop-zone');
+        let initialError = dropZone.classList.contains('bg-red-50'); // Check if error styles exist
+        const errorStyles = ['bg-red-50', 'hover:bg-orange-50', 'text-red-500', 'hover:text-orange-500', 'border-red-300',
+            'hover:border-orange-300'
+        ];
+        const defaultStyles = ['bg-gray-50', 'hover:bg-indigo-50', 'text-gray-500', 'hover:text-indigo-500',
+            'border-gray-300',
+            'hover:border-indigo-300'
+        ];
+        const errorDragStyles = ['bg-orange-50', 'text-orange-500', 'border-orange-500'];
+        const defaultDragStyles = ['bg-indigo-50', 'text-indigo-500', 'border-indigo-500'];
 
         dropZone.addEventListener('dragover', function(e) {
             e.preventDefault();
+            initialError = dropZone.classList.contains('bg-red-50');
+            initialError ? dropZone.classList.remove(...errorStyles) : dropZone.classList.remove(...defaultStyles);
+            initialError ? dropZone.classList.add(...errorDragStyles) : dropZone.classList.add(...
+                defaultDragStyles);
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            initialError = dropZone.classList.contains('bg-red-50') || dropZone.classList.contains('bg-orange-50');
+            initialError ? dropZone.classList.add(...errorStyles) : dropZone.classList.add(...defaultStyles);
+            initialError ? dropZone.classList.remove(...errorDragStyles) : dropZone.classList.remove(...
+                defaultDragStyles);
         });
 
         dropZone.addEventListener('drop', function(e) {
             e.preventDefault();
+            initialError = dropZone.classList.contains('bg-red-50') || dropZone.classList.contains('bg-orange-50');
+            initialError ? dropZone.classList.add(...errorStyles) : dropZone.classList.add(...defaultStyles);
+            initialError ? dropZone.classList.remove(...errorDragStyles) : dropZone.classList.remove(...
+                defaultDragStyles);
+
             files = e.dataTransfer.files;
             if (files.length) {
                 inputFile.files = files;

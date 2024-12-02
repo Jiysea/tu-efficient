@@ -17,20 +17,19 @@ class RecordPreview extends Component
     #[Locked]
     public $archiveId;
     #[Locked]
-    public $passedCredentialId;
+    public $passedCredentialArchiveId;
     public $viewCredentialsModal = false;
 
     public function viewCredential($type)
     {
         if ($type === 'identity') {
-            $this->passedCredentialId = encrypt($this->identity['id']);
+            $this->passedCredentialArchiveId = encrypt($this->identity['archiveId']);
             $this->viewCredentialsModal = true;
 
         } elseif ($type === 'special') {
 
-            $this->passedCredentialId = encrypt($this->special_case['id']);
+            $this->passedCredentialArchiveId = encrypt($this->special_case['archiveId']);
             $this->viewCredentialsModal = true;
-
         }
     }
 
@@ -100,6 +99,7 @@ class RecordPreview extends Component
         $credentials = collect();
         foreach ($archives as $archive) {
             $credentials->push([
+                'archiveId' => $archive->id,
                 'id' => $archive->data['id'],
                 'beneficiaries_id' => $archive->data['beneficiaries_id'],
                 'image_description' => $archive->data['image_description'],

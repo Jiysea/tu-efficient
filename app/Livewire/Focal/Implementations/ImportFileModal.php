@@ -376,6 +376,7 @@ class ImportFileModal extends Component
     public function periodicallyCheckCache()
     {
         $expiration = cache("importing_expiration_" . auth()->id());
+        $this->cachedResults = cache("importing_" . Auth::id());
         $this->cachedExpiration = now()->diffAsCarbonInterval(Carbon::parse($expiration))->format('%I:%S');
         if (!isset($this->cachedResults) && $this->step === 2) {
             $this->resetImports();

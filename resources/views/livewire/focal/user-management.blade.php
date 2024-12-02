@@ -42,8 +42,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     {{-- Upper/Header --}}
                     <div class="relative h-10 flex items-center justify-between">
-                        <div class="inline-flex items-center text-indigo-900">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
+                        <div class="inline-flex items-center gap-2 mx-2 text-indigo-900">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="384.37499999999994"
                                 viewBox="0, 0, 400,384.37499999999994">
                                 <g>
@@ -52,9 +52,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="max-[480px]:hidden text-base font-semibold sm:font-bold m-2"><span
-                                    class="hidden sm:inline">List of
-                                </span>Coordinators</h1>
+                            <h1 class="max-[480px]:hidden text-base font-semibold sm:font-bold">
+                                <span class="hidden sm:inline">
+                                    List of
+                                </span>
+                                Coordinators
+                            </h1>
                             <span class="py-1 px-2 text-xs font-medium text-indigo-700 bg-indigo-100 rounded">
                                 {{ sizeof($this->users) }}
                             </span>
@@ -152,45 +155,60 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $key + 1 }}
                                             </th>
                                             <td class="pr-6 py-2">
-                                                {{ $this->full_name($user) }}
+                                                <span
+                                                    class="select-all cursor-text selection:bg-indigo-700 selection:text-indigo-50">
+                                                    {{ $this->full_name($user) }}
+                                                </span>
                                             </td>
                                             <td class="p-2">
-                                                {{ $user->email }}
-                                                @if (is_null($user->email_verified_at))
-                                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                                        class="inline ms-1 size-4 text-red-700"
-                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
-                                                        height="400" viewBox="0, 0, 400,400">
-                                                        <g>
-                                                            <path
-                                                                d="M175.606 13.697 C 34.401 32.950,-35.779 196.532,48.155 310.766 C 138.823 434.164,332.291 403.043,378.795 257.579 C 420.628 126.725,311.070 -4.774,175.606 13.697 M211.301 90.122 C 220.712 94.430,227.454 104.096,227.963 114.011 C 228.365 121.843,219.818 221.239,218.463 224.481 C 211.721 240.618,188.279 240.618,181.537 224.481 C 180.112 221.072,171.620 121.497,172.086 113.672 C 173.216 94.715,194.031 82.215,211.301 90.122 M209.801 265.203 C 225.439 272.153,229.266 292.609,217.188 304.688 C 205.345 316.530,185.671 313.291,178.162 298.264 C 168.018 277.964,189.055 255.982,209.801 265.203 "
-                                                                stroke="none" fill="currentColor"
-                                                                fill-rule="evenodd">
-                                                            </path>
-                                                        </g>
-                                                    </svg>
-                                                @endif
+                                                <span
+                                                    class="select-all cursor-text selection:bg-indigo-700 selection:text-indigo-50">
+                                                    {{ $user->email }}
+                                                    @if (is_null($user->email_verified_at))
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                            class="inline ms-1 size-4 text-red-700"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M175.606 13.697 C 34.401 32.950,-35.779 196.532,48.155 310.766 C 138.823 434.164,332.291 403.043,378.795 257.579 C 420.628 126.725,311.070 -4.774,175.606 13.697 M211.301 90.122 C 220.712 94.430,227.454 104.096,227.963 114.011 C 228.365 121.843,219.818 221.239,218.463 224.481 C 211.721 240.618,188.279 240.618,181.537 224.481 C 180.112 221.072,171.620 121.497,172.086 113.672 C 173.216 94.715,194.031 82.215,211.301 90.122 M209.801 265.203 C 225.439 272.153,229.266 292.609,217.188 304.688 C 205.345 316.530,185.671 313.291,178.162 298.264 C 168.018 277.964,189.055 255.982,209.801 265.203 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd">
+                                                                </path>
+                                                            </g>
+                                                        </svg>
+                                                    @endif
+                                                </span>
                                             </td>
-                                            <td class="p-2">
-                                                {{ $user->contact_num }}
+                                            <td class="p-2 ">
+                                                <span
+                                                    class="select-all cursor-text selection:bg-indigo-700 selection:text-indigo-50">
+                                                    {{ $user->contact_num }}
+                                                </span>
                                             </td>
                                             <td class="p-2 text-center">
                                                 <span
-                                                    class="{{ $this->approvedCount($user) === 0 ? 'bg-gray-200 text-gray-700' : 'bg-green-300 text-green-950' }} rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->approvedCount($user) }}</span>
+                                                    class="{{ $this->approvedCount($user) === 0 ? 'bg-gray-200 text-gray-700 selection:bg-gray-700 selection:text-gray-50' : 'bg-green-300 text-green-950 selection:bg-green-700 selection:text-green-50' }} select-all cursor-text rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->approvedCount($user) }}</span>
                                                 /
                                                 <span
-                                                    class="{{ $this->pendingCount($user) === 0 ? 'bg-gray-200 text-gray-700' : 'bg-amber-300 text-amber-950' }} rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->pendingCount($user) }}</span>
+                                                    class="{{ $this->pendingCount($user) === 0 ? 'bg-gray-200 text-gray-700 selection:bg-gray-700 selection:text-gray-50' : 'bg-amber-300 text-amber-950 selection:bg-amber-700 selection:text-amber-50' }} select-all cursor-text rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->pendingCount($user) }}</span>
                                                 /
                                                 <span
-                                                    class="{{ $this->approvedCount($user) + $this->pendingCount($user) === 0 ? 'bg-gray-200 text-gray-700' : 'bg-indigo-300 text-indigo-950' }} rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->approvedCount($user) + $this->pendingCount($user) }}</span>
+                                                    class="{{ $this->approvedCount($user) + $this->pendingCount($user) === 0 ? 'bg-gray-200 text-gray-700 selection:bg-gray-700 selection:text-gray-50' : 'bg-indigo-300 text-indigo-950 selection:bg-indigo-700 selection:text-indigo-50' }} select-all cursor-text rounded py-0.5 px-1.5 mx-1.5 font-medium">{{ $this->approvedCount($user) + $this->pendingCount($user) }}</span>
                                             </td>
                                             <td class="text-center p-2">
                                                 @if ($this->checkIfOnline($user) !== true)
-                                                    {{ $user->last_login ? \Carbon\Carbon::parse($user->last_login)->format('M d, Y @ h:i A') : 'Never' }}
+                                                    <span
+                                                        class="select-all cursor-text {{ $user->last_login ? 'selection:bg-indigo-700 selection:text-indigo-50' : 'selection:bg-gray-700 selection:text-gray-50' }}">
+                                                        {{ $user->last_login ? \Carbon\Carbon::parse($user->last_login)->format('M d, Y @ h:i A') : 'Never' }}
+                                                    </span>
                                                 @else
                                                     <span class="flex items-center justify-center gap-1">
                                                         <span class="bg-green-900 rounded-full p-1"></span>
-                                                        Online
+                                                        <span
+                                                            class="select-all cursor-text selection:bg-green-700 selection:text-green-50">
+                                                            Online
+                                                        </span>
                                                     </span>
                                                 @endif
                                             </td>

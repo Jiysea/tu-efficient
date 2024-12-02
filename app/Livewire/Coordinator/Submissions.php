@@ -38,12 +38,13 @@ class Submissions extends Component
     public $passedCredentialId;
     #[Locked]
     public $exportBatchId;
+    #[Locked]
     public $batchNumPrefix;
+    #[Locked]
     public $defaultArchive;
     public $showAlert = false;
     public $alertMessage = '';
     public $identity;
-    public $special;
     public $addBeneficiariesModal = false;
     public $editBeneficiaryModal = false;
     public $deleteBeneficiaryModal = false;
@@ -265,7 +266,6 @@ class Submissions extends Component
 
     # ------------------------------------------------------------------------------------------------------------------
 
-
     public function setStartDate($value)
     {
         $choosenDate = date('Y-m-d', strtotime($value));
@@ -290,7 +290,6 @@ class Submissions extends Component
         $this->dispatch('init-reload')->self();
         $this->dispatch('scroll-to-top')->self();
     }
-
 
     public function setEndDate($value)
     {
@@ -343,25 +342,122 @@ class Submissions extends Component
             $this->beneficiaryId = null;
 
             $this->identity = null;
-            $this->special = null;
 
         } else {
             $this->selectedBeneficiaryRow = $key;
             $this->beneficiaryId = $encryptedId;
 
-            $this->identity = null;
-            $this->special = null;
-
             foreach ($this->credentials as $credential) {
                 if ($credential->for_duplicates === 'no') {
                     $this->identity = $credential->image_file_path;
-                } elseif ($credential->for_duplicates === 'yes') {
-                    $this->special = $credential->image_file_path;
                 }
             }
         }
 
         $this->dispatch('init-reload')->self();
+    }
+
+    public function applyFilter()
+    {
+        $this->filter = [
+            'approval_status' => $this->approvalStatuses,
+            'submission_status' => $this->submissionStatuses,
+        ];
+
+        if ($this->batches->isNotEmpty()) {
+            $this->batchId = encrypt($this->batches[0]->id);
+        } else {
+            $this->batchId = null;
+            $this->searchBatches = null;
+            $this->searchBeneficiaries = null;
+        }
+    }
+
+    public function resetFilter()
+    {
+        $this->approvalStatuses = $this->filter['approval_status'];
+        $this->submissionStatuses = $this->filter['submission_status'];
+    }
+
+    public function deleteBeneficiary()
+    {
+        $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
+        $this->authorize('delete-beneficiary-coordinator', $beneficiary);
+
+        DB::transaction(function () use ($beneficiary) {
+
+            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+                ->get();
+            if ($this->defaultArchive) {
+
+                # Archive their credentials first
+                foreach ($credentials as $credential) {
+                    Archive::create([
+                        'last_id' => $credential->id,
+                        'source_table' => 'credentials',
+                        'data' => $credential->toArray(),
+                        'archived_at' => now()
+                    ]);
+                    $credential->delete();
+
+                    if ($credential->for_duplicates === 'yes') {
+                        LogIt::set_archive_beneficiary_special_case($beneficiary, $credential, auth()->id());
+                    }
+                }
+
+                # then archive the Beneficiary record
+                Archive::create([
+                    'last_id' => $beneficiary->id,
+                    'source_table' => 'beneficiaries',
+                    'data' => $beneficiary->toArray(),
+                    'archived_at' => now()
+                ]);
+                $beneficiary->delete();
+
+                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                    LogIt::set_archive_beneficiary($beneficiary, auth()->id());
+                }
+
+                $this->showAlert = true;
+                $this->alertMessage = 'Moved beneficiary to Archives';
+            }
+
+            # otherwise, we could just delete it.
+            else {
+                foreach ($credentials as $credential) {
+                    if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
+                        Storage::delete($credential->image_file_path);
+                    }
+                    $credential->delete();
+                    if ($credential->for_duplicates === 'yes') {
+                        LogIt::set_delete_beneficiary_special_case($beneficiary, $credential, auth()->id());
+                    }
+                }
+
+                $beneficiary->delete();
+
+                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                    LogIt::set_delete_beneficiary($beneficiary, auth()->id());
+                }
+
+                $this->showAlert = true;
+                $this->alertMessage = 'Successfully deleted a beneficiary';
+            }
+        });
+
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->beneficiaryId = null;
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+        $this->js('deleteBeneficiaryModal = false;');
     }
 
     public function openEdit()
@@ -391,26 +487,30 @@ class Submissions extends Component
         }
     }
 
-    public function applyFilter()
+    #[Computed]
+    public function getIdType()
     {
-        $this->filter = [
-            'approval_status' => $this->approvalStatuses,
-            'submission_status' => $this->submissionStatuses,
-        ];
+        $type_of_id = null;
 
-        if ($this->batches->isNotEmpty()) {
-            $this->batchId = encrypt($this->batches[0]->id);
-        } else {
-            $this->batchId = null;
-            $this->searchBatches = null;
-            $this->searchBeneficiaries = null;
+        if ($this->beneficiaryId) {
+
+            if (str_contains($this->beneficiary?->type_of_id, 'PWD')) {
+                $type_of_id = 'PWD ID';
+            } else if (str_contains($this->beneficiary?->type_of_id, 'COMELEC')) {
+                $type_of_id = 'Voter\'s ID';
+            } else if (str_contains($this->beneficiary?->type_of_id, 'PhilID')) {
+                $type_of_id = 'PhilID';
+            } else if (str_contains($this->beneficiary?->type_of_id, '4Ps')) {
+                $type_of_id = '4Ps ID';
+            } else if (str_contains($this->beneficiary?->type_of_id, 'IBP')) {
+                $type_of_id = 'IBP ID';
+            } else {
+                $type_of_id = $this->beneficiary?->type_of_id;
+            }
+
         }
-    }
 
-    public function resetFilter()
-    {
-        $this->approvalStatuses = $this->filter['approval_status'];
-        $this->submissionStatuses = $this->filter['submission_status'];
+        return $type_of_id;
     }
 
     #[Computed]
@@ -502,21 +602,20 @@ class Submissions extends Component
     #[Computed]
     public function batch()
     {
-        $batch = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
-            ->first();
-        return $batch;
+        return Batch::find($this->batchId ? decrypt($this->batchId) : null);
     }
 
     #[Computed]
     public function beneficiary()
     {
-        if ($this->beneficiaryId) {
-            $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
-            return $beneficiary;
-        }
+        return Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+    }
 
-        return null;
+    #[Computed]
+    public function credentials()
+    {
+        return Credential::where('beneficiaries_id', $this->beneficiaryId ? decrypt($this->beneficiaryId) : null)
+            ->get();
     }
 
     #[Computed]
@@ -557,32 +656,6 @@ class Submissions extends Component
         }
 
         return 0;
-    }
-
-    #[Computed]
-    public function getIdType()
-    {
-        $type_of_id = null;
-
-        if ($this->beneficiaryId) {
-
-            if (str_contains($this->beneficiary->type_of_id, 'PWD')) {
-                $type_of_id = 'PWD ID';
-            } else if (str_contains($this->beneficiary->type_of_id, 'COMELEC')) {
-                $type_of_id = 'Voter\'s ID';
-            } else if (str_contains($this->beneficiary->type_of_id, 'PhilID')) {
-                $type_of_id = 'PhilID';
-            } else if (str_contains($this->beneficiary->type_of_id, '4Ps')) {
-                $type_of_id = '4Ps ID';
-            } else if (str_contains($this->beneficiary->type_of_id, 'IBP')) {
-                $type_of_id = 'IBP ID';
-            } else {
-                $type_of_id = $this->beneficiary->type_of_id;
-            }
-
-        }
-
-        return $type_of_id;
     }
 
     #[Computed]
@@ -650,17 +723,6 @@ class Submissions extends Component
         return $currentBatch;
     }
 
-    #[Computed]
-    public function credentials()
-    {
-        if ($this->beneficiaryId) {
-            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
-                ->get();
-
-            return $credentials;
-        }
-    }
-
     # this loads the beneficiaries to take more after scrolling to the bottom on the table list
     public function loadMoreBeneficiaries()
     {
@@ -689,14 +751,17 @@ class Submissions extends Component
     public function approveSubmission()
     {
         $this->validateOnly(field: 'password_approve');
-        $batch = Batch::find(decrypt($this->batchId));
+        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
         $this->authorize('approve-submission-coordinator', $batch);
 
         $checkSlots = Batch::whereHas('beneficiary')
             ->where('batches.id', $batch->id)
             ->exists();
 
-        if ($batch->approval_status !== 'approved' && ($batch->submission_status === 'submitted' || $batch->submission_status === 'unopened') && $checkSlots) {
+        if (
+            $batch->approval_status !== 'approved' && ($batch->submission_status === 'submitted' ||
+                $batch->submission_status === 'unopened') && $checkSlots
+        ) {
 
             $batch->approval_status = 'approved';
             $batch->submission_status = 'submitted';
@@ -752,89 +817,6 @@ class Submissions extends Component
         $this->alertMessage = 'Beneficiary successfully updated!';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
-    }
-
-    public function deleteBeneficiary()
-    {
-        $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
-        $this->authorize('delete-beneficiary-coordinator', $beneficiary);
-
-        DB::transaction(function () use ($beneficiary) {
-
-            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
-                ->get();
-            if ($this->defaultArchive) {
-
-                # Archive their credentials first
-                foreach ($credentials as $credential) {
-                    Archive::create([
-                        'last_id' => $credential->id,
-                        'source_table' => 'credentials',
-                        'data' => $credential->toArray(),
-                        'archived_at' => now()
-                    ]);
-                    $credential->delete();
-                    if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_archive_beneficiary_special_case($beneficiary, $credential, auth()->id());
-                    }
-                }
-
-                # then archive the Beneficiary record
-                Archive::create([
-                    'last_id' => $beneficiary->id,
-                    'source_table' => 'beneficiaries',
-                    'data' => $beneficiary->toArray(),
-                    'archived_at' => now()
-                ]);
-                $beneficiary->delete();
-
-                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_archive_beneficiary($beneficiary, auth()->id());
-                }
-
-                $this->js('viewBeneficiaryModal = false;');
-                $this->showAlert = true;
-                $this->alertMessage = 'Moved beneficiary to Archives';
-            }
-
-            # otherwise, we could just delete it.
-            else {
-                foreach ($credentials as $credential) {
-                    if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
-                        Storage::delete($credential->image_file_path);
-                    }
-                    $credential->delete();
-                    if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_delete_beneficiary_special_case($beneficiary, $credential, auth()->id());
-                    }
-                }
-
-                $beneficiary->delete();
-
-                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_delete_beneficiary($beneficiary, auth()->id());
-                }
-
-                $this->showAlert = true;
-                $this->alertMessage = 'Successfully deleted a beneficiary';
-            }
-
-            $dateTimeFromEnd = $this->end;
-            $value = substr($dateTimeFromEnd, 0, 10);
-
-            $choosenDate = date('Y-m-d', strtotime($value));
-            $currentTime = date('H:i:s', strtotime(now()));
-            $this->end = $choosenDate . ' ' . $currentTime;
-
-            $this->beneficiaryId = null;
-            $this->selectedBeneficiaryRow = -1;
-
-            $this->dispatch('show-alert');
-            $this->dispatch('init-reload')->self();
-
-        });
-
-        $this->js('deleteBeneficiaryModal = false;');
     }
 
     #[On('optimistic-lock')]
@@ -911,11 +893,10 @@ class Submissions extends Component
         }
     }
 
-    #[Computed]
-    public function personalSettings()
+    public function resetPassword()
     {
-        return UserSetting::where('users_id', Auth::id())
-            ->pluck('value', 'key');
+        $this->reset('password_approve');
+        $this->resetValidation(['password_approve']);
     }
 
     #[Computed]
@@ -926,10 +907,11 @@ class Submissions extends Component
             ->pluck('user_settings.value', 'user_settings.key');
     }
 
-    public function resetPassword()
+    #[Computed]
+    public function personalSettings()
     {
-        $this->reset('password_approve');
-        $this->resetValidation(['password_approve']);
+        return UserSetting::where('users_id', auth()->id())
+            ->pluck('value', 'key');
     }
 
     # batchId and coordinatorId will only be NOT null when the user clicks `View List` from the assignments page

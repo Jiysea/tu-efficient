@@ -14,9 +14,11 @@
                         class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-32 aspect-square">
 
                         @if (isset($identity) && !empty($identity))
-                            <button class="flex items-center justify-center rounded"
+                            <button tabindex="-1"
+                                class="flex items-center justify-center rounded size-32 aspect-square outline-none"
                                 @click="$wire.viewCredential('identity');">
-                                <img class="w-[90%]" src="{{ asset('storage/' . $identity) }}">
+                                <img class="size-[90%] object-contain"
+                                    src="{{ route('credentials.show', ['filename' => $identity]) }}">
                             </button>
                         @else
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-[50%]"
@@ -42,7 +44,7 @@
 
                     {{-- ID Number --}}
                     <p class="text-center select-all">
-                        {{ $this->beneficiary->id_number }}
+                        {{ $this->beneficiary?->id_number }}
                     </p>
                 </div>
 
@@ -60,7 +62,7 @@
                             <p class="select-all font-medium capitalize">
                                 province </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->province }}</span>
+                                {{ $this->beneficiary?->province }}</span>
                         </div>
 
                         {{-- City/Municipality --}}
@@ -68,7 +70,7 @@
                             <p class="select-all font-medium capitalize">
                                 city / municipality </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->city_municipality }}</span>
+                                {{ $this->beneficiary?->city_municipality }}</span>
                         </div>
 
                         {{-- District --}}
@@ -76,7 +78,7 @@
                             <p class="select-all font-medium capitalize">
                                 district </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->district }}</span>
+                                {{ $this->beneficiary?->district }}</span>
                         </div>
                     </div>
                 </div>
@@ -96,7 +98,7 @@
                             <p class="select-all font-medium capitalize">
                                 first name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->spouse_first_name ?? '-' }}</span>
+                                {{ $this->beneficiary?->spouse_first_name ?? '-' }}</span>
                         </div>
 
                         {{-- Spouse Middle Name --}}
@@ -104,7 +106,7 @@
                             <p class="select-all font-medium capitalize">
                                 middle name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->spouse_middle_name ?? '-' }}</span>
+                                {{ $this->beneficiary?->spouse_middle_name ?? '-' }}</span>
                         </div>
 
                         {{-- Spouse Last Name --}}
@@ -112,7 +114,7 @@
                             <p class="select-all font-medium capitalize">
                                 last name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->spouse_last_name ?? '-' }}</span>
+                                {{ $this->beneficiary?->spouse_last_name ?? '-' }}</span>
                         </div>
 
                         {{-- Spouse Extension Name --}}
@@ -120,7 +122,7 @@
                             <p class="select-all font-medium capitalize">
                                 ext. name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->spouse_extension_name ?? '-' }}</span>
+                                {{ $this->beneficiary?->spouse_extension_name ?? '-' }}</span>
                         </div>
                     </div>
                 </div>
@@ -142,7 +144,7 @@
                             <p class="select-all font-medium  capitalize">
                                 first name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->first_name }}</span>
+                                {{ $this->beneficiary?->first_name }}</span>
                         </div>
 
                         {{-- Middle Name --}}
@@ -150,7 +152,7 @@
                             <p class="select-all font-medium  capitalize">
                                 middle name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->middle_name ?? '-' }}
+                                {{ $this->beneficiary?->middle_name ?? '-' }}
                             </span>
                         </div>
                     </div>
@@ -161,7 +163,7 @@
                             <p class="select-all font-medium  capitalize">
                                 last name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->last_name }}</span>
+                                {{ $this->beneficiary?->last_name }}</span>
                         </div>
 
                         {{-- Extension Name --}}
@@ -169,7 +171,7 @@
                             <p class="select-all font-medium  capitalize">
                                 ext. name </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->extension_name ?? '-' }}
+                                {{ $this->beneficiary?->extension_name ?? '-' }}
                             </span>
                         </div>
                     </div>
@@ -180,7 +182,7 @@
                             <p class="select-all font-medium  capitalize">
                                 birthdate </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ Carbon\Carbon::parse($this->beneficiary->birthdate)->format('M. d, Y') }}</span>
+                                {{ Carbon\Carbon::parse($this->beneficiary?->birthdate)->format('M. d, Y') }}</span>
                         </div>
 
                         {{-- Age --}}
@@ -188,7 +190,7 @@
                             <p class="select-all font-medium  capitalize">
                                 age </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->age }}
+                                {{ $this->beneficiary?->age }}
                             </span>
                         </div>
 
@@ -198,7 +200,7 @@
                                 sex </p>
                             <span
                                 class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
-                                {{ $this->beneficiary->sex }}</span>
+                                {{ $this->beneficiary?->sex }}</span>
                         </div>
                     </div>
 
@@ -209,7 +211,7 @@
                                 civil status </p>
                             <span
                                 class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
-                                {{ $this->beneficiary->civil_status }}</span>
+                                {{ $this->beneficiary?->civil_status }}</span>
                         </div>
 
                         {{-- Contact Number --}}
@@ -217,7 +219,7 @@
                             <p class="select-all font-medium  capitalize">
                                 contact number </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->contact_num }}
+                                {{ $this->beneficiary?->contact_num }}
                             </span>
                         </div>
                     </div>
@@ -228,7 +230,7 @@
                             <p class="select-all font-medium capitalize">
                                 occupation </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->occupation ?? 'None' }}</span>
+                                {{ $this->beneficiary?->occupation ?? 'None' }}</span>
                         </div>
 
                         {{-- Avg Monthly Income --}}
@@ -236,10 +238,10 @@
                             <p class="select-all font-medium capitalize">
                                 avg. monthly income </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                @if ($this->beneficiary->avg_monthly_income === null || $this->beneficiary->avg_monthly_income === 0)
+                                @if ($this->beneficiary?->avg_monthly_income === null || $this->beneficiary?->avg_monthly_income === 0)
                                     {{ '-' }}
                                 @else
-                                    {{ '₱' . number_format($this->beneficiary->avg_monthly_income / 100, 2) }}
+                                    {{ '₱' . number_format($this->beneficiary?->avg_monthly_income / 100, 2) }}
                                 @endif
                             </span>
                         </div>
@@ -251,10 +253,10 @@
                             <p class="select-all font-medium">
                                 Type of Beneficiary </p>
 
-                            @if ($this->beneficiary->beneficiary_type === 'special case')
+                            @if ($this->beneficiary?->beneficiary_type === 'special case')
                                 <button type="button" @click="$wire.viewCredential('special');"
-                                    class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-amber-100 active:bg-amber-200 text-amber-950 hover:text-amber-700 duration-200 ease-in-out">
-                                    {{ $this->beneficiary->beneficiary_type }}
+                                    class="relative flex items-center justify-between whitespace-normal rounded capitalize px-2 py-0.5 outline-none bg-red-100 active:bg-red-200 text-red-950 hover:text-red-700 duration-200 ease-in-out">
+                                    {{ $this->beneficiary?->beneficiary_type }}
 
                                     <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2 size-4"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -270,7 +272,7 @@
                             @else
                                 <span
                                     class="whitespace-normal rounded px-2 py-0.5 bg-blue-50 text-blue-1000 capitalize select-all">
-                                    {{ $this->beneficiary->beneficiary_type }}
+                                    {{ $this->beneficiary?->beneficiary_type }}
                                 </span>
                             @endif
 
@@ -281,7 +283,7 @@
                             <p class="select-all font-medium  capitalize">
                                 dependent </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->dependent ?? '-' }}
+                                {{ $this->beneficiary?->dependent ?? '-' }}
                             </span>
                         </div>
                     </div>
@@ -293,7 +295,7 @@
                                 interested in self employment or wage employment </p>
                             <span
                                 class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
-                                {{ $this->beneficiary->self_employment }}</span>
+                                {{ $this->beneficiary?->self_employment }}</span>
                         </div>
                     </div>
 
@@ -303,7 +305,7 @@
                             <p class="select-all font-medium  capitalize">
                                 skills training </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->skills_training ?? '-' }}
+                                {{ $this->beneficiary?->skills_training ?? '-' }}
                             </span>
                         </div>
 
@@ -312,7 +314,7 @@
                             <p class="select-all font-medium">
                                 e-Payment Account Number </p>
                             <span class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 select-all">
-                                {{ $this->beneficiary->e_payment_acc_num ?? '-' }}
+                                {{ $this->beneficiary?->e_payment_acc_num ?? '-' }}
                             </span>
                         </div>
                     </div>
@@ -324,7 +326,7 @@
                                 Person w/ Disability </p>
                             <span
                                 class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
-                                {{ $this->beneficiary->is_pwd }}</span>
+                                {{ $this->beneficiary?->is_pwd }}</span>
                         </div>
 
                         {{-- is Senior Citizen --}}
@@ -333,7 +335,7 @@
                                 Senior Citizen </p>
                             <span
                                 class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
-                                {{ $this->beneficiary->is_senior_citizen }}
+                                {{ $this->beneficiary?->is_senior_citizen }}
                             </span>
                         </div>
                     </div>
@@ -345,7 +347,7 @@
                                 Date Added </p>
                             <span
                                 class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
-                                {{ \Carbon\Carbon::parse($this->beneficiary->created_at)->format('M d, Y @ h:i:sa') }}</span>
+                                {{ \Carbon\Carbon::parse($this->beneficiary?->created_at)->format('M d, Y @ h:i:sa') }}</span>
                         </div>
 
                         {{-- is Senior Citizen --}}
@@ -354,7 +356,7 @@
                                 Last Updated </p>
                             <span
                                 class="whitespace-normal bg-blue-50 text-blue-1000 rounded px-2 py-0.5 capitalize select-all">
-                                {{ \Carbon\Carbon::parse($this->beneficiary->updated_at)->format('M d, Y @ h:i:sa') }}
+                                {{ \Carbon\Carbon::parse($this->beneficiary?->updated_at)->format('M d, Y @ h:i:sa') }}
                             </span>
                         </div>
                     </div>
@@ -366,14 +368,27 @@
 
                         {{-- Edit Button --}}
                         <button
-                            @if ($this->batch->approval_status !== 'approved') @click="$wire.openEdit(); $dispatch('openEdit');"
+                            @if ($this->batch?->approval_status !== 'approved') @click="$wire.openEdit(); $dispatch('openEdit');"
                             @else
                             disabled @endif
                             class="rounded text-sm font-bold flex flex-1 gap-2 items-center justify-center px-3 py-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:bg-blue-800 focus:ring-2 focus:ring-blue-300 duration-200 ease-in-out">
                             EDIT
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
-                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                viewBox="0, 0, 400,400">
+
+                            {{-- Loading Icon --}}
+                            <svg class="size-5 animate-spin" wire:loading wire:target="openEdit"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+
+                            {{-- Edit Icon --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5" wire:loading.remove
+                                wire:target="openEdit" xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                height="400" viewBox="0, 0, 400,400">
                                 <g>
                                     <path
                                         d="M182.813 38.986 C 123.313 52.113,100.226 125.496,141.415 170.564 C 183.488 216.599,261.606 197.040,276.896 136.644 C 291.453 79.146,240.501 26.259,182.813 38.986 M278.141 204.778 C 272.904 206.868,270.880 210.858,270.342 220.156 L 269.922 227.420 264.768 229.218 C 261.934 230.206,258.146 231.841,256.351 232.849 L 253.088 234.684 248.224 229.884 C 241.216 222.970,235.198 221.459,229.626 225.214 C 221.063 230.985,221.157 239.379,229.884 248.224 L 234.684 253.088 232.849 256.351 C 231.841 258.146,230.206 261.934,229.218 264.768 L 227.420 269.922 220.156 270.313 C 208.989 270.915,204.670 274.219,204.083 282.607 C 203.466 291.419,208.211 295.523,219.675 296.094 L 227.526 296.484 228.868 300.781 C 229.606 303.145,231.177 306.971,232.359 309.285 L 234.508 313.492 230.227 317.879 C 223.225 325.054,221.747 330.343,224.976 336.671 C 229.458 345.458,239.052 345.437,248.076 336.622 L 252.794 332.014 258.233 334.683 C 261.224 336.151,265.133 337.742,266.919 338.218 L 270.167 339.083 270.435 346.830 C 270.818 357.905,274.660 362.505,283.514 362.495 C 292.220 362.485,296.084 357.523,296.090 346.344 L 296.094 339.173 300.586 337.882 C 303.057 337.171,306.997 335.559,309.341 334.298 L 313.605 332.006 318.326 336.618 C 324.171 342.328,325.413 342.969,330.613 342.966 C 344.185 342.956,347.496 329.464,336.652 318.359 L 332.075 313.672 334.421 309.022 C 335.711 306.464,337.308 302.509,337.970 300.233 L 339.173 296.094 346.276 296.094 C 357.566 296.094,362.500 292.114,362.500 283.005 C 362.500 274.700,357.650 270.809,346.830 270.435 L 339.083 270.167 338.218 266.919 C 337.742 265.133,336.151 261.224,334.683 258.233 L 332.014 252.794 336.622 248.076 C 345.259 239.234,345.423 230.021,337.028 225.208 C 330.778 221.625,325.473 222.915,318.356 229.749 L 313.432 234.478 309.255 232.344 C 306.958 231.170,303.145 229.606,300.781 228.868 L 296.484 227.526 296.094 219.675 C 295.460 206.941,288.076 200.814,278.141 204.778 M140.625 220.855 C 91.525 226.114,53.906 267.246,53.906 315.674 C 53.906 333.608,63.031 349.447,77.831 357.207 C 88.240 362.664,85.847 362.500,155.113 362.500 L 217.422 362.500 214.329 360.259 C 202.518 351.704,196.602 335.289,200.309 321.365 L 201.381 317.339 196.198 313.914 C 172.048 297.955,174.729 264.426,201.338 249.629 C 201.430 249.578,200.995 247.619,200.371 245.276 C 198.499 238.241,199.126 229.043,201.981 221.680 C 202.483 220.383,151.436 219.698,140.625 220.855 M290.207 252.760 C 316.765 259.678,323.392 292.263,301.575 308.656 C 283.142 322.507,256.557 311.347,252.282 287.964 C 248.462 267.069,269.646 247.405,290.207 252.760 "
@@ -385,7 +400,7 @@
 
                         {{-- Delete Button --}}
                         <button
-                            @if ($this->batch->approval_status !== 'approved') @click="deleteBeneficiaryModal = !deleteBeneficiaryModal;"
+                            @if ($this->batch?->approval_status !== 'approved') @click="deleteBeneficiaryModal = !deleteBeneficiaryModal;"
                             @else
                             disabled @endif
                             class="rounded text-sm font-bold flex items-center justify-center p-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:bg-red-800 focus:ring-2 focus:ring-red-300 duration-200 ease-in-out">
@@ -408,7 +423,7 @@
         <div class="rounded relative bg-white p-4 h-full w-full flex items-center justify-center">
             <div
                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-blue-900 opacity-65"
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-20 mb-4 text-blue-900 opacity-65"
                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                     viewBox="0, 0, 400,400">
                     <g>
@@ -424,4 +439,77 @@
             </div>
         </div>
     @endif
+
+    {{-- View Credentials Modal --}}
+    <livewire:coordinator.submissions.view-credentials-modal :$passedCredentialId />
+
+    {{-- Edit Beneficiary Modal --}}
+    <livewire:coordinator.submissions.edit-beneficiary-modal :$beneficiaryId />
+
+    {{-- Delete Beneficiary Modal --}}
+    <div x-cloak class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50"
+        x-show="deleteBeneficiaryModal">
+
+        <!-- Modal -->
+        <div x-show="deleteBeneficiaryModal" x-trap.noscroll.noautofocus="deleteBeneficiaryModal"
+            class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+
+            {{-- The Modal --}}
+            <div class="relative size-full max-w-xl">
+                <div class="relative bg-white rounded-md shadow">
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
+                        <h1 class="text-sm sm:text-base font-semibold text-blue-1100">
+                            {{ $this->defaultArchive ? 'Archive' : 'Delete' }} this Beneficiary
+                        </h1>
+
+                        {{-- Close Button --}}
+                        <button type="button" @click="deleteBeneficiaryModal = false;"
+                            class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                            </svg>
+                            <span class="sr-only">Close Modal</span>
+                        </button>
+                    </div>
+
+                    <hr class="">
+
+                    {{-- Modal body --}}
+                    <div class="grid w-full place-items-center py-5 px-3 md:px-16 text-blue-1100 text-xs">
+
+                        @if ($this->defaultArchive)
+                            <p class="font-medium text-sm mb-2">
+                                Are you sure about archiving this beneficiary?
+                            </p>
+                            <p class="text-gray-500 text-xs font-normal mb-4">
+                                You could restore this beneficiary back from the Archives page
+                            </p>
+                        @else
+                            <p class="font-medium text-sm mb-2">
+                                Are you sure about deleting this beneficiary?
+                            </p>
+                            <p class="text-gray-500 text-xs font-normal mb-4">
+                                This is action is irreversible
+                            </p>
+                        @endif
+
+                        <div class="flex items-center justify-center w-full gap-2">
+
+                            <button @click="deleteBeneficiaryModal = false;"
+                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-blue-700 hover:border-transparent active:border-transparent hover:bg-blue-800 active:bg-blue-900 text-blue-700 hover:text-blue-50 active:text-blue-50">
+                                CANCEL
+                            </button>
+                            <button type="button" @click="$wire.deleteBeneficiary(); deleteBeneficiaryModal = false;"
+                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                CONFIRM
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

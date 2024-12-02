@@ -2,10 +2,10 @@
 
     <!-- Modal -->
     <div x-show="editBeneficiaryModal" x-trap.noautofocus.noscroll="editBeneficiaryModal"
-        class="relative h-full p-4 overflow-y-auto flex items-center justify-center select-none">
+        class="relative h-full p-4 overflow-y-auto flex items-start justify-center select-none">
 
         <!-- Modal content -->
-        <div class="size-full max-w-7xl">
+        <div class="w-full max-w-7xl">
             <div x-data="{ confirmTypeChangeModal: $wire.entangle('confirmTypeChangeModal') }" class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -32,7 +32,7 @@
 
                         <button type="button"
                             class="text-green-400 bg-transparent focus:bg-green-200 focus:text-green-900 hover:bg-green-200 hover:text-green-900 outline-none rounded size-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-200 ease-in-out"
-                            @click="$wire.resetEditBeneficiary(); editBeneficiaryModal = false;">
+                            @click="$wire.resetEditBeneficiary(); $wire.clearAvgIncome(); editBeneficiaryModal = false;">
                             <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -46,173 +46,182 @@
                 <hr class="">
 
                 <!-- Modal body -->
-                <form wire:submit.prevent="editBeneficiary" class="px-5 pt-5 pb-10">
+                <form wire:submit.prevent="editBeneficiary" class="{{ $is_sectoral ? 'px-5 pt-5 pb-16' : 'p-5' }}">
                     <div
-                        class="grid gap-x-2.5 gap-y-6 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
+                        class="grid gap-x-2.5 gap-y-6 col-span-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
-                        <div x-data="{ addReasonModal: $wire.entangle('addReasonModal') }" class="relative col-span-full mb-2">
-                            @if (isset($similarityResults) && !$isOriginal)
-                                <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
-                                    :class="{
-                                        // A Perfect Duplicate && Unresolved Duplication Issue
-                                        'border-orange-300 bg-orange-50 text-orange-900': {{ json_encode($isIneligible && $isPerfectDuplicate && !$isResolved) }},
-                                        // A Perfect Duplicate && Unresolved Duplication Issue
-                                        'border-red-300 bg-red-50 text-red-900': {{ json_encode($isPerfectDuplicate && !$isResolved) }},
-                                        // A Possible Duplicate
-                                        'border-amber-300 bg-amber-50 text-amber-900': {{ json_encode(!$isPerfectDuplicate && !$isResolved) }},
-                                        // When a Perfect Duplicate is Resolved
-                                        'border-green-300 bg-green-50 text-green-900': {{ json_encode($isResolved) }},
-                                    }">
+                        <div x-data="{ addReasonModal: $wire.entangle('addReasonModal') }"
+                            class="{{ $similarityResults && !$isOriginal ? '' : 'hidden' }} relative col-span-full">
+                            <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
+                                :class="{
+                                    // Ineligible Duplicate
+                                    'border-orange-300 bg-orange-50 text-orange-900': {{ json_encode($isIneligible && $isPerfectDuplicate && !$isResolved) }},
+                                    // A Perfect Duplicate && Unresolved Duplication Issue
+                                    'border-red-300 bg-red-50 text-red-900': {{ json_encode($isPerfectDuplicate && !$isResolved) }},
+                                    // A Possible Duplicate
+                                    'border-amber-300 bg-amber-50 text-amber-900': {{ json_encode(!$isPerfectDuplicate && !$isResolved) }},
+                                    // When a Perfect Duplicate is Resolved
+                                    'border-green-300 bg-green-50 text-green-900': {{ json_encode($isResolved) }},
+                                }">
 
-                                    {{-- If Inputted Beneficiary is on the same implementation --}}
-                                    @if ($isSameImplementation)
-                                        <p class="inline mx-2">You cannot enter the same beneficiary on the same
-                                            implementation.
-                                        </p>
+                                {{-- If Inputted Beneficiary is on the same implementation --}}
+                                @if ($isSameImplementation)
+                                    <p class="inline mx-2">You cannot enter the same beneficiary on the same
+                                        implementation.
+                                    </p>
 
-                                        {{-- If the beneificary applied more than twice (2) already --}}
-                                    @elseif($isIneligible)
-                                        <p class="inline mx-2">This beneficiary
-                                            has already applied more than twice (2) this year.
-                                        </p>
-                                    @elseif($isSamePending)
-                                        {{-- If the beneficiary has already applied from another pending implementation project --}}
-                                        <p class="inline mx-2">This beneficiary
-                                            has already applied in another pending implementation project.
-                                        </p>
-                                        {{-- Perfect Duplicate --}}
-                                    @elseif ($isPerfectDuplicate && !$isResolved)
-                                        <p class="inline mx-2">This beneficiary
-                                            has
-                                            already
-                                            been listed in the
-                                            database this
-                                            year.
-                                        </p>
+                                    {{-- If the beneificary applied more than twice (2) already --}}
+                                @elseif($isIneligible)
+                                    <p class="inline mx-2">This beneficiary
+                                        has already applied more than twice (2) this year.
+                                    </p>
+                                @elseif($isSamePending)
+                                    {{-- If the beneficiary has already applied from another pending implementation project --}}
+                                    <p class="inline mx-2">This beneficiary
+                                        has already applied in another pending implementation project.
+                                    </p>
+                                    {{-- Perfect Duplicate --}}
+                                @elseif ($isPerfectDuplicate && !$isResolved)
+                                    <p class="inline mx-2">This beneficiary
+                                        has
+                                        already
+                                        been listed in the
+                                        database this
+                                        year.
+                                    </p>
+
+                                    {{-- Not a Special Case Edit && Set beneficiary_type as 'Special Case' --}}
+                                    @if (strtolower($beneficiary_type) === 'special case')
+                                        <button type="button" @click="addReasonModal = !addReasonModal"
+                                            class="px-2 py-1 rounded font-bold text-xs {{ $isPerfectDuplicate ? ' bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50' : ' bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50' }}">
+                                            ADD REASON
+                                        </button>
 
                                         {{-- Not a Special Case Edit && Set beneficiary_type as 'Special Case' --}}
-                                        @if (strtolower($beneficiary_type) === 'special case')
-                                            <button type="button" @click="addReasonModal = !addReasonModal"
-                                                class="px-2 py-1 rounded font-bold text-xs {{ $isPerfectDuplicate ? ' bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50' : ' bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50' }}">
-                                                ADD REASON
-                                            </button>
-
-                                            {{-- Not a Special Case Edit && Set beneficiary_type as 'Special Case' --}}
-                                        @elseif (strtolower($beneficiary_type) !== 'special case')
-                                            <p class="inline mx-2">Not a mistake? Change the
-                                                Type of Beneficiary to
-                                                <strong class="underline underline-offset-2">Special
-                                                    Case</strong>
-                                            </p>
-                                        @endif
-
-                                        {{-- Possible Duplicate --}}
-                                    @elseif (!$isPerfectDuplicate && !$isResolved)
-                                        <p class="inline mx-2">There are
-                                            possible
-                                            duplicates found
-                                            associated with this name. You may proceed if you think this is a mistake.
+                                    @elseif (strtolower($beneficiary_type) !== 'special case')
+                                        <p class="inline mx-2">Not a mistake? Change the
+                                            Type of Beneficiary to
+                                            <strong class="underline underline-offset-2">Special
+                                                Case</strong>
                                         </p>
-                                    @elseif($isResolved)
-                                        <p class="inline mx-2">Possible
-                                            duplication is resolved.
-                                        </p>
-
-                                        <button type="button" @click="addReasonModal = !addReasonModal"
-                                            class="px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
-                                            REASON</button>
                                     @endif
-                                </div>
 
-                                {{-- Add Reason Modal --}}
-                                <div x-cloak
-                                    class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-                                    x-show="addReasonModal">
+                                    {{-- Possible Duplicate --}}
+                                @elseif (!$isPerfectDuplicate && !$isResolved)
+                                    <p class="inline mx-2">There are
+                                        possible
+                                        duplicates found
+                                        associated with this name. You may proceed if you think this is a mistake.
+                                    </p>
+                                @elseif($isResolved)
+                                    <p class="inline mx-2">Possible
+                                        duplication is resolved.
+                                    </p>
 
-                                    <!-- Modal -->
-                                    <div x-show="addReasonModal" x-trap.noscroll.noautofocus="addReasonModal"
-                                        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+                                    <button type="button" @click="addReasonModal = !addReasonModal"
+                                        class="px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
+                                        REASON</button>
+                                @endif
+                            </div>
 
-                                        {{-- The Modal --}}
-                                        <div class="relative size-full max-w-3xl">
-                                            <div class="relative bg-white rounded-md shadow">
-                                                <form wire:submit.prevent="saveReason">
-                                                    <!-- Modal Header -->
-                                                    <div
-                                                        class="flex items-center justify-between py-2 px-4 rounded-t-md">
-                                                        <span class="flex items-center justify-center">
-                                                            <h1
-                                                                class="text-sm sm:text-base font-semibold text-green-1100">
-                                                                Add Reason
-                                                            </h1>
-                                                        </span>
+                            {{-- Add Reason Modal --}}
+                            <div x-cloak x-show="addReasonModal"
+                                class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
-                                                        <div class="flex items-center justify-center">
-                                                            {{-- Loading State for Changes --}}
-                                                            <div class="z-50 text-green-900" wire:loading>
-                                                                <svg class="size-6 mr-3 -ml-1 animate-spin"
-                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                    viewBox="0 0 24 24">
-                                                                    <circle class="opacity-25" cx="12"
-                                                                        cy="12" r="10" stroke="currentColor"
-                                                                        stroke-width="4">
-                                                                    </circle>
-                                                                    <path class="opacity-75" fill="currentColor"
-                                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                                    </path>
-                                                                </svg>
-                                                            </div>
-                                                            <button type="button" @click="addReasonModal = false;"
-                                                                class="outline-none text-green-400 hover:bg-green-200 hover:text-green-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
-                                                                <svg class="size-3" aria-hidden="true"
-                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                    viewBox="0 0 14 14">
-                                                                    <path stroke="currentColor" stroke-linecap="round"
-                                                                        stroke-linejoin="round" stroke-width="2"
-                                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                                                </svg>
-                                                                <span class="sr-only">Close Modal</span>
-                                                            </button>
+                                <!-- Modal -->
+                                <div x-show="addReasonModal" x-trap.noautofocus.noscroll="addReasonModal"
+                                    class="relative h-full overflow-y-auto p-4 flex items-start sm:items-center justify-center select-none">
+
+                                    {{-- The Modal --}}
+                                    <div class="w-full max-w-3xl">
+                                        <div class="relative bg-white rounded-md shadow">
+                                            <form wire:submit.prevent="saveReason">
+                                                <!-- Modal Header -->
+                                                <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
+                                                    <span class="flex items-center justify-center">
+                                                        <h1 class="text-sm sm:text-base font-semibold text-green-1100">
+                                                            Add Reason
+                                                        </h1>
+                                                    </span>
+
+                                                    <div class="flex items-center justify-center">
+                                                        {{-- Loading State for Changes --}}
+                                                        <div class="z-50 text-green-900" wire:loading
+                                                            wire:target="saveReason, resetReason">
+                                                            <svg class="size-6 mr-3 -ml-1 animate-spin"
+                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                viewBox="0 0 24 24">
+                                                                <circle class="opacity-25" cx="12" cy="12"
+                                                                    r="10" stroke="currentColor" stroke-width="4">
+                                                                </circle>
+                                                                <path class="opacity-75" fill="currentColor"
+                                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                                </path>
+                                                            </svg>
                                                         </div>
                                                     </div>
+                                                </div>
 
-                                                    <hr class="">
+                                                <hr class="">
 
-                                                    {{-- Modal Body --}}
-                                                    <div class="pt-5 pb-6 px-3 md:px-12 text-green-1100 text-xs">
-                                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                                                {{-- Modal Body --}}
+                                                <div class="pt-5 pb-10 px-5 md:px-12 text-green-1100 text-xs">
+                                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
 
-                                                            {{-- Case Proof --}}
-                                                            <div class="relative col-span-full sm:col-span-1 pb-4">
-                                                                <div class="flex flex-col items-start">
-                                                                    <div class="flex items-center">
-                                                                        <p
-                                                                            class="inline mb-1 font-medium text-green-1100">
-                                                                            Case Proof <span
-                                                                                class="text-red-700 font-normal text-xs">*</span>
-                                                                        </p>
-                                                                    </div>
+                                                        {{-- Case Proof --}}
+                                                        <div class="relative col-span-full sm:col-span-1">
+                                                            <div class="relative flex flex-col items-start">
+                                                                <div class="flex items-center">
+                                                                    <p class="inline mb-1 font-medium text-green-1100">
+                                                                        <span class="relative">Case Proof
+                                                                            <span
+                                                                                class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                                                                *
+                                                                            </span>
+                                                                        </span>
+                                                                    </p>
+                                                                </div>
 
-                                                                    {{-- Image Area --}}
-                                                                    <label for="edit_reason_image_file_path"
-                                                                        class="{{ $errors->has('reason_image_file_path') ? 'border-red-300 bg-red-50 text-red-500' : 'border-green-300 bg-green-50 text-gray-500' }} flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded cursor-pointer">
+                                                                {{-- Image Area --}}
+                                                                <label for="edit_reason_image_file_path"
+                                                                    id="edit_reason_dropzone" x-data="{ uploading: false, progress: 0 }"
+                                                                    x-on:livewire-upload-start="uploading = true"
+                                                                    x-on:livewire-upload-finish="uploading = false; progress = 0;"
+                                                                    x-on:livewire-upload-cancel="uploading = false"
+                                                                    x-on:livewire-upload-error="uploading = false;"
+                                                                    x-on:livewire-upload-progress="progress = $event.detail.progress;"
+                                                                    class="{{ $errors->has('reason_image_file_path')
+                                                                        ? 'border-red-300 bg-red-50 text-red-500 hover:text-orange-500'
+                                                                        : 'border-green-300 bg-green-50 text-gray-500 hover:text-green-500' }} 
+                                                                                relative flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
+                                                                                overflow-hidden">
 
-                                                                        {{-- Image Preview --}}
-                                                                        <div
-                                                                            class="relative flex flex-col items-center justify-center w-full h-full aspect-square">
+                                                                    {{-- Image Preview --}}
+                                                                    <div
+                                                                        class="relative flex flex-col items-center justify-center size-full aspect-square">
 
-                                                                            {{-- Loading State for Changes --}}
-                                                                            <div class="absolute flex items-center justify-center w-full h-full z-50 text-green-900"
-                                                                                wire:loading.flex
-                                                                                wire:target="reason_image_file_path">
+                                                                        {{-- Loading State for Changes --}}
+                                                                        <div class="absolute flex items-center justify-center size-full"
+                                                                            wire:loading.flex
+                                                                            wire:target="reason_image_file_path">
+                                                                            <div
+                                                                                class="absolute bg-black opacity-5 rounded min-w-full min-h-full">
+                                                                                {{-- Darkness... --}}
+                                                                            </div>
+
+                                                                            {{-- Progress Bar & Loading Icon --}}
+                                                                            <div x-show="uploading"
+                                                                                class="absolute flex items-center justify-center w-3/4">
                                                                                 <div
-                                                                                    class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
-                                                                                    {{-- Darkness... --}}
+                                                                                    class="w-full bg-gray-300 rounded-lg h-2">
+                                                                                    <div class="duration-200 ease-in-out h-full {{ $errors->has('reason_image_file_path') ? 'bg-red-500' : 'bg-green-500' }} rounded-lg"
+                                                                                        :style="'width: ' + progress +
+                                                                                            '%'">
+                                                                                    </div>
                                                                                 </div>
 
-                                                                                {{-- Loading Circle --}}
-                                                                                <svg class="size-6 animate-spin"
+                                                                                <svg class="ms-2 size-5 {{ $errors->has('reason_image_file_path') ? 'text-red-700' : 'text-green-700' }} animate-spin"
                                                                                     xmlns="http://www.w3.org/2000/svg"
                                                                                     fill="none"
                                                                                     viewBox="0 0 24 24">
@@ -227,93 +236,169 @@
                                                                                     </path>
                                                                                 </svg>
                                                                             </div>
+                                                                        </div>
 
-                                                                            {{-- Preview --}}
-                                                                            @if ($reason_saved_image_path || ($reason_image_file_path && !$errors->has('reason_image_file_path')))
-                                                                                @if (is_object($reason_image_file_path))
-                                                                                    <img class="w-[95%]"
-                                                                                        src="{{ $reason_image_file_path->temporaryUrl() }}">
-                                                                                @else
-                                                                                    {{-- Show the saved image from the database --}}
-                                                                                    <img class="w-[95%]"
-                                                                                        src="{{ route('credentials.show', ['filename' => $reason_saved_image_path]) }}">
-                                                                                @endif
-                                                                                {{-- Default --}}
-                                                                            @else
-                                                                                <svg class="size-8 mb-4"
+                                                                        @if (is_object($reason_image_file_path) && !$errors->has('reason_image_file_path'))
+                                                                            {{-- Show the inserted image from the user --}}
+                                                                            <img class="size-[90%] object-contain"
+                                                                                src="{{ $reason_image_file_path->temporaryUrl() }}">
+                                                                        @elseif($reason_saved_image_path && !$errors->has('reason_image_file_path'))
+                                                                            {{-- Show the saved image from the database --}}
+                                                                            <img class="size-[90%] object-contain"
+                                                                                src="{{ route('credentials.show', ['filename' => $reason_saved_image_path]) }}">
+                                                                        @else
+                                                                            {{-- Default --}}
+                                                                            <svg class="size-8 mt-2 mb-4"
+                                                                                aria-hidden="true"
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                fill="none" viewBox="0 0 20 16">
+                                                                                <path stroke="currentColor"
+                                                                                    stroke-linecap="round"
+                                                                                    stroke-linejoin="round"
+                                                                                    stroke-width="2"
+                                                                                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                                                            </svg>
+                                                                            <p class="mb-2 text-xs">
+                                                                                <span class="font-semibold">Click
+                                                                                    to
+                                                                                    upload</span> or
+                                                                                drag
+                                                                                and
+                                                                                drop
+                                                                            </p>
+                                                                            <p class="text-xs">
+                                                                                PNG or JPG (MAX. 5MB)
+                                                                            </p>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    {{-- The Image itself --}}
+                                                                    <input id="edit_reason_image_file_path"
+                                                                        wire:model="reason_image_file_path"
+                                                                        wire:loading.attr="disabled"
+                                                                        wire:target="reason_image_file_path"
+                                                                        type="file" accept=".png,.jpg,.jpeg"
+                                                                        class="hidden" />
+
+                                                                    {{-- Cancel (X) button --}}
+                                                                    <span x-show="uploading"
+                                                                        class="absolute top-0 right-0 inline-flex">
+                                                                        <button
+                                                                            class="p-2 text-gray-500 {{ $errors->has('reason_image_file_path') ? 'hover:text-red-700' : 'hover:text-green-700' }} duration-200 ease-in-out"
+                                                                            type="button"
+                                                                            wire:click="cancelUpload('reason_image_file_path')"
+                                                                            @click="$wire.$refresh();">
+
+                                                                            {{-- X Icon --}}
+                                                                            <svg class="size-3" aria-hidden="true"
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                fill="none" viewBox="0 0 14 14">
+                                                                                <path stroke="currentColor"
+                                                                                    stroke-linecap="round"
+                                                                                    stroke-linejoin="round"
+                                                                                    stroke-width="2"
+                                                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                                            </svg>
+                                                                        </button>
+                                                                    </span>
+
+                                                                    @if ($reason_image_file_path || $reason_saved_image_path)
+                                                                        {{-- Remove Image (X) button --}}
+                                                                        <span x-show="!uploading"
+                                                                            class="absolute -top-2 -right-2 inline-flex">
+                                                                            <button wire:loading.attr="disabled"
+                                                                                class="p-4 rounded-bl-full bg-transparent text-zinc-700 {{ $errors->has('reason_image_file_path') ? 'hover:bg-red-700 hover:text-red-50' : 'hover:bg-green-700 hover:text-green-50' }} duration-200 ease-in-out"
+                                                                                type="button"
+                                                                                @click="$wire.$set('reason_image_file_path', null); $wire.$set('reason_saved_image_path', null)">
+
+                                                                                {{-- Loading Icon --}}
+                                                                                <svg class="size-3 animate-spin"
+                                                                                    wire:loading
+                                                                                    wire:target="reason_image_file_path"
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none"
+                                                                                    viewBox="0 0 24 24">
+                                                                                    <circle class="opacity-25"
+                                                                                        cx="12" cy="12"
+                                                                                        r="10" stroke="currentColor"
+                                                                                        stroke-width="4">
+                                                                                    </circle>
+                                                                                    <path class="opacity-75"
+                                                                                        fill="currentColor"
+                                                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                                                    </path>
+                                                                                </svg>
+
+                                                                                {{-- X Icon --}}
+                                                                                <svg class="size-3" wire:loading.remove
+                                                                                    wire:target="reason_image_file_path"
                                                                                     aria-hidden="true"
                                                                                     xmlns="http://www.w3.org/2000/svg"
                                                                                     fill="none"
-                                                                                    viewBox="0 0 20 16">
+                                                                                    viewBox="0 0 14 14">
                                                                                     <path stroke="currentColor"
                                                                                         stroke-linecap="round"
                                                                                         stroke-linejoin="round"
                                                                                         stroke-width="2"
-                                                                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                                                                 </svg>
-                                                                                <p class="mb-2 text-xs">
-                                                                                    <span class="font-semibold">Click
-                                                                                        to
-                                                                                        upload</span> or
-                                                                                    drag
-                                                                                    and
-                                                                                    drop
-                                                                                </p>
-                                                                                <p class="text-xs">
-                                                                                    PNG or JPG (MAX. 5MB)
-                                                                                </p>
-                                                                            @endif
-                                                                        </div>
-
-                                                                        {{-- The Image itself --}}
-                                                                        <input id="edit_reason_image_file_path"
-                                                                            wire:model="reason_image_file_path"
-                                                                            type="file" accept=".png,.jpg,.jpeg"
-                                                                            class="hidden" />
-                                                                    </label>
-                                                                </div>
+                                                                            </button>
+                                                                        </span>
+                                                                    @endif
+                                                                </label>
                                                                 @error('reason_image_file_path')
                                                                     <p
-                                                                        class="text-center whitespace-nowrap w-full text-red-500 absolute left-0 top-full z-10 text-xs">
+                                                                        class="text-center whitespace-nowrap w-full text-red-500 absolute top-full mt-1 text-xs">
+                                                                        {{ $message }}
+                                                                    </p>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Image Description --}}
+                                                        <div
+                                                            class="relative flex flex-col justify-between col-span-full sm:col-span-2 gap-4">
+                                                            <div class="relative flex flex-col">
+                                                                <label for="edit_image_description"
+                                                                    class="relative block mb-1 font-medium text-green-1100 ">
+                                                                    <span class="relative">Description
+                                                                        <span
+                                                                            class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                                                        </span>
+                                                                    </span>
+                                                                </label>
+                                                                <textarea type="text" id="edit_image_description" autocomplete="off" wire:model.blur="image_description"
+                                                                    maxlength="255" rows="4"
+                                                                    class="resize-none h-full text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('image_description') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
+                                                                    placeholder="What is the reason for this special case?"></textarea>
+
+                                                                @error('image_description')
+                                                                    <p
+                                                                        class="text-red-500 whitespace-nowrap w-full absolute left-0 top-full mt-1 text-xs">
                                                                         {{ $message }}</p>
                                                                 @enderror
                                                             </div>
-
-                                                            {{-- Image Description --}}
-                                                            <div
-                                                                class="relative flex flex-col justify-between col-span-full sm:col-span-2 pb-4">
-                                                                <div class="flex flex-col">
-                                                                    <label for="edit_image_description"
-                                                                        class="block mb-1 font-medium text-green-1100 ">Description
-                                                                        <span
-                                                                            class="text-red-700 font-normal text-xs">*</span></label>
-                                                                    <textarea type="text" id="edit_image_description" autocomplete="off" wire:model.blur="image_description"
-                                                                        maxlength="255" rows="4"
-                                                                        class="resize-none h-full text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out {{ $errors->has('image_description') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
-                                                                        placeholder="What is the reason for this special case?"></textarea>
-
-                                                                    @error('image_description')
-                                                                        <p
-                                                                            class="text-red-500 whitespace-nowrap w-full absolute left-0 top-full z-10 text-xs">
-                                                                            {{ $message }}</p>
-                                                                    @enderror
-                                                                </div>
-                                                                <div class="flex justify-end w-full">
-                                                                    <button type="button"
-                                                                        wire:click.prevent="saveReason"
-                                                                        class="px-2 py-1 rounded bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50 font-bold text-lg">
-                                                                        CONFIRM
-                                                                    </button>
-                                                                </div>
+                                                            <div class="flex justify-end gap-2 w-full">
+                                                                <button type="button" wire:click="resetReason"
+                                                                    wire:loading.attr="disabled"
+                                                                    class="outline-none duration-200 ease-in-out px-2 py-1 rounded font-bold text-lg border border-zinc-500 hover:border-transparent focus:border-transparent text-zinc-500 hover:text-green-50 active:text-green-50 hover:bg-green-800 active:bg-green-900 focus:outline-offset-2 focus:outline-green-300">
+                                                                    CANCEL
+                                                                </button>
+                                                                <button type="button" wire:click="saveReason"
+                                                                    wire:loading.attr="disabled"
+                                                                    class="outline-none duration-200 ease-in-out px-2 py-1 rounded bg-green-700 hover:bg-green-800 active:bg-green-900 focus:outline-offset-2 focus:outline-green-300 text-green-50 font-bold text-lg">
+                                                                    CONFIRM
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </form>
-                                            </div>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
-                            @endif
+                            </div>
+
                         </div>
 
                         {{-- First Name --}}
@@ -397,8 +482,8 @@
                             </div>
                             <input type="text" datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                 datepicker-min-date='{{ $minDate }}' datepicker-max-date='{{ $maxDate }}'
-                                id="edit_birthdate" autocomplete="off" wire:model.blur="birthdate"
-                                @change-date.camel="$wire.set('birthdate', $el.value); $wire.nameCheck();"
+                                id="edit_birthdate" autocomplete="off" wire:model.live.debounce.500ms="birthdate"
+                                @change-date.camel="$wire.$set('birthdate', $el.value);"
                                 class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Select date">
                             @error('birthdate')
@@ -455,7 +540,7 @@
                                 <!-- Button -->
                                 <button type="button" @click="open = !open;" :aria-expanded="open"
                                     class="flex items-center justify-between w-full p-2 rounded text-xs border outline-1 duration-200 ease-in-out group bg-green-50 border-green-300 text-green-1100 outline-green-300 focus:outline-green-600 focus:border-green-600">
-                                    <span x-text="beneficiary_type"></span>
+                                    <span class="text-xs md:max-[890px]:text-2xs" x-text="beneficiary_type"></span>
 
                                     <!-- Icon -->
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -573,9 +658,9 @@
                                 <!-- Panel -->
                                 <div x-show="open"
                                     @click.away="
-                                if(open) {
-                                open = false;
-                                }"
+                                    if(open) {
+                                    open = false;
+                                    }"
                                     class="absolute left-0 mt-2 w-full z-50 rounded bg-green-50 shadow-lg border border-green-500">
                                     <button type="button"
                                         @click="civil_status = 'Single'; open = false; $wire.$refresh();"
@@ -587,6 +672,18 @@
                                         @click="civil_status = 'Married'; open = false; $wire.$refresh();"
                                         class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-green-1100 hover:text-green-900 focus:text-green-900 active:text-green-1000 hover:bg-green-100 focus:bg-green-100 active:bg-green-200">
                                         Married
+                                    </button>
+
+                                    <button type="button"
+                                        @click="civil_status = 'Separated'; open = false; $wire.$refresh();"
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-green-1100 hover:text-green-900 focus:text-green-900 active:text-green-1000 hover:bg-green-100 focus:bg-green-100 active:bg-green-200">
+                                        Separated
+                                    </button>
+
+                                    <button type="button"
+                                        @click="civil_status = 'Widowed'; open = false; $wire.$refresh();"
+                                        class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-green-1100 hover:text-green-900 focus:text-green-900 active:text-green-1000 hover:bg-green-100 focus:bg-green-100 active:bg-green-200">
+                                        Widowed
                                     </button>
                                 </div>
                             </div>
@@ -610,7 +707,7 @@
                                 </div>
                                 <input x-mask:dynamic="$money($input)" type="text" min="0"
                                     autocomplete="off" id="edit_avg_monthly_income"
-                                    @input="$wire.avg_monthly_income = $el.value;"
+                                    @blur="$wire.$set('avg_monthly_income', $el.value);"
                                     class="text-xs outline-none border ps-10 rounded block w-full pe-2 py-2 duration-200 ease-in-out {{ $errors->has('avg_monthly_income') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50  border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                     placeholder="0.00">
                             </div>
@@ -929,7 +1026,7 @@
                                     </svg>
                                     {{-- Popover --}}
                                     <div id="edit_is-pwd-popover"
-                                        class="absolute z-50 bottom-full mb-2 left-0 md:left-auto md:right-0 text-xs whitespace-nowrap border border-gray-300 text-green-50 bg-gray-700 rounded p-2 shadow"
+                                        class="absolute z-50 bottom-full mb-2 left-0 md:left-auto md:right-0 text-xs whitespace-nowrap border border-zinc-300 text-zinc-50 bg-zinc-900 rounded p-2 shadow"
                                         x-show="pop">
                                         PWD stands for <b>P</b>erson <b>w</b>ith
                                         <b>D</b>isability
@@ -970,14 +1067,14 @@
                         </div>
 
                         {{-- Proof of Identity --}}
-                        <div class="w-full relative col-span-full lg:col-span-2  pb-1">
+                        <div class="w-full relative col-span-full lg:col-span-2 pb-1">
                             <div class="lg:absolute w-full flex flex-col items-start justify-center">
 
                                 {{-- Header --}}
                                 <div class="relative flex items-center">
                                     <p class="inline mb-1 font-medium text-green-1100">
-                                        <span class="relative">Proof of Identity
-
+                                        <span class="relative">
+                                            Proof of Identity
                                         </span>
                                     </p>
 
@@ -992,7 +1089,7 @@
                                         </svg>
                                         {{-- Popover --}}
                                         <div id="edit_identity-popover"
-                                            class="absolute -left-20 sm:left-0 bottom-full mb-2 z-50 text-xs whitespace-nowrap border border-gray-300 text-green-50 bg-gray-700 rounded p-2 shadow"
+                                            class="absolute -left-20 sm:left-0 lg:left-auto lg:right-0 bottom-full mb-2 z-50 text-xs whitespace-nowrap border border-zinc-300 text-zinc-50 bg-zinc-900 rounded p-2 shadow"
                                             x-show="pop">
                                             It's basically an image of a beneficiary's ID card <br>
                                             to further prove that their identity is legitimate.
@@ -1004,32 +1101,35 @@
                                 </div>
 
                                 {{-- Image Area --}}
-                                <label for="edit_image_file_path" x-data="{ uploading: false, progress: 0 }"
+                                <label for="edit_image_file_path" id="edit_id_dropzone" x-data="{ uploading: false, progress: 0 }"
                                     x-on:livewire-upload-start="uploading = true"
                                     x-on:livewire-upload-finish="uploading = false; progress = 0;"
                                     x-on:livewire-upload-cancel="uploading = false"
                                     x-on:livewire-upload-error="uploading = false;"
                                     x-on:livewire-upload-progress="progress = $event.detail.progress;"
-                                    class="flex flex-col items-center justify-center size-full border-2 {{ $errors->has('image_file_path') ? 'border-red-300 bg-red-100' : 'border-green-300 bg-green-50' }} border-dashed rounded cursor-pointer">
+                                    class="relative overflow-hidden flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
+                                            {{ $errors->has('image_file_path')
+                                                ? 'border-red-300 bg-red-100 text-red-500 hover:text-orange-500'
+                                                : 'border-green-300 bg-green-50 text-gray-500 hover:text-green-500' }}">
 
                                     {{-- Image Preview --}}
-                                    <div class="relative flex flex-col items-center justify-center py-4 size-full">
+                                    <div class="relative flex flex-col items-center justify-center py-3 size-full">
                                         {{-- Loading State for Changes --}}
-                                        <div class="absolute flex items-center justify-center size-full z-50 text-green-900"
-                                            x-show="uploading">
-                                            <div
-                                                class="absolute bg-black opacity-5 rounded min-w-full min-h-full z-50">
+                                        <div class="absolute flex items-center justify-center size-full"
+                                            wire:loading.flex wire:target="image_file_path">
+                                            <div class="absolute bg-black opacity-5 rounded min-w-full min-h-full">
                                                 {{-- Darkness... --}}
                                             </div>
 
                                             <!-- Progress Bar && Loading Icon -->
-                                            <div class="absolute flex items-center justify-center w-3/4 z-50">
+                                            <div x-show="uploading"
+                                                class="absolute flex items-center justify-center w-3/4">
                                                 <div class="w-full bg-gray-300 rounded-lg h-2">
-                                                    <div class=" h-full bg-green-500 rounded-lg"
+                                                    <div class="duration-200 ease-in-out h-full {{ $errors->has('image_file_path') ? 'bg-red-500' : 'bg-green-500' }} rounded-lg"
                                                         x-bind:style="'width: ' + progress + '%'">
                                                     </div>
                                                 </div>
-                                                <svg class="ms-2 size-5 text-green-900 animate-spin"
+                                                <svg class="ms-2 size-5 {{ $errors->has('image_file_path') ? 'text-red-700' : 'text-green-700' }} animate-spin"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -1043,42 +1143,85 @@
                                         </div>
 
                                         {{-- Preview --}}
-                                        @if ($saved_image_path || ($image_file_path && !$errors->has('image_file_path')))
-                                            @if (is_object($image_file_path))
-                                                <img class="w-32 h-20 object-contain"
-                                                    src="{{ $image_file_path->temporaryUrl() }}">
-                                            @else
-                                                {{-- Show the saved image from the database --}}
-                                                <img class="w-32 h-20 object-contain"
-                                                    src="{{ route('credentials.show', ['filename' => $saved_image_path]) }}">
-                                            @endif
-                                            {{-- Default --}}
+                                        @if (is_object($image_file_path) && !$errors->has('image_file_path'))
+                                            {{-- Show the inserted image from the user --}}
+                                            <img class="w-32 h-24 object-contain"
+                                                src="{{ $image_file_path->temporaryUrl() }}">
+                                        @elseif($saved_image_path && !$errors->has('image_file_path'))
+                                            {{-- Show the saved image from the database --}}
+                                            <img class="w-32 h-24 object-contain"
+                                                src="{{ route('credentials.show', ['filename' => $saved_image_path]) }}">
                                         @else
-                                            <svg class="size-8 {{ $errors->has('image_file_path') ? 'text-red-500' : 'text-gray-500' }} "
-                                                aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            {{-- Default --}}
+                                            <svg class="size-8 mt-2 mb-4" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 20 16">
                                                 <path stroke="currentColor" stroke-linecap="round"
                                                     stroke-linejoin="round" stroke-width="2"
                                                     d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                                             </svg>
-                                            <p
-                                                class="mb-2 text-xs {{ $errors->has('image_file_path') ? 'text-red-500' : 'text-gray-500' }}">
-                                                <span class="font-semibold">Click to
-                                                    upload</span> or drag and drop
-                                            </p>
-                                            <p
-                                                class="text-xs {{ $errors->has('image_file_path') ? 'text-red-500' : 'text-gray-500' }} ">
-                                                PNG or JPG (MAX. 5MB)</p>
+                                            <p class="mb-2 text-xs"><span class="font-semibold">Click to
+                                                    upload</span> or drag and drop</p>
+                                            <p class="text-xs">PNG or JPG (MAX. 5MB)</p>
                                         @endif
                                     </div>
 
                                     {{-- The Image itself --}}
-                                    <input id="edit_image_file_path" wire:model="image_file_path" type="file"
+                                    <input id="edit_image_file_path" wire:model="image_file_path"
+                                        wire:loading.attr="disabled" wire:target="image_file_path" type="file"
                                         accept=".png,.jpg,.jpeg" class="hidden" />
+
+                                    {{-- Cancel Upload (X) button --}}
+                                    <span x-show="uploading" class="absolute top-0 right-0 inline-flex">
+                                        <button
+                                            class="p-2 text-gray-500 {{ $errors->has('image_file_path') ? 'hover:text-red-700' : 'hover:text-green-700' }} duration-200 ease-in-out"
+                                            type="button" wire:click="cancelUpload('image_file_path')"
+                                            @click="$wire.$refresh();"><svg class="size-3" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                        </button>
+                                    </span>
+
+                                    @if ($image_file_path || $saved_image_path)
+                                        {{-- Remove Image (X) button --}}
+                                        <span x-show="!uploading" class="absolute -top-2 -right-2 inline-flex">
+                                            <button wire:loading.attr="disabled"
+                                                class="p-4 rounded-bl-full bg-transparent text-zinc-700 {{ $errors->has('image_file_path') ? 'hover:bg-red-700 hover:text-red-50' : 'hover:bg-green-700 hover:text-green-50' }} duration-200 ease-in-out"
+                                                type="button"
+                                                @click="$wire.$set('image_file_path', null); $wire.$set('saved_image_path', null)">
+
+                                                {{-- Loading Icon --}}
+                                                <svg class="size-3 animate-spin" wire:loading
+                                                    wire:target="image_file_path, saved_image_path"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4">
+                                                    </circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                    </path>
+                                                </svg>
+
+                                                {{-- X Icon --}}
+                                                <svg class="size-3" wire:loading.remove
+                                                    wire:target="image_file_path, saved_image_path" aria-hidden="true"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 14 14">
+                                                    <path stroke="currentColor" stroke-linecap="round"
+                                                        stroke-linejoin="round" stroke-width="2"
+                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    @endif
                                 </label>
                                 @error('image_file_path')
-                                    <p
-                                        class="text-center whitespace-nowrap w-full text-red-500 absolute top-full mt-1 text-xs">
+                                    <p class="text-center whitespace-nowrap w-full text-red-500 absolute top-full text-xs">
                                         {{ $message }}</p>
                                 @enderror
                             </div>
@@ -1088,9 +1231,9 @@
                         {{-- Spouse First Name --}}
                         <div class=" relative col-span-full sm:col-span-2 xl:col-span-3  pb-1">
                             <label for="edit_spouse_first_name"
-                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}">
+                                class="flex items-end mb-1 font-medium h-6 {{ in_array($civil_status, ['Married', 'Separated', 'Widowed']) ? 'text-green-1100' : 'text-gray-400' }}">
                                 <span class="relative"> Spouse
-                                    First Name @if ($civil_status === 'Married')
+                                    First Name @if (in_array($civil_status, ['Married', 'Separated', 'Widowed']))
                                         <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                         </span>
                                     @endif
@@ -1099,7 +1242,7 @@
                             <input type="text" id="edit_spouse_first_name" autocomplete="off"
                                 wire:model.blur="spouse_first_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
-                                @if ($civil_status === 'Married') {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
+                                @if (in_array($civil_status, ['Married', 'Separated', 'Widowed'])) {{ $errors->has('spouse_first_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
                                 @else
                                     bg-gray-200 border-gray-300 text-gray-500 @endif"
                                 placeholder="Type spouse first name">
@@ -1112,12 +1255,12 @@
                         <div
                             class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-2  pb-1">
                             <label for="edit_spouse_middle_name"
-                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}">Spouse
+                                class="flex items-end mb-1 font-medium h-6 {{ in_array($civil_status, ['Married', 'Separated', 'Widowed']) ? 'text-green-1100' : 'text-gray-400' }}">Spouse
                                 Middle Name </label>
                             <input type="text" id="edit_spouse_middle_name" autocomplete="off"
                                 wire:model.blur="spouse_middle_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
-                                @if ($civil_status === 'Married') {{ $errors->has('spouse_middle_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
+                                @if (in_array($civil_status, ['Married', 'Separated', 'Widowed'])) {{ $errors->has('spouse_middle_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
                             @else
                             bg-gray-200 border-gray-300 text-gray-500 @endif"
                                 placeholder="(optional)">
@@ -1129,9 +1272,9 @@
                         {{-- Spouse Last Name --}}
                         <div class=" relative flex flex-col col-span-full sm:col-span-2  pb-1">
                             <label for="edit_spouse_last_name"
-                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}"><span
+                                class="flex items-end mb-1 font-medium h-6 {{ in_array($civil_status, ['Married', 'Separated', 'Widowed']) ? 'text-green-1100' : 'text-gray-400' }}"><span
                                     class="relative"> Spouse
-                                    Last Name @if ($civil_status === 'Married')
+                                    Last Name @if (in_array($civil_status, ['Married', 'Separated', 'Widowed']))
                                         <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                         </span>
                                     @endif
@@ -1141,7 +1284,7 @@
                                 wire:model.blur="spouse_last_name" @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
                             
-                            @if ($civil_status === 'Married') {{ $errors->has('spouse_last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
+                            @if (in_array($civil_status, ['Married', 'Separated', 'Widowed'])) {{ $errors->has('spouse_last_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
                             @else
                             bg-gray-200 border-gray-300 text-gray-500 @endif"
                                 placeholder="Type spouse last name">
@@ -1154,13 +1297,13 @@
                         <div
                             class=" relative col-span-full sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-1  pb-1">
                             <label for="edit_spouse_extension_name"
-                                class="flex items-end mb-1 font-medium h-6 {{ $civil_status === 'Married' ? 'text-green-1100' : 'text-gray-400' }}">Spouse
+                                class="flex items-end mb-1 font-medium h-6 {{ in_array($civil_status, ['Married', 'Separated', 'Widowed']) ? 'text-green-1100' : 'text-gray-400' }}">Spouse
                                 Ext. Name</label>
                             <input type="text" id="edit_spouse_extension_name" autocomplete="off"
                                 wire:model.blur="spouse_extension_name"
                                 @if ($civil_status === 'Single') disabled @endif
                                 class="text-xs border outline-none rounded block w-full p-2 duration-200 ease-in-out 
-                                @if ($civil_status === 'Married') {{ $errors->has('spouse_extension_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
+                                @if (in_array($civil_status, ['Married', 'Separated', 'Widowed'])) {{ $errors->has('spouse_extension_name') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}
                             @else
                             bg-gray-200 border-gray-300 text-gray-500 @endif"
                                 placeholder="III, Sr., etc.">
@@ -1170,12 +1313,12 @@
                         </div>
 
                         {{-- Modal footer --}}
-                        <div class="order-[24] relative col-span-full w-full flex items-center justify-end">
-                            <div class="flex items-center justify-end gap-2.5 relative">
+                        <div class="relative col-span-full w-full flex items-center justify-end">
+                            <div class="flex items-center justify-end gap-2 relative">
 
                                 {{-- Save Button --}}
                                 <button type="submit" wire:loading.attr="disabled" wire:target="editBeneficiary"
-                                    class="py-2 px-4 font-bold flex items-center justify-center gap-1.5 rounded-md disabled:opacity-75 bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50 focus:ring-4 focus:outline-none focus:ring-green-300">
+                                    class="outline-none py-2 px-4 font-bold flex items-center justify-center gap-1.5 rounded-md disabled:opacity-75 bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50 focus:ring-4 focus:outline-none focus:ring-green-300">
                                     <p>SAVE</p>
 
                                     {{-- Loading Icon --}}
@@ -1201,35 +1344,6 @@
                                         </g>
                                     </svg>
                                 </button>
-
-                                {{-- Cancel/X Button --}}
-                                <button type="button" @click="editBeneficiaryModal = false;"
-                                    wire:click="resetEditBeneficiary"
-                                    class="py-2 px-4 font-bold flex items-center justify-center gap-1.5 rounded-md disabled:opacity-75 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:ring-4 focus:outline-none focus:ring-red-300">
-
-                                    {{-- Loading Icon --}}
-                                    <svg class="size-5 animate-spin" wire:loading wire:target="resetEditBeneficiary"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
-
-                                    {{-- X Icon --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5" wire:loading.remove
-                                        wire:target="resetEditBeneficiary" xmlns:xlink="http://www.w3.org/1999/xlink"
-                                        width="400" height="400" viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M177.897 17.596 C 52.789 32.733,-20.336 167.583,35.137 280.859 C 93.796 400.641,258.989 419.540,342.434 316.016 C 445.776 187.805,341.046 -2.144,177.897 17.596 M146.875 125.950 C 148.929 126.558,155.874 132.993,174.805 151.829 L 200.000 176.899 225.195 151.829 C 245.280 131.845,251.022 126.556,253.503 125.759 C 264.454 122.238,275.000 129.525,275.000 140.611 C 275.000 147.712,274.055 148.915,247.831 175.195 L 223.080 200.000 247.831 224.805 C 274.055 251.085,275.000 252.288,275.000 259.389 C 275.000 270.771,263.377 278.313,252.691 273.865 C 250.529 272.965,242.208 265.198,224.805 247.831 L 200.000 223.080 175.195 247.769 C 154.392 268.476,149.792 272.681,146.680 273.836 C 134.111 278.498,121.488 265.871,126.173 253.320 C 127.331 250.217,131.595 245.550,152.234 224.799 L 176.909 199.989 152.163 175.190 C 135.672 158.663,127.014 149.422,126.209 147.486 C 122.989 139.749,126.122 130.459,133.203 126.748 C 137.920 124.276,140.678 124.115,146.875 125.950 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd">
-                                            </path>
-                                        </g>
-                                    </svg>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1249,7 +1363,7 @@
                                 <!-- Modal Header -->
                                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                                     <h1 class="text-sm sm:text-base font-semibold text-green-1100">
-                                        Delete Beneficiary
+                                        Confirm Change
                                     </h1>
 
                                     {{-- Close Button --}}
@@ -1321,3 +1435,110 @@
         </div>
     </div>
 </div>
+@script
+    <script>
+        $wire.on('init-reload', () => {
+            setTimeout(() => {
+                initFlowbite();
+            }, 1);
+        });
+
+        let initialError = null; // Check if error styles exist
+        const errorStyles = ['text-red-500'];
+        const defaultStyles = ['text-gray-500'];
+        const errorDragStyles = ['text-orange-500'];
+        const defaultDragStyles = ['text-green-500'];
+
+        $wire.on('load-id-dropzone', () => {
+            const image_file_path = document.getElementById('edit_image_file_path');
+            const id_dropzone = document.getElementById('edit_id_dropzone');
+
+            id_dropzone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                initialError = id_dropzone.classList.contains('text-red-500');
+                initialError ? id_dropzone.classList.remove(...errorStyles) : id_dropzone.classList.remove(
+                    ...
+                    defaultStyles);
+                initialError ? id_dropzone.classList.add(...errorDragStyles) : id_dropzone.classList.add(...
+                    defaultDragStyles);
+            });
+
+            id_dropzone.addEventListener('dragleave', () => {
+                initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList
+                    .contains(
+                        'text-orange-500');
+                initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...
+                    defaultStyles);
+                initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList
+                    .remove(...
+                        defaultDragStyles);
+            });
+
+            id_dropzone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList
+                    .contains(
+                        'text-orange-500');
+                initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...
+                    defaultStyles);
+                initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList
+                    .remove(...
+                        defaultDragStyles);
+
+                files = e.dataTransfer.files;
+                if (files.length) {
+                    image_file_path.files = files;
+                    image_file_path.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+
+        $wire.on('load-reason', () => {
+            const reason_image_file_path = document.getElementById('edit_reason_image_file_path');
+            const reason_dropzone = document.getElementById('edit_reason_dropzone');
+            reason_dropzone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                initialError = reason_dropzone.classList.contains('text-red-500');
+                initialError ? reason_dropzone.classList.remove(...errorStyles) : reason_dropzone.classList
+                    .remove(...
+                        defaultStyles);
+                initialError ? reason_dropzone.classList.add(...errorDragStyles) : reason_dropzone.classList
+                    .add(...
+                        defaultDragStyles);
+            });
+
+            reason_dropzone.addEventListener('dragleave', () => {
+                initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
+                    .classList.contains(
+                        'text-orange-500');
+                initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
+                    .add(...
+                        defaultStyles);
+                initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
+                    .classList.remove(
+                        ...
+                        defaultDragStyles);
+            });
+
+            reason_dropzone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
+                    .classList.contains(
+                        'text-orange-500');
+                initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
+                    .add(...
+                        defaultStyles);
+                initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
+                    .classList.remove(
+                        ...
+                        defaultDragStyles);
+
+                files = e.dataTransfer.files;
+                if (files.length) {
+                    reason_image_file_path.files = files;
+                    reason_image_file_path.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    </script>
+@endscript

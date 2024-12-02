@@ -437,7 +437,7 @@
                                 timeoutId = setTimeout(() => show = false, 3000);"
                                 class="relative">
                                 <input type="text" autocomplete="off" id="project_number_prefix"
-                                    wire:model.live="project_number_prefix"
+                                    wire:model.live.debounce.600ms="project_number_prefix"
                                     class="{{ $errors->has('project_number_prefix') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-3 pe-11 py-1.5 duration-200 ease-in-out rounded"
                                     placeholder="Type prefix">
 
@@ -511,7 +511,7 @@
                                 timeoutId = setTimeout(() => show = false, 3000);"
                                 class="relative">
                                 <input type="text" autocomplete="off" id="batch_number_prefix"
-                                    wire:model.live="batch_number_prefix"
+                                    wire:model.live.debounce.600ms="batch_number_prefix"
                                     class="{{ $errors->has('batch_number_prefix') ? 'bg-[#442E30] text-red-50 placeholder-red-500' : 'text-zinc-100 bg-zinc-800 placeholder-zinc-500 selection:bg-indigo-900 selection:text-indigo-50' }} border-none focus:ring-0 outline-none w-40 md:w-56 text-xs md:text-sm ps-3 pe-11 py-1.5 duration-200 ease-in-out rounded"
                                     placeholder="Type prefix">
 

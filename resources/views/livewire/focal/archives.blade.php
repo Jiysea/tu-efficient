@@ -97,8 +97,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                     {{-- Upper/Header --}}
                     <div class="relative h-10 flex items-center justify-between">
-                        <div class="inline-flex items-center text-indigo-900">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
+                        <div class="inline-flex items-center gap-2 mx-2 text-indigo-900">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                 viewBox="0, 0, 400,400">
                                 <g>
@@ -107,9 +107,12 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                 </g>
                             </svg>
-                            <h1 class="max-[480px]:hidden text-base font-semibold sm:font-bold m-2"><span
-                                    class="hidden sm:inline">List of
-                                </span>Records</h1>
+                            <h1 class="max-[480px]:hidden text-base font-semibold sm:font-bold">
+                                <span class="hidden sm:inline">
+                                    List of
+                                </span>
+                                Records
+                            </h1>
                             <span class="py-1 px-2 text-xs font-medium text-indigo-700 bg-indigo-100 rounded">
                                 {{ count($this->archives) }}
                             </span>
@@ -409,7 +412,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
             start.value = event.newStart;
 
             const datepicker = FlowbiteInstances.getInstance('Datepicker', 'archives-date-range');
-            console.log(datepicker);
             if (datepicker) {
                 datepicker.setDate(event.newStart);
             }

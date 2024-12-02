@@ -48,6 +48,7 @@ class ListingPage extends Component
     public $deleteBeneficiaryModal = false;
     public $viewCredentialsModal = false;
     public $submitBatchModal = false;
+    public $exitBatchModal = false;
     public $searchBeneficiaries;
     public $selectedBeneficiaryRow = -1;
     protected $defaultPages = 15;
@@ -83,6 +84,38 @@ class ListingPage extends Component
             'confirm_submit.required' => 'This field is required.',
 
         ];
+    }
+
+    public function exitBatch()
+    {
+        $this->redirectRoute('login');
+    }
+
+    public function submitBatch()
+    {
+        $this->authorizeBeforeExecuting();
+        $this->validateOnly('confirm_submit');
+
+        if ($this->beneficiaryCount === $this->batch?->slots_allocated) {
+            DB::transaction(function () {
+                $batch = Batch::find($this->batch->id);
+
+                $batch->submission_status = 'submitted';
+                Code::where('access_code', decrypt($this->accessCode))
+                    ->where('is_accessible', 'yes')
+                    ->update([
+                        'is_accessible' => 'no'
+                    ]);
+                $batch->save();
+
+                LogIt::set_barangay_submit($batch, $this->implementation, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount);
+            });
+
+            $this->submitBatchModal = false;
+            $this->redirectRoute('login');
+
+        }
+
     }
 
     public function viewCredential($type)
@@ -220,7 +253,7 @@ class ListingPage extends Component
     public function beneficiaryCount()
     {
         if ($this->accessCode) {
-            $beneficiariesCount = Beneficiary::where('batches_id', $this->batch->id)
+            $beneficiariesCount = Beneficiary::where('batches_id', $this->batch?->id)
                 ->count();
 
             return $beneficiariesCount;
@@ -231,7 +264,7 @@ class ListingPage extends Component
     public function specialCasesCount()
     {
         if ($this->accessCode) {
-            $beneficiariesCount = Beneficiary::where('batches_id', $this->batch->id)
+            $beneficiariesCount = Beneficiary::where('batches_id', $this->batch?->id)
                 ->where('beneficiary_type', 'special case')
                 ->count();
 
@@ -325,6 +358,28 @@ class ListingPage extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    #[On('cannot-add-beneficiary')]
+    public function cannotAddBeneficiary()
+    {
+        unset($this->beneficiaries);
+        $this->showAlert = true;
+        $this->alertMessage = 'Unable to add this beneficiary!';
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[On('optimistic-lock')]
+    public function optimisticLockBeneficiary($message)
+    {
+        unset($this->beneficiaries);
+        $this->beneficiaryId = null;
+        $this->selectedBeneficiaryRow = -1;
+        $this->showAlert = true;
+        $this->alertMessage = $message;
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
     #[On('edit-beneficiary')]
     public function editBeneficiary()
     {
@@ -366,29 +421,6 @@ class ListingPage extends Component
         });
     }
 
-    public function submitBatch()
-    {
-        $this->authorizeBeforeExecuting();
-        $this->validateOnly('confirm_submit');
-
-        DB::transaction(function () {
-            $batch = Batch::find($this->batch->id);
-
-            $batch->submission_status = 'submitted';
-            Code::where('access_code', decrypt($this->accessCode))
-                ->where('is_accessible', 'yes')
-                ->update([
-                    'is_accessible' => 'no'
-                ]);
-            $batch->save();
-
-            LogIt::set_barangay_submit($batch, $this->implementation, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount);
-        });
-
-        $this->submitBatchModal = false;
-        $this->redirectRoute('login');
-    }
-
     public function resetConfirm()
     {
         $this->reset('confirm_submit');
@@ -424,6 +456,7 @@ class ListingPage extends Component
 
     public function render()
     {
+        $this->authorizeBeforeExecuting();
         return view('livewire.barangay.listing-page')
             ->title("Brgy. " . $this->batch->barangay_name . " | TU-Efficient");
     }

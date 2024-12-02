@@ -75,19 +75,25 @@ class VerifyContactNumber extends Component
             $perMinute = 1,
             function () {
 
-                # Initialize Vonage Client
-                $basic = new Basic(config('services.vonage.key'), config('services.vonage.secret'));
-                $client = new Client(new \Vonage\Client\Credentials\Container($basic));
-
-                # Send verification code to the user's phone number
-                $request = new \Vonage\Verify2\Request\SMSRequest(substr(Auth::user()->contact_num, 1), "TU-Efficient");
-                $getRequest = $client->verify2()->startVerification($request);
-
+                // # Initialize Vonage Client
+                // $basic = new Basic(config('services.vonage.key'), config('services.vonage.secret'));
+                // $client = new Client(new \Vonage\Client\Credentials\Container($basic));
+    
+                // # Send verification code to the user's phone number
+                // $request = new \Vonage\Verify2\Request\SMSRequest(substr(Auth::user()->contact_num, 1), "TU-Efficient");
+                // $getRequest = $client->verify2()->startVerification($request);
+    
                 # Save the request_id in the session
-                session(['vonage_request_id' => $getRequest]);
-
+                // session(['vonage_request_id' => $getRequest]);
+    
+                // $this->alerts[] = [
+                //     'message' => 'Verification code sent to your phone.',
+                //     'id' => uniqid(),
+                //     'color' => 'indigo'
+                // ];
+    
                 $this->alerts[] = [
-                    'message' => 'Verification code sent to your phone.',
+                    'message' => 'No need a code. Just click "Verify".',
                     'id' => uniqid(),
                     'color' => 'indigo'
                 ];
@@ -108,29 +114,29 @@ class VerifyContactNumber extends Component
 
     public function verifyCode()
     {
-        # Validate the code
-        $this->validate();
+        // # Validate the code
+        // $this->validate();
 
-        $request = session('vonage_request_id');
+        // $request = session('vonage_request_id');
 
-        # Retrieve request_id from the authenticated user
-        if (!$request) {
-            $this->alerts[] = [
-                'message' => 'Incorrect verification code.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-            return;
-        }
+        // # Retrieve request_id from the authenticated user
+        // if (!$request) {
+        //     $this->alerts[] = [
+        //         'message' => 'Incorrect verification code.',
+        //         'id' => uniqid(),
+        //         'color' => 'red'
+        //     ];
+        //     return;
+        // }
 
-        # Initialize Vonage Client
-        $basic = new Basic(config('services.vonage.key'), config('services.vonage.secret'));
-        $client = new Client(new \Vonage\Client\Credentials\Container($basic));
+        // # Initialize Vonage Client
+        // $basic = new Basic(config('services.vonage.key'), config('services.vonage.secret'));
+        // $client = new Client(new \Vonage\Client\Credentials\Container($basic));
 
         # Check the verification code
         try {
-            $result = $client->verify2()->check($request['request_id'], $this->verification_code);
-
+            // $result = $client->verify2()->check($request['request_id'], $this->verification_code);
+            $result = true; # remove this after testing and uncomment above
             if ($result) {
                 $user = Auth::user();
 
@@ -142,14 +148,20 @@ class VerifyContactNumber extends Component
                     'color' => 'indigo'
                 ];
 
-                # Logs the login date of the user
+                # Logs the login date of the user (remove this when enabling mobile verification)
                 $user->update(['last_login' => now(), 'ongoing_verification' => 0]);
 
-                # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
-                User::where('id', Auth::user()->id)->update(['last_login' => Carbon::now()]);
-                session()->flash('heads-up', Auth::user()->last_login);
+                if (strtolower(Auth::user()->user_type) === 'focal') {
 
-                $this->redirectIntended();
+                    # Sends a flash to the dashboard page to trigger the Heads-Up modal upon login
+                    session()->flash('heads-up', $user->last_login);
+
+                    $this->redirectRoute('focal.dashboard');
+
+                } else if (strtolower(Auth::user()->user_type) === 'coordinator') {
+
+                    $this->redirectRoute('coordinator.assignments');
+                }
             } else {
                 $this->alerts[] = [
                     'message' => 'Verification failed. Please try again.',

@@ -399,7 +399,7 @@ class ProcessImportSimilarity implements ShouldQueue
 
             # Spouse Extension Name
             $errors = [];
-            $errors['illegal'] = self::illegal($beneficiary['spouse_extension_name']);
+            $errors['illegal'] = self::illegal($beneficiary['spouse_extension_name'], true);
             $errors['is_string'] = self::numbers_on_name($beneficiary['spouse_extension_name']);
             $list['errors']['spouse_extension_name'] = $errors;
         } else {
@@ -438,7 +438,7 @@ class ProcessImportSimilarity implements ShouldQueue
         $list = $beneficiary;
 
         if (!self::checkNameErrors($beneficiary['errors'])) {
-            $list['similarities'] = JaccardSimilarity::getResults($beneficiary['first_name'], $beneficiary['middle_name'], $beneficiary['last_name'], $beneficiary['extension_name'], $beneficiary['birthdate'], $duplicationThreshold);
+            $list['similarities'] = JaccardSimilarity::getResults($beneficiary['first_name'], $beneficiary['middle_name'], $beneficiary['last_name'], $beneficiary['extension_name'], $duplicationThreshold);
         } else {
             $list['similarities'] = false;
         }

@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Js;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
@@ -183,7 +184,12 @@ class EditBeneficiaryModal extends Component
                 'required',
                 function ($a, $value, $fail) {
                     if (is_null(Essential::extract_date($value))) {
+                        $this->js('$wire.closeBirthdate();');
                         $fail('Invalid date format.');
+                    }
+                    if (Essential::extract_date($value, false) !== 'm-d-Y') {
+                        $this->js('$wire.closeBirthdate();');
+                        $fail('Please use the \'mm-dd-yyyy\' format.');
                     }
                 }
             ],
@@ -248,8 +254,8 @@ class EditBeneficiaryModal extends Component
             'image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
             'id_number' => 'required',
             'spouse_first_name' => [
-                'exclude_unless:civil_status,Married',
-                'required_if:civil_status,Married',
+                'exclude_unless:civil_status,Married,Separated,Widowed',
+                'required_if:civil_status,Married,Separated,Widowed',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -267,7 +273,7 @@ class EditBeneficiaryModal extends Component
                 },
             ],
             'spouse_middle_name' => [
-                'exclude_unless:civil_status,Married',
+                'exclude_unless:civil_status,Married,Separated,Widowed',
 
                 function ($attr, $value, $fail) {
 
@@ -283,8 +289,8 @@ class EditBeneficiaryModal extends Component
                 },
             ],
             'spouse_last_name' => [
-                'exclude_unless:civil_status,Married',
-                'required_if:civil_status,Married',
+                'exclude_unless:civil_status,Married,Separated,Widowed',
+                'required_if:civil_status,Married,Separated,Widowed',
 
                 function ($attr, $value, $fail) {
                     if (!isset($value) || empty($value)) {
@@ -301,7 +307,7 @@ class EditBeneficiaryModal extends Component
                 },
             ],
             'spouse_extension_name' => [
-                'exclude_unless:civil_status,Married',
+                'exclude_unless:civil_status,Married,Separated,Widowed',
 
                 function ($attr, $value, $fail) {
 
@@ -358,10 +364,50 @@ class EditBeneficiaryModal extends Component
 
     public function saveReason()
     {
-        $this->validateOnly('reason_image_file_path');
-        $this->validateOnly('image_description');
+        $this->validate(
+            [
+                'reason_image_file_path' => 'nullable|image|mimes:png,jpg,jpeg|max:5120',
+                'image_description' => 'required_unless:isPerfectDuplicate,false,isSameImplementation,false,isIneligible,false,isSamePending,false',
+            ],
+            [
+                'reason_image_file_path.image' => 'Case proof must be an image type.',
+                'reason_image_file_path.mimes' => 'Image should be in PNG or JPG format.',
+                'reason_image_file_path.max' => 'Image size must not exceed 5MB.',
+                'image_description.required_unless' => 'Description must not be left blank.'
+            ]
+        );
+
+        $this->oldValues['reason_image_file_path'] = $this->reason_image_file_path;
+
+        if ($this->reason_image_file_path) {
+            $this->reason_saved_image_path = null;
+        }
+
+        if (is_null($this->reason_saved_image_path)) {
+            $this->oldValues['reason_saved_image_path'] = null;
+        }
 
         $this->isResolved = true;
+        $this->addReasonModal = false;
+    }
+
+    # triggers when a user clicks the `CANCEL` button on Add Reason Modal
+    public function resetReason()
+    {
+        if (!$this->isResolved) {
+            $this->reset('reason_image_file_path', 'image_description');
+            $this->resetValidation(['reason_image_file_path', 'image_description']);
+        } else {
+            $this->reason_saved_image_path = $this->oldValues['reason_saved_image_path'];
+            $this->image_description = $this->oldValues['image_description'];
+            if (is_null($this->oldValues['reason_image_file_path'])) {
+                $this->reset('reason_image_file_path');
+            } else {
+                $this->reason_image_file_path = $this->oldValues['reason_image_file_path'];
+            }
+            $this->resetValidation(['reason_image_file_path', 'image_description']);
+        }
+
         $this->addReasonModal = false;
     }
 
@@ -400,51 +446,27 @@ class EditBeneficiaryModal extends Component
     {
         $this->validate();
 
-        # Re-Check for Duplicates
-        $this->nameCheck();
-
-        # Filter the necessitites
-        $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
-        $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
-        $this->contact_num = '+63' . substr($this->contact_num, 1);
-
-        if (strtolower($this->middle_name) === 'n/a' || strtolower($this->middle_name) === 'none' || strtolower($this->middle_name) == '-' || empty($this->middle_name)) {
-            $this->middle_name = null;
-        }
-
-        if (strtolower($this->extension_name) === 'n/a' || strtolower($this->extension_name) === 'none' || strtolower($this->extension_name) == '-' || empty($this->extension_name)) {
-            $this->extension_name = null;
-        }
-
-        if (strtolower($this->e_payment_acc_num) === 'n/a' || strtolower($this->e_payment_acc_num) === 'none' || strtolower($this->e_payment_acc_num) == '-' || empty($this->e_payment_acc_num)) {
-            $this->e_payment_acc_num = null;
-        }
-
-        if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) === 'none' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
-            $this->skills_training = null;
-        }
-
-        if (strtolower($this->spouse_first_name) === 'n/a' || strtolower($this->spouse_first_name) === 'none' || strtolower($this->spouse_first_name) == '-' || empty($this->spouse_first_name)) {
-            $this->spouse_first_name = null;
-        }
-
-        if (strtolower($this->spouse_middle_name) === 'n/a' || strtolower($this->spouse_middle_name) === 'none' || strtolower($this->spouse_middle_name) == '-' || empty($this->spouse_middle_name)) {
-            $this->spouse_middle_name = null;
-        }
-
-        if (strtolower($this->spouse_last_name) === 'n/a' || strtolower($this->spouse_last_name) === 'none' || strtolower($this->spouse_last_name) == '-' || empty($this->spouse_last_name)) {
-            $this->spouse_last_name = null;
-        }
-
-        if (strtolower($this->spouse_extension_name) === 'n/a' || strtolower($this->spouse_extension_name) === 'none' || strtolower($this->spouse_extension_name) == '-' || empty($this->spouse_extension_name)) {
-            $this->spouse_extension_name = null;
-        }
-
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
-            $isChanged = false;
-            $batch = Batch::find($this->beneficiary->batches_id);
+            $beneficiary = Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+            $batch = Batch::find($beneficiary->batches_id);
             $implementation = Implementation::find($batch->implementations_id);
+            $isChanged = false;
+
+            $this->normalizeStrings();
+
+            # Re-Check for Duplicates
+            $this->nameCheck();
+
+            # Filter the necessitites
+            $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
+            $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
+            $this->contact_num = '+63' . substr($this->contact_num, 1);
+
+            if (!$this->is_sectoral) {
+                $this->district = $batch->district;
+                $this->barangay_name = $batch->barangay_name;
+            }
 
             $beneficiary = Beneficiary::where('id', decrypt($this->beneficiaryId))
                 ->where('updated_at', '<', Carbon::now())
@@ -469,18 +491,18 @@ class EditBeneficiaryModal extends Component
             } else {
                 $beneficiary->fill([
                     'batches_id' => $batch->id,
-                    'first_name' => strtoupper($this->first_name),
-                    'middle_name' => $this->middle_name ? strtoupper($this->middle_name) : null,
-                    'last_name' => strtoupper($this->last_name),
-                    'extension_name' => $this->extension_name ? strtoupper($this->extension_name) : null,
+                    'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
+                    'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
+                    'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
+                    'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
                     'birthdate' => $this->birthdate,
-                    'barangay_name' => $this->barangay_name ?? null,
+                    'barangay_name' => $this->barangay_name,
                     'contact_num' => $this->contact_num,
                     'occupation' => $this->occupation ?? null,
                     'avg_monthly_income' => $this->avg_monthly_income ?? null,
                     'city_municipality' => $implementation->city_municipality,
                     'province' => $implementation->province,
-                    'district' => $this->district ?? null,
+                    'district' => $this->district,
                     'type_of_id' => $this->type_of_id,
                     'id_number' => $this->id_number,
                     'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
@@ -488,7 +510,7 @@ class EditBeneficiaryModal extends Component
                     'sex' => strtolower($this->sex),
                     'civil_status' => strtolower($this->civil_status),
                     'age' => $this->beneficiaryAge($this->birthdate),
-                    'dependent' => strtoupper($this->dependent),
+                    'dependent' => mb_strtoupper($this->dependent, "UTF-8"),
                     'self_employment' => strtolower($this->self_employment),
                     'skills_training' => $this->skills_training ?? null,
                     'is_pwd' => strtolower($this->is_pwd),
@@ -499,7 +521,6 @@ class EditBeneficiaryModal extends Component
                     'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
                 ]);
                 if ($beneficiary->isDirty()) {
-                    $beneficiary->save();
                     $isChanged = true;
                 }
             }
@@ -507,8 +528,11 @@ class EditBeneficiaryModal extends Component
             $file = null;
 
             if ($identity) {
-                if ($this->image_file_path) {
-                    $file = $this->image_file_path->store(path: 'credentials');
+
+                if ($this->image_file_path || is_null($this->saved_image_path)) {
+                    if ($this->image_file_path)
+                        $file = $this->image_file_path->store(path: 'credentials');
+
                     if ($identity->image_file_path) {
                         if (Storage::exists($identity->image_file_path)) {
                             Storage::delete($identity->image_file_path);
@@ -521,44 +545,84 @@ class EditBeneficiaryModal extends Component
 
                 if ($identity->isDirty()) {
                     $identity->save();
+
+                    if ($file) {
+                        LogIt::set_edit_beneficiary_identity($beneficiary, auth()->id());
+                    } else {
+                        LogIt::set_remove_beneficiary_identity($beneficiary, auth()->id());
+                    }
                     $isChanged = true;
                 }
+            } else {
+                unset($this->beneficiary, $this->credentials);
             }
 
-            if ($special_case) {
-                if ($this->reason_image_file_path) {
-                    $file = $this->reason_image_file_path->store(path: 'credentials');
-                    if ($special_case->image_file_path) {
-                        if (Storage::exists($special_case->image_file_path)) {
-                            Storage::delete($special_case->image_file_path);
+            if ($this->isPerfectDuplicate) {
+
+                if ($special_case) {
+
+                    if ($this->reason_image_file_path || $this->reason_saved_image_path) {
+                        if ($this->reason_image_file_path)
+                            $file = $this->reason_image_file_path->store(path: 'credentials');
+                        else
+                            $file = null;
+
+                        if ($special_case->image_file_path) {
+                            if (Storage::exists($special_case->image_file_path)) {
+                                Storage::delete($special_case->image_file_path);
+                            }
                         }
-                    }
-                    $special_case->fill([
-                        'image_description' => $this->image_description,
-                        'image_file_path' => $file,
-                    ]);
-                } elseif (!isset($this->reason_saved_image_path) || empty($this->reason_saved_image_path)) {
-                    $file = null;
-                    if ($special_case->image_file_path) {
-                        if (Storage::exists($special_case->image_file_path)) {
-                            Storage::delete($special_case->image_file_path);
+                        $special_case->fill([
+                            'image_description' => $this->image_description,
+                            'image_file_path' => $file,
+                        ]);
+                    } elseif (is_null($this->reason_image_file_path) && is_null($this->reason_saved_image_path)) {
+                        if ($special_case->image_file_path) {
+                            if (Storage::exists($special_case->image_file_path)) {
+                                Storage::delete($special_case->image_file_path);
+                            }
                         }
+
+                        $special_case->fill([
+                            'image_description' => $this->image_description,
+                            'image_file_path' => null,
+                        ]);
                     }
-                    $special_case->fill([
-                        'image_description' => $this->image_description,
-                        'image_file_path' => $file,
-                    ]);
+
+                    if ($special_case->isDirty()) {
+                        $special_case->save();
+
+                        if ($file) {
+                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                        } else {
+                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                        }
+                        $isChanged = true;
+                    }
+
+                } else {
+                    unset($this->beneficiary, $this->credentials);
                 }
 
-                if ($special_case->isDirty()) {
-                    $special_case->save();
+            } else {
+                if ($special_case) {
+                    if ($special_case->image_file_path) {
+                        if (Storage::exists($special_case->image_file_path)) {
+                            Storage::delete($special_case->image_file_path);
+                        }
+                    }
 
-                    LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                    $special_case->delete();
+                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
                     $isChanged = true;
+                } else {
+                    unset($this->beneficiary, $this->credentials);
                 }
             }
 
             if ($isChanged) {
+                $beneficiary->updated_at = now();
+                $beneficiary->save();
                 LogIt::set_edit_beneficiary($beneficiary, auth()->id());
                 $this->dispatch('edit-beneficiary');
             }
@@ -604,7 +668,7 @@ class EditBeneficiaryModal extends Component
                 $this->extension_name = null;
             }
 
-            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d'), $this->duplicationThreshold, $this->beneficiaryId);
+            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, $this->duplicationThreshold, $this->beneficiaryId);
             $this->setCheckers($this->similarityResults);
 
             if (!isset($this->similarityResults)) {
@@ -648,14 +712,19 @@ class EditBeneficiaryModal extends Component
                     }
                 }
 
-                # checks if this edit is an original
-                if (strtolower($this->beneficiary_type) === 'underemployed' && $result['is_perfect'] && $result['beneficiary_type'] === 'special case' && strtotime($result['created_at']) > strtotime($this->beneficiary?->created_at)) {
-                    $this->isOriginal = true;
-                    $this->isPerfectDuplicate = false;
-                }
-
                 if (($result['is_perfect'] && $batch_pending && !$this->isOriginal && !$this->isSpecialCase)) {
                     $this->isSamePending = true;
+                }
+
+                # checks if this edit is an original
+                if (
+                    strtolower($this->beneficiary_type) === 'underemployed' &&
+                    ($result['is_perfect'] || $result['coEfficient'] > $this->duplicationThreshold) &&
+                    $result['beneficiary_type'] === 'special case' &&
+                    strtotime($result['created_at']) > strtotime($this->beneficiary?->created_at)
+                ) {
+                    $this->isOriginal = true;
+                    $this->isPerfectDuplicate = false;
                 }
             }
 
@@ -664,6 +733,115 @@ class EditBeneficiaryModal extends Component
                 $this->isIneligible = true;
             }
         }
+    }
+
+    protected function normalizeStrings()
+    {
+        if (strtolower($this->middle_name) === 'n/a' || strtolower($this->middle_name) == '-' || empty($this->middle_name)) {
+            $this->middle_name = null;
+        }
+
+        if (strtolower($this->extension_name) === 'n/a' || strtolower($this->extension_name) == '-' || empty($this->extension_name)) {
+            $this->extension_name = null;
+        }
+
+        if (strtolower($this->e_payment_acc_num) === 'n/a' || strtolower($this->e_payment_acc_num) == '-' || empty($this->e_payment_acc_num)) {
+            $this->e_payment_acc_num = null;
+        }
+
+        if (strtolower($this->skills_training) === 'n/a' || strtolower($this->skills_training) == '-' || empty($this->skills_training)) {
+            $this->skills_training = null;
+        }
+
+        if (strtolower($this->spouse_first_name) === 'n/a' || strtolower($this->spouse_first_name) == '-' || empty($this->spouse_first_name)) {
+            $this->spouse_first_name = null;
+        }
+
+        if (strtolower($this->spouse_middle_name) === 'n/a' || strtolower($this->spouse_middle_name) == '-' || empty($this->spouse_middle_name)) {
+            $this->spouse_middle_name = null;
+        }
+
+        if (strtolower($this->spouse_last_name) === 'n/a' || strtolower($this->spouse_last_name) == '-' || empty($this->spouse_last_name)) {
+            $this->spouse_last_name = null;
+        }
+
+        if (strtolower($this->spouse_extension_name) === 'n/a' || strtolower($this->spouse_extension_name) == '-' || empty($this->spouse_extension_name)) {
+            $this->spouse_extension_name = null;
+        }
+    }
+
+    #[On('openEdit')]
+    public function setEdit()
+    {
+        $this->first_name = $this->beneficiary->first_name;
+        $this->middle_name = $this->beneficiary->middle_name ?? null;
+        $this->last_name = $this->beneficiary->last_name;
+        $this->extension_name = $this->beneficiary->extension_name ?? null;
+        $this->birthdate = Carbon::parse($this->beneficiary->birthdate)->format('m-d-Y');
+        $this->sex = ucwords($this->beneficiary->sex);
+        $this->contact_num = "0" . substr($this->beneficiary->contact_num, 3);
+        $this->district = $this->beneficiary->district ?? null;
+        $this->barangay_name = $this->beneficiary->barangay_name ?? null;
+        $this->occupation = $this->beneficiary->occupation ?? null;
+        $this->civil_status = ucwords($this->beneficiary->civil_status);
+        $this->avg_monthly_income = $this->beneficiary->avg_monthly_income ? MoneyFormat::mask($this->beneficiary->avg_monthly_income) : null;
+        $this->dependent = $this->beneficiary->dependent ?? null;
+        $this->e_payment_acc_num = $this->beneficiary->e_payment_acc_num ?? null;
+        $this->self_employment = ucwords($this->beneficiary->self_employment);
+        $this->beneficiary_type = ucwords($this->beneficiary->beneficiary_type);
+        $this->skills_training = $this->beneficiary->skills_training ?? null;
+        $this->is_pwd = ucwords($this->beneficiary->is_pwd);
+        $this->type_of_id = $this->beneficiary->type_of_id;
+        $this->id_number = $this->beneficiary->id_number;
+        $this->spouse_first_name = $this->beneficiary->spouse_first_name ?? null;
+        $this->spouse_middle_name = $this->beneficiary->spouse_middle_name ?? null;
+        $this->spouse_last_name = $this->beneficiary->spouse_last_name ?? null;
+        $this->spouse_extension_name = $this->beneficiary->spouse_extension_name ?? null;
+        $this->saved_image_path = null;
+        $this->reason_saved_image_path = null;
+        $this->image_description = null;
+
+        foreach ($this->credentials as $credential) {
+            if ($credential->for_duplicates === 'no') {
+                $this->saved_image_path = $credential->image_file_path;
+            } elseif ($credential->for_duplicates === 'yes') {
+                $this->reason_saved_image_path = $credential->image_file_path;
+                $this->image_description = $credential->image_description;
+            }
+        }
+
+        $this->js('$wire.setAvgIncome();');
+
+        # Check if this is a special case edit then make it resolved
+        if ($this->beneficiary->beneficiary_type === 'special case') {
+            $this->isSpecialCase = true;
+            $this->isResolved = true;
+        }
+        # Otherwise, if the Special Case is removed, it's unresolved.
+        else {
+            $this->isSpecialCase = false;
+            $this->isResolved = false;
+        }
+
+        # Add old values in here for ConfirmChangeTypeModal
+        $this->oldValues = [
+            'first_name' => $this->first_name,
+            'middle_name' => $this->middle_name,
+            'last_name' => $this->last_name,
+            'extension_name' => $this->extension_name,
+            'birthdate' => $this->birthdate,
+            'beneficiary_type' => $this->beneficiary_type,
+            'reason_image_file_path' => $this->reason_image_file_path,
+            'reason_saved_image_path' => $this->reason_saved_image_path,
+            'image_description' => $this->image_description
+        ];
+
+        $this->resetValidation();
+        $this->nameCheck();
+
+        $this->dispatch('init-reload')->self();
+        $this->dispatch('load-id-dropzone')->self();
+        $this->js('$nextTick(() => { $dispatch("load-reason") })');
     }
 
     protected function beneficiaryAge($birthdate)
@@ -724,6 +902,7 @@ class EditBeneficiaryModal extends Component
         }
         if ($property === 'birthdate') {
             if ($this->birthdate) {
+                $this->validateOnly('birthdate');
                 $choosenDate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
 
                 if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
@@ -765,73 +944,6 @@ class EditBeneficiaryModal extends Component
                 $this->type_of_id = 'Barangay ID';
             }
         }
-    }
-
-    #[On('openEdit')]
-    public function setEdit()
-    {
-        $this->first_name = $this->beneficiary->first_name;
-        $this->middle_name = $this->beneficiary->middle_name ?? null;
-        $this->last_name = $this->beneficiary->last_name;
-        $this->extension_name = $this->beneficiary->extension_name ?? null;
-        $this->birthdate = Carbon::parse($this->beneficiary->birthdate)->format('m-d-Y');
-        $this->sex = ucwords($this->beneficiary->sex);
-        $this->contact_num = "0" . substr($this->beneficiary->contact_num, 3);
-        $this->district = $this->beneficiary->district ?? null;
-        $this->barangay_name = $this->beneficiary->barangay_name ?? null;
-        $this->occupation = $this->beneficiary->occupation ?? null;
-        $this->civil_status = ucwords($this->beneficiary->civil_status);
-        $this->avg_monthly_income = $this->beneficiary->avg_monthly_income ? MoneyFormat::mask($this->beneficiary->avg_monthly_income) : null;
-        $this->dependent = $this->beneficiary->dependent ?? null;
-        $this->e_payment_acc_num = $this->beneficiary->e_payment_acc_num ?? null;
-        $this->self_employment = ucwords($this->beneficiary->self_employment);
-        $this->beneficiary_type = ucwords($this->beneficiary->beneficiary_type);
-        $this->skills_training = $this->beneficiary->skills_training ?? null;
-        $this->is_pwd = ucwords($this->beneficiary->is_pwd);
-        $this->type_of_id = $this->beneficiary->type_of_id;
-        $this->id_number = $this->beneficiary->id_number;
-        $this->spouse_first_name = $this->beneficiary->spouse_first_name ?? null;
-        $this->spouse_middle_name = $this->beneficiary->spouse_middle_name ?? null;
-        $this->spouse_last_name = $this->beneficiary->spouse_last_name ?? null;
-        $this->spouse_extension_name = $this->beneficiary->spouse_extension_name ?? null;
-        $this->saved_image_path = null;
-        $this->reason_saved_image_path = null;
-        $this->image_description = null;
-
-        foreach ($this->credentials as $credential) {
-            if ($credential->for_duplicates === 'no') {
-                $this->saved_image_path = $credential->image_file_path;
-            } elseif ($credential->for_duplicates === 'yes') {
-                $this->reason_saved_image_path = $credential->image_file_path;
-                $this->image_description = $credential->image_description;
-            }
-        }
-
-        # Check if this is a special case edit then make it resolved
-        if ($this->beneficiary->beneficiary_type === 'special case') {
-            $this->isSpecialCase = true;
-            $this->isResolved = true;
-        }
-        # Otherwise, if the Special Case is removed, it's unresolved.
-        else {
-            $this->isSpecialCase = false;
-            $this->isResolved = false;
-        }
-
-        # Add old values in here for ConfirmChangeTypeModal
-        $this->oldValues = [
-            'first_name' => $this->first_name,
-            'middle_name' => $this->middle_name,
-            'last_name' => $this->last_name,
-            'extension_name' => $this->extension_name,
-            'birthdate' => $this->birthdate,
-            'beneficiary_type' => $this->beneficiary_type,
-        ];
-
-        $this->resetValidation();
-        $this->nameCheck();
-
-        $this->dispatch('init-reload')->self();
     }
 
     #[Computed]
@@ -939,6 +1051,33 @@ class EditBeneficiaryModal extends Component
         $this->resetValidation('barangay_name');
     }
 
+    #[Js]
+    public function setAvgIncome()
+    {
+        return <<<'JS'
+            const avgMonthyIncome = document.getElementById('edit_avg_monthly_income');
+            avgMonthyIncome.value = $wire.avg_monthly_income;
+        JS;
+    }
+
+    #[Js]
+    public function clearAvgIncome()
+    {
+        return <<<'JS'
+            const avgMonthyIncome = document.getElementById('edit_avg_monthly_income');
+            avgMonthyIncome.value = null;
+        JS;
+    }
+
+    #[Js]
+    public function closeBirthdate()
+    {
+        return <<<'JS'
+            const datepicker = FlowbiteInstances.getInstance('Datepicker', 'edit_birthdate');
+            datepicker.hide();
+        JS;
+    }
+
     public function mount()
     {
 
@@ -946,11 +1085,11 @@ class EditBeneficiaryModal extends Component
 
     public function render()
     {
-        $this->duplicationThreshold = intval($this->personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
-        $this->maximumIncome = $this->globalSettings->get('maximum_income', config('settings.maximum_income'));
         $this->is_sectoral = $this->implementation?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
+        $this->duplicationThreshold = intval($this->personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
+        $this->maximumIncome = $this->globalSettings->get('maximum_income', config('settings.maximum_income'));
 
         return view('livewire.coordinator.submissions.edit-beneficiary-modal');
     }

@@ -340,11 +340,22 @@ class Assignments extends Component
         }
     }
 
-    #[On('refreshAfterOpening')]
-    public function refreshAfterOpening($message)
+    #[On('view-batch')]
+    public function viewBatchEvents($message)
     {
         unset($this->batches);
         unset($this->accessCode);
+
+        $this->showAlert = true;
+        $this->alertMessage = $message;
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[On('error-handling')]
+    public function errorHandling($message)
+    {
+        unset($this->batches, $this->accessCode);
 
         $this->showAlert = true;
         $this->alertMessage = $message;

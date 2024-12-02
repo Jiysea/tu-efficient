@@ -30,7 +30,7 @@ class ViewCredentialsModal extends Component
     public function idInformation()
     {
         $info = Beneficiary::join('credentials', 'credentials.beneficiaries_id', '=', 'beneficiaries.id')
-            ->where('credentials.id', decrypt($this->passedCredentialId))
+            ->where('credentials.id', $this->passedCredentialId ? decrypt($this->passedCredentialId) : null)
             ->select([
                 'beneficiaries.type_of_id',
                 'beneficiaries.id_number'

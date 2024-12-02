@@ -21,7 +21,7 @@ class ViewCredentialsModal extends Component
     public function credentials()
     {
         if ($this->credentialId) {
-            $credentials = Credential::find(decrypt($this->credentialId));
+            $credentials = Credential::find($this->credentialId ? decrypt($this->credentialId) : null);
 
             return $credentials;
         }
@@ -31,7 +31,7 @@ class ViewCredentialsModal extends Component
     public function idInformation()
     {
         $info = Beneficiary::join('credentials', 'credentials.beneficiaries_id', '=', 'beneficiaries.id')
-            ->where('credentials.id', decrypt($this->credentialId))
+            ->where('credentials.id', $this->credentialId ? decrypt($this->credentialId) : null)
             ->select([
                 'beneficiaries.type_of_id',
                 'beneficiaries.id_number'

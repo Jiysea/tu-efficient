@@ -199,18 +199,27 @@ class ViewBatch extends Component
     {
         $this->validateOnly('password_force_approve');
 
-        $accessCode = Code::where('batches_id', $this->passedBatchId ? decrypt($this->passedBatchId) : null)
-            ->where('is_accessible', 'yes')
-            ->first();
+        DB::transaction(function () {
+            $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
 
-        if ($accessCode) {
-            Code::find($accessCode->id)->update([
-                'is_accessible' => 'no'
-            ]);
-        }
+            if (in_array($batch->submission_status, ['encoding', 'revalidate'])) {
+                $accessCode = Code::where('batches_id', $batch->id)
+                    ->where('is_accessible', 'yes')
+                    ->lockForUpdate()
+                    ->first();
 
-        $this->batch->approval_status = 'approved';
-        $this->batch->save();
+                if ($accessCode) {
+                    Code::find($accessCode->id)->update([
+                        'is_accessible' => 'no'
+                    ]);
+                }
+            }
+
+            $batch->approval_status = 'approved';
+            $batch->submission_status = 'submitted';
+            $batch->save();
+        });
+
         LogIt::set_force_approve($this->batch);
         $this->dispatch('refreshAfterOpening', message: 'Batch has been approved forcibly!');
         $this->forceApproveModal = false;
@@ -220,8 +229,13 @@ class ViewBatch extends Component
     {
         $this->validateOnly('password_pend_batch');
 
-        $this->batch->approval_status = 'pending';
-        $this->batch->save();
+        DB::transaction(function () {
+            $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+
+            $batch->approval_status = 'pending';
+            $batch->save();
+        });
+
         LogIt::set_pend_batch($this->batch);
         $this->dispatch('refreshAfterOpening', message: 'Batch has been changed to pending!');
         $this->pendBatchModal = false;

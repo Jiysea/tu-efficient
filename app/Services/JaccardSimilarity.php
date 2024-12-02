@@ -308,14 +308,13 @@ class JaccardSimilarity
      *  @param ?string $middle_name: The given middle name of the beneficiary.
      *  @param string $last_name: The given middle name of the beneficiary.
      *  @param ?string $extension_name: The given extension name of the beneficiary.
-     *  @param string $birthdate: The given birthdate of the beneficiary in YYYY/MM/DD format.
      *  @param int|float $threshold: The similarity threshold for returning only those who passed. (ex. 65, 65.0, 65.5).
      *                              Avoid assigning more than 100 or negative values or it will return unexpected results.
      *  @param string $ignoreId: A beneficiary ID to ignore. This parameter can only be used for EDITs
      *  @return array|null Returns the similarity results in an array, otherwise null.
      *  
      */
-    public static function getResults(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, string $birthdate, int|float $threshold = 65, ?string $ignoreId = null)
+    public static function getResults(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, int|float $threshold = 65, ?string $ignoreId = null)
     {
         # initialize the $results var so it would return null if there's no similarities
         $results = [];

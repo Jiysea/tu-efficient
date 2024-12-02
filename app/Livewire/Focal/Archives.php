@@ -341,7 +341,7 @@ class Archives extends Component
 
         $duplicationThreshold = floatval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
 
-        $this->similarityResults = JaccardSimilarity::getResults($first_name, $middle_name, $last_name, $extension_name, Carbon::parse($birthdate)->format('Y-m-d'), $duplicationThreshold);
+        $this->similarityResults = JaccardSimilarity::getResults($first_name, $middle_name, $last_name, $extension_name, $duplicationThreshold);
 
         $this->setCheckers($this->similarityResults);
     }
