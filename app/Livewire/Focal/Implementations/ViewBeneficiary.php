@@ -42,6 +42,7 @@ class ViewBeneficiary extends Component
     public $defaultArchive;
     public $maxDate;
     public $minDate;
+    #[Locked]
     public $is_sectoral;
 
     # ---------------------------------------
@@ -604,9 +605,9 @@ class ViewBeneficiary extends Component
                     $identity->save();
 
                     if ($file) {
-                        LogIt::set_edit_beneficiary_identity($beneficiary, auth()->id());
+                        LogIt::set_edit_beneficiary_identity($beneficiary, $batch, auth()->user());
                     } else {
-                        LogIt::set_remove_beneficiary_identity($beneficiary, auth()->id());
+                        LogIt::set_remove_beneficiary_identity($beneficiary, $batch, auth()->user());
                     }
                     $isChanged = true;
                 }
@@ -650,9 +651,9 @@ class ViewBeneficiary extends Component
                         $special_case->save();
 
                         if ($file) {
-                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                         } else {
-                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                         }
                         $isChanged = true;
                     }
@@ -670,7 +671,7 @@ class ViewBeneficiary extends Component
                     }
 
                     $special_case->delete();
-                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                     $isChanged = true;
                 } else {
                     unset($this->beneficiary, $this->credentials);
@@ -680,7 +681,7 @@ class ViewBeneficiary extends Component
             if ($isChanged) {
                 $beneficiary->updated_at = now();
                 $beneficiary->save();
-                LogIt::set_edit_beneficiary($beneficiary, auth()->id());
+                LogIt::set_edit_beneficiary($beneficiary, $batch, auth()->user());
                 $this->dispatch('edit-beneficiary');
             }
 
@@ -837,7 +838,8 @@ class ViewBeneficiary extends Component
         # if the batch where this beneficiary belongs to is approved,
         # then we should archive it
         DB::transaction(function () use ($beneficiary) {
-
+            $batch = Batch::find($beneficiary->batches_id);
+            $implementation = Implementation::find($batch->implementations_id);
             $credentials = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
                 ->get();
 
@@ -853,7 +855,7 @@ class ViewBeneficiary extends Component
                     ]);
                     $credential->delete();
                     if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_archive_beneficiary_special_case($beneficiary, $credential, auth()->id());
+                        LogIt::set_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
                     }
                 }
 
@@ -867,7 +869,7 @@ class ViewBeneficiary extends Component
                 $beneficiary->delete();
 
                 if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_archive_beneficiary($beneficiary, auth()->id());
+                    LogIt::set_archive_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 }
 
                 $this->resetViewBeneficiary();
@@ -883,14 +885,14 @@ class ViewBeneficiary extends Component
                     }
                     $credential->delete();
                     if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_delete_beneficiary_special_case($beneficiary, $credential);
+                        LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
                     }
                 }
 
                 $beneficiary->delete();
 
                 if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_delete_beneficiary($beneficiary);
+                    LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 }
 
                 $this->resetViewBeneficiary();
@@ -1139,6 +1141,8 @@ class ViewBeneficiary extends Component
             } else {
                 $this->birthdate = null;
             }
+
+            $this->js('$wire.closeBirthdate();');
         }
 
         if ($property === 'civil_status') {
@@ -1266,7 +1270,7 @@ class ViewBeneficiary extends Component
         $this->duplicationThreshold = intval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
         $this->maximumIncome = $this->settings->get('maximum_income', config('settings.maximum_income'));
         $this->defaultArchive = $this->settings->get('default_archive', config('settings.default_archive'));
-        $this->is_sectoral = $this->implementation?->is_sectoral;
+        $this->is_sectoral = $this->batch?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
 

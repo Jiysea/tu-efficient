@@ -128,7 +128,7 @@ class ViewBatchModal extends Component
             }
             $this->code = fake()->bothify($code);
 
-            Code::lockForUpdate()->updateOrCreate(
+            $code = Code::lockForUpdate()->updateOrCreate(
                 [
                     'batches_id' => decrypt($this->passedBatchId),
                     'is_accessible' => 'yes',
@@ -144,6 +144,7 @@ class ViewBatchModal extends Component
                 $batch->submission_status = 'encoding';
                 $batch->save();
 
+                LogIt::set_open_access($batch, $code, auth()->user());
                 $this->dispatch('view-batch', message: 'Batch opened for encoding!');
             }
         });
@@ -154,7 +155,7 @@ class ViewBatchModal extends Component
         $this->validateOnly(field: 'password_confirm');
 
         $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
-        $this->authorize('approve-submission-coordinator', $batch);
+        $this->authorize('check-coordinator', $batch);
 
         $checkSlots = Batch::whereHas('beneficiary')
             ->where('batches.id', $batch->id)
@@ -167,7 +168,7 @@ class ViewBatchModal extends Component
             $batch->approval_status = 'approved';
             $batch->submission_status = 'submitted';
             $batch->save();
-            LogIt::set_approve_batch(auth()->user(), $batch);
+            LogIt::set_approve_batch($batch, auth()->user());
 
             $this->dispatch('view-batch', message: 'Successfully approved the batch assignment!');
 
@@ -184,6 +185,7 @@ class ViewBatchModal extends Component
         $this->validateOnly('password_confirm');
 
         $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        $this->authorize('check-coordinator', $batch);
 
         Code::find($this->accessCode?->id)->update([
             'is_accessible' => 'no'
@@ -192,6 +194,7 @@ class ViewBatchModal extends Component
         $batch->submission_status = 'submitted';
         $batch->save();
 
+        LogIt::set_force_submit_batch($batch, auth()->user());
         $this->dispatch('view-batch', message: 'Batch has been submitted forcibly!');
         $this->resetConfirm();
         $this->js('confirmModal = false');
@@ -202,6 +205,7 @@ class ViewBatchModal extends Component
         $this->validateOnly('password_confirm');
 
         $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        $this->authorize('check-coordinator', $batch);
 
         $code = '';
         for ($a = 0; $a < 8; $a++) {
@@ -224,6 +228,7 @@ class ViewBatchModal extends Component
         $batch->submission_status = 'revalidate';
         $batch->save();
 
+        LogIt::set_revalidate_batch($batch, auth()->user());
         $this->dispatch('view-batch', 'Batch reopened for revalidation!');
 
         $this->js('confirmModal = false');

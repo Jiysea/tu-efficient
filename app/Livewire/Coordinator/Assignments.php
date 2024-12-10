@@ -7,6 +7,7 @@ use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Code;
 use App\Models\UserSetting;
+use App\Services\Essential;
 use Arr;
 use Auth;
 use Carbon\Carbon;
@@ -40,6 +41,8 @@ class Assignments extends Component
 
     public $start;
     public $end;
+    public $calendarStart;
+    public $calendarEnd;
     public $defaultStart;
     public $defaultEnd;
 
@@ -59,46 +62,6 @@ class Assignments extends Component
     public $oldFilter = [];
 
     # --------------------------------------------------------------------------
-
-    #[On('start-change')]
-    public function setStartDate($value)
-    {
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->start = $choosenDate . ' ' . $currentTime;
-        $this->batches_on_page = $this->defaultBatches_on_page;
-        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
-
-        $this->batchId = null;
-
-        $this->selectedBatchRow = -1;
-
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('end-change')]
-    public function setEndDate($value)
-    {
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->end = $choosenDate . ' ' . $currentTime;
-        $this->batches_on_page = $this->defaultBatches_on_page;
-        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
-
-        if (strtotime($this->start) > strtotime($this->end)) {
-            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
-            $this->start = $start;
-            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
-        }
-
-        $this->batchId = null;
-
-        $this->selectedBatchRow = -1;
-
-        $this->dispatch('init-reload')->self();
-    }
 
     public function viewAssignment($encryptedId)
     {
@@ -157,8 +120,8 @@ class Assignments extends Component
             ->select(
                 [
                     'batches.id',
-                    'implementations.is_sectoral',
                     'batches.batch_num',
+                    'batches.is_sectoral',
                     'batches.sector_title',
                     'batches.barangay_name',
                     'batches.slots_allocated',
@@ -251,12 +214,12 @@ class Assignments extends Component
             $location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
                 ->where('batches.id', $this->batchId)
                 ->select([
-                    'implementations.is_sectoral',
                     'implementations.city_municipality',
                     'implementations.province',
-                    'batches.district',
+                    'batches.is_sectoral',
+                    'batches.sector_title',
                     'batches.barangay_name',
-                    'batches.sector_title'
+                    'batches.district',
                 ])
                 ->first();
 
@@ -363,6 +326,76 @@ class Assignments extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    public function updated($prop)
+    {
+        if ($prop === 'calendarStart') {
+            $format = Essential::extract_date($this->calendarStart, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarStart = $this->defaultStart;
+                return;
+            }
+
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarStart)->format('Y-m-d');
+            $currentTime = now()->startOfDay()->format('H:i:s');
+
+            $this->start = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $end = Carbon::parse($this->start)->addMonth()->endOfDay()->format('Y-m-d H:i:s');
+                $this->end = $end;
+                $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+            }
+
+            $this->batches_on_page = $this->defaultBatches_on_page;
+            $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
+
+            $this->batchId = null;
+
+            $this->selectedBatchRow = -1;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-batches')->self();
+            $this->dispatch('scroll-top-beneficiaries')->self();
+
+        } elseif ($prop === 'calendarEnd') {
+            $format = Essential::extract_date($this->calendarEnd, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarEnd = $this->defaultEnd;
+                return;
+            }
+
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarEnd)->format('Y-m-d');
+            $currentTime = now()->endOfDay()->format('H:i:s');
+
+            $this->end = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $start = Carbon::parse($this->end)->subMonth()->startOfDay()->format('Y-m-d H:i:s');
+                $this->start = $start;
+                $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+            }
+
+            $this->batches_on_page = $this->defaultBatches_on_page;
+            $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
+
+            $this->batchId = null;
+
+            $this->selectedBatchRow = -1;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-batches')->self();
+            $this->dispatch('scroll-top-beneficiaries')->self();
+        }
+    }
+
+    #[Computed]
+    public function globalSettings()
+    {
+        return UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
+            ->where('users.user_type', 'focal')
+            ->pluck('user_settings.value', 'user_settings.key');
+    }
+
     public function mount()
     {
         $user = Auth::user();
@@ -383,21 +416,16 @@ class Assignments extends Component
         /*
          *  Setting default dates in the datepicker
          */
-        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+        $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
+        $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
 
-        $this->defaultStart = date('m/d/Y', strtotime($this->start));
-        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+        $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+
+        $this->defaultStart = $this->calendarStart;
+        $this->defaultEnd = $this->calendarEnd;
 
 
-    }
-
-    #[Computed]
-    public function globalSettings()
-    {
-        return UserSetting::join('users', 'users.id', '=', 'user_settings.users_id')
-            ->where('users.user_type', 'focal')
-            ->pluck('user_settings.value', 'user_settings.key');
     }
 
     public function render()

@@ -5,6 +5,7 @@ namespace App\Livewire\Focal;
 use App\Livewire\Coordinator\Assignments;
 use App\Models\SystemsLog;
 use App\Models\User;
+use App\Services\Essential;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -20,68 +21,37 @@ class ActivityLogs extends Component
 {
     #[Locked]
     public $users_id;
-    #[Locked]
     public $start;
-    #[Locked]
     public $end;
-    #[Locked]
+    public $calendarStart;
+    public $calendarEnd;
     public $defaultStart;
-    #[Locked]
     public $defaultEnd;
-    #[Locked]
     public $logPage = 100;
     public int $resultsFrequency = 100;
     public $selectedRow = -1;
     public $searchLogs;
     public $sortTable = false;
-    public $currentUser;
+    public $currentUser = 'Choose a user...';
     public $searchUser;
 
     # --------------------------------------------------------------------------
 
-    public function setStartDate($value)
-    {
-        $this->reset('searchLogs');
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->start = $choosenDate . ' ' . $currentTime;
-    }
-
-    public function setEndDate($value)
-    {
-        $this->reset('searchLogs');
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        if (strtotime($this->start) > strtotime($this->end)) {
-            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
-            $this->start = $start;
-            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
-        }
-
-    }
-
     #[Computed]
     public function logs()
     {
-        $logs = SystemsLog::join('users', 'users.id', '=', 'system_logs.users_id')
-            ->where('users.regional_office', Auth::user()->regional_office)
-            ->where('users.field_office', Auth::user()->field_office)
+        return SystemsLog::where('regional_office', auth()->user()->regional_office)
+            ->where('field_office', auth()->user()->field_office)
             ->when($this->searchLogs, function ($q) {
-                $q->where('system_logs.description', 'LIKE', '%' . $this->searchLogs . '%');
+                $q->where('description', 'LIKE', '%' . $this->searchLogs . '%');
             })
             ->when($this->users_id, function ($q) {
-                $q->where('system_logs.users_id', $this->users_id ? decrypt($this->users_id) : null);
+                $q->where('users_id', $this->users_id ? decrypt($this->users_id) : null);
             })
-            ->whereBetween('system_logs.log_timestamp', [$this->start, $this->end])
-            ->orderBy('system_logs.log_timestamp', $this->sortTable ? 'asc' : 'desc')
+            ->whereBetween('log_timestamp', [$this->start, $this->end])
+            ->orderBy('log_timestamp', $this->sortTable ? 'asc' : 'desc')
             ->take(value: $this->logPage)
             ->get();
-
-        return $logs;
     }
 
     public function choose($encryptedId)
@@ -92,7 +62,7 @@ class ActivityLogs extends Component
     public function clear()
     {
         $this->users_id = null;
-        $this->currentUser = 'Choose a user...';
+        $this->reset('currentUser');
     }
 
     #[Computed]
@@ -115,36 +85,95 @@ class ActivityLogs extends Component
     }
 
     #[Computed]
-    public function getFullName($discombobulatedName)
+    public function getFullName(User|int|null $userOrId)
     {
         $name = null;
 
-        if ($discombobulatedName) {
+        if (is_int($userOrId)) {
+            $person = User::find($userOrId);
+            $name = $person->first_name;
 
-            $name = $discombobulatedName->first_name;
-
-            if ($discombobulatedName->middle_name) {
-                $name .= ' ' . $discombobulatedName->middle_name;
+            if ($person->middle_name) {
+                $name .= ' ' . $person->middle_name;
             }
 
-            $name .= ' ' . $discombobulatedName->last_name;
+            $name .= ' ' . $person->last_name;
 
-            if ($discombobulatedName->extension_name) {
-                $name .= ' ' . $discombobulatedName->extension_name;
+            if ($person->extension_name) {
+                $name .= ' ' . $person->extension_name;
             }
 
             return $name;
 
-        } else {
+        } elseif ($userOrId instanceof User) {
+            $name = $userOrId->first_name;
 
-            return null;
+            if ($userOrId->middle_name) {
+                $name .= ' ' . $userOrId->middle_name;
+            }
+
+            $name .= ' ' . $userOrId->last_name;
+
+            if ($userOrId->extension_name) {
+                $name .= ' ' . $userOrId->extension_name;
+            }
+
+            return $name;
         }
+
+        return $name;
     }
 
     public function updated($prop)
     {
         if ($prop === 'resultsFrequency') {
             $this->logPage = $this->resultsFrequency;
+        }
+
+        if ($prop === 'calendarStart') {
+            $format = Essential::extract_date($this->calendarStart, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarStart = $this->defaultStart;
+                return;
+            }
+
+            $this->reset('searchLogs');
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarStart)->format('Y-m-d');
+            $currentTime = now()->startOfDay()->format('H:i:s');
+
+            $this->start = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $end = Carbon::parse($this->start)->addMonth()->endOfDay()->format('Y-m-d H:i:s');
+                $this->end = $end;
+                $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+            }
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-logs')->self();
+        }
+
+        if ($prop === 'calendarEnd') {
+            $format = Essential::extract_date($this->calendarEnd, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarEnd = $this->defaultEnd;
+                return;
+            }
+
+            $this->reset('searchLogs');
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarEnd)->format('Y-m-d');
+            $currentTime = now()->endOfDay()->format('H:i:s');
+
+            $this->end = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $start = Carbon::parse($this->end)->subMonth()->startOfDay()->format('Y-m-d H:i:s');
+                $this->start = $start;
+                $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+            }
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-logs')->self();
         }
     }
 
@@ -155,13 +184,14 @@ class ActivityLogs extends Component
             $this->redirectIntended();
         }
 
-        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+        $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
+        $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
 
-        $this->defaultStart = date('m/d/Y', strtotime($this->start));
-        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+        $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
 
-        $this->currentUser = 'Choose a user...';
+        $this->defaultStart = $this->calendarStart;
+        $this->defaultEnd = $this->calendarEnd;
     }
 
     public function render()

@@ -7,8 +7,10 @@ use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Credential;
+use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Annex;
+use App\Services\Essential;
 use App\Services\LogIt;
 use Carbon\Carbon;
 use DB;
@@ -87,6 +89,8 @@ class Submissions extends Component
 
     public $start;
     public $end;
+    public $calendarStart;
+    public $calendarEnd;
     public $defaultStart;
     public $defaultEnd;
     public $approvalStatuses = [
@@ -121,12 +125,6 @@ class Submissions extends Component
                     }
                 },
             ],
-            'defaultExportStart' => [
-                'required'
-            ],
-            'defaultExportEnd' => [
-                'required'
-            ],
             'exportBatchId' => [
                 'required'
             ],
@@ -137,31 +135,22 @@ class Submissions extends Component
     {
         return [
             'password_approve.required' => 'This field is required.',
-            'defaultExportStart.required' => 'This field is required.',
-            'defaultExportEnd.required' => 'This field is required.',
             'exportBatchId.required' => 'This field is required.',
         ];
     }
 
     public function showExport()
     {
-        $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
-        $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
+        $this->defaultExportStart = $this->calendarStart;
+        $this->defaultExportEnd = $this->calendarEnd;
 
-        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
-        $choosenDate = date('Y-m-d', strtotime($date));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->export_start = $choosenDate . ' ' . $currentTime;
-
-        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
-        $choosenDate = date('Y-m-d', strtotime($date));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->export_end = $choosenDate . ' ' . $currentTime;
+        $this->export_start = $this->start;
+        $this->export_end = $this->end;
 
         # By Selected Batch
         if ($this->batchId) {
             $this->exportBatchId = $this->batchId;
-            $this->currentExportBatch = $this->exportBatch->batch_num . ' / ' . $this->exportBatch->barangay_name;
+            $this->currentExportBatch = ($this->exportBatch->sector_title ?? $this->exportBatch->barangay_name) . ' / ' . $this->exportBatch->batch_num;
         }
 
         $this->showExportModal = true;
@@ -173,16 +162,8 @@ class Submissions extends Component
             'exportBatchId' => [
                 'required'
             ],
-            'defaultExportStart' => [
-                'required'
-            ],
-            'defaultExportEnd' => [
-                'required'
-            ],
         ], [
             'exportBatchId.required' => 'This field is required.',
-            'defaultExportStart.required' => 'This field is required.',
-            'defaultExportEnd.required' => 'This field is required.',
         ]);
 
         $batch = $this->exportBatch;
@@ -235,8 +216,11 @@ class Submissions extends Component
             ->join('assignments', 'batches.id', '=', 'assignments.batches_id')
             ->where('assignments.users_id', Auth::id())
             ->when(isset($this->searchExportBatch) && !empty($this->searchExportBatch), function ($q) {
-                $q->where('batches.batch_num', 'LIKE', '%' . $this->searchExportBatch . '%')
-                    ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchExportBatch . '%');
+                $q->where(function ($query) {
+                    $query->where('batches.batch_num', 'LIKE', '%' . $this->searchExportBatch . '%')
+                        ->orWhere('batches.sector_title', 'LIKE', '%' . $this->searchExportBatch . '%')
+                        ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchExportBatch . '%');
+                });
             })
             ->whereBetween('batches.created_at', [$this->export_start, $this->export_end])
             ->latest('batches.updated_at')
@@ -259,7 +243,7 @@ class Submissions extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
+            $this->currentExportBatch = ($this->exportBatches[0]->sector_title ?? $this->exportBatches[0]->barangay_name) . ' / ' . $this->exportBatches[0]->batch_num;
         }
 
     }
@@ -385,7 +369,8 @@ class Submissions extends Component
         $this->authorize('delete-beneficiary-coordinator', $beneficiary);
 
         DB::transaction(function () use ($beneficiary) {
-
+            $batch = Batch::find($beneficiary->batches_id);
+            $implementation = Implementation::find($batch->implementations_id);
             $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
                 ->get();
             if ($this->defaultArchive) {
@@ -401,7 +386,7 @@ class Submissions extends Component
                     $credential->delete();
 
                     if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_archive_beneficiary_special_case($beneficiary, $credential, auth()->id());
+                        LogIt::set_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
                     }
                 }
 
@@ -415,7 +400,7 @@ class Submissions extends Component
                 $beneficiary->delete();
 
                 if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_archive_beneficiary($beneficiary, auth()->id());
+                    LogIt::set_archive_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 }
 
                 $this->showAlert = true;
@@ -430,14 +415,14 @@ class Submissions extends Component
                     }
                     $credential->delete();
                     if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_delete_beneficiary_special_case($beneficiary, $credential, auth()->id());
+                        LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
                     }
                 }
 
                 $beneficiary->delete();
 
                 if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_delete_beneficiary($beneficiary, auth()->id());
+                    LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 }
 
                 $this->showAlert = true;
@@ -537,9 +522,9 @@ class Submissions extends Component
             ->select(
                 [
                     'batches.id',
-                    'implementations.is_sectoral',
                     'batches.sector_title',
                     'batches.batch_num',
+                    'batches.is_sectoral',
                     'batches.barangay_name',
                     'batches.approval_status',
                     'batches.submission_status'
@@ -547,9 +532,9 @@ class Submissions extends Component
             )
             ->groupBy([
                 'batches.id',
-                'implementations.is_sectoral',
                 'batches.sector_title',
                 'batches.batch_num',
+                'batches.is_sectoral',
                 'batches.barangay_name',
                 'batches.approval_status',
                 'batches.submission_status'
@@ -771,7 +756,7 @@ class Submissions extends Component
             $this->alertMessage = 'Successfully approved the batch assignment!';
             $this->dispatch('show-alert');
 
-            LogIt::set_approve_batch(auth()->user(), $batch);
+            LogIt::set_approve_batch($batch, auth()->user());
         } else {
             $this->showAlert = true;
             $this->alertMessage = 'Cannot approve batch assignment when it is not submitted';
@@ -864,7 +849,7 @@ class Submissions extends Component
             $this->validateOnly('defaultExportStart');
             $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
             $choosenDate = date('Y-m-d', strtotime($date));
-            $currentTime = date('H:i:s', strtotime(now()));
+            $currentTime = date('H:i:s', strtotime(now()->startOfDay()));
             $this->export_start = $choosenDate . ' ' . $currentTime;
 
             if ($this->exportBatches->isEmpty()) {
@@ -880,7 +865,7 @@ class Submissions extends Component
             $this->validateOnly('defaultExportEnd');
             $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
             $choosenDate = date('Y-m-d', strtotime($date));
-            $currentTime = date('H:i:s', strtotime(now()));
+            $currentTime = date('H:i:s', strtotime(now()->endOfDay()));
             $this->export_end = $choosenDate . ' ' . $currentTime;
 
             if ($this->exportBatches->isEmpty()) {
@@ -890,6 +875,79 @@ class Submissions extends Component
                 $this->exportBatchId = encrypt($this->exportBatches[0]->id);
                 $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
             }
+        }
+
+        if ($prop === 'calendarStart') {
+            $format = Essential::extract_date($this->calendarStart, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarStart = $this->defaultStart;
+                return;
+            }
+
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarStart)->format('Y-m-d');
+            $currentTime = now()->startOfDay()->format('H:i:s');
+
+            $this->start = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $end = Carbon::parse($this->start)->addMonth()->endOfDay()->format('Y-m-d H:i:s');
+                $this->end = $end;
+                $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+            }
+
+            $this->batches_on_page = $this->defaultBatches_on_page;
+            $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
+
+            if ($this->batches->isNotEmpty()) {
+                $this->batchId = encrypt($this->batches[0]->id);
+            } else {
+                $this->batchId = null;
+                $this->searchBatches = null;
+                $this->searchBeneficiaries = null;
+            }
+
+            $this->beneficiaryId = null;
+            $this->selectedBatchRow = -1;
+            $this->selectedBeneficiaryRow = -1;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-beneficiaries')->self();
+
+        } elseif ($prop === 'calendarEnd') {
+            $format = Essential::extract_date($this->calendarEnd, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarEnd = $this->defaultEnd;
+                return;
+            }
+
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarEnd)->format('Y-m-d');
+            $currentTime = now()->endOfDay()->format('H:i:s');
+
+            $this->end = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $start = Carbon::parse($this->end)->subMonth()->startOfDay()->format('Y-m-d H:i:s');
+                $this->start = $start;
+                $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+            }
+
+            $this->batches_on_page = $this->defaultBatches_on_page;
+            $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
+
+            if ($this->batches->isNotEmpty()) {
+                $this->batchId = encrypt($this->batches[0]->id);
+            } else {
+                $this->batchId = null;
+                $this->searchBatches = null;
+                $this->searchBeneficiaries = null;
+            }
+
+            $this->beneficiaryId = null;
+            $this->selectedBatchRow = -1;
+            $this->selectedBeneficiaryRow = -1;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-beneficiaries')->self();
         }
     }
 
@@ -933,14 +991,18 @@ class Submissions extends Component
             'submission_status' => $this->submissionStatuses,
         ];
 
-        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+        # Setting default dates in the datepicker
+        $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
+        $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
 
-        $this->export_start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->export_end = date('Y-m-d H:i:s', strtotime(now()));
+        $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
 
-        $this->defaultStart = date('m/d/Y', strtotime($this->start));
-        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+        $this->defaultStart = $this->calendarStart;
+        $this->defaultEnd = $this->calendarEnd;
+
+        $this->export_start = $this->start;
+        $this->export_end = $this->end;
 
         $this->defaultExportStart = $this->defaultStart;
         $this->defaultExportEnd = $this->defaultEnd;
@@ -958,7 +1020,7 @@ class Submissions extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
+            $this->currentExportBatch = ($this->exportBatches[0]->sector_title ?? $this->exportBatches[0]->barangay_name) . ' / ' . $this->exportBatches[0]->batch_num;
         }
 
     }

@@ -3,9 +3,13 @@
 </x-slot>
 
 
-<div x-cloak x-data="{ open: true, isAboveBreakpoint: true, viewBatchModal: $wire.entangle('viewBatchModal'), scrollToTop() { document.getElementById('batches-table').scrollTo({ top: 0, behavior: 'smooth' }); } }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-cloak x-data="{ open: true, isAboveBreakpoint: true, isMobile: window.innerWidth < 768, viewBatchModal: $wire.entangle('viewBatchModal'), scrollToTop() { document.getElementById('batches-table').scrollTo({ top: 0, behavior: 'smooth' }); } }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
+});
+window.addEventListener('resize', () => {
+    isMobile = window.innerWidth < 768;
+    $wire.$dispatchSelf('init-reload');
 });">
 
     <div :class="{
@@ -21,63 +25,74 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 <div class="flex items-center gap-2">
                     <livewire:sidebar.coordinator-bar />
 
-                    <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">Assignments</h1>
+                    <h1 class="text-xl font-semibold sm:font-bold xl:ms-2">Assignments</h1>
 
                     {{-- Date range picker --}}
-                    <div id="assignments-date-range" date-rangepicker datepicker-autohide
-                        class="flex items-center gap-2 text-blue-1100 text-xs">
+                    <template x-if="!isMobile">
+                        <div id="assignments-date-range" date-rangepicker datepicker-autohide
+                            class="flex items-center gap-1 sm:gap-2 text-xs">
+                            <span class="relative inline-flex items-center gap-1 sm:gap-2" x-data="{ pop: false }">
+                                {{-- Start --}}
+                                <div class="relative" @mouseleave="pop = false;" @mouseenter="pop = true;">
+                                    <div
+                                        class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="start-date" wire:model.change="calendarStart"
+                                        @change-date.camel="$wire.$set('calendarStart', $el.value); " name="start"
+                                        value="{{ $calendarStart }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-blue-300 text-xs text-blue-1100 rounded focus:ring-blue-500 focus:border-blue-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date start">
+                                </div>
 
-                        {{-- Start --}}
-                        <div class="relative flex flex-1 w-[7rem] sm:w-[8rem]">
-                            <div
-                                class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                    viewBox="0, 0, 400,400">
-                                    <g>
-                                        <path
-                                            d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                            stroke="none" fill="currentColor" fill-rule="evenodd">
-                                        </path>
-                                    </g>
-                                </svg>
-                            </div>
-                            <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
-                                @change-date.camel="$wire.setStartDate($el.value); $dispatchSelf('scroll-top-beneficiaries'); $dispatchSelf('scroll-top-batches');"
-                                class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
-                                placeholder="Select date start">
+                                <span class="text-blue-1100">to</span>
+
+                                {{-- End --}}
+                                <div class="relative" @mouseleave="pop = false;" @mouseenter="pop = true;">
+                                    <div
+                                        class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="end-date" wire:model.change="calendarEnd"
+                                        @change-date.camel="$wire.$set('calendarEnd', $el.value); " name="end"
+                                        value="{{ $calendarEnd }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-blue-300 text-xs text-blue-1100 rounded focus:ring-blue-500 focus:border-blue-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date end">
+                                </div>
+
+                                {{-- Tooltip Content --}}
+                                <div x-cloak x-show="pop" x-transition.opacity
+                                    class="absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs text-center font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-blue-50">
+                                    This sets the <span class="text-blue-500">date range</span> of what records to
+                                    show <br>
+                                    based on the its creation date (start to end)
+                                </div>
+                            </span>
                         </div>
-
-                        <span class="text-blue-1100">to</span>
-
-                        {{-- End --}}
-                        <div class="relative flex flex-1 w-[7rem] sm:w-[8rem]">
-                            <div
-                                class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                    viewBox="0, 0, 400,400">
-                                    <g>
-                                        <path
-                                            d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                            stroke="none" fill="currentColor" fill-rule="evenodd">
-                                        </path>
-                                    </g>
-                                </svg>
-                            </div>
-                            <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
-                                @change-date.camel="$wire.setEndDate($el.value); $dispatchSelf('scroll-top-beneficiaries'); $dispatchSelf('scroll-top-batches');"
-                                class="flex flex-1 bg-white border border-blue-300 text-blue-1100 rounded py-1.5 focus:ring-blue-500 focus:border-blue-500 text-xs w-full ps-7"
-                                placeholder="Select date end">
-                        </div>
-                    </div>
+                    </template>
                 </div>
 
                 {{-- Loading State --}}
-                <div class="flex items-center justify-end text-blue-900" wire:loading
-                    wire:target="setStartDate, setEndDate, selectBatchRow, applyFilter, viewList, viewAssignment">
-                    <svg class="size-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24">
+                <template x-if="!isMobile">
+                    <svg class="text-blue-900 size-6 animate-spin" wire:loading
+                        wire:target="calendarStart, calendarEnd, selectBatchRow, applyFilter, viewList, viewAssignment"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4">
                         </circle>
@@ -85,7 +100,104 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                         </path>
                     </svg>
-                </div>
+                </template>
+
+                {{-- MD:Date Range Picker --}}
+                <template x-data="{ show: false }" x-if="isMobile">
+                    <div class="relative flex items-center justify-center gap-2 h-full">
+
+                        {{-- MD:Loading State --}}
+                        <svg class="text-blue-900 size-6 animate-spin" wire:loading
+                            wire:target="calendarStart, calendarEnd, selectBatchRow, applyFilter, viewList, viewAssignment"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+
+                        {{-- Show Left Dates --}}
+                        <span class="relative" x-data="{ pop: false }">
+                            <button type="button" @mouseleave="pop = false;" @mouseenter="pop = true;"
+                                @click="show = !show;"
+                                class="flex items-center justify-center p-1 rounded duration-200 ease-in-out hover:bg-blue-100 text-zinc-500 hover:text-blue-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                    viewBox="0, 0, 400,400">
+                                    <g>
+                                        <path
+                                            d="M93.157 14.058 C 88.540 16.873,87.506 19.624,87.503 29.102 L 87.500 37.500 65.304 37.500 C 36.969 37.500,32.063 38.825,22.483 49.067 C 12.153 60.111,12.432 57.893,12.681 126.869 L 12.891 185.269 16.126 188.286 C 21.669 193.457,28.330 193.457,33.874 188.287 L 37.109 185.270 37.337 161.385 L 37.565 137.500 200.046 137.500 L 362.527 137.500 362.318 245.117 C 362.112 351.136,362.086 352.774,360.547 355.387 C 358.537 358.800,355.734 360.861,351.893 361.752 C 347.818 362.697,52.182 362.697,48.107 361.752 C 39.092 359.661,37.977 356.783,37.500 334.375 C 37.082 314.738,36.969 314.164,32.807 310.662 C 27.942 306.569,21.186 306.994,16.126 311.713 L 12.891 314.729 12.659 335.554 C 12.465 352.942,12.636 357.109,13.697 360.806 C 17.046 372.482,26.754 382.410,38.352 386.020 C 45.124 388.127,353.807 388.358,360.991 386.261 C 372.544 382.889,382.437 373.161,386.020 361.648 C 388.332 354.218,388.332 70.782,386.020 63.352 C 382.437 51.839,372.544 42.111,360.991 38.739 C 357.560 37.737,352.514 37.500,334.624 37.500 L 312.500 37.500 312.497 29.102 C 312.493 16.846,309.225 12.506,300.000 12.506 C 290.775 12.506,287.507 16.846,287.503 29.102 L 287.500 37.500 200.000 37.500 L 112.500 37.500 112.497 29.102 C 112.492 14.820,103.447 7.784,93.157 14.058 M87.503 64.648 C 87.507 67.570,90.074 71.562,93.157 73.442 C 100.677 78.027,112.486 72.658,112.497 64.648 L 112.500 62.500 200.000 62.500 L 287.500 62.500 287.503 64.648 C 287.514 72.658,299.323 78.027,306.843 73.442 C 309.926 71.562,312.493 67.570,312.497 64.648 L 312.500 62.500 330.664 62.519 C 362.294 62.551,361.983 62.258,362.363 92.383 L 362.617 112.500 200.000 112.500 L 37.383 112.500 37.637 92.383 C 38.017 62.236,37.514 62.715,68.945 62.580 L 87.500 62.500 87.503 64.648 M81.641 175.896 C 79.207 177.217,14.882 241.534,13.621 243.907 C 13.004 245.067,12.500 247.809,12.500 250.000 C 12.500 255.994,12.363 255.834,47.410 290.739 C 82.912 326.097,81.626 325.001,87.644 324.997 C 95.270 324.992,99.992 320.270,99.997 312.644 C 100.001 306.721,100.366 307.180,77.071 283.789 L 55.870 262.500 130.083 262.497 C 202.759 262.494,204.350 262.462,206.843 260.942 C 214.551 256.242,214.551 243.758,206.843 239.058 C 204.350 237.538,202.759 237.506,130.083 237.503 L 55.870 237.500 77.071 216.211 C 100.366 192.820,100.001 193.279,99.997 187.356 C 99.991 178.049,89.611 171.569,81.641 175.896 "
+                                            stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                    </g>
+                                </svg>
+                            </button>
+
+                            {{-- Tooltip Content --}}
+                            <div x-cloak x-show="!show && pop" x-transition.opacity
+                                class="absolute z-50 top-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-blue-50">
+                                Toggles the <span class="text-blue-400">date range</span> menu
+                            </div>
+                        </span>
+
+                        <div x-show="show" x-transition.opacity
+                            class="absolute right-full top-0 me-2 flex flex-col items-center justify-center gap-2 rounded p-2 z-40 border border-blue-500 bg-white">
+
+                            <span class="text-blue-1100 text-xs font-medium">
+                                Date Range (Start to End)
+                            </span>
+
+                            <div id="assignments-date-range" date-rangepicker datepicker-autohide
+                                class="flex items-center gap-1 sm:gap-2 text-xs">
+
+                                {{-- Start --}}
+                                <div class="relative">
+                                    <div
+                                        class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="start-date"
+                                        @change-date.camel="$wire.$set('calendarStart', $el.value);  show = false;"
+                                        wire:model.change="calendarStart" name="start" value="{{ $calendarStart }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-blue-300 text-xs text-blue-1100 rounded focus:ring-blue-500 focus:border-blue-500 w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date start">
+                                </div>
+
+                                <span class="text-blue-1100">-></span>
+
+                                {{-- End --}}
+                                <div class="relative">
+                                    <div
+                                        class="absolute text-blue-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="end-date" wire:model.change="calendarEnd"
+                                        @change-date.camel="$wire.$set('calendarEnd', $el.value);  show = false;"
+                                        name="end" value="{{ $calendarEnd }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-blue-300 text-xs text-blue-1100 rounded focus:ring-blue-500 focus:border-blue-500 w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date end">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
 
             {{-- Content / Body --}}
@@ -732,18 +844,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     behavior: 'smooth'
                 });
             }
-        });
-
-        $wire.on('modifyStart', (event) => {
-            const start = document.getElementById('start-date');
-            start.value = event.newStart;
-
-            const datepicker = FlowbiteInstances.getInstance('Datepicker', 'assignments-date-range');
-            if (datepicker) {
-                datepicker.setDate(event.newStart);
-            }
-
-            $dispatchSelf('init-reload');
         });
     </script>
 @endscript

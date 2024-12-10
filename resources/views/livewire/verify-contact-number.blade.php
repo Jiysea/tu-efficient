@@ -53,7 +53,8 @@
                 @error('verification_code')
                     <span class="text-red-500 absolute bottom-full mb-1 left-1 z-10 text-xs">{{ $message }}</span>
                 @enderror
-                <input type="text" id="verification_code" wire:model.blur="verification_code"
+                <input type="text" id="verification_code" wire:model.blur="verification_code" autocomplete="off"
+                    autofocus
                     class="text-sm duration-200 ease-in-out border rounded-lg outline-none flex w-full px-5 py-2 
                     {{ $errors->has('verification_code')
                         ? 'bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'

@@ -43,16 +43,16 @@
                             <input type="text" wire:model.blur="email" id="email" autocomplete="off"
                                 class="text-sm duration-200 ease-in-out border rounded-lg outline-none block w-full px-5 py-2 
                                 {{ $errors->has('email')
-                                    ? 'bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'
-                                    : 'bg-indigo-200 border-indigo-500 focus:ring-indigo-500 focus:border-indigo-600 text-indigo-1000 placeholder-indigo-600' }}"
+                                    ? 'selection:bg-red-700 selection:text-red-100 bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'
+                                    : 'selection:bg-indigo-700 selection:text-indigo-100 bg-indigo-200 border-indigo-500 focus:ring-indigo-500 focus:border-indigo-600 text-indigo-1000 placeholder-indigo-600' }}"
                                 placeholder="Email">
                         </div>
                         <div class="relative pb-4">
                             <input type="password" wire:model.blur="password" id="password"
                                 class="text-sm duration-200 ease-in-out border rounded-lg outline-none block w-full px-5 py-2 
                             {{ $errors->has('password')
-                                ? 'bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'
-                                : 'bg-indigo-200 border-indigo-500 focus:ring-indigo-500 focus:border-indigo-600 text-indigo-1000 placeholder-indigo-600' }}"
+                                ? 'selection:bg-red-700 selection:text-red-100 bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'
+                                : 'selection:bg-indigo-700 selection:text-indigo-100 bg-indigo-200 border-indigo-500 focus:ring-indigo-500 focus:border-indigo-600 text-indigo-1000 placeholder-indigo-600' }}"
                                 placeholder="Password">
                             @error('password')
                                 <p class="text-red-500 absolute bottom-0 left-1 z-10 text-xs">{{ $message }}</p>
@@ -60,11 +60,24 @@
                         </div>
                         <div class="flex flex-col mt-4">
                             <button type="submit"
-                                class="flex items-center justify-center w-full py-2 text-sm font-medium text-center text-indigo-50 duration-200 ease-in-out bg-indigo-700 rounded-lg hover:bg-indigo-800 active:bg-indigo-900 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Sign
-                                In
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ms-2"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                    viewBox="0, 0, 400,400">
+                                class="flex items-center justify-center w-full gap-2 py-2 text-sm font-medium text-center text-indigo-50 duration-200 ease-in-out bg-indigo-700 rounded-lg hover:bg-indigo-800 active:bg-indigo-900 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <span>Sign In</span>
+
+                                {{-- Loading Icon --}}
+                                <svg class="size-5 animate-spin" wire:loading wire:target="login"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4">
+                                    </circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+
+                                {{-- Arrow Icon --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5" wire:loading.remove
+                                    wire:target="login" xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                    height="400" viewBox="0, 0, 400,400">
                                     <g>
                                         <path
                                             d="M295.703 104.354 C 288.091 108.313,284.738 117.130,287.918 124.830 C 288.731 126.797,298.250 136.876,317.407 156.055 L 345.695 184.375 178.190 184.375 L 10.684 184.375 7.316 186.349 C -2.632 192.179,-2.632 207.821,7.316 213.651 L 10.684 215.625 178.190 215.625 L 345.695 215.625 317.407 243.945 C 287.868 273.517,286.719 274.922,286.719 281.450 C 286.719 291.748,296.214 298.639,307.490 296.523 C 310.798 295.903,394.561 214.221,398.124 208.143 C 400.760 203.645,400.760 196.355,398.123 191.857 C 395.754 187.814,311.819 104.984,309.009 103.915 C 305.871 102.722,298.364 102.970,295.703 104.354 "
@@ -87,7 +100,7 @@
                         <div class="grid grid-cols-9 w-full place-items-stretch space-x-2">
                             <div class="relative col-span-7 flex w-full">
                                 <span
-                                    class="absolute h-full w-[20%] rounded-s-lg flex items-center justify-center pointer-events-none
+                                    class="absolute h-full w-11 rounded-s-lg flex items-center justify-center pointer-events-none
                                     {{ $errors->has('access_code') ? 'bg-red-500 text-red-50' : 'bg-green-600 text-green-50' }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -101,17 +114,30 @@
                                 </span>
 
                                 <input type="text" wire:model.blur="access_code" id="access_code" autocomplete="off"
-                                    class="text-sm w-full duration-200 ease-in-out border rounded-lg outline-none block ps-16 sm:ps-14 py-2
+                                    class="text-sm w-full duration-200 ease-in-out border rounded-lg outline-none block ps-14 py-2
                                 {{ $errors->has('access_code')
-                                    ? 'bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'
-                                    : 'bg-green-200 border-green-600 focus:ring-green-600 focus:border-green-600 text-green-1100 placeholder-green-900' }}"
+                                    ? 'selection:bg-red-700 selection:text-red-100 bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'
+                                    : 'selection:bg-green-700 selection:text-green-100 bg-green-200 border-green-600 focus:ring-green-600 focus:border-green-600 text-green-1100 placeholder-green-900' }}"
                                     placeholder="Access Code">
                             </div>
                             <button type="submit"
                                 class="col-span-2 flex justify-center items-center w-full px-2 py-2 text-green-50 duration-200 ease-in-out bg-green-700 rounded-lg hover:bg-green-800 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                    viewBox="0, 0, 400,400">
+
+                                {{-- Loading Icon --}}
+                                <svg class="size-5 animate-spin" wire:loading wire:target="access"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4">
+                                    </circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+
+                                {{-- Key Icon --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5" wire:loading.remove
+                                    wire:target="access" xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                    height="400" viewBox="0, 0, 400,400">
                                     <g>
                                         <path
                                             d="M92.969 91.786 C 5.279 104.861,-30.960 211.652,30.433 276.069 C 77.754 325.720,161.600 318.486,199.531 261.480 C 203.750 255.139,211.685 239.639,211.708 237.695 C 211.716 236.927,220.136 236.719,251.172 236.719 L 290.625 236.719 290.625 273.047 L 290.625 309.375 327.344 309.375 L 364.063 309.375 364.063 273.047 L 364.063 236.719 382.031 236.719 L 400.000 236.719 400.000 200.000 L 400.000 163.281 305.859 163.281 C 231.074 163.281,211.716 163.080,211.708 162.305 C 211.701 161.768,209.931 157.657,207.773 153.170 C 186.706 109.359,140.567 84.689,92.969 91.786 M115.657 164.850 C 145.035 170.421,154.937 208.166,132.047 227.331 C 108.910 246.702,73.438 230.161,73.438 200.000 C 73.438 177.717,93.858 160.716,115.657 164.850 "

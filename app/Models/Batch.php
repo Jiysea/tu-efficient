@@ -19,6 +19,7 @@ class Batch extends Model
     protected $fillable = [
         'implementations_id',
         'batch_num',
+        'is_sectoral',
         'sector_title',
         'district',
         'barangay_name',

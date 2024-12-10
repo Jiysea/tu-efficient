@@ -28,10 +28,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('edit-implementation-focal', function (User $user, Implementation $implementation) {
+            if ($implementation)
+                return $user->id === $implementation->users_id;
+            else
+                return false;
+        });
 
         Gate::define('delete-implementation-focal', function (User $user, Implementation $implementation) {
-            return $user->id === $implementation->users_id;
+            if ($implementation)
+                return $user->id === $implementation->users_id;
+            else
+                return false;
         });
+
 
         Gate::define('delete-batch-focal', function (User $user, Batch $batch) {
             $batch = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
@@ -70,13 +80,20 @@ class AppServiceProvider extends ServiceProvider
 
         });
 
-        Gate::define('approve-submission-coordinator', function (User $user, Batch $batch) {
-            $assignments = Assignment::join('batches', 'assignments.batches_id', '=', 'batches.id')
+        Gate::define('approval-status-focal', function (User $user, Batch $batch) {
+            $implementation = Implementation::find($batch->implementations_id);
+            return $user->id === $implementation->users_id;
+        });
+
+        # ------------------------------------------------------------------------------------------
+
+        Gate::define('check-coordinator', function (User $user, Batch $batch) {
+            $assignment = Assignment::join('batches', 'assignments.batches_id', '=', 'batches.id')
                 ->where('batches.id', $batch->id)
                 ->where('assignments.users_id', $user->id)
                 ->first();
 
-            if (isset($assignments)) {
+            if (isset($assignment)) {
                 return true;
             } else {
                 return false;

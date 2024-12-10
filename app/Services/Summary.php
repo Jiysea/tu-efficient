@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -57,12 +59,12 @@ class Summary
             'Project Title',
             'Province',
             'City/Municipality',
-            'District',
             'Budget',
             'Minimum Wage',
             'Total Slots',
             'Days of Work',
             'Purpose',
+            'Status At Generation',
             'Date Created',
             'Last Updated',
         ];
@@ -93,6 +95,8 @@ class Summary
         $sheet->setCellValue([1, $curRow, $maxCol, $curRow], '__________________________________________________________________________________________________');
         $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
         $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()
+            ->getColor()->setRGB('6B7280');
         $sheet->getRowDimension($curRow)->setRowHeight(15);
 
         # Start to End Date Range (A4) ONLY APPLICABLE TO DATE RANGE EXPORT OPTION
@@ -103,6 +107,7 @@ class Summary
             $sheet->setCellValue([1, $curRow], 'Implementations spanning from ' . Carbon::parse($data['date_range']['start'])->format('F d, Y') . ' to ' . Carbon::parse($data['date_range']['end'])->format('F d, Y'));
             $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
             $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $sheet->getStyle([1, $curRow])->getFont()->setBold(true);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
@@ -166,7 +171,7 @@ class Summary
 
                 # H:L
                 $sheet->getStyle([8, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([8, $curRow], $info['implementationInformation'][$i + 1]);
+                $sheet->setCellValue([8, $curRow], $implementation[$i + 1] === 'Status At Generation' ? mb_strtoupper($info['implementationInformation'][$i + 1], "UTF-8") : $info['implementationInformation'][$i + 1]);
                 $sheet->getStyle([8, $curRow])->getFont()->setName('Arial');
                 $sheet->getStyle([8, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([8, $curRow, 12, $curRow]);
@@ -209,36 +214,36 @@ class Summary
                 $sheet->mergeCells([($c * 4) + 3, $curRow + 1, ($c * 4) + 4, $curRow + 1]);
             }
 
-            $curRow += 2;
+            $curRow += 3;
 
-            if (isset($data['selected_project'])) {
-                # Big Line (A:L)
-                $sheet->getRowDimension($curRow)->setRowHeight(20);
-                $sheet->setCellValue([1, $curRow], '________________________________________________________________________________________________________________________________________');
-                $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
-                $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $curRow += 2;
-            }
-            # Barangay / Batches Area
+            # Batches Area
             $sheet->getStyle([1, $curRow])->getFont()->setSize(16); # A5:A5
             $sheet->getStyle([1, $curRow])->getFont()->setBold(true);
             $sheet->getRowDimension($curRow)->setRowHeight(30);
-            $sheet->setCellValue([1, $curRow], '• Total By Barangay');
+            $sheet->setCellValue([1, $curRow], '• Total By Batches');
             $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
             $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
             $sheet->getStyle([1, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
             $curRow++;
 
-            # Loop the barangays in a 4-column merged cells
+            # Loop the batches in a 4-column merged cells
             $sheet->getRowDimension($curRow)->setRowHeight(20);
             $i = 1;
-            foreach ($info['barangays'] as $barangay) {
+            foreach ($info['batches'] as $batch) {
                 $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
                 # Barangay Name
                 $sheet->getStyle([1, $curRow])->getFont()->setSize(16); # A5:A5
                 $sheet->getRowDimension($curRow)->setRowHeight(30);
-                $sheet->setCellValue([1, $curRow], '#' . $i . ' • Brgy. ' . $barangay['barangay_name']);
+
+                if ($batch['is_sectoral']) {
+                    $value = ($batch['is_sectoral'] ? 'SECTORAL' : 'NON-SECTORAL') . '] ' . $batch['sector_title'];
+                    $sheet->setCellValue([1, $curRow], '#' . $i . ' [' . $value . ' (' . intval($batch['total_male'] + $batch['total_female']) . ')');
+                } elseif (!$batch['is_sectoral']) {
+                    $value = ($batch['is_sectoral'] ? 'SECTORAL' : 'NON-SECTORAL') . '] ' . 'Brgy. ' . $batch['barangay_name'];
+                    $sheet->setCellValue([1, $curRow], '#' . $i . ' [' . $value . ' (' . intval($batch['total_male'] + $batch['total_female']) . ')');
+                }
+
                 $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
                 $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
                 $sheet->getStyle([1, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -252,7 +257,7 @@ class Summary
 
                 # B:F
                 $sheet->getStyle([2, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([2, $curRow], $barangay['total_male']);
+                $sheet->setCellValue([2, $curRow], $batch['total_male']);
                 $sheet->getStyle([2, $curRow])->getFont()->setName('Arial');
                 $sheet->getStyle([2, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([2, $curRow, 6, $curRow]);
@@ -265,7 +270,7 @@ class Summary
 
                 # H:L
                 $sheet->getStyle([8, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([8, $curRow], $barangay['total_female']);
+                $sheet->setCellValue([8, $curRow], $batch['total_female']);
                 $sheet->getStyle([8, $curRow])->getFont()->setName('Arial');
                 $sheet->getStyle([8, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([8, $curRow, 12, $curRow]);
@@ -279,7 +284,7 @@ class Summary
 
                 # B:F
                 $sheet->getStyle([2, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([2, $curRow], $barangay['total_pwd_male']);
+                $sheet->setCellValue([2, $curRow], $batch['total_pwd_male']);
                 $sheet->getStyle([2, $curRow])->getFont()->setName('Arial');
                 $sheet->getStyle([2, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([2, $curRow, 6, $curRow]);
@@ -292,7 +297,7 @@ class Summary
 
                 # H:L
                 $sheet->getStyle([8, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([8, $curRow], $barangay['total_pwd_female']);
+                $sheet->setCellValue([8, $curRow], $batch['total_pwd_female']);
                 $sheet->getStyle([8, $curRow])->getFont()->setName('Arial');
                 $sheet->getStyle([8, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([8, $curRow, 12, $curRow]);
@@ -306,7 +311,7 @@ class Summary
 
                 # B:F
                 $sheet->getStyle([2, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([2, $curRow], $barangay['total_senior_male']);
+                $sheet->setCellValue([2, $curRow], $batch['total_senior_male']);
                 $sheet->getStyle([2, $curRow])->getFont()->setName('Arial');
                 $sheet->getStyle([2, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([2, $curRow, 6, $curRow]);
@@ -319,7 +324,7 @@ class Summary
 
                 # H:L
                 $sheet->getStyle([8, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([8, $curRow], $barangay['total_senior_female']);
+                $sheet->setCellValue([8, $curRow], $batch['total_senior_female']);
                 $sheet->getStyle([8, $curRow])->getFont()->setName('Arial');
                 $sheet->getStyle([8, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([8, $curRow, 12, $curRow]);
@@ -327,13 +332,13 @@ class Summary
                 $i++;
             }
 
-            if (isset($data['date_range'])) {
-                # Last Big Line (A:L)
-                $sheet->setCellValue([1, $curRow, $maxCol, $curRow], '__________________________________________________________________________________________________');
-                $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
-                $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getRowDimension($curRow)->setRowHeight(15);
-            }
+            # Big Line (A:L)
+            $sheet->getRowDimension($curRow)->setRowHeight(20);
+            $sheet->setCellValue([1, $curRow], '________________________________________________________________________________________________________________________________________');
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getFont()
+                ->getColor()->setRGB('6B7280');
 
             $curRow++;
         }
@@ -349,12 +354,12 @@ class Summary
             'Project Title',
             'Province',
             'City/Municipality',
-            'District',
             'Budget',
             'Minimum Wage',
             'Total Slots',
             'Days of Work',
             'Purpose',
+            'Status At Generation',
             'Date Created',
             'Last Updated',
             'Overall (Male)',
@@ -363,7 +368,8 @@ class Summary
             'PWDs (Female)',
             'Senior Citizens (Male)',
             'Senior Citizens (Female)',
-            'Barangay Name',
+            'Barangay/Sector',
+            'Type of Batch',
             'Barangay Overall (Male)',
             'Barangay Overall (Female)',
             'Barangay PWDs (Male)',
@@ -380,12 +386,12 @@ class Summary
         foreach ($information as $info) {
 
 
-            foreach ($info['barangays'] as $barangay) {
+            foreach ($info['batches'] as $batch) {
 
                 $combinedData = [];
 
-                foreach ($info['implementationInformation'] as $implementation) {
-                    $combinedData[] = $implementation;
+                foreach ($info['implementationInformation'] as $key => $implementation) {
+                    $combinedData[] = $key === 9 ? mb_strtoupper($implementation, "UTF-8") : $implementation;
                 }
 
                 foreach ($info['summaryCount'] as $value) {
@@ -393,13 +399,14 @@ class Summary
                     $combinedData[] = $value['female'];
                 }
 
-                $combinedData[] = $barangay['barangay_name'];
-                $combinedData[] = $barangay['total_male'];
-                $combinedData[] = $barangay['total_female'];
-                $combinedData[] = $barangay['total_pwd_male'];
-                $combinedData[] = $barangay['total_pwd_female'];
-                $combinedData[] = $barangay['total_senior_male'];
-                $combinedData[] = $barangay['total_senior_female'];
+                $combinedData[] = $batch['barangay_name'] ?? $batch['sector_title'];
+                $combinedData[] = $batch['is_sectoral'] ? 'Sectoral' : 'Non-Sectoral';
+                $combinedData[] = $batch['total_male'];
+                $combinedData[] = $batch['total_female'];
+                $combinedData[] = $batch['total_pwd_male'];
+                $combinedData[] = $batch['total_pwd_female'];
+                $combinedData[] = $batch['total_senior_male'];
+                $combinedData[] = $batch['total_senior_female'];
 
                 $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
                 $curRow++;
@@ -411,7 +418,7 @@ class Summary
 
     protected static function compileData(array $data): array
     {
-        # Reassign the Implementations so that it will loop whichever option that's selected.
+        # Reassign the Implementations so that it will loop whichever export option that's selected.
         $implementations = null;
         if (isset($data['date_range'])) {
             $implementations = $data['date_range']['implementations'];
@@ -424,22 +431,24 @@ class Summary
         # Starts looping the implementation projects whether it's based on Date Range or Selected Project option
         foreach ($implementations as $implementation) {
 
-            # Implementation Information
+            # These values are in `strict` order so if you want to reorder them,
+            # make sure you also reorder the `$implementation` variable from the generators.
             $implementationInformation = [
                 $implementation->project_num,
                 $implementation->project_title ?? '-',
                 $implementation->province,
                 $implementation->city_municipality,
-                $implementation->district,
                 '₱' . \App\Services\MoneyFormat::mask($implementation->budget_amount),
                 '₱' . \App\Services\MoneyFormat::mask($implementation->minimum_wage),
                 $implementation->total_slots,
                 $implementation->days_of_work,
                 $implementation->purpose,
+                $implementation->status,
                 Carbon::parse($implementation->created_at)->format('F d, Y @ h:i:sa'),
                 Carbon::parse($implementation->updated_at)->format('F d, Y @ h:i:sa'),
             ];
 
+            # Query used for Beneficiary Count (overall male, female, senior male, female, pwd male, female)
             $impCount = Implementation::join('batches', 'batches.implementations_id', '=', 'implementations.id')
                 ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
                 ->where('implementations.id', $implementation->id)
@@ -473,9 +482,12 @@ class Summary
                 'seniors' => $seniors,
             ];
 
-            $batches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
+            # Get all the batches from the selected implementation/s
+            $currentBatches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
                 ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
                 ->select([
+                    'batches.is_sectoral',
+                    'batches.sector_title',
                     'batches.barangay_name',
                     DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
                     DB::raw('SUM(CASE WHEN beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_female'),
@@ -485,14 +497,16 @@ class Summary
                     DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
                 ])
                 ->where('implementations.id', $implementation->id)
-                ->groupBy(['batches.barangay_name'])
+                ->groupBy(['batches.is_sectoral', 'batches.sector_title', 'batches.barangay_name'])
                 ->get();
 
             # Barangay Information
-            $barangays = [];
+            $batches = [];
 
-            foreach ($batches as $batch) {
-                $barangays[] = [
+            foreach ($currentBatches as $batch) {
+                $batches[] = [
+                    'is_sectoral' => $batch->is_sectoral,
+                    'sector_title' => $batch->sector_title,
                     'barangay_name' => $batch->barangay_name,
                     'total_male' => $batch->total_male,
                     'total_female' => $batch->total_female,
@@ -506,7 +520,7 @@ class Summary
             $information[] = [
                 'implementationInformation' => $implementationInformation,
                 'summaryCount' => $summaryCount,
-                'barangays' => $barangays,
+                'batches' => $batches,
             ];
         }
 

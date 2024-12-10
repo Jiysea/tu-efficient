@@ -101,18 +101,22 @@ class UserManagement extends Component
 
     public function full_name($person)
     {
-        $full_name = $person->first_name;
+        $full_name = null;
+        if ($person) {
 
-        if ($person->middle_name) {
-            $full_name .= ' ' . $person->middle_name;
+            $full_name = $person->first_name;
+
+            if ($person->middle_name) {
+                $full_name .= ' ' . $person->middle_name;
+            }
+
+            $full_name .= ' ' . $person->last_name;
+
+            if ($person->extension_name) {
+                $full_name .= ' ' . $person->extension_name;
+            }
+
         }
-
-        $full_name .= ' ' . $person->last_name;
-
-        if ($person->extension_name) {
-            $full_name .= ' ' . $person->extension_name;
-        }
-
         return $full_name;
     }
 

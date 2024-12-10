@@ -16,399 +16,581 @@ use Illuminate\Auth\Authenticatable;
 class LogIt
 {
     # From Seeder/Users
-    public static function set_register_user(User|Authenticatable $user, int $users_id = null)
+    public static function set_register_user(User $user, int $users_id = null, string $sender = null, string $log_type = 'create', mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $users_id,
-            'log_timestamp' => $user->created_at ?? now(),
-            'description' => self::full_name($user) . ' has been created as ' . $user->user_type . ' in ' . $user->field_office . ' field office.'
+            'alternative_sender' => $sender,
+            'description' => self::full_name($user) . ' has been created as ' . $user->user_type . ' in ' . $user->field_office . ' regional office -> ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => $log_type,
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_change_fullname(User|Authenticatable $user, string $old, string $new)
+    public static function set_change_fullname(User|Authenticatable $user, string $old, string $new, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => $user->created_at ?? now(),
-            'description' => $old . ' changed their name to ' . $new . '. ' . $user->field_office . ' field office.'
+            'description' => $old . ' changed their name to ' . $new . '. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_initialization_of_user_settings(UserSetting $settings)
+    public static function set_initialization_of_user_settings(UserSetting $settings, string $sender, string $regional_office, string $field_office, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A setting ' . $settings->key . ' has been initialized with ' . $settings->value . ' for ' . self::full_name($settings->users_id) . '.'
+            'alternative_sender' => $sender,
+            'description' => 'A setting ' . $settings->key . ' has been initialized with ' . $settings->value . ' for ' . self::full_name($settings->users_id) . '.',
+            'regional_office' => $regional_office,
+            'field_office' => $field_office,
+            'log_type' => 'initialize',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_edit_user(User|Authenticatable $user, int $users_id = null)
+    public static function set_edit_user(User $modifiedUser, User|Authenticatable $user, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
-            'users_id' => $users_id,
-            'log_timestamp' => $user->created_at ?? now(),
-            'description' => 'Coordinator ' . self::full_name($user) . ' from ' . $user->field_office . ' field office has been modified.'
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Coordinator ' . self::full_name($modifiedUser) . ' from ' . $modifiedUser->field_office . ' field office has been modified.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_delete_user(User|Authenticatable $user, int $users_id = null)
+    public static function set_delete_user(User $modifiedUser, User|Authenticatable $user, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
-            'users_id' => $users_id,
-            'log_timestamp' => $user->created_at ?? now(),
-            'description' => 'Coordinator ' . self::full_name($user) . ' from ' . $user->field_office . ' field office has been deleted.'
+        $stackedData = [
+            $modifiedUser->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Coordinator ' . self::full_name($modifiedUser) . ' from ' . $modifiedUser->field_office . ' field office has been deleted.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
     public static function set_settings_password_change(User|Authenticatable $user)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'They changed their password. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
         ]);
     }
 
     public static function set_minimum_wage_settings(User|Authenticatable $user, $old_wage, $new_wage)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'Changed the \'Minimum Wage\' global settings from ₱' . $old_wage . ' to ₱' . $new_wage . '. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
         ]);
     }
 
     public static function set_project_prefix_settings(User|Authenticatable $user, $old_prefix, $new_prefix)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'Changed the \'Project Number Prefix\' global settings from ' . $old_prefix . ' to ' . $new_prefix . '. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
         ]);
     }
 
     public static function set_batch_prefix_settings(User|Authenticatable $user, $old_prefix, $new_prefix)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'Changed the \'Batch Number Prefix\' global settings from ' . $old_prefix . ' to ' . $new_prefix . '. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
         ]);
     }
 
     public static function set_maximum_income_settings(User|Authenticatable $user, $old_income, $new_income)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'Changed the \'Maximum Income\' global settings from ₱' . $old_income . ' to ₱' . $new_income . '. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
         ]);
     }
 
     public static function set_duplication_threshold_settings(User|Authenticatable $user, $old_threshold, $new_threshold)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'Changed their \'Duplication Threshold\' personal settings from ' . $old_threshold . '% to ' . $new_threshold . '%. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
         ]);
     }
 
     public static function set_default_archive_settings(User|Authenticatable $user, $old_value, $new_value)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => ($new_value ? 'Enabled' : 'Disabled') . ' their \'Default Archive\' personal settings. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
+        ]);
+    }
+
+    public static function set_default_show_duplicates_settings(User|Authenticatable $user, $old_value, $new_value)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => ($new_value ? 'Enabled' : 'Disabled') . ' their \'Show Duplicates by Default\' personal settings. ' . $user->field_office . ' field office.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => now(),
         ]);
     }
 
     # ----------------------------------------------------------------------------------------------
 
-    public static function set_create_project(Implementation $implementation)
+    public static function set_create_project(Implementation $implementation, User|Authenticatable $user, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
-            'users_id' => $implementation->users_id,
-            'log_timestamp' => now(),
+        SystemsLog::create([
+            'users_id' => $user->id,
             'description' => 'Created an implementation project \'' . $implementation->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_create_batches(Batch $batch)
+    public static function set_create_batches(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
+        SystemsLog::create([
+            'users_id' => $user->id,
             'description' => 'Created a batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_assign_coordinator_to_batch(Assignment $assignment)
+    public static function set_assign_coordinator_to_batch(Assignment $assignment, User|Authenticatable $user, string $log_type = 'create', mixed $timestamp = null)
     {
         $batch = Batch::find($assignment->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
+        SystemsLog::create([
+            'users_id' => $user->id,
             'description' => 'Assigned ' . self::full_name($assignment->users_id) . ' to batch \'' . $batch->batch_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => $log_type,
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_pend_batch(Batch $batch)
+    public static function set_pend_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
+        SystemsLog::create([
+            'users_id' => $user->id,
             'description' => 'Batch \' ' . $batch->batch_num . '\' has been set to pending.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_force_approve(Batch $batch)
+    public static function set_force_approve(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
+        SystemsLog::create([
+            'users_id' => $user->id,
             'description' => 'Batch \' ' . $batch->batch_num . '\' has been approved by force.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_open_access(Code $code, User|Authenticatable $user)
+    public static function set_add_beneficiary(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
-        $batch = Batch::find($code->batches_id);
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
-            'description' => 'Batch \' ' . $batch->batch_num . '\' has been opened for access.',
-        ]);
-    }
-
-    public static function set_force_submit_batch(User|Authenticatable $user, Batch $batch)
-    {
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Batch \'' . $batch->batch_num . '\' has been submitted by force.',
-        ]);
-    }
-
-    public static function set_add_beneficiary(Beneficiary $beneficiary, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
             'description' => 'Added ' . self::full_name($beneficiary) . ' as beneficiary from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_add_beneficiary_special_case(Beneficiary $beneficiary, int $users_id = null)
+    public static function set_add_beneficiary_special_case(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
-        $batch = Batch::find($beneficiary->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
+        SystemsLog::create([
+            'users_id' => $user->id,
             'description' => 'Added ' . self::full_name($beneficiary) . ' as a special case beneficiary from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_import_success(User|Authenticatable $user, Batch $batch, int $added_count)
+    public static function set_import_success(Batch $batch, User|Authenticatable $user, int $added_count)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'Successfully imported ' . $added_count . ' beneficiaries in batch \'' . $batch->batch_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => now(),
         ]);
     }
 
-    public static function set_import_special_cases(User|Authenticatable $user, Batch $batch, int $special_count)
+    public static function set_import_special_cases(Batch $batch, User|Authenticatable $user, int $special_count)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
             'description' => 'Imported ' . $special_count . ' special cases in batch \'' . $batch->batch_num . '\'.',
-        ]);
-    }
-
-    public static function set_edit_project(Implementation $implementation)
-    {
-        SystemsLog::factory()->create([
-            'users_id' => $implementation->users_id,
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
             'log_timestamp' => now(),
-            'description' => 'Modified the implementation project \'' . $implementation->project_num . '\'.',
         ]);
     }
 
-    public static function set_edit_batches(Batch $batch)
+    public static function set_edit_project(Implementation $implementation, User|Authenticatable $user, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Modified a batch \'' . $batch->batch_num . '\' -> in implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_edit_beneficiary(Beneficiary $beneficiary, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'A beneficiary (' . self::full_name($beneficiary) . ') is modified from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_edit_beneficiary_identity(Beneficiary $beneficiary, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_remove_beneficiary_identity(Beneficiary $beneficiary, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_edit_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_remove_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_delete_project(Implementation $implementation)
-    {
-        SystemsLog::factory()->create([
-            'users_id' => $implementation->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Deleted the implementation project \'' . $implementation->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_delete_batches(Batch $batch)
-    {
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Deleted the batch \'' . $batch->batch_num . '\' -> in implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
-        ]);
-    }
-
-    public static function set_remove_coordinator_assignment(Assignment $assignment)
-    {
-        $batch = Batch::find($assignment->batches_id);
-        SystemsLog::factory()->create([
-            'users_id' => Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Removed ' . self::full_name($assignment->users_id) . ' from batch \'' . $batch->batch_num . '\' assignment.',
-        ]);
-    }
-
-    public static function set_delete_beneficiary(Beneficiary $beneficiary, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Deleted ' . self::full_name($beneficiary) . ' from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
-        ]);
-    }
-
-    public static function set_delete_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Deleted ' . self::full_name($beneficiary) . ', a special case (description: \'' . $credential->image_description . '\') from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
-        ]);
-    }
-
-    public static function set_archive_beneficiary(Beneficiary $beneficiary, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Moved a beneficiary (' . self::full_name($beneficiary) . ') to Archives. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
-        ]);
-    }
-
-    public static function set_archive_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, int $users_id = null)
-    {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Moved a beneficiary (' . self::full_name($beneficiary) . '), a special case (description: \'' . $credential->image_description . '\') to Archives. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
-        ]);
-    }
-
-    public static function set_restore_archive(Archive $archive, int $users_id = null)
-    {
-        $batch = Batch::find($archive->data['batches_id']);
-        $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Restored ' . self::full_name($archive->data) . ' back from Archives. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'',
-        ]);
-    }
-
-    public static function set_permanently_delete_archive(Archive $archive, int $users_id = null)
-    {
-        $batch = Batch::find($archive->data['batches_id']);
-        $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
-            'users_id' => $users_id ?? Implementation::find($batch->implementations_id)->users_id,
-            'log_timestamp' => now(),
-            'description' => 'Permanently deleted ' . self::full_name($archive->data) . '. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
-        ]);
-    }
-
-    # Coordinators -------------------------------------------------------------------------------------------------------------------
-
-    public static function set_approve_batch(User|Authenticatable $user, Batch $batch)
-    {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => $user->id,
-            'log_timestamp' => now(),
-            'description' => 'A batch \'' . $batch->batch_num . '\' has been approved.',
+            'description' => 'Modified the implementation project \'' . $implementation->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
+    public static function set_edit_batches(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Modified a batch \'' . $batch->batch_num . '\' -> in implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_edit_beneficiary(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'A beneficiary (' . self::full_name($beneficiary) . ') is modified from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_edit_beneficiary_identity(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_remove_beneficiary_identity(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $beneficiary->toArray(),
+            $batch->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_edit_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_remove_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $beneficiary->toArray(),
+            $credential->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_delete_project(Implementation $implementation, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $implementation->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Deleted the implementation project \'' . $implementation->project_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_delete_batches(Implementation $implementation, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $implementation->toArray(),
+            $batch->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Deleted the batch \'' . $batch->batch_num . '\' -> in implementation project \'' . $implementation->project_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_remove_coordinator_assignment(Assignment $assignment, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $assignment->toArray(),
+            $batch->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Removed ' . self::full_name($assignment->users_id) . ' from batch \'' . $batch->batch_num . '\' assignment.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_delete_beneficiary(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $implementation->toArray(),
+            $batch->toArray(),
+            $beneficiary->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Deleted ' . self::full_name($beneficiary) . ' from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_delete_beneficiary_special_case(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, Credential $credential, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $implementation->toArray(),
+            $batch->toArray(),
+            $beneficiary->toArray(),
+            $credential->toArray(),
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Deleted ' . self::full_name($beneficiary) . ', a special case (description: \'' . $credential->image_description . '\') from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_archive_beneficiary(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Moved a beneficiary (' . self::full_name($beneficiary) . ') to Archives. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'archive',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_archive_beneficiary_special_case(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, Credential $credential, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Moved a beneficiary (' . self::full_name($beneficiary) . '), a special case (description: \'' . $credential->image_description . '\') to Archives. Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'archive',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_restore_archive(Implementation $implementation, Batch $batch, Archive $archive, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Restored ' . self::full_name($archive->data) . ' back from Archives. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'restore',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_permanently_delete_archive(Implementation $implementation, Batch $batch, Archive $archive, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Permanently deleted ' . self::full_name($archive->data) . '. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'restore',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    # -------------------------------------------------------------------------------------------------------------------
+    # Coordinators -------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------------------------
+
+    public static function set_approve_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'A batch \'' . $batch->batch_num . '\' has been approved.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_open_access(Batch $batch, Code $code, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Batch \' ' . $batch->batch_num . '\' has been opened for access.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_force_submit_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Batch \'' . $batch->batch_num . '\' has been submitted by force.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_revalidate_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Batch \'' . $batch->batch_num . '\' has been pushed to revalidation.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    # -------------------------------------------------------------------------------------------------------------------
+    # Coordinators -------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------------------------------------------------------
     # Barangays ----------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------------------------------
 
     public static function set_barangay_add_beneficiary(Beneficiary $beneficiary)
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
             'log_timestamp' => now(),
             'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
@@ -419,7 +601,7 @@ class LogIt
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
             'log_timestamp' => now(),
             'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' as a special case beneficiary from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
@@ -430,7 +612,7 @@ class LogIt
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
             'log_timestamp' => now(),
             'description' => 'A barangay official modified ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
@@ -441,7 +623,7 @@ class LogIt
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
             'log_timestamp' => now(),
             'description' => 'A barangay official modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
@@ -450,7 +632,7 @@ class LogIt
 
     public static function set_barangay_submit(Batch $batch, Implementation $implementation, int $added_count, int $slots_allocated, int $special_cases)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
             'log_timestamp' => now(),
             'description' => 'A barangay official has submitted a list of (' . $added_count . ') / (' . $slots_allocated . ') beneficiaries with (' . $special_cases . ') special cases. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
@@ -461,7 +643,7 @@ class LogIt
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
             'log_timestamp' => now(),
             'description' => 'A barangay official deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
@@ -470,12 +652,17 @@ class LogIt
 
     # Miscellaneous ----------------------------------------------------------------------------------------------------
 
-    public static function set_log_exception(\Exception $exception)
+    public static function set_log_exception(string $message, User|Authenticatable $user, array $trace, mixed $timestamp = null)
     {
-        SystemsLog::factory()->create([
+        SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => $exception->getMessage(),
+            'alternative_sender' => 'System',
+            'description' => $message,
+            'old_data' => json_encode($trace),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'error',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 

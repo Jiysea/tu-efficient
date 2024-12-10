@@ -114,9 +114,9 @@
                         {{-- Budget --}}
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
                             <label for="budget_amount" class="relative mb-1 font-medium text-indigo-1100 ">
-                                <span>
-                                    Budget <span class="text-red-700 font-normal text-xs">
-                                        *
+                                <span class="relative">
+                                    Budget <span
+                                        class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
                                 </span>
                             </label>
@@ -129,7 +129,8 @@
                                     </p>
                                 </div>
                                 <input x-mask:dynamic="$money($input)" type="text" min="0" autocomplete="off"
-                                    id="budget_amount" @blur="$wire.autoCompute(); $wire.budget_amount = $el.value;"
+                                    id="budget_amount"
+                                    @blur="$wire.$set('budget_amount', $el.value); $wire.autoCompute();"
                                     class="text-xs duration-200 {{ $errors->has('budget_amount') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} ps-11 border rounded block w-full pe-2.5 py-2.5"
                                     placeholder="Type total budget">
                             </div>
@@ -144,9 +145,9 @@
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
                             <label for="minimum_wage"
                                 class="relative flex items-center justify-between mb-1 font-medium text-indigo-1100">
-                                <span>
-                                    Minimum Wage <span class="text-red-700 font-normal text-xs">
-                                        *
+                                <span class="relative">
+                                    Minimum Wage <span
+                                        class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
                                     </span>
                                 </span>
                                 <div tabindex="-1" class="flex items-center justify-end">
@@ -189,8 +190,13 @@
 
                             <div class="flex items-center">
                                 <label for="total_slots"
-                                    class="block mb-1 whitespace-nowrap font-medium text-indigo-1100 ">Total
-                                    Slots <span class="text-red-700 font-normal text-xs">*</span></label>
+                                    class="block mb-1 whitespace-nowrap font-medium text-indigo-1100 ">
+                                    <span class="relative">Total Slots
+                                        <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                            *
+                                        </span>
+                                    </span>
+                                </label>
                             </div>
                             <input type="number" min="0" id="total_slots" autocomplete="off"
                                 wire:model.blur="total_slots" @if ($isAutoComputeEnabled) disabled @endif
@@ -205,8 +211,13 @@
 
                         {{-- Days of Work --}}
                         <div class="relative flex flex-col col-span-2 md:col-span-1 mb-4">
-                            <label for="days_of_work" class="block mb-1 font-medium text-indigo-1100 ">Days of
-                                Work <span class="text-red-700 font-normal text-xs">*</span></label>
+                            <label for="days_of_work" class="block mb-1 font-medium text-indigo-1100 ">
+                                <span class="relative">Days of Work
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                        *
+                                    </span>
+                                </span>
+                            </label>
                             <input type="number" min="0" max="15" id="days_of_work"
                                 wire:model.blur="days_of_work" @blur="$wire.autoCompute()"
                                 class="text-xs duration-200 {{ $errors->has('days_of_work') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
@@ -248,41 +259,19 @@
 
                         {{-- Purpose --}}
                         <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
-                            <label for="purpose" class="block mb-1  font-medium text-indigo-1100 ">Purpose of
-                                Project <span class="text-red-700 font-normal text-xs">*</span></label>
+                            <label for="purpose" class="block mb-1  font-medium text-indigo-1100 ">
+                                <span class="relative">Purpose of Project
+                                    <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                        *
+                                    </span>
+                                </span>
+                            </label>
                             <select id="purpose" autocomplete="off" wire:model.blur="purpose"
                                 class="text-xs duration-200 cursor-pointer {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                                 <option value="">Select a purpose...</option>
                                 <option>DUE TO DISPLACEMENT/DISADVANTAGE</option>
                             </select>
                             @error('purpose')
-                                <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        {{-- Sectoral or Non-Sectoral --}}
-                        <div class="relative flex flex-col col-span-full md:col-span-2 mb-4">
-                            <span class="block mb-1 font-medium text-indigo-1100">Type of Implementation</span>
-
-                            <span class="flex items-center justify-center gap-2">
-                                {{-- Sectoral --}}
-                                <label for="sectoral-radio"
-                                    class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ $is_sectoral ? 'bg-rose-700 hover:bg-rose-800 active:bg-rose-900 text-rose-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
-                                    Sectoral
-                                    <input type="radio" class="hidden absolute inset-0" id="sectoral-radio"
-                                        value="1" wire:model.live="is_sectoral">
-                                </label>
-                                {{-- Non-Sectoral --}}
-                                <label for="non-sectoral-radio"
-                                    class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ !$is_sectoral ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
-                                    Non-Sectoral
-                                    <input type="radio" class="hidden absolute inset-0" id="non-sectoral-radio"
-                                        value="0" wire:model.live="is_sectoral">
-                                </label>
-                            </span>
-                            @error('is_sectoral')
                                 <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
                                     {{ $message }}
                                 </p>

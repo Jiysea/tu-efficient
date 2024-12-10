@@ -476,9 +476,9 @@ class AddBeneficiariesModal extends Component
                     'for_duplicates' => 'yes',
                 ]);
 
-                LogIt::set_add_beneficiary_special_case($beneficiary, auth()->id());
+                LogIt::set_add_beneficiary_special_case($beneficiary, $batch, auth()->user());
             } else {
-                LogIt::set_add_beneficiary($beneficiary, auth()->id());
+                LogIt::set_add_beneficiary($beneficiary, $batch, auth()->user());
             }
 
         });
@@ -662,6 +662,8 @@ class AddBeneficiariesModal extends Component
             } else {
                 $this->birthdate = null;
             }
+
+            $this->js('$wire.closeBirthdate();');
         }
 
         if ($property === 'civil_status') {
@@ -791,7 +793,7 @@ class AddBeneficiariesModal extends Component
         # gets the settings of the user
         $this->duplicationThreshold = floatval($this->personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
         $this->maximumIncome = $this->globalSettings->get('maximum_income', config('settings.maximum_income'));
-        $this->is_sectoral = $this->implementation?->is_sectoral;
+        $this->is_sectoral = $this->batch?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
 

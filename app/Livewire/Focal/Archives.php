@@ -34,6 +34,8 @@ class Archives extends Component
     public $alerts = [];
     public $start;
     public $end;
+    public $calendarStart;
+    public $calendarEnd;
     public $defaultStart;
     public $defaultEnd;
 
@@ -53,36 +55,6 @@ class Archives extends Component
 
     # -------------------------------------
 
-    public function setStartDate($value)
-    {
-        $this->reset('searchArchives');
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->start = $choosenDate . ' ' . $currentTime;
-
-        $this->archiveId = null;
-
-    }
-
-    public function setEndDate($value)
-    {
-        $this->reset('searchArchives');
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->archiveId = null;
-
-        if (strtotime($this->start) > strtotime($this->end)) {
-            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
-            $this->start = $start;
-            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
-        }
-
-    }
-
     public function restoreRow()
     {
         # Before anything else, authorize the action
@@ -90,9 +62,11 @@ class Archives extends Component
         $data = $archive->data;
         $this->authorize('restore-beneficiary-focal', [$archive]);
 
-        # First, check if the origin (batch) is not full or on `approved` status
+        # First, initialize the values for checking if the origin (batch) 
+        # is not full or on `approved` status
         $batchId = $archive->data['batches_id'];
         $batch = Batch::find($batchId);
+        $implementation = Implementation::find($batch->implementations_id);
 
         # parse the birthdate first
         $data['birthdate'] = Carbon::parse($data['birthdate'])->format('Y-m-d');
@@ -178,7 +152,7 @@ class Archives extends Component
             }
 
             # Log this
-            LogIt::set_restore_archive($archive, auth()->id());
+            LogIt::set_restore_archive($implementation, $batch, $archive, auth()->user());
 
             # bust the archives cache
             unset($this->archives);
@@ -203,6 +177,11 @@ class Archives extends Component
         $archive = Archive::find($this->actionId ? decrypt($this->actionId) : null);
         $this->authorize('permdelete-beneficiary-focal', [$archive]);
 
+        # initialize some values for logging
+        $batchId = $archive->data['batches_id'];
+        $batch = Batch::find($batchId);
+        $implementation = Implementation::find($batch->implementations_id);
+
         # find its credentials (if any)
         $credentials = Archive::where('source_table', 'credentials')
             ->where('data->beneficiaries_id', $archive->data['id'])
@@ -221,7 +200,7 @@ class Archives extends Component
         $archive->delete();
 
         # Log this
-        LogIt::set_permanently_delete_archive($archive, auth()->id());
+        LogIt::set_permanently_delete_archive($implementation, $batch, $archive, auth()->user());
 
         # bust the archives cache
         unset($this->archives);
@@ -291,6 +270,21 @@ class Archives extends Component
             }
         }
         return $archivesList;
+    }
+
+    #[Computed]
+    public function archivesCount()
+    {
+        return Archive::where('source_table', 'beneficiaries')
+            ->where('data->city_municipality', auth()->user()->field_office)
+            ->count();
+    }
+
+    #[Computed]
+    public function isDateChanged()
+    {
+        return Carbon::parse($this->start)->format('Y-m-d') !== Carbon::parse($this->defaultStart)->format('Y-m-d') ||
+            Carbon::parse($this->end)->format('Y-m-d') !== Carbon::parse($this->defaultEnd)->format('Y-m-d');
     }
 
     #[Computed]
@@ -394,6 +388,57 @@ class Archives extends Component
         }
     }
 
+    public function updated($prop)
+    {
+        if ($prop === 'calendarStart') {
+            $format = Essential::extract_date($this->calendarStart, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarStart = $this->defaultStart;
+                return;
+            }
+
+            $this->reset('searchArchives');
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarStart)->format('Y-m-d');
+            $currentTime = now()->startOfDay()->format('H:i:s');
+
+            $this->start = $choosenDate . ' ' . $currentTime;
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $end = Carbon::parse($this->start)->addMonth()->endOfDay()->format('Y-m-d H:i:s');
+                $this->end = $end;
+                $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+            }
+
+            $this->archiveId = null;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-archives')->self();
+        }
+
+        if ($prop === 'calendarEnd') {
+            $format = Essential::extract_date($this->calendarEnd, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarEnd = $this->defaultEnd;
+                return;
+            }
+
+            $this->reset('searchArchives');
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarEnd)->format('Y-m-d');
+            $currentTime = now()->endOfDay()->format('H:i:s');
+
+            $this->end = $choosenDate . ' ' . $currentTime;
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $start = Carbon::parse($this->end)->subMonth()->startOfDay()->format('Y-m-d H:i:s');
+                $this->start = $start;
+                $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+            }
+
+            $this->archiveId = null;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-archives')->self();
+        }
+    }
+
     #[Computed]
     protected function beneficiaryCount($batchId)
     {
@@ -425,11 +470,14 @@ class Archives extends Component
         }
         $this->defaultArchive = intval($this->settings->get('default_archive', config('settings.default_archive')));
 
-        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+        $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
+        $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
 
-        $this->defaultStart = date('m/d/Y', strtotime($this->start));
-        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+        $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+
+        $this->defaultStart = $this->calendarStart;
+        $this->defaultEnd = $this->calendarEnd;
     }
 
     public function render()

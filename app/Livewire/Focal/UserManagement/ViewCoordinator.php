@@ -181,7 +181,7 @@ class ViewCoordinator extends Component
 
         if ($user->isDirty()) {
             $user->save();
-            LogIt::set_edit_user($user, auth()->id());
+            LogIt::set_edit_user($user, auth()->user());
             unset($this->user);
             $this->dispatch('edit-coordinator');
         }
@@ -197,7 +197,7 @@ class ViewCoordinator extends Component
         $user = $this->user();
         $this->user->delete();
 
-        LogIt::set_delete_user($user, auth()->id());
+        LogIt::set_delete_user($user, auth()->user());
         $this->js('viewCoordinatorModal = false;');
         $this->dispatch('delete-coordinator');
     }

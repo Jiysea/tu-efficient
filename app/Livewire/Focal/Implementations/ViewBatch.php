@@ -14,6 +14,7 @@ use App\Services\Districts;
 use App\Services\LogIt;
 use Auth;
 use DB;
+use Exception;
 use Hash;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -43,8 +44,6 @@ class ViewBatch extends Component
     public $password_pend_batch;
 
     # --------------------------------------------------------------------------
-
-    public $is_sectoral;
     public $remainingSlots;
     public $totalSlots;
     public $ignoredCoordinatorIDs;
@@ -62,6 +61,8 @@ class ViewBatch extends Component
 
     #[Validate]
     public $batch_num;
+    #[Validate]
+    public $is_sectoral = 0;
     #[Validate]
     public $sector_title;
     #[Validate]
@@ -91,10 +92,11 @@ class ViewBatch extends Component
 
                     if ($exists) {
                         # Fail the validation if the project number with the prefix already exists
-                        $fail('This :attribute already exists.');
+                        $fail('This batch number already exists.');
                     }
                 },
             ],
+            'is_sectoral' => 'required|integer',
             'sector_title' => [
                 'exclude_if:is_sectoral,0',
                 'required_if:is_sectoral,1',
@@ -159,13 +161,14 @@ class ViewBatch extends Component
         return [
             # View Batch Modal
             'batch_num.required' => 'This field is required.',
+            'is_sectoral.required' => 'Please select a type.',
             'sector_title.required_if' => 'This field is required.',
             'barangay_name.required_if' => 'This field is required.',
             'district.required_if' => 'This field is required.',
             'slots_allocated.required' => 'Invalid :attribute amount.',
             'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
 
-            'batch_num.integer' => 'The :attribute should be a valid number.',
+            'is_sectoral.integer' => 'Invalid type.',
 
             'sector_title.string' => 'Value should be a string.',
             'sector_title.min' => 'Value should have at least 1 character.',
@@ -186,7 +189,6 @@ class ViewBatch extends Component
     {
         return [
             # View Batch Modal
-            'batch_num' => 'batch number',
             'barangay_name' => 'barangay',
             'slots_allocated' => 'Slots',
             'assigned_coordinators' => 'assigned coordinator',
@@ -197,53 +199,92 @@ class ViewBatch extends Component
 
     public function forceApprove()
     {
-        $this->validateOnly('password_force_approve');
-
         DB::transaction(function () {
-            $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+            try {
+                $this->validateOnly('password_force_approve');
+                $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
 
-            if (in_array($batch->submission_status, ['encoding', 'revalidate'])) {
-                $accessCode = Code::where('batches_id', $batch->id)
-                    ->where('is_accessible', 'yes')
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($accessCode) {
-                    Code::find($accessCode->id)->update([
-                        'is_accessible' => 'no'
-                    ]);
+                if (!$batch) {
+                    throw new Exception('This batch does not exist anymore.', 500);
                 }
+
+                $this->authorize('approval-status-focal', $batch);
+
+                if (in_array($batch->submission_status, ['encoding', 'revalidate'])) {
+                    $accessCode = Code::where('batches_id', $batch->id)
+                        ->where('is_accessible', 'yes')
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($accessCode) {
+                        $accessCode->is_accessible = 'no';
+                        $accessCode->save();
+
+                        $batch->submission_status = 'submitted';
+                    }
+                }
+
+                $batch->approval_status = 'approved';
+                $batch->save();
+
+                LogIt::set_force_approve($this->batch, auth()->user());
+                $this->dispatch('refreshAfterOpening', message: 'Batch has been approved forcibly!');
+                $this->forceApproveModal = false;
+
+            } catch (Exception $e) {
+                $message = $e->getMessage();
+                if (get_class($e) === 'Illuminate\Auth\Access\AuthorizationException') {
+                    $message = 'An unauthorized action has been made.';
+                }
+
+                LogIt::set_log_exception($message, auth()->user(), $e->getTrace());
+
+                $this->dispatch('refreshAfterOpening', message: $message);
+                $this->forceApproveModal = false;
+                $this->js('viewBatchModal = false;');
             }
-
-            $batch->approval_status = 'approved';
-            $batch->submission_status = 'submitted';
-            $batch->save();
         });
-
-        LogIt::set_force_approve($this->batch);
-        $this->dispatch('refreshAfterOpening', message: 'Batch has been approved forcibly!');
-        $this->forceApproveModal = false;
     }
 
     public function pendBatch()
     {
-        $this->validateOnly('password_pend_batch');
-
         DB::transaction(function () {
-            $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+            try {
+                $this->validateOnly('password_pend_batch');
+                $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
 
-            $batch->approval_status = 'pending';
-            $batch->save();
+                if (!$batch) {
+                    throw new Exception('This batch does not exist anymore.', 500);
+                }
+
+                $this->authorize('approval-status-focal', $batch);
+
+                $batch->approval_status = 'pending';
+                $batch->save();
+
+                LogIt::set_pend_batch($this->batch, auth()->user());
+                $this->dispatch('refreshAfterOpening', message: 'Batch has been changed to pending!');
+                $this->pendBatchModal = false;
+
+            } catch (Exception $e) {
+                $message = $e->getMessage();
+                if (get_class($e) === 'Illuminate\Auth\Access\AuthorizationException') {
+                    $message = 'An unauthorized action has been made.';
+                }
+
+                LogIt::set_log_exception($message, auth()->user(), $e->getTrace());
+
+                $this->dispatch('refreshAfterOpening', message: $message);
+                $this->forceApproveModal = false;
+                $this->js('viewBatchModal = false;');
+            }
         });
-
-        LogIt::set_pend_batch($this->batch);
-        $this->dispatch('refreshAfterOpening', message: 'Batch has been changed to pending!');
-        $this->pendBatchModal = false;
     }
 
     public function resetPasswords()
     {
-        $this->reset('password_force_approve, password_pend_batch');
+        $this->reset('password_force_approve', 'password_pend_batch');
+        $this->resetValidation(['password_force_approve', 'password_pend_batch']);
     }
 
     # ----------------------------------------------------------------------------------------------
@@ -306,12 +347,12 @@ class ViewBatch extends Component
         # So, the only value that we're retrieving is the `total_slots` from the implementations
         # and the `slots_alloted` from the batches to give an indicator of how many remaining
         # slots left for the user to input.
-        $this->totalSlots = $this->implementation->total_slots;
+        $this->totalSlots = $this->implementation?->total_slots ?? 0;
 
         # retrieves all of the `slots_alloted` values from the batches table
         $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
             ->where('implementations.users_id', Auth::id())
-            ->where('implementations.id', $this->implementation->id)
+            ->where('implementations.id', $this->implementation?->id)
             ->whereNotIn('batches.id', [decrypt($this->passedBatchId)])
             ->select('batches.slots_allocated')
             ->get();
@@ -368,6 +409,7 @@ class ViewBatch extends Component
         if ($this->editMode) {
             # Only initialize values on fields if edit mode is on
             $this->batch_num = intval(substr($this->batch->batch_num, strlen($this->batchNumPrefix)));
+            $this->is_sectoral = $this->batch->is_sectoral;
             $this->sector_title = $this->batch->sector_title;
             $this->district = $this->batch->district;
             $this->barangay_name = $this->batch->barangay_name;
@@ -389,6 +431,7 @@ class ViewBatch extends Component
         } else {
             $this->reset(
                 'batch_num',
+                'is_sectoral',
                 'barangay_name',
                 'slots_allocated',
                 'assigned_coordinators',
@@ -407,6 +450,7 @@ class ViewBatch extends Component
         $assignments = Assignment::where('batches_id', decrypt($this->passedBatchId))
             ->get();
         $batch = Batch::find(decrypt($this->passedBatchId));
+        $implementation = Implementation::find($batch->implementations_id);
         $codes = Code::where('batches_id', $batch->id)->get();
 
         $this->authorize('delete-batch-focal', $batch);
@@ -424,7 +468,7 @@ class ViewBatch extends Component
         $batch->delete();
 
         $this->resetViewBatch();
-        LogIt::set_delete_batches($batch);
+        LogIt::set_delete_batches($implementation, $batch, auth()->user());
         $this->js('viewBatchModal = false;');
         $this->dispatch('delete-batch');
     }
@@ -442,7 +486,7 @@ class ViewBatch extends Component
                 [
                     'batch_num' => [
                         'required',
-                        'integer',
+
                         # Checks uniqueness from the `Database`
                         function ($attribute, $value, $fail) {
 
@@ -454,10 +498,11 @@ class ViewBatch extends Component
 
                             if ($exists) {
                                 # Fail the validation if the project number with the prefix already exists
-                                $fail('This :attribute already exists.');
+                                $fail('This batch number already exists.');
                             }
                         },
                     ],
+                    'is_sectoral' => 'required|integer',
                     'sector_title' => [
                         'exclude_if:is_sectoral,0',
                         'required_if:is_sectoral,1',
@@ -484,7 +529,7 @@ class ViewBatch extends Component
 
                             if ($exists) {
                                 # Fail the validation if this barangay already existed 
-                                $fail('This :attribute already existed on this project.');
+                                $fail('This batch number already existed on this project.');
                             }
                         },
                     ],
@@ -498,12 +543,14 @@ class ViewBatch extends Component
                     'assigned_coordinators' => 'required',
                 ],
                 [
+                    'is_sectoral.required' => 'Please select a type.',
                     'sector_title.required_if' => 'This field is required.',
                     'barangay_name.required_if' => 'This field is required.',
                     'district.required_if' => 'This field is required.',
                     'slots_allocated.required' => 'Invalid :attribute amount.',
                     'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
 
+                    'is_sectoral.integer' => 'Invalid type.',
                     'sector_title.string' => 'Value should be a string.',
                     'sector_title.min' => 'Value should have at least 1 character.',
                     'sector_title.max' => 'Value cannot exceed more than 64 characters.',
@@ -521,6 +568,7 @@ class ViewBatch extends Component
             );
 
             # save any updates on the batch model
+            $batch->is_sectoral = $this->is_sectoral;
             $batch->sector_title = $this->sector_title;
             $batch->district = $this->district;
             $batch->barangay_name = $this->barangay_name;
@@ -537,8 +585,11 @@ class ViewBatch extends Component
                     ]
                 );
 
+                # if it's a `create`, it will determine the Assignment model as `Dirty`
+                # and will log the newly assigned coordinator.
                 if ($ass->wasRecentlyCreated) {
-                    LogIt::set_assign_coordinator_to_batch($ass);
+                    $assignmentsDirty = true;
+                    LogIt::set_assign_coordinator_to_batch($ass, auth()->user(), 'update');
                 }
             }
 
@@ -562,7 +613,7 @@ class ViewBatch extends Component
                 # then remove those who were not in `ignoredCoordinatorIDs`
                 foreach ($assignments as $assignment) {
                     $assignment->delete();
-                    LogIt::set_remove_coordinator_assignment($assignment);
+                    LogIt::set_remove_coordinator_assignment($assignment, $batch, auth()->user());
                 }
             }
 
@@ -571,6 +622,7 @@ class ViewBatch extends Component
             # validate the fields before proceeding
             $this->validate(
                 [
+                    'is_sectoral' => 'required|integer',
                     'sector_title' => [
                         'exclude_if:is_sectoral,0',
                         'required_if:is_sectoral,1',
@@ -578,22 +630,12 @@ class ViewBatch extends Component
                         'min:1',
                         'max:64'
                     ],
-                    'sector_title.required_if' => 'This field is required.',
-                    'sector_title.string' => 'Value should be a string.',
-                    'sector_title.min' => 'Value should have at least 1 character.',
-                    'sector_title.max' => 'Value cannot exceed more than 64 characters.',
-
                     'assigned_coordinators' => 'required',
                 ],
 
                 [
-                    'sector_title' => [
-                        'exclude_if:is_sectoral,0',
-                        'required_if:is_sectoral,1',
-                        'string',
-                        'min:1',
-                        'max:64'
-                    ],
+                    'is_sectoral.required' => 'Please select a type.',
+                    'is_sectoral.integer' => 'Invalid type.',
                     'sector_title.required_if' => 'This field is required.',
                     'sector_title.string' => 'Value should be a string.',
                     'sector_title.min' => 'Value should have at least 1 character.',
@@ -621,8 +663,11 @@ class ViewBatch extends Component
                     ]
                 );
 
+                # if it's a `create`, it will determine the Assignment model as `Dirty`
+                # and will log the newly assigned coordinator.
                 if ($ass->wasRecentlyCreated) {
-                    LogIt::set_assign_coordinator_to_batch($ass);
+                    $assignmentsDirty = true;
+                    LogIt::set_assign_coordinator_to_batch($ass, auth()->user(), 'update');
                 }
             }
 
@@ -646,7 +691,7 @@ class ViewBatch extends Component
                 # then remove those who were not in `ignoredCoordinatorIDs`
                 foreach ($assignments as $assignment) {
                     $assignment->delete();
-                    LogIt::set_remove_coordinator_assignment($assignment);
+                    LogIt::set_remove_coordinator_assignment($assignment, $batch, auth()->user());
                 }
             }
         }
@@ -657,7 +702,7 @@ class ViewBatch extends Component
                 $batch->save();
             }
 
-            LogIt::set_edit_batches($batch);
+            LogIt::set_edit_batches($batch, auth()->user());
             $this->dispatch('edit-batch');
         }
 
@@ -714,17 +759,14 @@ class ViewBatch extends Component
     #[Computed]
     public function implementation()
     {
-        if ($this->passedBatchId) {
-            $implementation = Implementation::find($this->batch?->implementations_id);
-            return $implementation;
-        }
+        $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        return Implementation::find($batch->implementations_id);
     }
 
     #[Computed]
     public function batch()
     {
-        $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
-        return $batch;
+        return Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
     }
 
     #[Computed]
@@ -828,7 +870,7 @@ class ViewBatch extends Component
     {
         if ($this->coordinators->isEmpty()) {
             $this->selectedCoordinatorKey = -1;
-            $this->currentCoordinator = 'None';
+            $this->currentCoordinator = '-';
         } else {
             $this->selectedCoordinatorKey = 0;
             $this->currentCoordinator = $this->getFullName($this->coordinators[$this->selectedCoordinatorKey]);
@@ -850,7 +892,6 @@ class ViewBatch extends Component
     public function render()
     {
         $this->batchNumPrefix = $this->settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
-        $this->is_sectoral = $this->implementation?->is_sectoral;
         # View Batch Modal
         $this->checkEmpty();
         if ($this->batch) {

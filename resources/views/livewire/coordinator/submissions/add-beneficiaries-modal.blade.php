@@ -2,10 +2,10 @@
 
     <!-- Modal -->
     <div x-show="addBeneficiariesModal" x-trap.noautofocus.noscroll="addBeneficiariesModal"
-        class="relative h-full overflow-y-auto p-4 flex items-start justify-center select-none">
+        class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         <!-- Modal content -->
-        <div class="w-full sm:h-auto">
+        <div class="w-full max-w-screen-xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -697,7 +697,7 @@
                             </div>
                             <input type="text" datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                 datepicker-min-date='{{ $minDate }}' datepicker-max-date='{{ $maxDate }}'
-                                id="birthdate" autocomplete="off" wire:model.live.debounce.500ms="birthdate"
+                                id="birthdate" autocomplete="off" wire:model.blur="birthdate"
                                 @change-date.camel="$wire.$set('birthdate', $el.value);"
                                 class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="Select date">

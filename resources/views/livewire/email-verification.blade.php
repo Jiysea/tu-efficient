@@ -8,7 +8,8 @@
     <div class="flex justify-center items-center text-center bg-indigo-100 rounded-2xl sm:max-w-2xl sm:w-full">
 
         {{-- Contents --}}
-        <div class="relative flex flex-col items-center gap-4 size-full text-indigo-1100 px-6 py-10">
+        <div wire:poll.keep-alive="autoCheckVerified"
+            class="relative flex flex-col items-center gap-4 size-full text-indigo-1100 px-6 py-10">
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

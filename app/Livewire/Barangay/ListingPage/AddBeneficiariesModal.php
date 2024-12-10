@@ -413,6 +413,7 @@ class AddBeneficiariesModal extends Component
     public function saveBeneficiary()
     {
         $this->validate();
+        $this->js('$parent.authorizeBeforeExecuting();');
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
@@ -715,6 +716,8 @@ class AddBeneficiariesModal extends Component
             } else {
                 $this->birthdate = null;
             }
+
+            $this->js('$wire.closeBirthdate();');
         }
 
         if ($property === 'civil_status') {
@@ -830,7 +833,7 @@ class AddBeneficiariesModal extends Component
 
     public function render()
     {
-        $this->is_sectoral = $this->implementation?->is_sectoral;
+        $this->is_sectoral = $this->batch?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
         $this->duplicationThreshold = $this->settings->get('duplication_threshold', config('settings.duplication_threshold'));

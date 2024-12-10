@@ -1,12 +1,11 @@
-<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-    x-show="assignBatchesModal">
+<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="assignBatchesModal">
 
     <!-- Modal -->
     <div x-show="assignBatchesModal" x-trap.noscroll="assignBatchesModal"
-        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+        class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="relative size-full max-w-5xl">
+        <div class="w-full max-w-5xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -17,7 +16,7 @@
                     <div class="flex items-center justify-center">
                         {{-- Loading State for Changes --}}
                         <div class="z-50 text-indigo-900" wire:loading
-                            wire:target="addBatchRow, editBatchRow, removeBatchRow, addToastCoordinator, removeToastCoordinatorFromBatchList, removeToastCoordinator, getAllCoordinatorsForBatchList, updateCurrentCoordinator, slots_allocated, district, barangay_name">
+                            wire:target="is_sectoral, addBatchRow, editBatchRow, removeBatchRow, addToastCoordinator, removeToastCoordinatorFromBatchList, removeToastCoordinator, getAllCoordinatorsForBatchList, updateCurrentCoordinator, slots_allocated, district, barangay_name">
                             <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -54,7 +53,6 @@
                                 <p class="">Project Number
                                 <p class="text-indigo-1000 bg-indigo-200 rounded-md py-1 px-2">
                                     {{ $this->implementation->project_num }}
-                                    ({{ $this->implementation->is_sectoral ? 'Sectoral' : 'Non-Sectoral' }})
                                 </p>
                                 </p>
                             </div>
@@ -64,7 +62,7 @@
                                     {{ $this->implementation->city_municipality }}</p>
                                 </p>
                             </div>
-                            <div class="flex flex-col gap-2 sm:flex-row justify-center items-center">
+                            <div class="flex flex-col gap-2 w-full sm:w-auto sm:flex-row justify-center items-center">
                                 <p class="">Remaining Slots
                                 <p
                                     class="{{ $remainingSlots === 0 ? 'text-red-1000 bg-red-200' : 'text-indigo-1000 bg-indigo-200' }} rounded-md py-1 px-2">
@@ -76,11 +74,10 @@
                         {{-- Body --}}
                         <form wire:submit.prevent="saveBatches">
 
-                            <div class="grid gap-x-4 gap-y-6 grid-cols-7 text-xs">
+                            <div class="grid gap-x-4 gap-y-6 grid-cols-9 text-xs">
 
                                 {{-- Batch Number --}}
-                                <div
-                                    class="relative flex flex-col {{ $is_sectoral ? 'col-span-full' : 'col-span-4' }} sm:col-span-3 md:col-span-2">
+                                <div class="relative flex flex-col col-span-full md:col-span-3 lg:col-span-2">
                                     <label for="batch_num"
                                         class="relative flex items-center justify-between mb-1 font-medium text-indigo-1100 ">Batch
                                         Number
@@ -130,11 +127,37 @@
                                     @enderror
                                 </div>
 
+                                {{-- Sectoral or Non-Sectoral --}}
+                                <div class="relative flex flex-col col-span-full md:col-span-3 lg:col-span-2">
+                                    <span class="block mb-1 font-medium text-indigo-1100">Type of Batch</span>
+
+                                    <span class="flex items-center justify-center gap-2">
+                                        {{-- Sectoral --}}
+                                        <label for="sectoral-radio"
+                                            class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ $is_sectoral ? 'bg-rose-700 hover:bg-rose-800 active:bg-rose-900 text-rose-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
+                                            Sectoral
+                                            <input type="radio" class="hidden absolute inset-0" id="sectoral-radio"
+                                                value="1" wire:model.live="is_sectoral">
+                                        </label>
+                                        {{-- Non-Sectoral --}}
+                                        <label for="non-sectoral-radio"
+                                            class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ !$is_sectoral ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
+                                            Non-Sectoral
+                                            <input type="radio" class="hidden absolute inset-0"
+                                                id="non-sectoral-radio" value="0" wire:model.live="is_sectoral">
+                                        </label>
+                                    </span>
+                                    @error('is_sectoral')
+                                        <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
+                                            {{ $message }}
+                                        </p>
+                                    @enderror
+                                </div>
+
                                 @if ($is_sectoral)
 
                                     {{-- Sector Title --}}
-                                    <div
-                                        class="relative flex flex-col col-span-5 sm:col-span-4 md:col-span-5 xl:col-span-4">
+                                    <div class="relative flex flex-col col-span-6 md:col-span-3 xl:col-span-4">
                                         <label for="sector_title" class="block mb-1 font-medium text-indigo-1100 ">
                                             <span class="relative">Sector Title
                                                 <span
@@ -155,7 +178,7 @@
                                 @elseif(!$is_sectoral)
                                     {{-- District --}}
                                     <div x-data="{ show: false, district: $wire.entangle('district') }"
-                                        class="relative flex flex-col col-span-3 sm:col-span-2">
+                                        class="relative flex flex-col col-span-4 sm:col-span-3 lg:col-span-2">
                                         <p class="block mb-1 font-medium text-indigo-1100 ">
                                             <span class="relative">District
                                                 <span
@@ -182,22 +205,23 @@
                                         {{-- District content --}}
                                         <div x-show="show" @click.away=" if(show == true) { show = !show; }"
                                             class="w-full end-0 top-full absolute text-indigo-1100 bg-white shadow-lg border z-50 border-indigo-300 rounded p-3 mt-2">
-                                            <ul
+                                            <div
                                                 class="text-xs overflow-y-auto min-h-44 max-h-44 border border-gray-300 rounded p-2">
                                                 @forelse ($this->districts as $key => $dist)
-                                                    <li wire:key={{ $key }}>
+                                                    <span wire:key={{ $key }}>
                                                         <button type="button"
-                                                            @click="show = !show; district = '{{ $dist }}'; $wire.resetBarangays();"
+                                                            @click="$wire.$set('district', '{{ $dist }}'); show = !show;"
                                                             wire:loading.attr="disabled"
                                                             aria-label="{{ __('Districts') }}"
-                                                            class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">{{ $dist }}</button>
-                                                    </li>
+                                                            class="text-left outline-none w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 focus:text-indigo-900 focus:bg-indigo-100 duration-200 ease-in-out">{{ $dist }}</button>
+                                                    </span>
                                                 @empty
-                                                    <div class="size-full text-xs text-gray-500 p-2">
+                                                    <div
+                                                        class="flex items-center justify-center size-full text-xs text-gray-500 p-2">
                                                         No districts found
                                                     </div>
                                                 @endforelse
-                                            </ul>
+                                            </div>
                                         </div>
                                         @error('district')
                                             <p class="mt-1 text-red-500 absolute left-2 top-full text-xs">
@@ -208,7 +232,7 @@
 
                                     {{-- Barangay --}}
                                     <div x-data="{ show: false, barangay_name: $wire.entangle('barangay_name') }"
-                                        class="relative flex flex-col col-span-4 sm:col-span-2 md:col-span-3 xl:col-span-2">
+                                        class="relative flex flex-col col-span-5 sm:col-span-3 md:col-span-2 lg:col-span-3 xl:col-span-2">
                                         <span class="block mb-1 font-medium"
                                             :class="{
                                                 'text-gray-500': {{ json_encode(!isset($district) || empty($district)) }},
@@ -220,18 +244,19 @@
                                                 </span>
                                             </span>
                                         </span>
+
                                         <button type="button" id="barangay_name"
-                                            @if ($district) @click="show = !show;"
-                                        @else
-                                            disabled @endif
-                                            class="text-xs flex items-center justify-between px-4 outline-none border rounded w-full py-2.5 duration-200 ease-in-out"
+                                            @if ($district) @click="if(show == true && $wire.searchBarangay !== null) { $wire.$set('searchBarangay', null); } show = !show;"
+                                            @else
+                                                disabled @endif
+                                            class="text-xs whitespace-nowrap truncate flex items-center justify-between px-4 outline-none border rounded w-full py-2.5 duration-200 ease-in-out"
                                             :class="{
                                                 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600': {{ json_encode($errors->has('barangay_name')) }},
                                                 'border-gray-300 bg-gray-50 text-gray-500': {{ json_encode(!isset($district) || empty($district)) }},
                                                 'border-indigo-300 bg-indigo-50 focus:ring-indigo-600 focus:border-indigo-600 text-indigo-1100': {{ json_encode(!$errors->has('barangay_name') && $district) }},
                                             }">
                                             @if ($barangay_name)
-                                                <span x-text="barangay_name"></span>
+                                                {{ $barangay_name }}
                                             @elseif(!$district)
                                                 <span class="inline sm:hidden md:inline">Choose a district
                                                     first...</span>
@@ -240,62 +265,76 @@
                                                 <span>Select a barangay...</span>
                                             @endif
 
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                fill="currentColor" class="size-3 duration-200 ease-in-out">
-                                                <path fill-rule="evenodd"
-                                                    d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
+                                            @if ($barangay_name || $district)
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor" class="size-3 duration-200 ease-in-out">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            @endif
                                         </button>
 
                                         {{-- Barangay Name content --}}
-                                        <div x-show="show" @click.away=" if(show == true) { show = !show; }"
+                                        <div x-show="show"
+                                            @click.away="if(show == true) { show = !show; $wire.$set('searchBarangay', null); }"
                                             class="w-full end-0 top-full absolute text-indigo-1100 bg-white shadow-lg border z-50 border-indigo-600 rounded p-3 mt-2">
-                                            <div class="relative flex items-center justify-center py-1 group">
 
-                                                {{-- Search Icon --}}
-                                                <svg wire:loading.remove wire:target="searchBarangay"
-                                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                    class="absolute start-0 ps-2 size-6 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none">
-                                                    <path fill-rule="evenodd"
-                                                        d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
+                                            {{-- Search Bar --}}
+                                            <label for="searchBarangay"
+                                                class="relative flex items-center justify-center duration-200 ease-in-out rounded border outline-none focus:ring-0
+                                            {{ empty($this->barangays) && !$searchBarangay ? 'text-gray-500 border-gray-300' : 'text-gray-500 hover:text-indigo-700 focus-within:text-indigo-700 hover:bg-indigo-50 focus-within:bg-indigo-50 border-gray-300 hover:border-indigo-700 focus-within:border-indigo-700' }}">
 
-                                                {{-- Loading Icon --}}
-                                                <svg wire:loading wire:target="searchBarangay"
-                                                    class="absolute start-0 ms-2 size-4 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none animate-spin"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                    viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4">
-                                                    </circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                    </path>
-                                                </svg>
-                                                <input id="searchBarangay"
+                                                <div
+                                                    class="absolute start-2 flex items-center justify-center pointer-events-none">
+                                                    {{-- Loading Icon --}}
+                                                    <svg class="size-4 animate-spin" wire:loading
+                                                        wire:target="searchBarangay"
+                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4">
+                                                        </circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                        </path>
+                                                    </svg>
+
+                                                    {{-- Search Icon --}}
+                                                    <svg class="size-4" wire:loading.remove
+                                                        wire:target="searchBarangay"
+                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                        fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </div>
+
+                                                <input id="searchBarangay" autocomplete="off"
                                                     wire:model.live.debounce.300ms="searchBarangay" type="text"
-                                                    autocomplete="off"
-                                                    class="rounded w-full ps-8 text-xs text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
-                                                    placeholder="Search barangay">
-                                            </div>
-                                            <ul class="mt-2 text-xs overflow-y-auto min-h-44 max-h-44">
+                                                    class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full ps-8 text-xs {{ empty($this->barangays) && !$searchBarangay ? 'placeholder-gray-500' : 'text-indigo-1100 placeholder-gray-500 hover:placeholder-indigo-700 focus:placeholder-indigo-700' }}"
+                                                    placeholder="Search barangay"
+                                                    @if (empty($this->barangays) && !$searchBarangay) disabled @endif>
+                                            </label>
+
+                                            {{-- List of Barangays --}}
+                                            <div class="mt-2 text-xs overflow-y-auto h-44">
                                                 @forelse ($this->barangays as $key => $barangay)
-                                                    <li wire:key={{ $key }}>
+                                                    <span wire:key={{ $key }}>
                                                         <button type="button"
-                                                            @click="show = !show; barangay_name = '{{ $barangay }}'; $wire.$refresh();"
+                                                            @click="$wire.$set('barangay_name', '{{ $barangay }}'); show = !show;"
                                                             wire:loading.attr="disabled"
                                                             aria-label="{{ __('Barangays') }}"
-                                                            class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">{{ $barangay }}</button>
-                                                    </li>
+                                                            class="outline-none text-left w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 focus:text-indigo-900 focus:bg-indigo-100 duration-200 ease-in-out">{{ $barangay }}</button>
+                                                    </span>
                                                 @empty
-                                                    <div class="h-full w-full text-xs text-gray-500 p-2">
+                                                    <div
+                                                        class="flex items-center justify-center size-full text-xs text-gray-500 p-2">
                                                         No barangays found
                                                     </div>
                                                 @endforelse
-                                            </ul>
+                                            </div>
                                         </div>
                                         @error('barangay_name')
                                             <p class="mt-1 text-red-500 absolute left-2 top-full text-xs">
@@ -307,7 +346,7 @@
 
                                 {{-- Slots --}}
                                 <div
-                                    class="relative {{ $is_sectoral ? 'col-span-2' : 'col-span-3' }} sm:col-span-2 xl:col-span-1">
+                                    class="relative {{ $is_sectoral ? 'col-span-3' : 'col-span-full' }} sm:col-span-3 md:col-span-2 lg:col-span-2 xl:col-span-1">
                                     <label for="slots_allocated" class="block mb-1 font-medium text-indigo-1100 ">
                                         <span class="relative">Slots
                                             <span
@@ -330,17 +369,16 @@
 
                                 {{-- Add Coordinators dropdown --}}
                                 <div x-data="{ show: false, currentCoordinator: $wire.entangle('currentCoordinator'), selectedCoordinatorKey: $wire.entangle('selectedCoordinatorKey') }"
-                                    class="relative flex flex-col col-span-full sm:col-span-5 xl:col-span-3">
-                                    <p class="block mb-1 font-medium text-indigo-1100">Add
-                                        Coordinator
-
+                                    class="relative flex flex-col col-span-full {{ $is_sectoral ? 'md:col-span-7 lg:col-span-full' : 'md:col-span-5 lg:col-span-7' }} xl:col-span-5">
+                                    <p class="block mb-1 font-medium text-indigo-1100">
+                                        Add Coordinator
                                     </p>
                                     <div class="relative flex gap-4 h-full">
 
                                         {{-- Current Coordinator --}}
                                         <button type="button" id="coordinator_name"
-                                            @click="show = !show; $wire.set('searchCoordinator', null);"
-                                            class="gap-3 size-full border text-xs xl:text-sm bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600 outline-none px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out">
+                                            @click="if(show == true && $wire.searchCoordinator !== null) { $wire.$set('searchCoordinator', null); } show = !show;"
+                                            class="gap-3 size-full whitespace-nowrap truncate border text-xs xl:text-sm bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600 outline-none px-4 py-2.5 rounded flex items-center justify-between duration-200 ease-in-out">
                                             <span x-text="currentCoordinator"></span>
 
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -353,9 +391,9 @@
 
                                         {{-- Arrow/Add button --}}
                                         <button type="button"
-                                            @if ($this->coordinators->isNotEmpty()) wire:click="addToastCoordinator" @else disabled @endif
+                                            @if ($currentCoordinator !== '-') wire:click="addToastCoordinator" @else disabled @endif
                                             class="flex items-center justify-center px-2 rounded outline-none duration-200 ease-in-out
-                                                {{ $this->coordinators->isNotEmpty()
+                                                {{ $currentCoordinator !== '-'
                                                     ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 focus:ring-indigo-700 focus:ring-2'
                                                     : 'bg-gray-200 text-gray-500' }}">
 
@@ -386,62 +424,83 @@
 
                                         {{-- Coordinator List Dropdown Content --}}
                                         <div x-show="show"
-                                            @click.away="
-                                            if(show == true) 
-                                            {
-                                                show = !show;
-                                                $wire.set('searchCoordinator', null);
-                                            }
-                                            "
+                                            @click.away="if(show == true) { show = !show; $wire.$set('searchCoordinator', null); }"
                                             class="z-50 w-full end-0 top-full absolute bg-white text-indigo-1100 shadow-lg border border-indigo-300 rounded p-3 mt-2">
-                                            <div class="relative flex items-center justify-center py-1 group">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                    class="absolute start-0 ps-2 w-6 group-hover:text-indigo-500 group-focus:text-indigo-900 duration-200 ease-in-out pointer-events-none">
-                                                    <path fill-rule="evenodd"
-                                                        d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                                <input id="searchCoordinator"
+
+                                            {{-- Search Bar --}}
+                                            <label for="searchCoordinator"
+                                                class="relative flex items-center justify-center duration-200 ease-in-out rounded border outline-none focus:ring-0
+                                                {{ $this->coordinators->isEmpty() && !$searchCoordinator ? 'text-gray-500 border-gray-300' : 'text-gray-500 hover:text-indigo-700 focus-within:text-indigo-700 hover:bg-indigo-50 focus-within:bg-indigo-50 border-gray-300 hover:border-indigo-700 focus-within:border-indigo-700' }}">
+
+                                                <div
+                                                    class="absolute start-2 flex items-center justify-center pointer-events-none">
+                                                    {{-- Loading Icon --}}
+                                                    <svg class="size-4 animate-spin" wire:loading
+                                                        wire:target="searchCoordinator"
+                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4">
+                                                        </circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                        </path>
+                                                    </svg>
+
+                                                    {{-- Search Icon --}}
+                                                    <svg class="size-4" wire:loading.remove
+                                                        wire:target="searchCoordinator"
+                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                        fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </div>
+
+                                                <input id="searchCoordinator" autocomplete="off"
                                                     wire:model.live.debounce.300ms="searchCoordinator" type="text"
-                                                    class="rounded w-full ps-8 text-xs text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
-                                                    placeholder="Search coordinator">
-                                            </div>
-                                            <ul
-                                                class="mt-2 text-xs overflow-y-auto min-h-44 max-h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-900">
+                                                    class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full ps-8 text-xs {{ $this->coordinators->isEmpty() && !$searchCoordinator ? 'placeholder-gray-500' : 'text-indigo-1100 placeholder-gray-500 hover:placeholder-indigo-700 focus:placeholder-indigo-700' }}"
+                                                    placeholder="Search coordinator"
+                                                    @if ($this->coordinators->isEmpty() && !$searchCoordinator) disabled @endif>
+                                            </label>
+
+                                            {{-- Coordinator List --}}
+                                            <div
+                                                class="mt-2 text-xs overflow-y-auto h-44 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-indigo-900">
                                                 @if ($this->coordinators->isNotEmpty())
                                                     @foreach ($this->coordinators as $key => $coordinator)
-                                                        <li wire:key={{ $key }}>
+                                                        <span wire:key={{ $key }}>
                                                             <button type="button"
                                                                 @click="show= !show; currentCoordinator = '{{ $this->getFullName($coordinator) }}'; selectedCoordinatorKey = {{ $key }};"
                                                                 wire:loading.attr="disabled"
                                                                 aria-label="{{ __('Coordinator') }}"
-                                                                class="w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
+                                                                class="text-left outline-none w-full flex items-center justify-start px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 focus:text-indigo-900 focus:bg-indigo-100 duration-200 ease-in-out">
                                                                 {{ $this->getFullName($coordinator) }}
                                                             </button>
-                                                        </li>
+                                                        </span>
                                                     @endforeach
-                                                @elseif ($this->coordinators->isEmpty() && !is_null($this->searchCoordinator))
-                                                    <li>
-                                                        <p
-                                                            class="text-gray-500 font-medium px-4 py-2 w-full flex items-center justify-start">
+                                                @elseif ($this->coordinators->isEmpty() && !is_null($searchCoordinator))
+                                                    <div
+                                                        class="flex items-center justify-center size-full text-gray-500 font-medium">
+                                                        <p class="">
                                                             No coordinators found.</p>
-                                                    </li>
+                                                    </div>
                                                 @else
-                                                    <li>
-                                                        <p
-                                                            class="text-gray-500 font-medium px-4 py-2 w-full flex items-center justify-start">
+                                                    <div
+                                                        class="flex items-center justify-center size-full text-gray-500 font-medium">
+                                                        <p class="">
                                                             All coordinators were assigned.</p>
-                                                    </li>
+                                                    </div>
                                                 @endif
-                                            </ul>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {{-- Assigned Coordinators toast box --}}
                                 <div class="relative grid grid-cols-5 flex-grow col-span-full xl:col-span-4">
-                                    <div class="relative col-span-5">
+                                    <div class="relative col-span-full">
                                         <p class="block mb-1 font-medium text-indigo-1100 ">
                                             <span class="relative">Assigned Coordinators
                                                 <span
@@ -531,29 +590,24 @@
                                                 <thead
                                                     class="text-xs text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                                     <tr>
-                                                        <th scope="col" class="ps-4 py-2">
+
+                                                        <th scope="col" class="ps-2 py-2">
+
+                                                        </th>
+                                                        <th scope="col" class="pe-2 py-2">
                                                             batch number
                                                         </th>
-                                                        @if ($is_sectoral)
-                                                            <th scope="col" class="px-2 py-2">
-                                                                sector title
-                                                            </th>
-                                                        @elseif (!$is_sectoral)
-                                                            <th scope="col" class="px-2 py-2">
-                                                                district
-                                                            </th>
-                                                            <th scope="col" class="px-2 py-2">
-                                                                barangay
-                                                            </th>
-                                                        @endif
+                                                        <th scope="col" class="px-2 py-2">
+                                                            barangay / sector
+                                                        </th>
+                                                        <th scope="col" class="px-2 py-2 text-center">
+                                                            type
+                                                        </th>
                                                         <th scope="col" class="px-2 py-2 text-center">
                                                             slots
                                                         </th>
                                                         <th scope="col" class="px-2 py-2">
                                                             coordinator/s
-                                                        </th>
-                                                        <th scope="col" class="px-2 py-2">
-
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -562,34 +616,7 @@
                                                         <tr wire:key='batch-{{ $keyBatch }}'
                                                             class="relative border-b {{ $selectedBatchListRow === $keyBatch ? 'bg-indigo-100' : 'bg-indigo-50' }} whitespace-nowrap duration-200 ease-in-out">
                                                             <th scope="row"
-                                                                class="ps-4 py-2 font-medium text-indigo-1100 whitespace-nowrap">
-                                                                {{ $batch['batch_num'] }}
-                                                            </th>
-                                                            @if ($is_sectoral)
-                                                                <td class="px-2 py-2">
-                                                                    {{ $batch['sector_title'] }}
-                                                                </td>
-                                                            @elseif (!$is_sectoral)
-                                                                <td class="px-2 py-2">
-                                                                    {{ $batch['district'] }}
-                                                                </td>
-                                                                <td class="px-2 py-2">
-                                                                    {{ $batch['barangay_name'] }}
-                                                                </td>
-                                                            @endif
-                                                            <td class="px-2 py-2 text-center">
-                                                                {{ $batch['slots_allocated'] }}
-                                                            </td>
-                                                            <td class="grid-flow-row">
-                                                                @foreach ($batch['assigned_coordinators'] as $keyCoordinator => $coordinator)
-                                                                    <span
-                                                                        class="p-1 mx-1 rounded duration-200 ease-in-out {{ $selectedBatchListRow === $keyBatch ? 'bg-green-300 text-green-1000' : 'bg-indigo-300 text-indigo-1000' }}">
-                                                                        {{ $this->getFullName($coordinator) }}
-                                                                    </span>
-                                                                @endforeach
-                                                            </td>
-                                                            <td class="py-2 flex justify-end items-center">
-
+                                                                class="ps-2 py-2 flex justify-end items-center">
                                                                 {{-- X button (table list) --}}
                                                                 <button type="button"
                                                                     wire:click="removeBatchRow({{ $keyBatch }})"
@@ -608,6 +635,31 @@
                                                                         </g>
                                                                     </svg>
                                                                 </button>
+                                                            </th>
+                                                            <td
+                                                                class="pe-2 py-2 font-medium text-indigo-1100 whitespace-nowrap">
+                                                                {{ $batch['batch_num'] }}
+                                                            </td>
+                                                            <td
+                                                                class="px-2 py-2 max-w-[200px] overflow-x-auto whitespace-nowrap scrollbar-none select-text">
+                                                                {{ $batch['sector_title'] ?? $batch['barangay_name'] }}
+                                                            </td>
+                                                            <td class="px-2 py-1 text-center">
+                                                                <span
+                                                                    class="flex items-center justify-center px-3 py-1 rounded-full font-semibold {{ $batch['is_sectoral'] ? 'bg-rose-200 text-rose-900' : 'bg-indigo-200 text-indigo-900' }}">
+                                                                    {{ $batch['is_sectoral'] ? 'Sectoral' : 'Non-Sectoral' }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="px-2 py-2 text-center">
+                                                                {{ $batch['slots_allocated'] }}
+                                                            </td>
+                                                            <td class="grid-flow-row">
+                                                                @foreach ($batch['assigned_coordinators'] as $keyCoordinator => $coordinator)
+                                                                    <span
+                                                                        class="p-1 mx-1 rounded duration-200 ease-in-out {{ $selectedBatchListRow === $keyBatch ? 'bg-green-300 text-green-1000' : 'bg-indigo-300 text-indigo-1000' }}">
+                                                                        {{ $this->getFullName($coordinator) }}
+                                                                    </span>
+                                                                @endforeach
                                                             </td>
                                                         </tr>
                                                     @endforeach

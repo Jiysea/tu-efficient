@@ -629,7 +629,7 @@
         <div class="rounded relative bg-white p-4 h-[89vh] flex items-center justify-center">
             <div
                 class="relative flex flex-col items-center justify-center border rounded size-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-12 sm:size-20 mb-4 text-zinc-300"
                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                     viewBox="0, 0, 400,400">
                     <g>

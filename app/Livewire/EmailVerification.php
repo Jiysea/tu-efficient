@@ -67,6 +67,13 @@ class EmailVerification extends Component
         }
     }
 
+    public function autoCheckVerified()
+    {
+        if (Auth::user()->isEmailVerified()) {
+            $this->redirectRoute('verify.mobile');
+        }
+    }
+
     public function removeAlert($id)
     {
         $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {

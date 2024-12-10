@@ -27,7 +27,6 @@ class ImplementationFactory extends Factory
         $budgetAmount = fake()->numberBetween(100000000, 250000000);
         $minimumWage = mt_rand(config('settings.minimum_wage', 481.00) * 100, 61800);
         $daysOfWork = fake()->randomElement([10, 15]);
-        $sectoral = fake()->randomElement([0, 1]);
         $total_slots = $this->calculateTotalSlots($budgetAmount, $minimumWage, $daysOfWork);
         $currentDate = $this->dateRandomizer($startDate, $endDate);
 
@@ -37,12 +36,12 @@ class ImplementationFactory extends Factory
             'project_title' => '',
             'purpose' => 'DUE TO DISPLACEMENT/DISADVANTAGE',
             'province' => 'Davao del Sur',
-            'city_municipality' => 'Davao City',
-            'is_sectoral' => $sectoral,
+            'city_municipality' => 'City of Davao',
             'budget_amount' => $budgetAmount,
             'minimum_wage' => $minimumWage,
             'total_slots' => $total_slots,
             'days_of_work' => $daysOfWork,
+            'status' => 'pending',
             'created_at' => $currentDate,
             'updated_at' => $currentDate,
         ];

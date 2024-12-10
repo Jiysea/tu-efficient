@@ -25,7 +25,6 @@ class AssignBatchesModal extends Component
     #[Locked]
     public $implementationId;
     public $batchNumPrefix;
-    public $is_sectoral;
     public $remainingSlots;
     public $totalSlots;
     public $ignoredCoordinatorIDs;
@@ -38,6 +37,8 @@ class AssignBatchesModal extends Component
     public $selectedBatchListRow = -1;
     #[Validate]
     public $batch_num;
+    #[Validate]
+    public $is_sectoral = 0;
     #[Validate]
     public $sector_title;
     #[Validate]
@@ -68,7 +69,7 @@ class AssignBatchesModal extends Component
 
                     if ($exists) {
                         # Fail the validation if the project number with the prefix already exists
-                        $fail('This :attribute already exists.');
+                        $fail('This batch number already exists.');
                     }
                 },
 
@@ -76,11 +77,12 @@ class AssignBatchesModal extends Component
                 function ($attribute, $value, $fail) {
                     foreach ($this->temporaryBatchesList as $batch) {
                         if ($batch['batch_num'] === $this->batchNumPrefix . $value) {
-                            $fail('This :attribute has already been added.');
+                            $fail('This batch number has already been added.');
                         }
                     }
                 },
             ],
+            'is_sectoral' => 'required|integer',
             'sector_title' => [
                 'exclude_if:is_sectoral,0',
                 'required_if:is_sectoral,1',
@@ -136,13 +138,14 @@ class AssignBatchesModal extends Component
         return [
             # Assign Batches Modal
             'batch_num.required' => 'This field is required.',
+            'is_sectoral.required' => 'Please select a type.',
             'sector_title.required_if' => 'This field is required.',
             'barangay_name.required_if' => 'This field is required.',
             'district.required_if' => 'This field is required.',
             'slots_allocated.required' => 'Invalid :attribute amount.',
             'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
 
-            'batch_num.integer' => 'The :attribute should be a valid number.',
+            'is_sectoral.integer' => 'Invalid type.',
 
             'sector_title.string' => 'Value should be a string.',
             'sector_title.min' => 'Value should have at least 1 character.',
@@ -160,7 +163,6 @@ class AssignBatchesModal extends Component
     {
         return [
             # Assign Batches Modal
-            'batch_num' => 'batch number',
             'barangay_name' => 'barangay',
             'slots_allocated' => 'Slots',
             'assigned_coordinators' => 'assigned coordinator',
@@ -219,6 +221,7 @@ class AssignBatchesModal extends Component
                         }
                     },
                 ],
+                'is_sectoral' => 'required|integer',
                 'sector_title' => [
                     'exclude_if:is_sectoral,0',
                     'required_if:is_sectoral,1',
@@ -268,6 +271,7 @@ class AssignBatchesModal extends Component
             ],
             [
                 'batch_num.required' => 'This field is required.',
+                'is_sectoral.required' => 'Please select a type.',
                 'sector_title.required_if' => 'This field is required.',
                 'district.required_if' => 'This field is required.',
                 'barangay_name.required_if' => 'This field is required.',
@@ -275,6 +279,7 @@ class AssignBatchesModal extends Component
                 'assigned_coordinators.required' => 'There should be at least 1 :attribute.',
 
                 'batch_num.integer' => 'The :attribute should be a valid number.',
+                'is_sectoral.integer' => 'Invalid type.',
 
                 'sector_title.string' => 'Value should be a string.',
                 'sector_title.min' => 'Value should have at least 1 character.',
@@ -298,6 +303,7 @@ class AssignBatchesModal extends Component
         if ($this->is_sectoral) {
             $this->temporaryBatchesList[] = [
                 'batch_num' => $this->batch_num,
+                'is_sectoral' => $this->is_sectoral,
                 'sector_title' => $this->sector_title,
                 'district' => null,
                 'barangay_name' => null,
@@ -307,6 +313,7 @@ class AssignBatchesModal extends Component
         } else {
             $this->temporaryBatchesList[] = [
                 'batch_num' => $this->batch_num,
+                'is_sectoral' => $this->is_sectoral,
                 'sector_title' => null,
                 'district' => $this->district,
                 'barangay_name' => $this->barangay_name,
@@ -317,6 +324,7 @@ class AssignBatchesModal extends Component
 
         $this->totalSlots -= $this->slots_allocated;
         $this->reset(
+            'is_sectoral',
             'sector_title',
             'district',
             'barangay_name',
@@ -361,8 +369,9 @@ class AssignBatchesModal extends Component
 
             $batch = Batch::create([
                 'implementations_id' => decrypt($this->implementationId),
-                'sector_title' => $batch['sector_title'],
                 'batch_num' => $batch['batch_num'],
+                'is_sectoral' => $batch['is_sectoral'],
+                'sector_title' => $batch['sector_title'],
                 'district' => $batch['district'],
                 'barangay_name' => $batch['barangay_name'],
                 'slots_allocated' => $batch['slots_allocated'],
@@ -371,14 +380,14 @@ class AssignBatchesModal extends Component
             ]);
 
             $batch_id = $batch->id;
-            LogIt::set_create_batches($batch);
+            LogIt::set_create_batches($batch, auth()->user());
 
             foreach ($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'] as $coordinator) {
                 $assignment = Assignment::create([
                     'batches_id' => $batch_id,
                     'users_id' => decrypt($coordinator['users_id']),
                 ]);
-                LogIt::set_assign_coordinator_to_batch($assignment);
+                LogIt::set_assign_coordinator_to_batch($assignment, auth()->user());
             }
         }
 
@@ -506,8 +515,8 @@ class AssignBatchesModal extends Component
             }
 
             $coordinators = User::where('user_type', 'Coordinator')
-                ->where('regional_office', Auth::user()->regional_office)
-                ->where('field_office', Auth::user()->field_office)
+                ->where('regional_office', auth()->user()->regional_office)
+                ->where('field_office', auth()->user()->field_office)
                 ->whereNot('email_verified_at', null)
                 ->when($this->searchCoordinator, function ($q) {
                     # Otherwise, search by first, middle, or last name
@@ -523,8 +532,8 @@ class AssignBatchesModal extends Component
 
         } else {
             $coordinators = User::where('user_type', 'Coordinator')
-                ->where('regional_office', Auth::user()->regional_office)
-                ->where('field_office', Auth::user()->field_office)
+                ->where('regional_office', auth()->user()->regional_office)
+                ->where('field_office', auth()->user()->field_office)
                 ->whereNot('email_verified_at', null)
                 ->when($this->searchCoordinator, function ($q) {
                     # Otherwise, search by first, middle, or last name
@@ -596,27 +605,27 @@ class AssignBatchesModal extends Component
     {
         if ($this->coordinators->isEmpty()) {
             $this->selectedCoordinatorKey = -1;
-            $this->currentCoordinator = 'None';
+            $this->currentCoordinator = '-';
         } else {
             $this->selectedCoordinatorKey = 0;
             $this->currentCoordinator = $this->getFullName($this->coordinators[$this->selectedCoordinatorKey]);
         }
     }
 
-    public function update($prop)
+    public function updated($prop)
     {
         if ($prop === 'district') {
-            if ($this->barangay_name) {
-                dump('poop');
-                $this->barangay_name = $this->barangays[0];
-            }
+            $this->reset('barangay_name', 'searchBarangay');
+            $this->resetValidation('barangay_name');
         }
-    }
 
-    public function resetBarangays()
-    {
-        $this->reset('barangay_name');
-        $this->resetValidation('barangay_name');
+        if ($prop === 'barangay_name') {
+            $this->reset('searchBarangay');
+        }
+
+        if ($prop === 'is_sectoral') {
+            $this->reset('sector_title', 'district', 'barangay_name');
+        }
     }
 
     public function resetBatches()
@@ -657,7 +666,7 @@ class AssignBatchesModal extends Component
     public function render()
     {
         $this->batchNumPrefix = $this->settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
-        $this->is_sectoral = $this->implementation?->is_sectoral;
+
         # Assign Batches Modal
         if ($this->implementationId) {
             $this->liveUpdateRemainingSlots();

@@ -7,4 +7,5 @@ return [
     'senior_age_threshold' => env('SENIOR_AGE_THRESHOLD', 60),
     'maximum_income' => env('MAXIMUM_INCOME', 1500000),
     'default_archive' => env('DEFAULT_ARCHIVE', 1),
+    'default_show_duplicates' => env('DEFAULT_SHOW_DUPLICATES', 0),
 ];

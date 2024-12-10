@@ -54,7 +54,7 @@
 
                     {{-- IF Edit Mode is ON --}}
                     <div x-show="editMode"
-                        class="grid gap-x-2.5 gap-y-6 col-span-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
+                        class="grid gap-x-2.5 gap-y-6 grid-cols-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
                         <div x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }"
@@ -699,7 +699,7 @@
                             </div>
                             <input type="text" datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                 datepicker-min-date='{{ $minDate }}' datepicker-max-date='{{ $maxDate }}'
-                                id="edit_birthdate" autocomplete="off" wire:model.live.debounce.500ms="birthdate"
+                                id="edit_birthdate" autocomplete="off" wire:model.blur="birthdate"
                                 @change-date.camel="$wire.$set('birthdate', $el.value);"
                                 class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }}"
                                 placeholder="Select date">
@@ -1629,7 +1629,7 @@
                                 </svg>
 
                                 {{-- Edit Icon --}}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ms-2" wire:loading.remove
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" wire:loading.remove
                                     wire:target="toggleEdit" xmlns:xlink="http://www.w3.org/1999/xlink"
                                     width="400" height="400" viewBox="0, 0, 400,400">
                                     <g>
@@ -1680,7 +1680,8 @@
                             class="relative flex col-span-full mt-4 mb-2 font-semibold text-sm rounded px-2 py-1 border border-indigo-300 bg-indigo-100 text-indigo-900">Address
                             / Location of the Implementation</span>
                         @foreach ($this->addressInformation as $key => $info)
-                            <div class="relative flex flex-col mb-2">
+                            <div
+                                class="relative flex flex-col {{ mb_strtolower($key, 'UTF-8') === 'barangay' ? 'sm:col-span-2' : '' }} mb-2">
                                 <p class="block mb-1 font-medium text-indigo-1100">
                                     {{ $key }}
                                 </p>
@@ -1688,7 +1689,6 @@
                                     class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">{{ $info }}</span>
                             </div>
                         @endforeach
-
                         {{-- Additional Information --}}
                         <span
                             class="relative flex col-span-full mt-4 mb-2 font-semibold text-sm rounded px-2 py-1 border border-indigo-300 bg-indigo-100 text-indigo-900">Additional
@@ -1873,7 +1873,7 @@
 
                                 {{-- Modal body --}}
                                 <div
-                                    class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
+                                    class="flex flex-col items-center justify-center gap-4 w-full pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
                                     @if ($this->defaultArchive)
                                         <p class="font-medium text-sm mb-2">
                                             Are you sure about archiving this beneficiary?
@@ -1918,10 +1918,10 @@
 
                     <!-- Modal -->
                     <div x-show="confirmTypeChangeModal" x-trap.noreturn.noautofocus="confirmTypeChangeModal"
-                        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+                        class="relative h-full p-4 flex items-center justify-center z-50 select-none">
 
                         {{-- The Modal --}}
-                        <div class="">
+                        <div class="w-full max-w-xl">
                             <div class="relative bg-white rounded-md shadow">
                                 <!-- Modal Header -->
                                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
@@ -1954,7 +1954,8 @@
                                 <hr class="">
 
                                 {{-- Modal body --}}
-                                <div class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100">
+                                <div
+                                    class="flex flex-col items-center justify-center gap-4 w-full pt-5 pb-6 px-3 md:px-12 text-indigo-1100">
 
                                     <p class="font-medium text-sm mb-4">
                                         @if ($confirmChangeType === 'beneficiary_type')

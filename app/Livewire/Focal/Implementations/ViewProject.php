@@ -46,8 +46,6 @@ class ViewProject extends Component
     #[Validate]
     public $city_municipality;
     #[Validate]
-    public $is_sectoral = 0;
-    #[Validate]
     public string $budget_amount;
     #[Validate]
     public string $minimum_wage;
@@ -75,7 +73,6 @@ class ViewProject extends Component
                 },
             ],
             'project_title' => 'nullable',
-            'is_sectoral' => 'required|integer',
             'purpose' => 'required',
             'province' => 'required',
             'city_municipality' => 'required',
@@ -135,7 +132,6 @@ class ViewProject extends Component
     {
         return [
             'project_num.required' => 'This field is required.',
-            'is_sectoral.required' => 'Please select a type of implementation.',
             'purpose.required' => 'Please select a purpose.',
             'province.required' => 'This field is required.',
             'city_municipality.required' => 'This field is required.',
@@ -145,7 +141,6 @@ class ViewProject extends Component
             'days_of_work.required' => 'This field is required.',
 
             'project_num.integer' => 'Project Number should be a number.',
-            'is_sectoral.integer' => 'Invalid implementation type.',
             'total_slots.integer' => 'Total Slots should be a number.',
             'total_slots.min' => 'Total Slots should be > 0.',
             'days_of_work.integer' => 'Days should be a number.',
@@ -191,34 +186,34 @@ class ViewProject extends Component
     {
         $this->validate();
 
-        $this->project_num = $this->projectNumPrefix . Carbon::parse($this->implementation->created_at)->format('Y-') . $this->project_num;
+        DB::transaction(function () {
 
-        $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
-        $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
+            $implementation = Implementation::lockForUpdate()->find(decrypt($this->passedProjectId));
 
-        $implementation = Implementation::where('id', decrypt($this->passedProjectId))
-            ->where('users_id', Auth::id())
-            ->first();
+            $this->authorize('edit-implementation-focal', $implementation);
 
-        $implementation->project_num = $this->project_num;
-        $implementation->project_title = $this->project_title;
-        $implementation->is_sectoral = $this->is_sectoral;
-        $implementation->budget_amount = $this->budget_amount;
-        $implementation->minimum_wage = $this->minimum_wage;
-        $implementation->total_slots = $this->total_slots;
-        $implementation->days_of_work = $this->days_of_work;
-        $implementation->province = $this->province;
-        $implementation->city_municipality = $this->city_municipality;
-        $implementation->purpose = $this->purpose;
+            $this->project_num = $this->projectNumPrefix . Carbon::parse($this->implementation->created_at)->format('Y-') . $this->project_num;
+            $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
+            $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
 
-        $this->toggleEdit();
+            $implementation->project_num = $this->project_num;
+            $implementation->project_title = $this->project_title;
+            $implementation->budget_amount = $this->budget_amount;
+            $implementation->minimum_wage = $this->minimum_wage;
+            $implementation->total_slots = $this->total_slots;
+            $implementation->days_of_work = $this->days_of_work;
+            $implementation->province = $this->province;
+            $implementation->city_municipality = $this->city_municipality;
+            $implementation->purpose = $this->purpose;
 
-        if ($implementation->isDirty()) {
-            $implementation->save();
-            LogIt::set_edit_project($implementation);
-            $this->dispatch('edit-project');
-        }
+            $this->toggleEdit();
 
+            if ($implementation->isDirty()) {
+                $implementation->save();
+                LogIt::set_edit_project($implementation, auth()->user());
+                $this->dispatch('edit-project');
+            }
+        });
     }
 
     public function deleteProject()
@@ -228,7 +223,7 @@ class ViewProject extends Component
         $project->delete();
 
         $this->resetViewProject();
-        LogIt::set_delete_project($project);
+        LogIt::set_delete_project($project, auth()->user());
         $this->js('viewProjectModal = false;');
         $this->dispatch('delete-project');
     }
@@ -264,7 +259,6 @@ class ViewProject extends Component
             $this->project_num = intval(substr($this->implementation->project_num, -6));
             $this->province = $this->implementation->province;
             $this->city_municipality = $this->implementation->city_municipality;
-            $this->is_sectoral = $this->implementation->is_sectoral;
             $this->budget_amount = MoneyFormat::mask($this->implementation->budget_amount);
             $this->minimum_wage = MoneyFormat::mask($this->implementation->minimum_wage);
             $this->total_slots = $this->implementation->total_slots;
@@ -275,40 +269,14 @@ class ViewProject extends Component
             $this->purpose = $this->implementation->purpose;
 
         } else {
-            $this->reset(
-                'project_num',
-                'project_title',
-                'purpose',
-                'province',
-                'city_municipality',
-                'is_sectoral',
-                'budget_amount',
-                'total_slots',
-                'days_of_work',
-                'isAutoComputeEnabled',
-            );
+            $this->resetViewProject();
         }
     }
 
     public function resetViewProject()
     {
-        $this->reset(
-            'project_num',
-            'project_title',
-            'purpose',
-            'province',
-            'city_municipality',
-            'is_sectoral',
-            'budget_amount',
-            'total_slots',
-            'days_of_work',
-            'isAutoComputeEnabled',
-            'editMode',
-            'deleteProjectModal'
-        );
-
+        $this->resetExcept('passedProjectId', 'projectNumPrefix', 'defaultMinimumWage', );
         $this->resetValidation();
-
     }
 
     public function checkApproved()

@@ -17,17 +17,16 @@
                     </span>
                     <div class="flex items-center justify-center">
                         {{-- Loading State for Changes --}}
-                        <div class="z-50 text-indigo-900" wire:loading>
-                            <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4">
-                                </circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </div>
+                        <svg class="size-6 text-indigo-900 animate-spin" wire:loading
+                            wire:target="autoCompute, deleteProject" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
 
                         {{-- Close Button --}}
                         <button type="button" @click="$wire.resetViewProject(); viewProjectModal = false;"
@@ -78,8 +77,14 @@
                             {{-- Budget --}}
                             <div class="flex flex-1 flex-col relative">
                                 @if ($isEmpty)
-                                    <label for="budget_amount" class="block mb-1  font-medium text-indigo-1100 ">Budget
-                                        <span class="text-red-700 font-normal">*</span></label>
+                                    <label for="budget_amount" class="block mb-1  font-medium text-indigo-1100 ">
+                                        <span class="relative">Budget
+                                            <span
+                                                class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                                *
+                                            </span>
+                                        </span>
+                                    </label>
                                     <div class="relative">
 
                                         <div
@@ -113,9 +118,14 @@
                             {{-- Minimum Wage --}}
                             <div class="flex flex-1 flex-col relative">
                                 @if ($isEmpty)
-                                    <label for="minimum_wage" class="block mb-1  font-medium text-indigo-1100 ">Minimum
-                                        Wage
-                                        <span class="text-red-700 font-normal">*</span></label>
+                                    <label for="minimum_wage" class="block mb-1  font-medium text-indigo-1100 ">
+                                        <span class="relative">Minimum Wage
+                                            <span
+                                                class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                                *
+                                            </span>
+                                        </span>
+                                    </label>
                                     <div class="relative">
 
                                         <div
@@ -151,8 +161,14 @@
                                 @if ($isEmpty)
                                     <div class="flex items-center">
                                         <label for="total_slots"
-                                            class="block mb-1 whitespace-nowrap font-medium text-indigo-1100 ">Total
-                                            Slots <span class="text-red-700 font-normal text-xs">*</span></label>
+                                            class="block mb-1 whitespace-nowrap font-medium text-indigo-1100 ">
+                                            <span class="relative">Total Slots
+                                                <span
+                                                    class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                                    *
+                                                </span>
+                                            </span>
+                                        </label>
                                         <div tabindex="-1" class="w-full mb-1 flex items-center justify-end">
                                             <label class="inline-flex items-center cursor-pointer">
                                                 <span
@@ -189,9 +205,14 @@
                             {{-- Days Of Work --}}
                             <div class="flex flex-1 flex-col relative">
                                 @if ($isEmpty)
-                                    <label for="days_of_work" class="block mb-1  font-medium text-indigo-1100 ">Days
-                                        of
-                                        Work <span class="text-red-700 font-normal text-xs">*</span></label>
+                                    <label for="days_of_work" class="block mb-1  font-medium text-indigo-1100 ">
+                                        <span class="relative">Days of Work
+                                            <span
+                                                class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                                *
+                                            </span>
+                                        </span>
+                                    </label>
                                     <input type="number" min="0" max="15" id="days_of_work"
                                         wire:model.blur="days_of_work" @blur="$wire.autoCompute()"
                                         class="text-xs duration-200 {{ $errors->has('days_of_work') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
@@ -231,50 +252,17 @@
                                     {{ $this->implementation?->city_municipality }}</span>
                             </div>
 
-                            {{-- Sectoral && Non-Sectoral --}}
-                            <div class="flex flex-1 flex-col">
-                                @if ($isEmpty)
-                                    <span class="block mb-1 font-medium text-indigo-1100">Type of Implementation</span>
-
-                                    <span class="flex items-center justify-center gap-2">
-                                        {{-- Sectoral --}}
-                                        <label for="sectoral-radio2"
-                                            class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ $is_sectoral ? 'bg-rose-700 hover:bg-rose-800 active:bg-rose-900 text-rose-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
-                                            Sectoral
-                                            <input type="radio" class="hidden absolute inset-0"
-                                                id="sectoral-radio2" value="1" wire:model.live="is_sectoral">
-                                        </label>
-                                        {{-- Non-Sectoral --}}
-                                        <label for="non-sectoral-radio2"
-                                            class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ !$is_sectoral ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
-                                            Non-Sectoral
-                                            <input type="radio" class="hidden absolute inset-0"
-                                                id="non-sectoral-radio2" value="0"
-                                                wire:model.live="is_sectoral">
-                                        </label>
-                                    </span>
-                                    @error('is_sectoral')
-                                        <p class="text-red-500 absolute left-0 top-full mt-1 text-xs">
-                                            {{ $message }}
-                                        </p>
-                                    @enderror
-                                @else
-                                    <p class="block mb-1 font-medium text-indigo-1100">
-                                        Type of Implementation
-                                    </p>
-                                    <span
-                                        class="flex flex-1 text-sm rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
-                                        {{ $this->implementation?->is_sectoral ? 'Sectoral' : 'Non-Sectoral' }}</span>
-                                @endif
-                            </div>
-
                             {{-- Purpose --}}
                             <div class="flex flex-1 flex-col sm:col-span-2 relative">
-                                <label for="purpose" class="block mb-1 font-medium text-indigo-1100 ">Purpose
-                                    of the
-                                    Project</label>
+                                <label for="purpose" class="block mb-1 font-medium text-indigo-1100 ">
+                                    <span class="relative">Purpose of Project
+                                        <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">
+                                            *
+                                        </span>
+                                    </span>
+                                </label>
                                 <select id="purpose" autocomplete="off" wire:model.blur="purpose"
-                                    class="text-xs duration-200 {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
+                                    class="text-xs duration-200 ease-in-out border rounded block w-full p-2.5 cursor-pointer {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }}">
                                     <option value="">Select a purpose...</option>
                                     <option>DUE TO DISPLACEMENT/DISADVANTAGE</option>
                                 </select>
@@ -305,7 +293,21 @@
                                     <button type="submit"
                                         class="flex flex-1 items-center justify-center gap-2 duration-200 ease-in-out px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                         SAVE
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+
+                                        {{-- Loading Icon --}}
+                                        <svg class="size-5 animate-spin" wire:loading wire:target="editProject"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4">
+                                            </circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+
+                                        {{-- Check Icon --}}
+                                        <svg class="size-5" wire:loading.remove wire:target="editProject"
+                                            xmlns="http://www.w3.org/2000/svg"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                             viewBox="0, 0, 400,400">
                                             <g>
@@ -322,8 +324,20 @@
                                         wire:loading.attr="disabled" wire:target="toggleEdit"
                                         class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-3 rounded outline-none font-bold text-sm border border-red-700 hover:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50">
 
-                                        <svg class="size-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 14 14">
+                                        {{-- Loading State for Changes --}}
+                                        <svg class="size-3.5 animate-spin" wire:loading wire:target="toggleEdit"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4">
+                                            </circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+
+                                        <svg class="size-3.5" wire:loading.remove wire:target="toggleEdit"
+                                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 14 14">
                                             <path stroke="currentColor" stroke-linecap="round"
                                                 stroke-linejoin="round" stroke-width="2"
                                                 d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
@@ -357,11 +371,23 @@
                             <div x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }" class="flex justify-center items-end">
                                 <button type="button" wire:loading.attr="disabled" wire:target="toggleEdit"
                                     @if (!$isApproved) wire:click.prevent="toggleEdit" @else disabled @endif
-                                    class="duration-200 ease-in-out flex flex-1 items-center justify-center gap-2 px-2 py-2.5 rounded outline-none font-bold text-sm disabled:border disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                    class="duration-200 ease-in-out flex flex-1 gap-2 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                     EDIT
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
+                                    {{-- Loading Icon --}}
+                                    <svg class="size-4 animate-spin" wire:loading wire:target="toggleEdit"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Edit Icon --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" wire:loading.remove
+                                        wire:target="toggleEdit" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                        width="400" height="400" viewBox="0, 0, 400,400">
                                         <g>
                                             <path
                                                 d="M183.594 33.724 C 46.041 46.680,-16.361 214.997,79.188 315.339 C 177.664 418.755,353.357 357.273,366.362 214.844 C 369.094 184.922,365.019 175.000,350.000 175.000 C 337.752 175.000,332.824 181.910,332.797 199.122 C 332.620 313.749,199.055 374.819,112.519 299.840 C 20.573 220.173,78.228 67.375,200.300 67.202 C 218.021 67.177,225.000 62.316,225.000 50.000 C 225.000 34.855,214.674 30.796,183.594 33.724 M310.472 33.920 C 299.034 36.535,291.859 41.117,279.508 53.697 C 262.106 71.421,262.663 73.277,295.095 105.627 C 319.745 130.213,321.081 131.250,328.125 131.250 C 338.669 131.250,359.145 110.836,364.563 94.922 C 376.079 61.098,344.986 26.032,310.472 33.920 M230.859 103.584 C 227.434 105.427,150.927 181.930,149.283 185.156 C 146.507 190.604,132.576 248.827,133.144 252.610 C 134.190 259.587,140.413 265.810,147.390 266.856 C 151.173 267.424,209.396 253.493,214.844 250.717 C 218.334 248.939,294.730 172.350,296.450 168.905 C 298.114 165.572,298.148 158.158,296.516 154.253 C 295.155 150.996,253.821 108.809,248.119 104.858 C 244.261 102.184,234.765 101.484,230.859 103.584 "
@@ -520,15 +546,19 @@
                                     {{ $this->implementation?->purpose }}</span>
                             </div>
 
-                            {{-- Sectoral && Non-Sectoral OFF --}}
+                            {{-- Status OFF --}}
                             <div class="relative flex flex-col">
                                 <p class="block mb-1 font-medium text-indigo-1100">
-                                    Type of Implementation
+                                    Status
                                 </p>
                                 <span class="flex flex-1 items-center text-sm rounded p-2.5 bg-indigo-50 font-medium">
-                                    <span
-                                        class="rounded-lg px-3 py-0.5 {{ $this->implementation?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">
-                                        {{ $this->implementation?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}
+                                    <span class="rounded-lg px-3 py-0.5 uppercase"
+                                        :class="{
+                                            'bg-amber-200 text-amber-800': {{ json_encode($this->implementation?->status === 'pending') }},
+                                            'bg-lime-200 text-lime-800': {{ json_encode($this->implementation?->status === 'signing') }},
+                                            'bg-indigo-200 text-indigo-800': {{ json_encode($this->implementation?->status === 'concluded') }},
+                                        }">
+                                        {{ $this->implementation?->status }}
                                     </span>
                                 </span>
                             </div>
@@ -557,8 +587,6 @@
                         @endif
                     </div>
                 </form>
-
-
             </div>
         </div>
     </div>

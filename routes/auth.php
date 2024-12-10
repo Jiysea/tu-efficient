@@ -26,10 +26,12 @@ Route::middleware('auth')->group(function () {
     Route::get('verify-email/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
-        return redirect('/');
+        return redirect('/verification-success');
     })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
     Route::get('/verify-mobile', VerifyContactNumber::class)->name('verify.mobile');
+
+    Route::view('/verification-success', 'pages.verification-success');
 
     // Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
     //     ->middleware('throttle:6,1')

@@ -7,12 +7,14 @@ use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Annex;
+use App\Services\Essential;
 use App\Services\JaccardSimilarity;
 use Carbon\Carbon;
 use Crypt;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Js;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -84,6 +86,8 @@ class Implementations extends Component
     public $selectedBeneficiaryRow = -1;
     public $start;
     public $end;
+    public $calendarStart;
+    public $calendarEnd;
     public $defaultStart;
     public $defaultEnd;
 
@@ -92,12 +96,6 @@ class Implementations extends Component
     public function rules()
     {
         return [
-            'defaultExportStart' => [
-                'required'
-            ],
-            'defaultExportEnd' => [
-                'required'
-            ],
             'exportBatchId' => [
                 'required'
             ],
@@ -107,31 +105,22 @@ class Implementations extends Component
     public function messages()
     {
         return [
-            'defaultExportStart.required' => 'This field is required.',
-            'defaultExportEnd.required' => 'This field is required.',
             'exportBatchId.required' => 'This field is required.',
         ];
     }
 
     public function showExport()
     {
-        $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
-        $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
+        $this->defaultExportStart = $this->calendarStart;
+        $this->defaultExportEnd = $this->calendarEnd;
 
-        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
-        $choosenDate = date('Y-m-d', strtotime($date));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->export_start = $choosenDate . ' ' . $currentTime;
-
-        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
-        $choosenDate = date('Y-m-d', strtotime($date));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->export_end = $choosenDate . ' ' . $currentTime;
+        $this->export_start = $this->start;
+        $this->export_end = $this->end;
 
         # By Selected Batch
         if ($this->batchId) {
             $this->exportBatchId = $this->batchId;
-            $this->currentExportBatch = $this->exportBatch->batch_num . ' / ' . $this->exportBatch->barangay_name;
+            $this->currentExportBatch = ($this->exportBatch->sector_title ?? $this->exportBatch->barangay_name) . ' / ' . $this->exportBatch->batch_num;
         }
 
         $this->showExportModal = true;
@@ -183,19 +172,21 @@ class Implementations extends Component
     #[Computed]
     public function exportBatch()
     {
-        $batch = Batch::find($this->exportBatchId ? decrypt($this->exportBatchId) : null);
-        return $batch;
+        return Batch::find($this->exportBatchId ? decrypt($this->exportBatchId) : null);
     }
 
     #[Computed]
     public function exportBatches()
     {
-        $batches = Batch::whereHas('implementation', function ($q) {
+        return Batch::whereHas('implementation', function ($q) {
             $q->where('users_id', Auth::id());
         })->whereHas('beneficiary')
             ->when(isset($this->searchExportBatch) && !empty($this->searchExportBatch), function ($q) {
-                $q->where('batches.batch_num', 'LIKE', '%' . $this->searchExportBatch . '%')
-                    ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchExportBatch . '%');
+                $q->where(function ($query) {
+                    $query->where('batches.batch_num', 'LIKE', '%' . $this->searchExportBatch . '%')
+                        ->orWhere('batches.sector_title', 'LIKE', '%' . $this->searchExportBatch . '%')
+                        ->orWhere('batches.barangay_name', 'LIKE', '%' . $this->searchExportBatch . '%');
+                });
             })
             ->whereBetween('batches.created_at', [$this->export_start, $this->export_end])
             ->latest('batches.updated_at')
@@ -204,8 +195,6 @@ class Implementations extends Component
             ])
             ->distinct()
             ->get();
-
-        return $batches;
     }
 
     public function resetExport()
@@ -218,63 +207,12 @@ class Implementations extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
+            $this->currentExportBatch = ($this->exportBatches[0]->sector_title ?? $this->exportBatches[0]->barangay_name) . ' / (' . $this->exportBatches[0]->batch_num . ')';
         }
 
     }
 
     # ------------------------------------------------------------------------------------------------------------------
-
-
-    public function setStartDate($value)
-    {
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->start = $choosenDate . ' ' . $currentTime;
-        $this->implementations_on_page = 15;
-        $this->beneficiaries_on_page = 15;
-
-        $this->passedProjectId = null;
-        $this->passedBatchId = null;
-        $this->passedBeneficiaryId = null;
-        $this->implementationId = null;
-        $this->batchId = null;
-
-        $this->selectedImplementationRow = -1;
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->dispatch('init-reload')->self();
-    }
-
-    public function setEndDate($value)
-    {
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->end = $choosenDate . ' ' . $currentTime;
-        $this->implementations_on_page = 15;
-        $this->beneficiaries_on_page = 15;
-
-        if (strtotime($this->start) > strtotime($this->end)) {
-            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
-            $this->start = $start;
-            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
-        }
-
-        $this->passedProjectId = null;
-        $this->passedBatchId = null;
-        $this->passedBeneficiaryId = null;
-        $this->implementationId = null;
-        $this->batchId = null;
-
-        $this->selectedImplementationRow = -1;
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->dispatch('init-reload')->self();
-    }
 
     public function viewProject(string $encryptedId)
     {
@@ -366,13 +304,14 @@ class Implementations extends Component
             ->where('implementations.id', $this->implementationId ? decrypt($this->implementationId) : null)
             ->select([
                 'batches.id',
+                'batches.is_sectoral',
                 'batches.barangay_name',
                 'batches.sector_title',
                 'batches.slots_allocated',
                 DB::raw('COUNT(DISTINCT beneficiaries.id) AS current_slots'),
                 DB::raw('batches.approval_status AS approval_status')
             ])
-            ->groupBy('batches.id', 'barangay_name', 'sector_title', 'slots_allocated', 'approval_status')
+            ->groupBy('batches.id', 'batches.is_sectoral', 'barangay_name', 'sector_title', 'slots_allocated', 'approval_status')
             ->orderBy('batches.id', 'desc')
             ->get();
 
@@ -506,7 +445,7 @@ class Implementations extends Component
             $this->validateOnly('defaultExportStart');
             $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
             $choosenDate = date('Y-m-d', strtotime($date));
-            $currentTime = date('H:i:s', strtotime(now()));
+            $currentTime = date('H:i:s', strtotime(now()->startOfDay()));
             $this->export_start = $choosenDate . ' ' . $currentTime;
 
             if ($this->exportBatches->isEmpty()) {
@@ -522,7 +461,7 @@ class Implementations extends Component
             $this->validateOnly('defaultExportEnd');
             $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
             $choosenDate = date('Y-m-d', strtotime($date));
-            $currentTime = date('H:i:s', strtotime(now()));
+            $currentTime = date('H:i:s', strtotime(now()->endOfDay()));
             $this->export_end = $choosenDate . ' ' . $currentTime;
 
             if ($this->exportBatches->isEmpty()) {
@@ -532,6 +471,78 @@ class Implementations extends Component
                 $this->exportBatchId = encrypt($this->exportBatches[0]->id);
                 $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
             }
+        }
+
+        if ($prop === 'calendarStart') {
+            $format = Essential::extract_date($this->calendarStart, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarStart = $this->defaultStart;
+                return;
+            }
+
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarStart)->format('Y-m-d');
+            $currentTime = now()->startOfDay()->format('H:i:s');
+
+            $this->start = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $end = Carbon::parse($this->start)->addMonth()->endOfDay()->format('Y-m-d H:i:s');
+                $this->end = $end;
+                $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+            }
+
+            $this->implementations_on_page = 15;
+            $this->beneficiaries_on_page = 15;
+
+            $this->passedProjectId = null;
+            $this->passedBatchId = null;
+            $this->passedBeneficiaryId = null;
+            $this->implementationId = null;
+            $this->batchId = null;
+
+            $this->selectedImplementationRow = -1;
+            $this->selectedBatchRow = -1;
+            $this->selectedBeneficiaryRow = -1;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-implementations')->self();
+            $this->dispatch('scroll-top-batches')->self();
+            $this->dispatch('scroll-top-beneficiaries')->self();
+        } elseif ($prop === 'calendarEnd') {
+            $format = Essential::extract_date($this->calendarEnd, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarEnd = $this->defaultEnd;
+                return;
+            }
+
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarEnd)->format('Y-m-d');
+            $currentTime = now()->endOfDay()->format('H:i:s');
+
+            $this->end = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $start = Carbon::parse($this->end)->subMonth()->startOfDay()->format('Y-m-d H:i:s');
+                $this->start = $start;
+                $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+            }
+
+            $this->implementations_on_page = 15;
+            $this->beneficiaries_on_page = 15;
+
+            $this->passedProjectId = null;
+            $this->passedBatchId = null;
+            $this->passedBeneficiaryId = null;
+            $this->implementationId = null;
+            $this->batchId = null;
+
+            $this->selectedImplementationRow = -1;
+            $this->selectedBatchRow = -1;
+            $this->selectedBeneficiaryRow = -1;
+
+            $this->dispatch('init-reload')->self();
+            $this->dispatch('scroll-top-implementations')->self();
+            $this->dispatch('scroll-top-batches')->self();
+            $this->dispatch('scroll-top-beneficiaries')->self();
         }
     }
 
@@ -823,14 +834,17 @@ class Implementations extends Component
         }
 
         # Setting default dates in the datepicker
-        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+        $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
+        $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
+
+        $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+
+        $this->defaultStart = $this->calendarStart;
+        $this->defaultEnd = $this->calendarEnd;
 
         $this->export_start = $this->start;
         $this->export_end = $this->end;
-
-        $this->defaultStart = date('m/d/Y', strtotime($this->start));
-        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
 
         $this->defaultExportStart = $this->defaultStart;
         $this->defaultExportEnd = $this->defaultEnd;
@@ -840,7 +854,7 @@ class Implementations extends Component
             $this->currentExportBatch = 'None';
         } else {
             $this->exportBatchId = encrypt($this->exportBatches[0]->id);
-            $this->currentExportBatch = $this->exportBatches[0]->batch_num . ' / ' . $this->exportBatches[0]->barangay_name;
+            $this->currentExportBatch = ($this->exportBatches[0]->sector_title ?? $this->exportBatches[0]->barangay_name) . ' / ' . $this->exportBatches[0]->batch_num;
         }
     }
 

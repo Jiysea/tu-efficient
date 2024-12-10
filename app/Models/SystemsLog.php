@@ -18,8 +18,14 @@ class SystemsLog extends Model
      */
     protected $fillable = [
         'users_id',
-        'log_timestamp',
+        'alternative_sender',
         'description',
+        'old_data',
+        'new_data',
+        'regional_office',
+        'field_office',
+        'log_type',
+        'log_timestamp',
     ];
 
     public function user()

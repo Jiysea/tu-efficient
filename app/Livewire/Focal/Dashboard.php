@@ -5,8 +5,7 @@ namespace App\Livewire\Focal;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Implementation;
-use App\Models\User;
-use App\Services\Annex;
+use App\Services\Essential;
 use App\Services\Summary;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -38,10 +37,10 @@ class Dashboard extends Component
     public $currentExportImplementation;
     public $start;
     public $end;
+    public $calendarStart;
+    public $calendarEnd;
     public $defaultStart;
     public $defaultEnd;
-    public $export_start;
-    public $export_end;
     public $searchProject;
     public $searchExportProject;
     public $showAlert = false;
@@ -50,9 +49,9 @@ class Dashboard extends Component
     public $showExportModal = false;
     public $exportChoice = 'selected_project';
     public $exportFormat = 'xlsx';
-    #[Validate]
+    public $export_start;
+    public $export_end;
     public $defaultExportStart;
-    #[Validate]
     public $defaultExportEnd;
 
     # -----------------------------------------------------------------------
@@ -60,12 +59,6 @@ class Dashboard extends Component
     public function rules()
     {
         return [
-            'defaultExportStart' => [
-                'required'
-            ],
-            'defaultExportEnd' => [
-                'required'
-            ],
             'exportImplementationId' => [
                 'required'
             ],
@@ -75,8 +68,6 @@ class Dashboard extends Component
     public function messages()
     {
         return [
-            'defaultExportStart.required' => 'This field is required.',
-            'defaultExportEnd.required' => 'This field is required.',
             'exportImplementationId.required' => 'This field is required.',
         ];
     }
@@ -93,6 +84,8 @@ class Dashboard extends Component
         $currentBatches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
             ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
             ->select([
+                'batches.is_sectoral',
+                'batches.sector_title',
                 'batches.barangay_name',
                 DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_female'),
@@ -102,7 +95,7 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
             ])
             ->where('implementations.id', isset($this->implementationId) ? decrypt($this->implementationId) : null)
-            ->groupBy(['batches.barangay_name'])
+            ->groupBy(['batches.is_sectoral', 'batches.barangay_name', 'batches.sector_title'])
             ->get();
 
         $summaryCount = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
@@ -139,20 +132,22 @@ class Dashboard extends Component
             'purpose' => $currentImplementation->purpose,
             'province' => $currentImplementation->province,
             'city_municipality' => $currentImplementation->city_municipality,
-            'district' => $currentImplementation->district,
             'budget_amount' => $currentImplementation->budget_amount,
             'minimum_wage' => $currentImplementation->minimum_wage,
             'total_slots' => $currentImplementation->total_slots,
             'days_of_work' => $currentImplementation->days_of_work,
+            'status' => $currentImplementation->status,
             'created_at' => $currentImplementation->created_at,
             'updated_at' => $currentImplementation->updated_at,
         ];
 
         # Barangay Information
-        $barangays = [];
+        $batches = [];
 
         foreach ($currentBatches as $batch) {
-            $barangays[] = [
+            $batches[] = [
+                'is_sectoral' => $batch->is_sectoral,
+                'sector_title' => $batch->sector_title,
                 'barangay_name' => $batch->barangay_name,
                 'total_male' => $batch->total_male,
                 'total_female' => $batch->total_female,
@@ -170,37 +165,30 @@ class Dashboard extends Component
                 'seniors' => $seniors,
                 'pwds' => $pwds,
                 'implementation' => $implementation,
-                'barangays' => $barangays
+                'batches' => $batches
             ]
         ]);
 
         # Dispatch an event to open the print dialog
-        $this->dispatch('openPrintWindow', url: $this->summaryUrl)->self();
+        $this->dispatch('openPrintWindow', url: $this->summaryUrl, currentDate: now()->format('Y-m-d H:i:s'))->self();
     }
 
     public function showExport()
     {
-
         # By Date Range
-        $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
-        $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
+        $this->defaultExportStart = $this->calendarStart;
+        $this->defaultExportEnd = $this->calendarEnd;
 
-        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
-        $choosenDate = date('Y-m-d', strtotime($date));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->export_start = $choosenDate . ' ' . $currentTime;
-
-        $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
-        $choosenDate = date('Y-m-d', strtotime($date));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->export_end = $choosenDate . ' ' . $currentTime;
+        $this->export_start = $this->start;
+        $this->export_end = $this->end;
 
         # By Selected Project
         if ($this->implementationId) {
             $this->exportImplementationId = $this->implementationId;
-            $this->currentExportImplementation = $this->exportImplementation[0]->project_num;
+            $this->currentExportImplementation = $this->exportImplementations[0]->project_title ? ($this->exportImplementations[0]->project_title . ' / ' . $this->exportImplementations[0]->project_num) : $this->exportImplementations[0]->project_num;
         }
 
+        $this->dispatch('init-reload')->self();
         $this->showExportModal = true;
     }
 
@@ -212,18 +200,6 @@ class Dashboard extends Component
         ];
 
         if ($this->exportChoice === 'date_range') {
-
-            $this->validate([
-                'defaultExportStart' => [
-                    'required'
-                ],
-                'defaultExportEnd' => [
-                    'required'
-                ],
-            ], [
-                'defaultExportStart.required' => 'This field is required.',
-                'defaultExportEnd.required' => 'This field is required.',
-            ]);
 
             $data['date_range'] = [
                 'implementations' => $this->exportImplementations,
@@ -254,10 +230,10 @@ class Dashboard extends Component
 
         if ($this->exportFormat === 'xlsx') {
             $writer = new Xlsx($spreadsheet);
-            $fileName = 'Summary of Beneficiaries.xlsx';
+            $fileName = 'Summary-Report (' . now()->format('Y-m-d H_i_s') . ').xlsx';
         } elseif ($this->exportFormat === 'csv') {
             $writer = new Csv($spreadsheet);
-            $fileName = 'Summary of Beneficiaries.csv';
+            $fileName = 'Summary-Report (' . now()->format('Y-m-d H_i_s') . ').csv';
             $writer->setDelimiter(';');
             $writer->setEnclosure('"');
         }
@@ -277,125 +253,81 @@ class Dashboard extends Component
     #[Computed]
     public function exportImplementation()
     {
-        $implementation = Implementation::where('id', $this->exportImplementationId ? decrypt($this->exportImplementationId) : null)
+        return Implementation::where('id', $this->exportImplementationId ? decrypt($this->exportImplementationId) : null)
             ->get();
-        return $implementation;
     }
 
     #[Computed]
     public function exportBatchesInfo()
     {
-        $batches = Batch::whereHas('beneficiary')
+        return Batch::whereHas('beneficiary')
             ->where('batches.implementations_id', $this->exportImplementationId ? decrypt($this->exportImplementationId) : null)
             ->get();
-        return $batches;
     }
 
     #[Computed]
     public function exportBeneficiaryCount($encryptedId)
     {
-        $count = Beneficiary::where('batches_id', decrypt($encryptedId))
+        return Beneficiary::where('batches_id', decrypt($encryptedId))
             ->count();
-        return $count;
+    }
+
+    #[Computed]
+    public function exportBeneficiaryCountByImplementation()
+    {
+        return Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
+            ->join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            ->where('implementations.id', $this->exportImplementationId ? decrypt($this->exportImplementationId) : null)
+            ->count();
     }
 
     #[Computed]
     public function exportImplementations()
     {
-        $implementations = Implementation::whereHas('batch.beneficiary')
+        return Implementation::whereHas('batch.beneficiary')
             ->where('users_id', Auth::id())
-            ->when($this->exportChoice === 'selected_project' && isset($this->searchExportProject) && !empty($this->searchExportProject), function ($q) {
-                $q->where('project_num', 'LIKE', '%' . $this->searchExportProject . '%');
+            ->when($this->exportChoice === 'selected_project' && $this->searchExportProject, function ($q) {
+                $q->where(function ($query) {
+                    $query->where('implementations.project_num', 'LIKE', '%' . $this->searchExportProject . '%')
+                        ->orWhere('implementations.project_title', 'LIKE', '%' . $this->searchExportProject . '%');
+                });
             })
-            ->when($this->exportChoice === 'date_range' && !is_null($this->export_start) && !is_null($this->export_end), function ($q) {
-                $q->whereBetween('created_at', [$this->export_start, $this->export_end]);
-            })
-            ->latest('updated_at')
+            ->whereBetween('implementations.created_at', [$this->export_start, $this->export_end])
+            ->latest('implementations.updated_at')
             ->select([
                 'implementations.*'
             ])
             ->get();
-
-        return $implementations;
     }
 
     public function resetExport()
     {
         $this->reset('defaultExportStart', 'defaultExportEnd', 'export_start', 'export_end');
-        $this->resetValidation(['defaultExportStart', 'defaultExportEnd', 'exportImplementationId']);
+        $this->resetValidation(['exportImplementationId']);
 
         if ($this->exportImplementations->isEmpty()) {
             $this->exportImplementationId = null;
             $this->currentExportImplementation = 'None';
         } else {
             $this->exportImplementationId = encrypt($this->exportImplementations[0]->id);
-            $this->currentExportImplementation = $this->exportImplementations[0]->project_num;
+            $this->currentExportImplementation = $this->exportImplementations[0]->project_title ? ($this->exportImplementations[0]->project_title . ' / ' . $this->exportImplementations[0]->project_num) : $this->exportImplementations[0]->project_num;
         }
 
     }
 
     # ----------------------------------------------------------------------------------------------
 
-    public function setStartDate($value)
-    {
-        $this->reset('searchProject');
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->start = $choosenDate . ' ' . $currentTime;
-
-        if ($this->implementations->isEmpty()) {
-            $this->implementationId = null;
-            $this->currentImplementation = 'None';
-        } else {
-            $this->implementationId = encrypt($this->implementations[0]->id);
-            $this->currentImplementation = $this->implementations[0]->project_num;
-        }
-
-        $this->resetPage();
-        $this->setCharts();
-    }
-
-    public function setEndDate($value)
-    {
-        $this->reset('searchProject');
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        if ($this->implementations->isEmpty()) {
-            $this->implementationId = null;
-            $this->currentImplementation = 'None';
-        } else {
-            $this->implementationId = encrypt($this->implementations[0]->id);
-            $this->currentImplementation = $this->implementations[0]->project_num;
-        }
-
-        if (strtotime($this->start) > strtotime($this->end)) {
-            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
-            $this->start = $start;
-            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
-        }
-
-        $this->resetPage();
-        $this->setCharts();
-    }
-
     #[Computed]
-    public function projectCounters()
+    public function batchCounters()
     {
-        $projectCounters = Implementation::join('batches', 'implementations.id', '=', 'batches.implementations_id')
+        return Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
             ->where('implementations.users_id', Auth::id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->select([
-                DB::raw('COUNT(DISTINCT implementations.id) AS total_implementations'),
                 DB::raw('SUM(CASE WHEN batches.approval_status = "approved" THEN 1 ELSE 0 END) AS total_approved_assignments'),
                 DB::raw('SUM(CASE WHEN batches.approval_status = "pending" THEN 1 ELSE 0 END) AS total_pending_assignments'),
             ])
             ->first();
-
-        return $projectCounters;
     }
 
     #[Computed]
@@ -411,6 +343,18 @@ class Dashboard extends Component
         $implementations = Implementation::where('users_id', Auth::id())
             ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
             ->whereBetween('created_at', [$this->start, $this->end])
+            ->latest('updated_at')
+            ->get();
+
+        return $implementations;
+    }
+
+    #[Computed]
+    public function implementationsNoDate()
+    {
+        $implementations = Implementation::where('users_id', Auth::id())
+            ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
+            ->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()])
             ->latest('updated_at')
             ->get();
 
@@ -515,26 +459,10 @@ class Dashboard extends Component
     public function selectImplementation($key)
     {
         $this->resetPage();
-        $this->currentImplementation = $this->implementations[$key]->project_num;
+        $this->currentImplementation = $this->implementations[$key]->project_title ? ($this->implementations[$key]->project_title . ' / ' . $this->implementations[$key]->project_num) : $this->implementations[$key]->project_num;
         $this->implementationId = encrypt($this->implementations[$key]->id);
 
         $this->setCharts();
-    }
-
-    #[Computed]
-    public function batchesCount()
-    {
-        $batchesCount = $this->batches->total();
-
-        return $batchesCount;
-    }
-
-    #[Computed]
-    public function sectorsCount()
-    {
-        $sectorsCount = $this->batchesSectoral->total();
-
-        return $sectorsCount;
     }
 
     #[Computed]
@@ -544,6 +472,8 @@ class Dashboard extends Component
             ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
             ->select([
                 'batches.id',
+                'batches.is_sectoral',
+                'batches.sector_title',
                 'batches.barangay_name',
                 DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_female'),
@@ -555,31 +485,7 @@ class Dashboard extends Component
             ->where('implementations.users_id', Auth::id())
             ->where('implementations.id', isset($this->implementationId) ? decrypt($this->implementationId) : null)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
-            ->groupBy(['batches.id', 'batches.barangay_name'])
-            ->paginate(3);
-
-        return $batches;
-    }
-
-    #[Computed]
-    public function batchesSectoral()
-    {
-        $batches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
-            ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
-            ->select([
-                'batches.id',
-                'batches.sector_title',
-                DB::raw('SUM(CASE WHEN beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_female'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
-            ])
-            ->where('implementations.users_id', Auth::id())
-            ->where('implementations.id', isset($this->implementationId) ? decrypt($this->implementationId) : null)
-            ->whereBetween('batches.created_at', [$this->start, $this->end])
-            ->groupBy(['batches.id', 'batches.sector_title',])
+            ->groupBy(['batches.id', 'batches.is_sectoral', 'batches.sector_title', 'batches.barangay_name'])
             ->paginate(3);
 
         return $batches;
@@ -588,59 +494,143 @@ class Dashboard extends Component
     public function updated($prop)
     {
         if ($prop === 'defaultExportStart') {
-            $this->validateOnly('defaultExportStart');
-            $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
-            $choosenDate = date('Y-m-d', strtotime($date));
-            $currentTime = date('H:i:s', strtotime(now()));
+            $format = Essential::extract_date($this->defaultExportStart, false);
+            if ($format !== 'm/d/Y') {
+                $this->defaultExportStart = Carbon::parse($this->export_start)->format('m/d/Y');
+                return;
+            }
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
+            $currentTime = now()->startOfDay()->format('H:i:s');
+
             $this->export_start = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->export_start) > strtotime($this->export_end)) {
+                $export_end = Carbon::parse($this->export_start)->addMonth()->endOfDay()->format('Y-m-d H:i:s');
+                $this->export_end = $export_end;
+                $this->defaultExportEnd = Carbon::parse($this->export_end)->format('m/d/Y');
+            }
 
             if ($this->exportImplementations->isEmpty()) {
                 $this->exportImplementationId = null;
                 $this->currentExportImplementation = 'None';
             } else {
                 $this->exportImplementationId = encrypt($this->exportImplementations[0]->id);
-                $this->currentExportImplementation = $this->exportImplementations[0]->project_num;
+                $this->currentExportImplementation = $this->exportImplementations[0]->project_title ? ($this->exportImplementations[0]->project_title . ' / ' . $this->exportImplementations[0]->project_num) : $this->exportImplementations[0]->project_num;
             }
+
+            $this->dispatch('init-reload')->self();
         }
 
         if ($prop === 'defaultExportEnd') {
-            $this->validateOnly('defaultExportEnd');
-            $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
-            $choosenDate = date('Y-m-d', strtotime($date));
-            $currentTime = date('H:i:s', strtotime(now()));
+            $format = Essential::extract_date($this->defaultExportEnd, false);
+            if ($format !== 'm/d/Y') {
+                $this->defaultExportEnd = Carbon::parse($this->export_end)->format('m/d/Y');
+                return;
+            }
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
+            $currentTime = now()->endOfDay()->format('H:i:s');
+
             $this->export_end = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->export_start) > strtotime($this->export_end)) {
+                $export_start = Carbon::parse($this->export_end)->subMonth()->startOfDay()->format('Y-m-d H:i:s');
+                $this->export_start = $export_start;
+                $this->defaultExportStart = Carbon::parse($this->export_start)->format('m/d/Y');
+            }
 
             if ($this->exportImplementations->isEmpty()) {
                 $this->exportImplementationId = null;
                 $this->currentExportImplementation = 'None';
             } else {
                 $this->exportImplementationId = encrypt($this->exportImplementations[0]->id);
-                $this->currentExportImplementation = $this->exportImplementations[0]->project_num;
+                $this->currentExportImplementation = $this->exportImplementations[0]->project_title ? ($this->exportImplementations[0]->project_title . ' / ' . $this->exportImplementations[0]->project_num) : $this->exportImplementations[0]->project_num;
             }
+
+            $this->dispatch('init-reload')->self();
+        }
+
+        if ($prop === 'calendarStart') {
+            $format = Essential::extract_date($this->calendarStart, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarStart = $this->defaultStart;
+                return;
+            }
+
+            $this->reset('searchProject');
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarStart)->format('Y-m-d');
+            $currentTime = now()->startOfDay()->format('H:i:s');
+
+            $this->start = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $end = Carbon::parse($this->start)->addMonth()->endOfDay()->format('Y-m-d H:i:s');
+                $this->end = $end;
+                $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+            }
+
+            if ($this->implementations->isEmpty()) {
+                $this->implementationId = null;
+                $this->currentImplementation = 'None';
+            } else {
+                $this->implementationId = encrypt($this->implementations[0]->id);
+                $this->currentImplementation = $this->implementations[0]->project_title ? ($this->implementations[0]->project_title . ' / ' . $this->implementations[0]->project_num) : $this->implementations[0]->project_num;
+            }
+
+            $this->resetPage();
+            $this->setCharts();
+            $this->dispatch('init-reload')->self();
+        }
+
+        if ($prop === 'calendarEnd') {
+            $format = Essential::extract_date($this->calendarEnd, false);
+            if ($format !== 'm/d/Y') {
+                $this->calendarEnd = $this->defaultEnd;
+                return;
+            }
+
+            $this->reset('searchProject');
+            $choosenDate = Carbon::createFromFormat('m/d/Y', $this->calendarEnd)->format('Y-m-d');
+            $currentTime = now()->endOfDay()->format('H:i:s');
+
+            $this->end = $choosenDate . ' ' . $currentTime;
+
+            if (strtotime($this->start) > strtotime($this->end)) {
+                $start = Carbon::parse($this->end)->subMonth()->startOfDay()->format('Y-m-d H:i:s');
+                $this->start = $start;
+                $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+            }
+
+            if ($this->implementations->isEmpty()) {
+                $this->implementationId = null;
+                $this->currentImplementation = 'None';
+            } else {
+                $this->implementationId = encrypt($this->implementations[0]->id);
+                $this->currentImplementation = $this->implementations[0]->project_title ? ($this->implementations[0]->project_title . ' / ' . $this->implementations[0]->project_num) : $this->implementations[0]->project_num;
+            }
+
+            $this->resetPage();
+            $this->setCharts();
+            $this->dispatch('init-reload')->self();
         }
 
         if ($prop === 'exportChoice') {
+
             if ($this->exportChoice === 'selected_project') {
+
                 # By Date Range
-                $this->defaultExportStart = Carbon::parse($this->start)->format('m/d/Y');
-                $this->defaultExportEnd = Carbon::parse($this->end)->format('m/d/Y');
+                $this->defaultExportStart = $this->calendarStart;
+                $this->defaultExportEnd = $this->calendarEnd;
 
-                $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportStart)->format('Y-m-d');
-                $choosenDate = date('Y-m-d', strtotime($date));
-                $currentTime = date('H:i:s', strtotime(now()));
-                $this->export_start = $choosenDate . ' ' . $currentTime;
-
-                $date = Carbon::createFromFormat('m/d/Y', $this->defaultExportEnd)->format('Y-m-d');
-                $choosenDate = date('Y-m-d', strtotime($date));
-                $currentTime = date('H:i:s', strtotime(now()));
-                $this->export_end = $choosenDate . ' ' . $currentTime;
+                $this->export_start = $this->start;
+                $this->export_end = $this->end;
 
                 # By Selected Project
                 if ($this->implementationId) {
                     $this->exportImplementationId = $this->implementationId;
-                    $this->currentExportImplementation = $this->exportImplementation[0]->project_num;
+                    $this->currentExportImplementation = $this->exportImplementations[0]->project_title ? ($this->exportImplementations[0]->project_title . ' / ' . $this->exportImplementations[0]->project_num) : $this->exportImplementations[0]->project_num;
                 }
             }
+
             $this->dispatch('init-reload')->self();
         }
     }
@@ -665,11 +655,17 @@ class Dashboard extends Component
         /*
          *  Setting default dates in the datepicker
          */
-        $this->start = date('Y-m-d H:i:s', strtotime(now()->startOfYear()));
-        $this->end = date('Y-m-d H:i:s', strtotime(now()));
+        $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
+        $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
 
-        $this->defaultStart = date('m/d/Y', strtotime($this->start));
-        $this->defaultEnd = date('m/d/Y', strtotime($this->end));
+        $this->export_start = $this->start;
+        $this->export_end = $this->end;
+
+        $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
+        $this->calendarEnd = Carbon::parse($this->end)->format('m/d/Y');
+
+        $this->defaultStart = $this->calendarStart;
+        $this->defaultEnd = $this->calendarEnd;
 
         $this->defaultExportStart = $this->defaultStart;
         $this->defaultExportEnd = $this->defaultEnd;
@@ -679,7 +675,7 @@ class Dashboard extends Component
             $this->currentImplementation = 'None';
         } else {
             $this->implementationId = encrypt($this->implementations[0]->id);
-            $this->currentImplementation = $this->implementations[0]->project_num;
+            $this->currentImplementation = $this->implementations[0]->project_title ? ($this->implementations[0]->project_title . ' / ' . $this->implementations[0]->project_num) : $this->implementations[0]->project_num;
         }
 
         if ($this->exportImplementations->isEmpty()) {
@@ -687,7 +683,7 @@ class Dashboard extends Component
             $this->currentExportImplementation = 'None';
         } else {
             $this->exportImplementationId = encrypt($this->exportImplementations[0]->id);
-            $this->currentExportImplementation = $this->exportImplementations[0]->project_num;
+            $this->currentExportImplementation = $this->exportImplementations[0]->project_title ? ($this->exportImplementations[0]->project_title . ' / ' . $this->exportImplementations[0]->project_num) : $this->exportImplementations[0]->project_num;
         }
 
         /*

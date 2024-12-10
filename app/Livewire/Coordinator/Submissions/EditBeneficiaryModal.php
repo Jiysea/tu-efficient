@@ -547,9 +547,9 @@ class EditBeneficiaryModal extends Component
                     $identity->save();
 
                     if ($file) {
-                        LogIt::set_edit_beneficiary_identity($beneficiary, auth()->id());
+                        LogIt::set_edit_beneficiary_identity($beneficiary, $batch, auth()->user());
                     } else {
-                        LogIt::set_remove_beneficiary_identity($beneficiary, auth()->id());
+                        LogIt::set_remove_beneficiary_identity($beneficiary, $batch, auth()->user());
                     }
                     $isChanged = true;
                 }
@@ -593,9 +593,9 @@ class EditBeneficiaryModal extends Component
                         $special_case->save();
 
                         if ($file) {
-                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                         } else {
-                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                         }
                         $isChanged = true;
                     }
@@ -613,7 +613,7 @@ class EditBeneficiaryModal extends Component
                     }
 
                     $special_case->delete();
-                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                     $isChanged = true;
                 } else {
                     unset($this->beneficiary, $this->credentials);
@@ -623,7 +623,7 @@ class EditBeneficiaryModal extends Component
             if ($isChanged) {
                 $beneficiary->updated_at = now();
                 $beneficiary->save();
-                LogIt::set_edit_beneficiary($beneficiary, auth()->id());
+                LogIt::set_edit_beneficiary($beneficiary, $batch, auth()->user());
                 $this->dispatch('edit-beneficiary');
             }
 
@@ -912,6 +912,8 @@ class EditBeneficiaryModal extends Component
             } else {
                 $this->birthdate = null;
             }
+
+            $this->js('$wire.closeBirthdate();');
         }
 
         if ($property === 'civil_status') {
@@ -1085,7 +1087,7 @@ class EditBeneficiaryModal extends Component
 
     public function render()
     {
-        $this->is_sectoral = $this->implementation?->is_sectoral;
+        $this->is_sectoral = $this->batch?->is_sectoral;
         $this->maxDate = date('m-d-Y', strtotime(Carbon::now()->subYears(18)));
         $this->minDate = date('m-d-Y', strtotime(Carbon::now()->subYears(100)));
         $this->duplicationThreshold = intval($this->personalSettings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;

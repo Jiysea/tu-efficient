@@ -241,7 +241,7 @@ class ProcessImportSimilarity implements ShouldQueue
         }
 
         if ($successCounter > 0 && in_array($list, ['success' => true])) {
-            LogIt::set_import_success(User::find($this->users_id), $batch, $successCounter);
+            LogIt::set_import_success($batch, User::find($this->users_id), $successCounter);
         }
 
         # End Game

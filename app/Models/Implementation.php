@@ -16,11 +16,11 @@ class Implementation extends Model
         'purpose',
         'province',
         'city_municipality',
-        'is_sectoral',
         'budget_amount',
         'minimum_wage',
         'total_slots',
         'days_of_work',
+        'status', // pending, signing, concluded
     ];
 
     public function focal()

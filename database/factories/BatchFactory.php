@@ -17,12 +17,14 @@ class BatchFactory extends Factory
      */
     public function definition(): array
     {
+        $sectoral = fake()->randomElement([0, 1]);
         return [
             'implementations_id' => 0,
             'batch_num' => '',
+            'is_sectoral' => $sectoral,
             'sector_title' => null,
-            'district' => '',
-            'barangay_name' => '',
+            'district' => null,
+            'barangay_name' => null,
             'slots_allocated' => 0,
             'submission_status' => 'unopened', // submitted unopened revalidate encoding
             'approval_status' => 'pending', // approved pending

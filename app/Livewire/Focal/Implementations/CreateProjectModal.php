@@ -12,6 +12,7 @@ use App\Services\Provinces;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Js;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -31,7 +32,6 @@ class CreateProjectModal extends Component
     public $province;
     #[Validate]
     public $city_municipality;
-    public $is_sectoral = 0;
     #[Validate]
     public $budget_amount;
     #[Validate]
@@ -60,7 +60,6 @@ class CreateProjectModal extends Component
                 },
             ],
             'project_title' => 'nullable',
-            'is_sectoral' => 'required|integer',
             'purpose' => 'required',
             'province' => 'required',
             'city_municipality' => 'required',
@@ -120,7 +119,6 @@ class CreateProjectModal extends Component
     {
         return [
             'project_num.required' => 'This field is required.',
-            'is_sectoral.required' => 'Please select a type of implementation.',
             'purpose.required' => 'Please select a purpose.',
             'province.required' => 'This field is required.',
             'city_municipality.required' => 'This field is required.',
@@ -130,7 +128,6 @@ class CreateProjectModal extends Component
             'days_of_work.required' => 'This field is required.',
 
             'project_num.integer' => 'Project Number should be a number.',
-            'is_sectoral.integer' => 'Invalid implementation type.',
             'total_slots.integer' => 'Total Slots should be a number.',
             'total_slots.min' => 'Total Slots should be > 0.',
             'days_of_work.integer' => 'Days should be a number.',
@@ -180,16 +177,16 @@ class CreateProjectModal extends Component
             'project_num' => $this->project_num,
             'project_title' => $this->project_title,
             'purpose' => $this->purpose,
-            'is_sectoral' => $this->is_sectoral,
             'province' => $this->province,
             'city_municipality' => $this->city_municipality,
             'budget_amount' => $this->budget_amount,
             'minimum_wage' => $this->minimum_wage,
             'total_slots' => $this->total_slots,
-            'days_of_work' => $this->days_of_work
+            'days_of_work' => $this->days_of_work,
+            'payroll_status' => 'pending',
         ]);
 
-        LogIt::set_create_project($implementation);
+        LogIt::set_create_project($implementation, auth()->user());
         $this->resetProject();
         $this->js('createProjectModal = false;');
         $this->dispatch('create-project');
@@ -213,14 +210,7 @@ class CreateProjectModal extends Component
             ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 10 : $this->days_of_work;
             $this->total_slots = intval($tempBudget / ($tempWage * $this->days_of_work));
 
-            $this->validateOnly('days_of_work');
-            $this->validateOnly('total_slots');
-        } else {
-            if (!$this->total_slots) {
-                $this->reset('total_slots');
-                $this->resetValidation(['total_slots']);
-            }
-
+            $this->validate();
         }
     }
 
@@ -247,20 +237,10 @@ class CreateProjectModal extends Component
 
     public function resetProject()
     {
-        $this->reset(
-            'project_num',
-            'project_title',
-            'purpose',
-            'budget_amount',
-            'total_slots',
-            'days_of_work',
-            'minimum_wage',
-            'isAutoComputeEnabled',
-        );
-
-        $this->generateProjectNum();
-
+        $this->reset();
+        $this->js('$wire.resetBudget();');
         $this->resetValidation();
+        $this->generateProjectNum();
         $this->province = $this->provinces[0];
         $this->city_municipality = $this->cities_municipalities[0];
     }
@@ -270,6 +250,15 @@ class CreateProjectModal extends Component
     {
         return UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
+    }
+
+    #[Js]
+    public function resetBudget()
+    {
+        return <<<JS
+            const budget = document.getElementById('budget_amount');
+            budget.value = null;
+        JS;
     }
 
     public function mount()

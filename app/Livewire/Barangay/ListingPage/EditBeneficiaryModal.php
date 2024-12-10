@@ -440,6 +440,7 @@ class EditBeneficiaryModal extends Component
     public function editBeneficiary()
     {
         $this->validate();
+        $this->js('$parent.authorizeBeforeExecuting();');
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
@@ -546,9 +547,9 @@ class EditBeneficiaryModal extends Component
                     $identity->save();
 
                     if ($file) {
-                        LogIt::set_edit_beneficiary_identity($beneficiary, auth()->id());
+                        LogIt::set_edit_beneficiary_identity($beneficiary, $batch, auth()->user());
                     } else {
-                        LogIt::set_remove_beneficiary_identity($beneficiary, auth()->id());
+                        LogIt::set_remove_beneficiary_identity($beneficiary, $batch, auth()->user());
                     }
                     $isChanged = true;
                 }
@@ -592,9 +593,9 @@ class EditBeneficiaryModal extends Component
                         $special_case->save();
 
                         if ($file) {
-                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                         } else {
-                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                         }
                         $isChanged = true;
                     }
@@ -612,7 +613,7 @@ class EditBeneficiaryModal extends Component
                     }
 
                     $special_case->delete();
-                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, auth()->id());
+                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
                     $isChanged = true;
                 } else {
                     unset($this->beneficiary, $this->credentials);
@@ -622,7 +623,7 @@ class EditBeneficiaryModal extends Component
             if ($isChanged) {
                 $beneficiary->updated_at = now();
                 $beneficiary->save();
-                LogIt::set_edit_beneficiary($beneficiary, auth()->id());
+                LogIt::set_edit_beneficiary($beneficiary, $batch, auth()->user());
                 $this->dispatch('edit-beneficiary');
             }
 
@@ -942,6 +943,8 @@ class EditBeneficiaryModal extends Component
             } else {
                 $this->birthdate = null;
             }
+
+            $this->js('$wire.closeBirthdate();');
         }
 
         if ($property === 'civil_status') {
@@ -992,19 +995,14 @@ class EditBeneficiaryModal extends Component
     #[Computed]
     public function credentials()
     {
-        if ($this->beneficiaryId) {
-            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
-                ->get();
-
-            return $credentials;
-        }
+        return Credential::where('beneficiaries_id', $this->beneficiaryId ? decrypt($this->beneficiaryId) : null)
+            ->get();
     }
 
     #[Computed]
     public function implementation()
     {
-        $implementation = Implementation::find($this->batch?->implementations_id);
-        return $implementation;
+        return Implementation::find($this->batch?->implementations_id);
     }
 
     #[Computed]
@@ -1019,8 +1017,7 @@ class EditBeneficiaryModal extends Component
     #[Computed]
     public function batch()
     {
-        $batch = Batch::find($this->beneficiary?->batches_id);
-        return $batch;
+        return Batch::find($this->beneficiary?->batches_id);
     }
 
     # Gets all the districts (unless it's a lone district) according to the choosen city/municipality by the user
@@ -1139,7 +1136,7 @@ class EditBeneficiaryModal extends Component
     public function render()
     {
         $this->dispatch('init-reload')->self();
-        $this->is_sectoral = $this->implementation?->is_sectoral;
+        $this->is_sectoral = $this->batch?->is_sectoral;
         # gets the settings of the focal
         $this->duplicationThreshold = floatval($this->settings->get('duplication_threshold', config('settings.duplication_threshold'))) / 100;
         $this->maximumIncome = $this->settings->get('maximum_income', config('settings.maximum_income'));

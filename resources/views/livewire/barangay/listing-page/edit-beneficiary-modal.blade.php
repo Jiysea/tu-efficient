@@ -2,10 +2,10 @@
 
     <!-- Modal -->
     <div x-show="editBeneficiaryModal" x-trap.noautofocus.noscroll="editBeneficiaryModal"
-        class="relative h-full p-4 overflow-y-auto flex items-start justify-center select-none">
+        class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         <!-- Modal content -->
-        <div class="w-full max-w-7xl">
+        <div class="w-full max-w-screen-xl">
             <div x-data="{ confirmTypeChangeModal: $wire.entangle('confirmTypeChangeModal') }" class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -48,7 +48,7 @@
                 <!-- Modal body -->
                 <form wire:submit.prevent="editBeneficiary" class="{{ $is_sectoral ? 'px-5 pt-5 pb-16' : 'p-5' }}">
                     <div
-                        class="grid gap-x-2.5 gap-y-6 col-span-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
+                        class="grid gap-x-2.5 gap-y-6 grid-cols-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
                         <div x-data="{ addReasonModal: $wire.entangle('addReasonModal') }"
@@ -482,7 +482,7 @@
                             </div>
                             <input type="text" datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                 datepicker-min-date='{{ $minDate }}' datepicker-max-date='{{ $maxDate }}'
-                                id="edit_birthdate" autocomplete="off" wire:model.live.debounce.500ms="birthdate"
+                                id="edit_birthdate" autocomplete="off" wire:model.blur="birthdate"
                                 @change-date.camel="$wire.$set('birthdate', $el.value);"
                                 class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-green-50 border-green-300 text-green-1100 focus:ring-green-600 focus:border-green-600' }}"
                                 placeholder="Select date">

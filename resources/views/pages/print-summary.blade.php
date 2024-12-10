@@ -9,8 +9,8 @@
             size: A4;
             font-family: 'Inter', sans-serif;
 
-            @top-left {
-                content: "Page: " counter(page);
+            @bottom-left {
+                content: counter(page);
             }
         }
     </style>
@@ -24,7 +24,7 @@
                 'seniors' => $seniors,
                 'pwds' => $pwds,
                 'implementation' => $implementation,
-                'barangays' => $barangays
+                'batches' => $batches
             ]
         
         # overall -> should be an array of `male` and `female` (int)
@@ -32,7 +32,7 @@
         # pwds -> should be an array of `male` and `female` (int)
         # implementation -> should be an array that consist all
                             details about that implementation
-        # barangays -> should be an array of the SUM per overall,
+        # batches -> should be an array of the SUM per overall,
                         PWD, and Senior Citizens 
         
                         --}}
@@ -71,10 +71,7 @@
             <p class="flex items-center gap-2"> <span class="font-medium">Province:</span>
                 {{ $implementation['province'] }} </p>
             <p class="flex items-center gap-2"> <span class="font-medium">City/Municipality:</span>
-                {{ $implementation['city_municipality'] }}
-            </p>
-            <p class="flex items-center gap-2"> <span class="font-medium">District:</span>
-                {{ $implementation['district'] }} </p>
+                {{ $implementation['city_municipality'] }} </p>
             <p class="flex items-center gap-2"> <span class="font-medium">Budget:</span>
                 ₱{{ \App\Services\MoneyFormat::mask($implementation['budget_amount']) }} </p>
             <p class="flex items-center gap-2"> <span class="font-medium">Minimum Wage:</span>
@@ -85,6 +82,9 @@
                 {{ $implementation['days_of_work'] }} </p>
             <p class="flex items-center gap-2"> <span class="font-medium">Purpose:</span>
                 {{ $implementation['purpose'] }} </p>
+            <p class="flex items-center gap-2"> <span class="font-medium">Status:</span>
+                <span class="uppercase">{{ $implementation['status'] }}</span>
+            </p>
             <p class="flex items-center gap-2"> <span class="font-medium">Date Created:</span>
                 {{ \Carbon\Carbon::parse($implementation['created_at'])->format('M d, Y @ h:i:sa') }} </p>
             <p class="flex items-center gap-2"> <span class="font-medium">Last Updated:</span>
@@ -146,43 +146,44 @@
             </div>
         </div>
 
-        <hr class="text-gray-500 my-5">
-
-        {{-- By Beneficiaries --}}
-        <div class="text-lg font-bold mb-4">• Total By Barangay</div>
-        @foreach ($barangays as $key => $barangay)
+        {{-- By Batch --}}
+        <div class="text-lg font-bold mb-2">• Total By Batch</div>
+        @foreach ($batches as $key => $batch)
             <div class="grid grid-cols-2 w-full mb-4">
                 <h1 class="col-span-full text-base font-medium mb-3 underline underline-offset-8 decoration-gray-300">
-                    #{{ $key + 1 }} • Brgy. {{ $barangay['barangay_name'] }}
-                    ({{ $barangay['total_male'] + $barangay['total_female'] }})
+                    {{ '#' . intval($key + 1) . ' [' . ($batch['is_sectoral'] === 1 ? 'SECTORAL' : 'NON-SECTORAL') . '] ' . ($batch['barangay_name'] ? 'Brgy. ' : '') }}
+                    {{ $batch['barangay_name'] ?? $batch['sector_title'] }}
+                    ({{ $batch['total_male'] + $batch['total_female'] }})
                 </h1>
 
                 <p class="flex items-center gap-2">
                     <span class="font-medium">Total Male:</span>
-                    {{ $barangay['total_male'] }}
+                    {{ $batch['total_male'] }}
                 </p>
                 <p class="flex items-center gap-2">
                     <span class="font-medium">Total Female:</span>
-                    {{ $barangay['total_female'] }}
+                    {{ $batch['total_female'] }}
                 </p>
                 <p class="flex items-center gap-2">
                     <span class="font-medium">PWD Male:</span>
-                    {{ $barangay['total_pwd_male'] }}
+                    {{ $batch['total_pwd_male'] }}
                 </p>
                 <p class="flex items-center gap-2">
                     <span class="font-medium">PWD Female:</span>
-                    {{ $barangay['total_pwd_female'] }}
+                    {{ $batch['total_pwd_female'] }}
                 </p>
                 <p class="flex items-center gap-2">
                     <span class="font-medium">Senior Male:</span>
-                    {{ $barangay['total_senior_male'] }}
+                    {{ $batch['total_senior_male'] }}
                 </p>
                 <p class="flex items-center gap-2">
                     <span class="font-medium">Senior Female:</span>
-                    {{ $barangay['total_senior_female'] }}
+                    {{ $batch['total_senior_female'] }}
                 </p>
             </div>
         @endforeach
+
+        <hr class="text-gray-500 my-5">
 
     </div>
     @livewireScriptConfig

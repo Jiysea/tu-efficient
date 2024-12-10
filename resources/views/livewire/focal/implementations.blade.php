@@ -2,9 +2,13 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, isAboveBreakpoint: true }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, isAboveBreakpoint: true, isMobile: window.innerWidth < 768 }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
+});
+window.addEventListener('resize', () => {
+    isMobile = window.innerWidth < 768;
+    $wire.$dispatchSelf('init-reload');
 });">
 
     <div :class="{
@@ -16,68 +20,79 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
         <div class="p-2 min-h-screen select-none">
 
             {{-- Nav Title and Date Dropdown --}}
-            <div class="relative flex items-center my-2 gap-2">
+            <div class="relative flex items-center justify-between w-full gap-2 my-2 lg:my-0 lg:h-[7.5vh]">
+                <div class="flex items-center gap-2">
+                    <livewire:sidebar.focal-bar />
 
-                <livewire:sidebar.focal-bar />
+                    <h1 class="text-xl font-semibold sm:font-bold xl:ms-2">Implementations
+                    </h1>
 
-                <h1 class="sm:text-xl font-semibold sm:font-bold xl:ms-2">Implementations
-                </h1>
+                    {{-- Date Range picker --}}
+                    <template x-if="!isMobile">
+                        <div id="implementations-date-range" date-rangepicker datepicker-autohide
+                            class="flex items-center gap-1 sm:gap-2 text-xs">
+                            <span class="relative inline-flex items-center gap-1 sm:gap-2" x-data="{ pop: false }">
+                                {{-- Start --}}
+                                <div class="relative" @mouseleave="pop = false;" @mouseenter="pop = true;">
+                                    <div
+                                        class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="start-date" wire:model.change="calendarStart"
+                                        @change-date.camel="$wire.$set('calendarStart', $el.value); " name="start"
+                                        value="{{ $calendarStart }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date start">
+                                </div>
 
-                {{-- Date Range picker --}}
-                <div id="implementations-date-range" date-rangepicker datepicker-autohide
-                    class="flex items-center gap-1 sm:gap-2 text-xs">
+                                <span class="text-indigo-1100">to</span>
 
-                    {{-- Start --}}
-                    <div class="relative">
-                        <div
-                            class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
-                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                viewBox="0, 0, 400,400">
-                                <g>
-                                    <path
-                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                </g>
-                            </svg>
+                                {{-- End --}}
+                                <div class="relative" @mouseleave="pop = false;" @mouseenter="pop = true;">
+                                    <div
+                                        class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="end-date" wire:model.change="calendarEnd"
+                                        @change-date.camel="$wire.$set('calendarEnd', $el.value); " name="end"
+                                        value="{{ $calendarEnd }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date end">
+                                </div>
+
+                                {{-- Tooltip Content --}}
+                                <div x-cloak x-show="pop" x-transition.opacity
+                                    class="absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs text-center font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                    This sets the <span class="text-indigo-500">date range</span> of what records to
+                                    show <br>
+                                    based on the its creation date (start to end)
+                                </div>
+                            </span>
                         </div>
-                        <input id="start-date" name="start" type="text" value="{{ $defaultStart }}"
-                            @change-date.camel="$wire.setStartDate($el.value); $dispatchSelf('scroll-top-implementations'); $dispatchSelf('scroll-top-batches'); $dispatchSelf('scroll-top-beneficiaries');"
-                            datepicker-max-date="{{ $defaultStart }}"
-                            class="bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
-                            placeholder="Select date start">
-                    </div>
-
-                    <span class="text-indigo-1100">to</span>
-
-                    {{-- End --}}
-                    <div class="relative">
-                        <div
-                            class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
-                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                viewBox="0, 0, 400,400">
-                                <g>
-                                    <path
-                                        d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
-                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                </g>
-                            </svg>
-                        </div>
-                        <input id="end-date" name="end" type="text" value="{{ $defaultEnd }}"
-                            @change-date.camel="$wire.setEndDate($el.value); $dispatchSelf('scroll-top-implementations'); $dispatchSelf('scroll-top-batches'); $dispatchSelf('scroll-top-beneficiaries');"
-                            datepicker-min-date="{{ $defaultEnd }}"
-                            class="bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
-                            placeholder="Select date end">
-                    </div>
+                    </template>
                 </div>
 
                 {{-- Loading State --}}
-                <div class="absolute items-center justify-end z-50 min-h-full min-w-full text-indigo-900"
-                    wire:loading.flex
-                    wire:target="setStartDate, setEndDate, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary">
-                    <svg class="w-8 h-8 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24">
+                <template x-if="!isMobile">
+                    <svg class="text-indigo-900 size-6 animate-spin" wire:loading
+                        wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4">
                         </circle>
@@ -85,12 +100,109 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                         </path>
                     </svg>
-                </div>
+                </template>
+
+                {{-- MD:Date Range Picker --}}
+                <template x-data="{ show: false }" x-if="isMobile">
+                    <div class="relative flex items-center justify-center gap-2 h-full">
+
+                        {{-- MD:Loading State --}}
+                        <svg class="text-indigo-900 size-6 animate-spin" wire:loading
+                            wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+
+                        {{-- Show Left Dates --}}
+                        <span class="relative" x-data="{ pop: false }">
+                            <button type="button" @mouseleave="pop = false;" @mouseenter="pop = true;"
+                                @click="show = !show;"
+                                class="flex items-center justify-center p-1 rounded duration-200 ease-in-out hover:bg-indigo-100 text-zinc-500 hover:text-indigo-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                    viewBox="0, 0, 400,400">
+                                    <g>
+                                        <path
+                                            d="M93.157 14.058 C 88.540 16.873,87.506 19.624,87.503 29.102 L 87.500 37.500 65.304 37.500 C 36.969 37.500,32.063 38.825,22.483 49.067 C 12.153 60.111,12.432 57.893,12.681 126.869 L 12.891 185.269 16.126 188.286 C 21.669 193.457,28.330 193.457,33.874 188.287 L 37.109 185.270 37.337 161.385 L 37.565 137.500 200.046 137.500 L 362.527 137.500 362.318 245.117 C 362.112 351.136,362.086 352.774,360.547 355.387 C 358.537 358.800,355.734 360.861,351.893 361.752 C 347.818 362.697,52.182 362.697,48.107 361.752 C 39.092 359.661,37.977 356.783,37.500 334.375 C 37.082 314.738,36.969 314.164,32.807 310.662 C 27.942 306.569,21.186 306.994,16.126 311.713 L 12.891 314.729 12.659 335.554 C 12.465 352.942,12.636 357.109,13.697 360.806 C 17.046 372.482,26.754 382.410,38.352 386.020 C 45.124 388.127,353.807 388.358,360.991 386.261 C 372.544 382.889,382.437 373.161,386.020 361.648 C 388.332 354.218,388.332 70.782,386.020 63.352 C 382.437 51.839,372.544 42.111,360.991 38.739 C 357.560 37.737,352.514 37.500,334.624 37.500 L 312.500 37.500 312.497 29.102 C 312.493 16.846,309.225 12.506,300.000 12.506 C 290.775 12.506,287.507 16.846,287.503 29.102 L 287.500 37.500 200.000 37.500 L 112.500 37.500 112.497 29.102 C 112.492 14.820,103.447 7.784,93.157 14.058 M87.503 64.648 C 87.507 67.570,90.074 71.562,93.157 73.442 C 100.677 78.027,112.486 72.658,112.497 64.648 L 112.500 62.500 200.000 62.500 L 287.500 62.500 287.503 64.648 C 287.514 72.658,299.323 78.027,306.843 73.442 C 309.926 71.562,312.493 67.570,312.497 64.648 L 312.500 62.500 330.664 62.519 C 362.294 62.551,361.983 62.258,362.363 92.383 L 362.617 112.500 200.000 112.500 L 37.383 112.500 37.637 92.383 C 38.017 62.236,37.514 62.715,68.945 62.580 L 87.500 62.500 87.503 64.648 M81.641 175.896 C 79.207 177.217,14.882 241.534,13.621 243.907 C 13.004 245.067,12.500 247.809,12.500 250.000 C 12.500 255.994,12.363 255.834,47.410 290.739 C 82.912 326.097,81.626 325.001,87.644 324.997 C 95.270 324.992,99.992 320.270,99.997 312.644 C 100.001 306.721,100.366 307.180,77.071 283.789 L 55.870 262.500 130.083 262.497 C 202.759 262.494,204.350 262.462,206.843 260.942 C 214.551 256.242,214.551 243.758,206.843 239.058 C 204.350 237.538,202.759 237.506,130.083 237.503 L 55.870 237.500 77.071 216.211 C 100.366 192.820,100.001 193.279,99.997 187.356 C 99.991 178.049,89.611 171.569,81.641 175.896 "
+                                            stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                    </g>
+                                </svg>
+                            </button>
+
+                            {{-- Tooltip Content --}}
+                            <div x-cloak x-show="!show && pop" x-transition.opacity
+                                class="absolute z-50 top-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                Toggles the <span class="text-indigo-400">date range</span> menu
+                            </div>
+                        </span>
+
+                        <div x-show="show" x-transition.opacity
+                            class="absolute right-full top-0 me-2 flex flex-col items-center justify-center gap-2 rounded p-2 z-40 border border-indigo-500 bg-white">
+
+                            <span class="text-indigo-1100 text-xs font-medium">
+                                Date Range (Start to End)
+                            </span>
+
+                            <div id="implementations-date-range" date-rangepicker datepicker-autohide
+                                class="flex items-center gap-1 sm:gap-2 text-xs">
+
+                                {{-- Start --}}
+                                <div class="relative">
+                                    <div
+                                        class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="start-date"
+                                        @change-date.camel="$wire.$set('calendarStart', $el.value);  show = false;"
+                                        wire:model.change="calendarStart" name="start" value="{{ $calendarStart }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date start">
+                                </div>
+
+                                <span class="text-indigo-1100">-></span>
+
+                                {{-- End --}}
+                                <div class="relative">
+                                    <div
+                                        class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M126.172 51.100 C 118.773 54.379,116.446 59.627,116.423 73.084 L 116.406 83.277 108.377 84.175 C 76.942 87.687,54.343 110.299,50.788 141.797 C 49.249 155.427,50.152 292.689,51.825 299.512 C 57.852 324.094,76.839 342.796,101.297 348.245 C 110.697 350.339,289.303 350.339,298.703 348.245 C 323.161 342.796,342.148 324.094,348.175 299.512 C 349.833 292.748,350.753 155.358,349.228 142.055 C 345.573 110.146,323.241 87.708,291.623 84.175 L 283.594 83.277 283.594 73.042 C 283.594 56.745,279.386 50.721,267.587 50.126 C 254.712 49.475,250.000 55.397,250.000 72.227 L 250.000 82.813 200.000 82.813 L 150.000 82.813 150.000 72.227 C 150.000 58.930,148.409 55.162,141.242 51.486 C 137.800 49.721,129.749 49.515,126.172 51.100 M293.164 118.956 C 308.764 123.597,314.804 133.574,316.096 156.836 L 316.628 166.406 200.000 166.406 L 83.372 166.406 83.904 156.836 C 85.337 131.034,93.049 120.612,112.635 118.012 C 123.190 116.612,288.182 117.474,293.164 118.956 M316.400 237.305 C 316.390 292.595,315.764 296.879,306.321 306.321 C 296.160 316.483,296.978 316.405,200.000 316.405 C 103.022 316.405,103.840 316.483,93.679 306.321 C 84.236 296.879,83.610 292.595,83.600 237.305 L 83.594 200.000 200.000 200.000 L 316.406 200.000 316.400 237.305 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <input type="text" readonly id="end-date" wire:model.change="calendarEnd"
+                                        @change-date.camel="$wire.$set('calendarEnd', $el.value);  show = false;"
+                                        name="end" value="{{ $calendarEnd }}"
+                                        class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
+                                        placeholder="Select date end">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
 
-            <div class="relative grid grid-cols-1 w-full h-full gap-4 lg:grid-cols-5">
+            <div class="relative grid grid-cols-1 w-full lg:h-[90vh] gap-4 lg:grid-cols-5">
                 {{-- List of Projects --}}
-                <div x-data="{ createProjectModal: $wire.entangle('createProjectModal'), viewProjectModal: $wire.entangle('viewProjectModal') }" class="relative lg:col-span-3 h-full w-full rounded bg-white shadow">
+                <div class="relative lg:col-span-3 size-full rounded bg-white shadow" x-data="{ createProjectModal: $wire.entangle('createProjectModal'), viewProjectModal: $wire.entangle('viewProjectModal') }">
 
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 flex items-center justify-between">
@@ -164,7 +276,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </button>
                                 {{-- Popover --}}
                                 <div x-cloak x-show="pop" x-transition.opacity
-                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-semibold whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
                                     Create an Implementation Project
                                 </div>
                             </span>
@@ -174,7 +286,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     @if (!$this->implementations->isEmpty())
                         {{-- List of Projects Table --}}
                         <div id="implementations-table"
-                            class="relative h-[36vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                            class="relative h-[36vh] overflow-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                             <table class="relative w-full text-sm text-left text-indigo-1100 whitespace-nowrap">
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
                                     <tr>
@@ -191,7 +303,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             total slots
                                         </th>
                                         <th scope="col" class="pr-2 py-2 text-center">
-                                            type
+                                            status
                                         </th>
                                         <th scope="col" class="px-2 py-2 text-center">
 
@@ -220,8 +332,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{ $implementation->total_slots }}
                                             </td>
                                             <td class="pr-2 py-2 text-center">
-                                                <span
-                                                    class="{{ $implementation->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-indigo-200 text-indigo-900' }} rounded-full px-2 py-1 text-xs font-semibold">{{ $implementation->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
+                                                <span class="rounded-full px-2 py-1 text-xs font-semibold uppercase"
+                                                    :class="{
+                                                        'bg-amber-200 text-amber-800': {{ json_encode($implementation?->status === 'pending') }},
+                                                        'bg-lime-200 text-lime-800': {{ json_encode($implementation?->status === 'signing') }},
+                                                        'bg-indigo-200 text-indigo-800': {{ json_encode($implementation?->status === 'concluded') }},
+                                                    }">
+                                                    {{ $implementation->status }}
+                                                </span>
                                             </td>
                                             <td class="py-1">
 
@@ -265,22 +383,22 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     \Carbon\Carbon::parse($start)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultStart)->format('Y-m-d') ||
                                         \Carbon\Carbon::parse($end)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultEnd)->format('Y-m-d'))
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
                                             <path
-                                                d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
+                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
                                                 stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                         </g>
                                     </svg>
-                                    <p>No batches found.</p>
-                                    <p>Maybe try adjusting the <span class=" text-indigo-900">date
+                                    <p>No projects found.</p>
+                                    <p>Maybe try adjusting the <span class=" text-indigo-700">date
                                             range</span>.
                                     </p>
                                 @elseif (isset($searchProjects) && !empty($searchProjects))
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -290,10 +408,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>No projects found.</p>
-                                    <p>Try a different <span class=" text-indigo-900">search term</span>.</p>
+                                    <p>Try a different <span class=" text-indigo-700">search term</span>.</p>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -303,7 +421,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>No projects found.</p>
-                                    <p>Try creating a <span class=" text-indigo-900">new project</span>.</p>
+                                    <p>Try creating a <span class=" text-indigo-700">new project</span>.</p>
                                 @endif
                             </div>
                         </div>
@@ -318,7 +436,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 </div>
 
                 {{-- List of Batches --}}
-                <div x-data="{ assignBatchesModal: $wire.entangle('assignBatchesModal'), viewBatchModal: $wire.entangle('viewBatchModal') }" class="relative lg:col-span-2 h-full w-full rounded bg-white shadow">
+                <div class="relative lg:col-span-2 size-full rounded bg-white shadow" x-data="{ assignBatchesModal: $wire.entangle('assignBatchesModal'), viewBatchModal: $wire.entangle('viewBatchModal') }">
 
                     {{-- Upper/Header --}}
                     <div class="relative flex justify-between max-h-12 items-center">
@@ -360,7 +478,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                 </button>
                                 {{-- Popover --}}
                                 <div x-cloak x-show="pop" x-transition.opacity
-                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-semibold whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
                                     Assign Batches to Coordinators
                                 </div>
                             </span>
@@ -371,7 +489,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                         {{-- Batches Table --}}
                         <div id="batches-table"
-                            class="relative h-[36vh] overflow-y-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                            class="relative h-[36vh] overflow-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
 
                             <table class="relative w-full text-sm text-left text-indigo-1100">
                                 <thead class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0">
@@ -380,13 +498,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             {{-- Selected Row Indicator --}}
                                         </th>
                                         <th scope="col" class="ps-4 py-2">
-                                            {{ $this->implementation->is_sectoral ? 'sector title' : 'barangay' }}
+                                            barangay / sector
                                         </th>
                                         <th scope="col" class="px-2 py-2 text-center">
                                             slots
                                         </th>
                                         <th scope="col" class="px-2 py-2 text-center">
-                                            status
+                                            type
                                         </th>
                                         <th scope="col" class="px-2 py-2">
 
@@ -405,16 +523,17 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
-                                            <th scope="row" class="z-0 ps-4 py-2 font-medium">
-                                                {{ $this->implementation->is_sectoral ? $batch->sector_title : $batch->barangay_name }}
+                                            <th scope="row" class="ps-4 py-2 font-medium">
+                                                {{ $batch->is_sectoral ? $batch->sector_title : $batch->barangay_name }}
                                             </th>
                                             <td class="px-2 py-2 text-center">
                                                 {{ $batch->current_slots . ' / ' . $batch->slots_allocated }}
                                             </td>
                                             <td class="py-2 text-center">
                                                 <span
-                                                    class="px-3 py-1 text-xs rounded-full font-semibold uppercase {{ $batch->approval_status === 'approved' ? 'bg-green-300 text-green-1000' : 'bg-amber-300 text-amber-900' }}">
-                                                    {{ $batch->approval_status }}
+                                                    class="px-3 py-1 text-xs rounded-full font-semibold uppercase 
+                                                    {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">
+                                                    {{ $batch->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}
                                                 </span>
                                             </td>
                                             <td class="py-1 ps-2">
@@ -448,9 +567,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             class="relative bg-white px-4 pb-4 pt-2 h-[36vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                @if ($this->implementations->isEmpty())
+                                @if (
+                                    \Carbon\Carbon::parse($start)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultStart)->format('Y-m-d') ||
+                                        \Carbon\Carbon::parse($end)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultEnd)->format('Y-m-d'))
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -459,11 +580,40 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                         </g>
                                     </svg>
-                                    <p>Try creating a <span class=" text-indigo-900">new project</span>.
+                                    <p>No assignments found.</p>
+                                    <p>Maybe try adjusting the <span class=" text-indigo-700">date
+                                            range</span>.
+                                    </p>
+                                @elseif (isset($searchProjects) && !empty($searchProjects))
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No assignments found.</p>
+                                    <p>Try a different <span class=" text-indigo-700">search term</span> for the
+                                        project.</p>
+                                @elseif ($this->implementations->isEmpty())
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>Try creating a <span class=" text-indigo-700">new project</span>.
                                     </p>
                                 @elseif (!$implementationId)
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -473,11 +623,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>Try <span class="underline underline-offset-2">clicking</span> one of the <span
-                                            class=" text-indigo-900">projects</span> row.
+                                            class=" text-indigo-700">projects</span> row.
                                     </p>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -487,7 +637,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>No assignments found.</p>
-                                    <p>Try assigning a <span class=" text-indigo-900">new batch</span>.
+                                    <p>Try assigning a <span class=" text-indigo-700">new batch</span>.
                                     </p>
                                 @endif
 
@@ -503,7 +653,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 </div>
 
                 {{-- List of Beneficiaries --}}
-                <div x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), viewBeneficiaryModal: $wire.entangle('viewBeneficiaryModal'), importFileModal: $wire.entangle('importFileModal'), showExportModal: $wire.entangle('showExportModal') }" class="relative lg:col-span-5 h-full w-full rounded bg-white shadow">
+                <div class="relative lg:col-span-5 size-full rounded bg-white shadow" x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), viewBeneficiaryModal: $wire.entangle('viewBeneficiaryModal'), importFileModal: $wire.entangle('importFileModal'), showExportModal: $wire.entangle('showExportModal') }">
 
                     {{-- Upper/Header --}}
                     <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
@@ -586,13 +736,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </button>
 
-                                {{-- Popover --}}
+                                {{-- Tooltip Content --}}
                                 <div x-cloak x-show="pop" x-transition.opacity
-                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-semibold whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
                                     @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'])
                                         Import Beneficiaries from STIF File
                                     @else
-                                        You may able to <span class="text-indigo-500">import</span> beneficiaries <br>
+                                        You may able to <span class="text-indigo-400">import</span> beneficiaries <br>
                                         when you select a batch or the batch is not full slotted
                                     @endif
                                 </div>
@@ -616,13 +766,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </button>
 
-                                {{-- Popover --}}
+                                {{-- Tooltip Content --}}
                                 <div x-cloak x-show="pop" x-transition.opacity
-                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-semibold whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
                                     @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0)
                                         Export Beneficiaries to Annex File
                                     @else
-                                        You may able to <span class="text-indigo-500">export</span> an Annex <br>
+                                        You may able to <span class="text-indigo-400">export</span> an Annex <br>
                                         when there are beneficiaries on the batch
                                     @endif
                                 </div>
@@ -645,13 +795,13 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
                                 </button>
 
-                                {{-- Popover --}}
+                                {{-- Tooltip Content --}}
                                 <div x-cloak x-show="pop" x-transition.opacity
-                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-semibold whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
                                     @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'])
                                         Add Beneficiaries
                                     @else
-                                        You may able to <span class="text-indigo-500">add</span> beneficiaries <br>
+                                        You may able to <span class="text-indigo-400">add</span> beneficiaries <br>
                                         when you select a batch or the batch is not full slotted
                                     @endif
                                 </div>
@@ -662,7 +812,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                     @if ($batchId && !$this->beneficiaries->isEmpty())
                         {{-- Beneficiaries Table --}}
                         <div id="beneficiaries-table"
-                            class="relative h-[38.5vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+                            class="relative h-[38.5vh] overflow-auto scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                             <table class="relative w-full text-sm text-left text-indigo-1100">
                                 <thead
                                     class="text-xs z-20 text-indigo-50 uppercase bg-indigo-600 sticky top-0 whitespace-nowrap">
@@ -912,9 +1062,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                             class="relative bg-white px-4 pb-4 pt-2 h-[38.5vh] min-w-full flex items-center justify-center">
                             <div
                                 class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
-                                @if ($this->implementations->isEmpty())
+                                @if (
+                                    \Carbon\Carbon::parse($start)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultStart)->format('Y-m-d') ||
+                                        \Carbon\Carbon::parse($end)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultEnd)->format('Y-m-d'))
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -923,11 +1075,40 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                         </g>
                                     </svg>
-                                    <p>Try creating a <span class=" text-indigo-900">new project</span>.
+                                    <p>No beneficiaries found.</p>
+                                    <p>Maybe try adjusting the <span class=" text-indigo-700">date
+                                            range</span>.
+                                    </p>
+                                @elseif (isset($searchProjects) && !empty($searchProjects))
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>No beneficiaries found.</p>
+                                    <p>Try a different <span class=" text-indigo-700">search term</span> for the
+                                        project.</p>
+                                @elseif ($this->implementations->isEmpty())
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M176.172 0.910 C 75.696 12.252,0.391 97.375,0.391 199.609 C 0.391 257.493,19.900 304.172,60.647 343.781 C 165.736 445.935,343.383 403.113,389.736 264.453 C 436.507 124.544,322.897 -15.653,176.172 0.910 M212.891 24.550 C 335.332 30.161,413.336 167.986,357.068 279.297 C 350.503 292.285,335.210 314.844,332.970 314.844 C 332.663 314.844,321.236 303.663,307.575 289.997 L 282.737 265.149 290.592 261.533 L 298.448 257.917 298.247 199.928 L 298.047 141.938 249.053 119.044 L 200.059 96.150 170.626 109.879 L 141.194 123.608 113.175 95.597 C 97.765 80.191,85.156 67.336,85.156 67.030 C 85.156 65.088,106.255 50.454,118.011 44.241 C 143.055 31.005,179.998 22.077,201.953 23.956 C 203.242 24.066,208.164 24.334,212.891 24.550 M92.437 110.015 L 117.287 134.874 109.420 138.499 L 101.552 142.124 101.753 200.081 L 101.953 258.037 151.001 280.950 L 200.048 303.863 229.427 290.127 L 258.805 276.392 286.825 304.403 C 302.235 319.809,314.844 332.664,314.844 332.970 C 314.844 333.277,312.471 335.418,309.570 337.729 C 221.058 408.247,89.625 377.653,40.837 275.175 C 14.785 220.453,19.507 153.172,52.898 103.328 C 58.263 95.320,66.167 85.156,67.030 85.156 C 67.337 85.156,78.770 96.343,92.437 110.015 M228.883 136.523 C 244.347 143.721,257.004 149.785,257.011 150.000 C 257.063 151.616,200.203 176.682,198.198 175.928 C 194.034 174.360,143.000 150.389,142.998 150.000 C 142.995 149.483,198.546 123.555,199.797 123.489 C 200.330 123.460,213.419 129.326,228.883 136.523 M157.170 183.881 L 187.891 198.231 188.094 234.662 C 188.205 254.700,188.030 271.073,187.703 271.047 C 187.377 271.021,173.398 264.571,156.641 256.713 L 126.172 242.425 125.969 205.978 C 125.857 185.932,125.920 169.531,126.108 169.531 C 126.296 169.531,140.274 175.989,157.170 183.881 M274.031 205.994 L 273.828 242.458 243.359 256.726 C 226.602 264.574,212.623 271.017,212.297 271.044 C 211.970 271.071,211.795 254.704,211.906 234.673 L 212.109 198.252 242.578 183.949 C 259.336 176.083,273.314 169.621,273.641 169.589 C 273.967 169.557,274.143 185.940,274.031 205.994 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>Try creating a <span class=" text-indigo-700">new project</span>.
                                     </p>
                                 @elseif (!$implementationId)
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -937,11 +1118,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>Try <span class="underline underline-offset-2">clicking</span> one of the <span
-                                            class=" text-indigo-900">projects</span> row.
+                                            class=" text-indigo-700">projects</span> row.
                                     </p>
                                 @elseif ($this->batches->isEmpty())
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class=" size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -950,11 +1131,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                         </g>
                                     </svg>
-                                    <p>Try assigning a <span class=" text-indigo-900">new batch</span>.
+                                    <p>Try assigning a <span class=" text-indigo-700">new batch</span>.
                                     </p>
                                 @elseif (!$batchId)
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -964,11 +1145,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>Try <span class="underline underline-offset-2">clicking</span> one of the <span
-                                            class=" text-indigo-900">batches</span> row.
+                                            class=" text-indigo-700">batches</span> row.
                                     </p>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
+                                        class="size-12 sm:size-20 mb-4 text-zinc-300"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
                                         <g>
@@ -978,7 +1159,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                         </g>
                                     </svg>
                                     <p>No beneficiaries found.</p>
-                                    <p>Try adding a <span class=" text-indigo-900">new beneficiary</span>.
+                                    <p>Try adding a <span class=" text-indigo-700">new beneficiary</span>.
                                     </p>
                                 @endif
 
@@ -1020,7 +1201,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                             {{-- Loading State --}}
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                 class="size-6 text-indigo-900 animate-spin" wire:loading
-                                                wire:target="exportAnnex, showExport, exportFormat, defaultExportStart, defaultExportEnd, selectExportBatchRow"
+                                                wire:target="exportType, exportTypeCsv, exportAnnex, showExport, exportFormat, defaultExportStart, defaultExportEnd, selectExportBatchRow"
                                                 fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10"
                                                     stroke="currentColor" stroke-width="4">
@@ -1178,7 +1359,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 <span class="text-sm font-medium">Filter Date:</span>
                                                 <div class="relative">
                                                     <span
-                                                        class="absolute {{ $errors->has('defaultExportStart') ? 'text-red-900' : 'text-indigo-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                                        class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                             class="size-3.5 sm:size-5"
                                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
@@ -1193,14 +1374,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                         </svg>
                                                     </span>
                                                     <input id="export-start-date" name="start" type="text"
-                                                        @change-date.camel="$wire.set('defaultExportStart', $el.value);"
+                                                        readonly wire:model.change="defaultExportStart"
+                                                        @change-date.camel="$wire.$set('defaultExportStart', $el.value);"
                                                         value="{{ $defaultExportStart }}"
-                                                        class="border {{ $errors->has('defaultExportStart') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
+                                                        class="border bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500 text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
                                                         placeholder="Select date start">
-                                                    @error('defaultExportStart')
-                                                        <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
-                                                            {{ $message }}</p>
-                                                    @enderror
                                                 </div>
 
                                                 <span class="text-sm">-></span>
@@ -1208,7 +1386,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                 {{-- End --}}
                                                 <div class="relative">
                                                     <span
-                                                        class="absolute {{ $errors->has('defaultExportEnd') ? 'text-red-900' : 'text-indigo-900 ' }} inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                                        class="absolute text-indigo-900 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                             class="size-3.5 sm:size-5"
                                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
@@ -1223,14 +1401,11 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                         </svg>
                                                     </span>
                                                     <input id="export-end-date" name="end" type="text"
-                                                        @change-date.camel="$wire.set('defaultExportEnd', $el.value);"
+                                                        readonly wire:model.change="defaultExportEnd"
+                                                        @change-date.camel="$wire.$set('defaultExportEnd', $el.value);"
                                                         value="{{ $defaultExportEnd }}"
-                                                        class="border {{ $errors->has('defaultExportEnd') ? 'bg-red-100 border-red-300 text-red-700 placeholder-red-500 focus:ring-red-500 focus:border-red-500' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} block text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
+                                                        class="border bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500 text-xs rounded w-40 py-1.5 ps-7 sm:ps-8"
                                                         placeholder="Select date end">
-                                                    @error('defaultExportEnd')
-                                                        <p class="absolute top-full left-0 text-red-500 mt-1 text-xs">
-                                                            {{ $message }}</p>
-                                                    @enderror
                                                 </div>
                                             </div>
 
@@ -1246,10 +1421,10 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                     {{-- Button --}}
                                                     <button type="button" @click="show = !show;"
                                                         class="flex items-center justify-between w-64 sm:w-96 gap-2 border-2 outline-none text-xs font-semibold px-2 py-1 rounded
-                                                    disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
-                                                    bg-indigo-100 hover:bg-indigo-800 active:bg-indigo-900 
-                                                    text-indigo-700 hover:text-indigo-50 active:text-indigo-50
-                                                    border-indigo-700 hover:border-transparent active:border-transparent duration-200 ease-in-out">
+                                                        disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
+                                                        bg-indigo-100 hover:bg-indigo-800 active:bg-indigo-900 
+                                                        text-indigo-700 hover:text-indigo-50 active:text-indigo-50
+                                                        border-indigo-700 hover:border-transparent active:border-transparent duration-200 ease-in-out">
 
                                                         <span x-text="currentBatch"></span>
 
@@ -1263,8 +1438,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
                                                     {{-- Content --}}
                                                     <div x-show="show"
-                                                        @click.away="show = false; $wire.set('searchExportBatch', null);"
-                                                        class="absolute -left-20 sm:inset-x-0 bottom-full p-3 mb-2 w-96 text-indigo-1100 bg-white shadow-lg border border-indigo-100 rounded text-xs">
+                                                        @click.away="show = false; if(show == true) { $wire.set('searchExportBatch', null);} "
+                                                        class="absolute -left-20 sm:inset-x-0 bottom-full p-3 mb-2 max-w-96 text-indigo-1100 bg-white shadow-lg border border-indigo-100 rounded text-xs">
 
                                                         {{-- Batches Count | Search Bar --}}
                                                         <div class="flex items-center w-full gap-2">
@@ -1327,23 +1502,36 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                                     placeholder="Search batch number">
                                                             </div>
                                                         </div>
-                                                        <ul
+
+                                                        {{-- Batches List --}}
+                                                        <div
                                                             class="mt-2 text-xs overflow-y-auto h-40 scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                                                             @if ($this->exportBatches->isNotEmpty())
                                                                 @foreach ($this->exportBatches as $key => $batch)
-                                                                    <li wire:key={{ $key }}>
+                                                                    <span
+                                                                        class="relative flex items-center justify-between gap-2"
+                                                                        wire:key={{ $key }}>
+
+                                                                        {{-- Type of Batch --}}
+                                                                        <span
+                                                                            class="sticky flex items-center justify-center font-semibold p-1 rounded {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-indigo-200 text-indigo-900' }}">
+                                                                            {{ $batch->is_sectoral ? 'ST' : 'NS' }}
+                                                                        </span>
+
+                                                                        {{-- Row Button --}}
                                                                         <button type="button"
                                                                             wire:click="selectExportBatchRow('{{ encrypt($batch->id) }}')"
-                                                                            @click="show= !show; currentBatch = '{{ $batch->batch_num . ' / ' . $batch->barangay_name }}'"
+                                                                            @click="show= !show; currentBatch = '{{ ($batch->sector_title ?? $batch->barangay_name) . ' / ' . $batch->batch_num }}'"
                                                                             wire:loading.attr="disabled"
                                                                             aria-label="{{ __('Batch') }}"
-                                                                            class="w-full whitespace-nowrap flex items-center gap-2 px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
+                                                                            class="text-left outline-none w-full whitespace-nowrap overflow-x-auto scrollbar-none select-text flex items-center gap-2 ps-1 pe-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 focus:text-indigo-900 focus:bg-indigo-100 duration-200 ease-in-out">
 
-                                                                            <span
-                                                                                class="text-left">{{ $batch->batch_num }}
-                                                                                / {{ $batch->barangay_name }}
-                                                                            </span>
+                                                                            {{ ($batch->sector_title ?? $batch->barangay_name) . ' / ' . $batch->batch_num }}
 
+                                                                        </button>
+
+                                                                        {{-- Statuses --}}
+                                                                        <span class="sticky flex items-center gap-2">
                                                                             {{-- Approval Status --}}
                                                                             @if ($batch->approval_status === 'approved')
                                                                                 <span
@@ -1367,8 +1555,8 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                                                 <span
                                                                                     class="bg-red-200 text-red-900 rounded px-1.5 py-0.5 uppercase font-semibold">{{ substr($batch->submission_status, 0, 1) }}</span>
                                                                             @endif
-                                                                        </button>
-                                                                    </li>
+                                                                        </span>
+                                                                    </span>
                                                                 @endforeach
                                                             @else
                                                                 <div
@@ -1391,7 +1579,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                                                 class=" text-indigo-900">search
                                                                                 term</span>?
                                                                         </p>
-                                                                    @elseif ($export_start !== $defaultExportStart || $export_end !== $defaultExportEnd)
+                                                                    @elseif ($calendarStart !== $defaultExportStart || $calendarEnd !== $defaultExportEnd)
                                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                                             class="size-12 mb-4 text-indigo-900 opacity-65"
                                                                             xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -1423,14 +1611,14 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                                                             </g>
                                                                         </svg>
                                                                         <p>No batches found.</p>
-                                                                        <p>Ask your focal to <span
-                                                                                class=" text-indigo-900">assign
-                                                                                a batch</span> for you.
+                                                                        <p>Try assigning a <span
+                                                                                class="text-indigo-900">
+                                                                                a new batch</span>.
                                                                         </p>
                                                                     @endif
                                                                 </div>
                                                             @endif
-                                                        </ul>
+                                                        </div>
                                                     </div>
 
                                                 </div>
@@ -1485,18 +1673,6 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
 
 @script
     <script>
-        $wire.on('modifyStart', (event) => {
-            const start = document.getElementById('start-date');
-            start.value = event.newStart;
-
-            const datepicker = FlowbiteInstances.getInstance('Datepicker', 'implementations-date-range');
-            if (datepicker) {
-                datepicker.setDate(event.newStart);
-            }
-
-            $dispatchSelf('init-reload');
-        });
-
         $wire.on('scroll-top-implementations', () => {
             const implementations = document.getElementById('implementations-table');
             if (implementations) {

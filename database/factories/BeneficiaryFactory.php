@@ -33,21 +33,10 @@ class BeneficiaryFactory extends Factory
         $avg_monthly_income = $this->getAvgMonthlyIncome();
         $type_of_id = fake()->randomElement([
             'Barangay ID',
-            'Barangay Certificate',
             'e-Card / UMID',
             "Driver's License",
-            'Passport',
             'Phil-health ID',
-            'Philippine Postal ID',
-            'SSS ID',
-            "COMELEC / Voter's ID / COMELEC Registration Form",
             'Philippine Identification (PhilID / ePhilID)',
-            'NBI Clearance',
-            'Pantawid Pamilya Pilipino Program (4Ps) ID',
-            'Integrated Bar of the Philippines (IBP) ID',
-            'BIR (TIN)',
-            'Pag-ibig ID',
-            'Solo Parent ID'
         ]);
         $id_number = $this->getIdNumber($type_of_id);
         $age = $this->age($birthdate);
