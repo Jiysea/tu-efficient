@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Collection;
 class LogIt
 {
     # From Seeder/Users
-    public static function set_register_user(User $user, int $users_id = null, string $sender = null, string $log_type = 'create', mixed $timestamp = null)
+    public static function set_register_user(User|Collection $user, int $users_id = null, string $sender = null, string $log_type = 'create', mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $users_id,
@@ -42,7 +42,7 @@ class LogIt
         ]);
     }
 
-    public static function set_initialization_of_user_settings(UserSetting $settings, string $sender, string $regional_office, string $field_office, mixed $timestamp = null)
+    public static function set_initialization_of_user_settings(UserSetting|Collection $settings, string $sender, string $regional_office, string $field_office, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => null,
@@ -55,7 +55,7 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_user(User $modifiedUser, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_user(User|Collection $modifiedUser, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -67,7 +67,7 @@ class LogIt
         ]);
     }
 
-    public static function set_delete_user(User $modifiedUser, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_delete_user(User|Collection $modifiedUser, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $modifiedUser->toArray(),
@@ -182,7 +182,7 @@ class LogIt
 
     # ----------------------------------------------------------------------------------------------
 
-    public static function set_create_project(Implementation $implementation, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_create_project(Implementation|Collection $implementation, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -194,7 +194,7 @@ class LogIt
         ]);
     }
 
-    public static function set_create_batches(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_create_batches(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -206,7 +206,7 @@ class LogIt
         ]);
     }
 
-    public static function set_assign_coordinator_to_batch(Assignment $assignment, User|Authenticatable $user, string $log_type = 'create', mixed $timestamp = null)
+    public static function set_assign_coordinator_to_batch(Assignment|Collection $assignment, User|Authenticatable $user, string $log_type = 'create', mixed $timestamp = null)
     {
         $batch = Batch::find($assignment->batches_id);
         SystemsLog::create([
@@ -219,7 +219,7 @@ class LogIt
         ]);
     }
 
-    public static function set_pend_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_pend_batch(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -231,7 +231,7 @@ class LogIt
         ]);
     }
 
-    public static function set_force_approve(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_force_approve(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -243,7 +243,7 @@ class LogIt
         ]);
     }
 
-    public static function set_add_beneficiary(Beneficiary $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_add_beneficiary(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -255,7 +255,7 @@ class LogIt
         ]);
     }
 
-    public static function set_add_beneficiary_special_case(Beneficiary $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_add_beneficiary_special_case(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -267,7 +267,7 @@ class LogIt
         ]);
     }
 
-    public static function set_import_success(Batch $batch, User|Authenticatable $user, int $added_count)
+    public static function set_import_success(Batch|Collection $batch, User|Authenticatable $user, int $added_count)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -279,7 +279,7 @@ class LogIt
         ]);
     }
 
-    public static function set_import_special_cases(Batch $batch, User|Authenticatable $user, int $special_count)
+    public static function set_import_special_cases(Batch|Collection $batch, User|Authenticatable $user, int $special_count)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -291,7 +291,7 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_project(Implementation $implementation, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_project(Implementation|Collection $implementation, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -303,7 +303,7 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_batches(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_batches(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -315,7 +315,7 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_beneficiary(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_beneficiary(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -327,7 +327,7 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_beneficiary_identity(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_beneficiary_identity(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -339,7 +339,7 @@ class LogIt
         ]);
     }
 
-    public static function set_remove_beneficiary_identity(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_remove_beneficiary_identity(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $beneficiary->toArray(),
@@ -357,7 +357,7 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_beneficiary_special_case(Beneficiary|Collection $beneficiary, Credential|Collection $credential, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -369,7 +369,7 @@ class LogIt
         ]);
     }
 
-    public static function set_remove_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_remove_beneficiary_special_case(Beneficiary|Collection $beneficiary, Credential|Collection $credential, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $beneficiary->toArray(),
@@ -387,7 +387,7 @@ class LogIt
         ]);
     }
 
-    public static function set_delete_project(Implementation $implementation, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_delete_project(Implementation|Collection $implementation, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $implementation->toArray(),
@@ -404,7 +404,7 @@ class LogIt
         ]);
     }
 
-    public static function set_delete_batches(Implementation $implementation, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_delete_batches(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $implementation->toArray(),
@@ -422,7 +422,7 @@ class LogIt
         ]);
     }
 
-    public static function set_remove_coordinator_assignment(Assignment $assignment, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_remove_coordinator_assignment(Assignment|Collection $assignment, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $assignment->toArray(),
@@ -440,7 +440,7 @@ class LogIt
         ]);
     }
 
-    public static function set_delete_beneficiary(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $implementation->toArray(),
@@ -459,7 +459,7 @@ class LogIt
         ]);
     }
 
-    public static function set_delete_beneficiary_special_case(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, Credential $credential, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_delete_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $implementation->toArray(),
@@ -479,7 +479,7 @@ class LogIt
         ]);
     }
 
-    public static function set_archive_beneficiary(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_archive_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -491,7 +491,7 @@ class LogIt
         ]);
     }
 
-    public static function set_archive_beneficiary_special_case(Implementation $implementation, Batch $batch, Beneficiary $beneficiary, Credential $credential, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_archive_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -503,7 +503,7 @@ class LogIt
         ]);
     }
 
-    public static function set_restore_archive(Implementation $implementation, Batch $batch, Archive $archive, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_restore_archive(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $archive, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -515,7 +515,7 @@ class LogIt
         ]);
     }
 
-    public static function set_permanently_delete_archive(Implementation $implementation, Batch $batch, Archive $archive, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_permanently_delete_archive(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $archive, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -531,7 +531,7 @@ class LogIt
     # Coordinators -------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------
 
-    public static function set_approve_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_approve_batch(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -543,7 +543,7 @@ class LogIt
         ]);
     }
 
-    public static function set_open_access(Batch $batch, Code $code, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_open_access(Batch|Collection $batch, Code|Collection $code, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -555,7 +555,7 @@ class LogIt
         ]);
     }
 
-    public static function set_force_submit_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_force_submit_batch(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -567,7 +567,7 @@ class LogIt
         ]);
     }
 
-    public static function set_revalidate_batch(Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_revalidate_batch(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -587,7 +587,7 @@ class LogIt
     # Barangays ----------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------------------------------
 
-    public static function set_barangay_add_beneficiary(Beneficiary $beneficiary)
+    public static function set_barangay_add_beneficiary(Beneficiary|Collection $beneficiary)
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
@@ -598,7 +598,7 @@ class LogIt
         ]);
     }
 
-    public static function set_barangay_added_special_case(Beneficiary $beneficiary)
+    public static function set_barangay_added_special_case(Beneficiary|Collection $beneficiary)
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
@@ -609,7 +609,7 @@ class LogIt
         ]);
     }
 
-    public static function set_barangay_edit_beneficiary(Beneficiary $beneficiary)
+    public static function set_barangay_edit_beneficiary(Beneficiary|Collection $beneficiary)
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
@@ -620,7 +620,7 @@ class LogIt
         ]);
     }
 
-    public static function set_barangay_edit_beneficiary_special_case(Beneficiary $beneficiary, Credential $credential)
+    public static function set_barangay_edit_beneficiary_special_case(Beneficiary|Collection $beneficiary, Credential $credential)
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);
@@ -631,7 +631,7 @@ class LogIt
         ]);
     }
 
-    public static function set_barangay_submit(Batch $batch, Implementation $implementation, int $added_count, int $slots_allocated, int $special_cases)
+    public static function set_barangay_submit(Batch|Collection $batch, Implementation|Collection $implementation, int $added_count, int $slots_allocated, int $special_cases)
     {
         SystemsLog::create([
             'users_id' => null,
@@ -640,7 +640,7 @@ class LogIt
         ]);
     }
 
-    public static function set_barangay_delete_beneficiary(Beneficiary $beneficiary)
+    public static function set_barangay_delete_beneficiary(Beneficiary|Collection $beneficiary)
     {
         $batch = Batch::find($beneficiary->batches_id);
         $implementation = Implementation::find($batch->implementations_id);

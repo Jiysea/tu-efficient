@@ -569,9 +569,21 @@ class ViewBatch extends Component
 
             # save any updates on the batch model
             $batch->is_sectoral = $this->is_sectoral;
-            $batch->sector_title = $this->sector_title;
-            $batch->district = $this->district;
-            $batch->barangay_name = $this->barangay_name;
+
+            if ($this->is_sectoral) {
+
+                $batch->sector_title = $this->sector_title;
+                $batch->district = null;
+                $batch->barangay_name = null;
+
+            } elseif (!$this->is_sectoral) {
+
+                $batch->sector_title = null;
+                $batch->district = $this->district;
+                $batch->barangay_name = $this->barangay_name;
+
+            }
+
             $batch->slots_allocated = $this->slots_allocated;
 
             # first, get all the coordinators IDs to ignore
@@ -650,7 +662,11 @@ class ViewBatch extends Component
             );
 
             # save any updates on the batch model
-            $batch->sector_title = $this->sector_title;
+            if ($batch->is_sectoral) {
+                $batch->sector_title = $this->sector_title;
+            } elseif (!$batch->is_sectoral) {
+                $batch->sector_title = null;
+            }
 
             # first, get all the coordinators IDs to ignore
             foreach ($this->assigned_coordinators as $assignedCoordinator) {
