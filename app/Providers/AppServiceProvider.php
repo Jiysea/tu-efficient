@@ -9,6 +9,7 @@ use App\Models\Beneficiary;
 use App\Models\Code;
 use App\Models\Implementation;
 use App\Models\User;
+use DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        DB::statement('SET SESSION innodb_lock_wait_timeout = 5');
+
         Gate::define('edit-implementation-focal', function (User $user, Implementation $implementation) {
             if ($implementation)
                 return $user->id === $implementation->users_id;

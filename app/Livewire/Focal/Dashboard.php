@@ -459,7 +459,7 @@ class Dashboard extends Component
     public function selectImplementation($key)
     {
         $this->resetPage();
-        $this->currentImplementation = $this->implementations[$key]->project_title ? ($this->implementations[$key]->project_title . ' / ' . $this->implementations[$key]->project_num) : $this->implementations[$key]->project_num;
+        $this->currentImplementation = $this->implementations[$key]->project_num;
         $this->implementationId = encrypt($this->implementations[$key]->id);
 
         $this->setCharts();
@@ -675,7 +675,7 @@ class Dashboard extends Component
             $this->currentImplementation = 'None';
         } else {
             $this->implementationId = encrypt($this->implementations[0]->id);
-            $this->currentImplementation = $this->implementations[0]->project_title ? ($this->implementations[0]->project_title . ' / ' . $this->implementations[0]->project_num) : $this->implementations[0]->project_num;
+            $this->currentImplementation = $this->implementations[0]->project_num;
         }
 
         if ($this->exportImplementations->isEmpty()) {

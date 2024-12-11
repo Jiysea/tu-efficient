@@ -74,198 +74,198 @@ class DatabaseSeeder extends Seeder
 
         $startDate = $mobile_verified_at;
         self::initCoordinators($startDate, $focalUser);
-        $coordinatorUsers = User::where('user_type', 'coordinator')->get();
-
-        # ----------------------------------------------------------------------
-        # Uncomment and use this only when adding additional settings
-        # also remove all existing settings if you're adding new settings
-        # so that it won't overwrite the settings in production
-        // $focalUser = User::where('user_type', 'focal')->get();
         // $coordinatorUsers = User::where('user_type', 'coordinator')->get();
-        # ----------------------------------------------------------------------
 
-        $project_title = ucwords('implementation number');
-        $implementations = Implementation::factory($this->implementationAmount)->create(
-            [
-                'users_id' => $focalUser->id,
-            ]
-        );
+        // # ----------------------------------------------------------------------
+        // # Uncomment and use this only when adding additional settings
+        // # also remove all existing settings if you're adding new settings
+        // # so that it won't overwrite the settings in production
+        // // $focalUser = User::where('user_type', 'focal')->get();
+        // // $coordinatorUsers = User::where('user_type', 'coordinator')->get();
+        // # ----------------------------------------------------------------------
 
-        # Implementations
-        foreach ($implementations as $key => $implementation) {
-            Implementation::withoutTimestamps(function () use ($implementation, $project_title, $key) {
-                $implementation->project_title = $project_title . ' ' . $key + 1;
-                $implementation->save();
-            });
-            LogIt::set_create_project($implementation, $focalUser, $implementation->created_at);
+        // $project_title = ucwords('implementation number');
+        // $implementations = Implementation::factory($this->implementationAmount)->create(
+        //     [
+        //         'users_id' => $focalUser->id,
+        //     ]
+        // );
 
-            $allottedSlots = $this->generateRandomArray($implementation->total_slots);
+        // # Implementations
+        // foreach ($implementations as $key => $implementation) {
+        //     Implementation::withoutTimestamps(function () use ($implementation, $project_title, $key) {
+        //         $implementation->project_title = $project_title . ' ' . $key + 1;
+        //         $implementation->save();
+        //     });
+        //     LogIt::set_create_project($implementation, $focalUser, $implementation->created_at);
 
-            # Batches
-            foreach ($allottedSlots as $slots) {
-                $currentDate = Carbon::parse($implementation->created_at)->addMinutes(mt_rand(3, 10))->addSeconds(mt_rand(0, 59));
-                $district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
+        //     $allottedSlots = $this->generateRandomArray($implementation->total_slots);
 
-                $batch = Batch::factory()->create([
-                    'implementations_id' => $implementation->id,
-                    'batch_num' => $this->batchNumberGenerator(Carbon::parse($currentDate)->format('Y-')),
-                    'sector_title' => null,
-                    'district' => null,
-                    'barangay_name' => null,
-                    'slots_allocated' => $slots,
-                    'created_at' => $currentDate,
-                    'updated_at' => $currentDate,
-                ]);
+        //     # Batches
+        //     foreach ($allottedSlots as $slots) {
+        //         $currentDate = Carbon::parse($implementation->created_at)->addMinutes(mt_rand(3, 10))->addSeconds(mt_rand(0, 59));
+        //         $district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
 
-                LogIt::set_create_batches($batch, $focalUser->id, $currentDate);
+        //         $batch = Batch::factory()->create([
+        //             'implementations_id' => $implementation->id,
+        //             'batch_num' => $this->batchNumberGenerator(Carbon::parse($currentDate)->format('Y-')),
+        //             'sector_title' => null,
+        //             'district' => null,
+        //             'barangay_name' => null,
+        //             'slots_allocated' => $slots,
+        //             'created_at' => $currentDate,
+        //             'updated_at' => $currentDate,
+        //         ]);
 
-                Batch::withoutTimestamps(function () use ($implementation, $batch, $district) {
-                    if ($batch->is_sectoral) {
-                        $batch->sector_title = $this->generateSectorTitle();
-                    } elseif (!$batch->is_sectoral) {
-                        $batch->district = $district;
-                        $batch->barangay_name = $this->getBarangayName($implementation->id, $district);
-                    }
-                    $batch->save();
-                });
+        //         LogIt::set_create_batches($batch, $focalUser->id, $currentDate);
 
-                $amount = mt_rand($this->assignmentAmountMin, $this->assignmentAmountMax);
-                $coordinators = $coordinatorUsers->random($amount);
-                $currentDate = Carbon::parse($batch->created_at)->addMinutes(mt_rand(0, 2))->addSeconds(mt_rand(5, 59));
+        //         Batch::withoutTimestamps(function () use ($implementation, $batch, $district) {
+        //             if ($batch->is_sectoral) {
+        //                 $batch->sector_title = $this->generateSectorTitle();
+        //             } elseif (!$batch->is_sectoral) {
+        //                 $batch->district = $district;
+        //                 $batch->barangay_name = $this->getBarangayName($implementation->id, $district);
+        //             }
+        //             $batch->save();
+        //         });
 
-                $coordinators->each(function ($user) use ($batch, $currentDate, $focalUser) {
-                    $assignment = Assignment::factory()->create([
-                        'batches_id' => $batch->id,
-                        'users_id' => $user->id,
-                        'created_at' => $currentDate,
-                        'updated_at' => $currentDate,
-                    ]);
+        //         $amount = mt_rand($this->assignmentAmountMin, $this->assignmentAmountMax);
+        //         $coordinators = $coordinatorUsers->random($amount);
+        //         $currentDate = Carbon::parse($batch->created_at)->addMinutes(mt_rand(0, 2))->addSeconds(mt_rand(5, 59));
 
-                    LogIt::set_assign_coordinator_to_batch($assignment, $focalUser->id, 'create', $currentDate);
-                });
+        //         $coordinators->each(function ($user) use ($batch, $currentDate, $focalUser) {
+        //             $assignment = Assignment::factory()->create([
+        //                 'batches_id' => $batch->id,
+        //                 'users_id' => $user->id,
+        //                 'created_at' => $currentDate,
+        //                 'updated_at' => $currentDate,
+        //             ]);
 
-                $code = Code::factory()->create(['batches_id' => $batch->id]);
-                $coordinators = User::whereHas('assignment', function ($q) use ($batch) {
-                    $q->where('batches_id', $batch->id);
-                })->get();
+        //             LogIt::set_assign_coordinator_to_batch($assignment, $focalUser->id, 'create', $currentDate);
+        //         });
 
-                $randomCoordinator = $coordinators->random();
-                LogIt::set_open_access($batch, $code, $randomCoordinator, $currentDate->addMinutes(mt_rand(1, 30))->addSeconds(mt_rand(0, 59)));
+        //         $code = Code::factory()->create(['batches_id' => $batch->id]);
+        //         $coordinators = User::whereHas('assignment', function ($q) use ($batch) {
+        //             $q->where('batches_id', $batch->id);
+        //         })->get();
 
-                //         $beneficiaries = Beneficiary::factory($batch->slots_allocated)->create([
-                //             'batches_id' => $batch->id,
-                //             'district' => $batch->district ?? '.',
-                //             'barangay_name' => $batch->barangay_name ?? '.',
-                //             'created_at' => $batch->created_at,
-                //             'updated_at' => $batch->updated_at,
-                //         ]);
+        //         $randomCoordinator = $coordinators->random();
+        //         LogIt::set_open_access($batch, $code, $randomCoordinator, $currentDate->addMinutes(mt_rand(1, 30))->addSeconds(mt_rand(0, 59)));
 
-                //         $specialCases = 0;
-                //         foreach ($beneficiaries as $beneficiary) {
-                //             if ($beneficiary->district === '.') {
-                //                 $individual_district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
-                //                 $beneficiary->district = $individual_district;
-                //                 $beneficiary->barangay_name = $this->getBarangayName($implementation->id, $individual_district);
-                //             }
+        //         $beneficiaries = Beneficiary::factory($batch->slots_allocated)->create([
+        //             'batches_id' => $batch->id,
+        //             'district' => $batch->district ?? '.',
+        //             'barangay_name' => $batch->barangay_name ?? '.',
+        //             'created_at' => $batch->created_at,
+        //             'updated_at' => $batch->updated_at,
+        //         ]);
 
-                //             if ($is_sectoral === 1 && mb_strtolower(substr($batch->sector_title, 0, 10), "UTF-8") === 'occupation') {
-                //                 $beneficiary->occupation = substr($batch->sector_title, 11);
-                //             }
+        //         $specialCases = 0;
+        //         foreach ($beneficiaries as $beneficiary) {
+        //             if ($beneficiary->district === '.') {
+        //                 $individual_district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
+        //                 $beneficiary->district = $individual_district;
+        //                 $beneficiary->barangay_name = $this->getBarangayName($implementation->id, $individual_district);
+        //             }
 
-                //             $beneficiary->save();
+        //             if ($is_sectoral === 1 && mb_strtolower(substr($batch->sector_title, 0, 10), "UTF-8") === 'occupation') {
+        //                 $beneficiary->occupation = substr($batch->sector_title, 11);
+        //             }
 
-                //             # check its Jaccard Similarity index
-                //             $beneficiariesInDatabase = $this->prefetchNames($beneficiary, $this->getFullName($beneficiary), $beneficiary->middle_name);
-                //             $joiningFrequency = 1;
+        //             $beneficiary->save();
 
-                //             # this is where it checks the similarities
-                //             foreach ($beneficiariesInDatabase as $key => $existing) {
+        //             # check its Jaccard Similarity index
+        //             $beneficiariesInDatabase = $this->prefetchNames($beneficiary, $this->getFullName($beneficiary), $beneficiary->middle_name);
+        //             $joiningFrequency = 1;
 
-                //                 # gets the full name of the beneficiary
-                //                 $existingPerson = $this->getFullName2($existing, $beneficiary->middle_name);
-                //                 $currentPerson = $this->getFullName2($beneficiary, $beneficiary->middle_name);
+        //             # this is where it checks the similarities
+        //             foreach ($beneficiariesInDatabase as $key => $existing) {
 
-                //                 # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
-                //                 $coEfficient = JaccardSimilarity::calculateSimilarity($existingPerson, $currentPerson);
+        //                 # gets the full name of the beneficiary
+        //                 $existingPerson = $this->getFullName2($existing, $beneficiary->middle_name);
+        //                 $currentPerson = $this->getFullName2($beneficiary, $beneficiary->middle_name);
 
-                //                 # check if it's a perfect duplicate
-                //                 if (intval($coEfficient * 100) === 100) {
+        //                 # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
+        //                 $coEfficient = JaccardSimilarity::calculateSimilarity($existingPerson, $currentPerson);
 
-                //                     # if the exact same person joined more than 2 times...
-                //                     if ($joiningFrequency > 1) {
-                //                         Beneficiary::withoutTimestamps(function () use ($beneficiary) {
-                //                             $first_name = $this->getFirstName($beneficiary->sex);
-                //                             $middle_name = $this->getMiddleName();
-                //                             $last_name = $this->getLastName();
-                //                             $extension_name = $this->getSuffix();
-                //                             $s_first_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'first');
-                //                             $s_middle_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'middle');
-                //                             $s_last_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'last', $last_name);
-                //                             $s_extension_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'ext');
+        //                 # check if it's a perfect duplicate
+        //                 if (intval($coEfficient * 100) === 100) {
 
-                //                             $beneficiary->first_name = $first_name;
-                //                             $beneficiary->middle_name = $middle_name;
-                //                             $beneficiary->last_name = $last_name;
-                //                             $beneficiary->extension_name = $extension_name;
-                //                             $beneficiary->spouse_first_name = $s_first_name;
-                //                             $beneficiary->spouse_middle_name = $s_middle_name;
-                //                             $beneficiary->spouse_last_name = $s_last_name;
-                //                             $beneficiary->spouse_extension_name = $s_extension_name;
+        //                     # if the exact same person joined more than 2 times...
+        //                     if ($joiningFrequency > 1) {
+        //                         Beneficiary::withoutTimestamps(function () use ($beneficiary) {
+        //                             $first_name = $this->getFirstName($beneficiary->sex);
+        //                             $middle_name = $this->getMiddleName();
+        //                             $last_name = $this->getLastName();
+        //                             $extension_name = $this->getSuffix();
+        //                             $s_first_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'first');
+        //                             $s_middle_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'middle');
+        //                             $s_last_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'last', $last_name);
+        //                             $s_extension_name = $this->checkSpouse($beneficiary->civil_status, $beneficiary->sex, 'ext');
 
-                //                             if (is_null($beneficiary->barangay_name)) {
-                //                                 $barangay_name = $this->getBarangaysByDistrict($beneficiary->district);
-                //                                 $beneficiary->barangay_name = $barangay_name;
-                //                             }
-                //                             $beneficiary->save();
-                //                         });
-                //                     }
+        //                             $beneficiary->first_name = $first_name;
+        //                             $beneficiary->middle_name = $middle_name;
+        //                             $beneficiary->last_name = $last_name;
+        //                             $beneficiary->extension_name = $extension_name;
+        //                             $beneficiary->spouse_first_name = $s_first_name;
+        //                             $beneficiary->spouse_middle_name = $s_middle_name;
+        //                             $beneficiary->spouse_last_name = $s_last_name;
+        //                             $beneficiary->spouse_extension_name = $s_extension_name;
 
-                //                     # otherwise...
-                //                     else {
-                //                         # increment its joining frequency
-                //                         $joiningFrequency++;
+        //                             if (is_null($beneficiary->barangay_name)) {
+        //                                 $barangay_name = $this->getBarangaysByDistrict($beneficiary->district);
+        //                                 $beneficiary->barangay_name = $barangay_name;
+        //                             }
+        //                             $beneficiary->save();
+        //                         });
+        //                     }
 
-                //                         Beneficiary::withoutTimestamps(function () use ($beneficiary) {
-                //                             $beneficiary->beneficiary_type = 'special case';
-                //                             $beneficiary->save();
-                //                         });
-                //                         # then add the reason for joining
-                //                         Credential::factory()->create([
-                //                             'beneficiaries_id' => $beneficiary->id,
-                //                             'image_description' => 'This beneficiary is a calamity victim.',
-                //                             'for_duplicates' => 'yes',
-                //                             'created_at' => $batch->created_at,
-                //                             'updated_at' => $batch->updated_at,
-                //                         ]);
-                //                         $specialCases++;
-                //                     }
-                //                 }
-                //             }
+        //                     # otherwise...
+        //                     else {
+        //                         # increment its joining frequency
+        //                         $joiningFrequency++;
 
-                //             Credential::factory()->create([
-                //                 'beneficiaries_id' => $beneficiary->id,
-                //                 'created_at' => $batch->created_at,
-                //                 'updated_at' => $batch->updated_at,
-                //             ]);
-                //         }
+        //                         Beneficiary::withoutTimestamps(function () use ($beneficiary) {
+        //                             $beneficiary->beneficiary_type = 'special case';
+        //                             $beneficiary->save();
+        //                         });
+        //                         # then add the reason for joining
+        //                         Credential::factory()->create([
+        //                             'beneficiaries_id' => $beneficiary->id,
+        //                             'image_description' => 'This beneficiary is a calamity victim.',
+        //                             'for_duplicates' => 'yes',
+        //                             'created_at' => $batch->created_at,
+        //                             'updated_at' => $batch->updated_at,
+        //                         ]);
+        //                         $specialCases++;
+        //                     }
+        //                 }
+        //             }
 
-                //         LogIt::set_import_success($randomCoordinator, $batch, $batch->slots_allocated - $specialCases);
+        //             Credential::factory()->create([
+        //                 'beneficiaries_id' => $beneficiary->id,
+        //                 'created_at' => $batch->created_at,
+        //                 'updated_at' => $batch->updated_at,
+        //             ]);
+        //         }
 
-                //         if ($specialCases > 0) {
-                //             LogIt::set_import_special_cases($randomCoordinator, $batch, $specialCases);
-                //         }
+        //         LogIt::set_import_success($randomCoordinator, $batch, $batch->slots_allocated - $specialCases);
 
-                //         # Then force submit the batch
-                //         Batch::withoutTimestamps(function () use ($batch) {
-                //             $batch->submission_status = 'submitted';
-                //             $batch->approval_status = 'approved';
-                //             $batch->save();
-                //         });
+        //         if ($specialCases > 0) {
+        //             LogIt::set_import_special_cases($randomCoordinator, $batch, $specialCases);
+        //         }
 
-                //         LogIt::set_force_submit_batch($randomCoordinator, $batch);
-                //         LogIt::set_approve_batch($randomCoordinator, $batch);
-            }
-        }
+        //         # Then force submit the batch
+        //         Batch::withoutTimestamps(function () use ($batch) {
+        //             $batch->submission_status = 'submitted';
+        //             $batch->approval_status = 'approved';
+        //             $batch->save();
+        //         });
+
+        //         LogIt::set_force_submit_batch($randomCoordinator, $batch);
+        //         LogIt::set_approve_batch($randomCoordinator, $batch);
+        // }
+        // }
     }
 
     protected static function initCoordinators($startDate, $focalUser)

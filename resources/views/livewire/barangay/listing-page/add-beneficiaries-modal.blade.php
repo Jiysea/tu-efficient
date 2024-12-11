@@ -209,7 +209,7 @@
                                                                     class="{{ $errors->has('reason_image_file_path')
                                                                         ? 'border-red-300 bg-red-50 text-red-500 hover:text-orange-500'
                                                                         : 'border-green-300 bg-green-50 text-gray-500 hover:text-green-500' }} 
-                                                                            relative flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
+                                                                            z-10 relative flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
                                                                             overflow-hidden">
 
                                                                     {{-- Image Preview --}}
@@ -977,7 +977,7 @@
                                         </button>
                                     @endif
 
-                                    @if ($birthdate && strtotime($birthdate) < strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if ($birthdate && strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) < strtotime(\Carbon\Carbon::now()->subYears(60)))
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-green-1100 hover:text-green-900 focus:text-green-900 active:text-green-1000 hover:bg-green-100 focus:bg-green-100 active:bg-green-200">
@@ -1107,7 +1107,7 @@
                                     x-on:livewire-upload-cancel="uploading = false"
                                     x-on:livewire-upload-error="uploading = false;"
                                     x-on:livewire-upload-progress="progress = $event.detail.progress;"
-                                    class="relative overflow-hidden flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out z-10
+                                    class="z-10 relative overflow-hidden flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
                                     {{ $errors->has('image_file_path')
                                         ? 'border-red-300 bg-red-100 text-red-500 hover:text-orange-500'
                                         : 'border-green-300 bg-green-50 text-gray-500 hover:text-green-500' }}">

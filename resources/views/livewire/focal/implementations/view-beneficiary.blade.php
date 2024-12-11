@@ -412,7 +412,7 @@
                                                                     class="{{ $errors->has('reason_image_file_path')
                                                                         ? 'border-red-300 bg-red-50 text-red-500 hover:text-orange-500'
                                                                         : 'border-indigo-300 bg-indigo-50 text-gray-500 hover:text-indigo-500' }} 
-                                                                                relative flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
+                                                                                z-10 relative flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
                                                                                 overflow-hidden">
 
                                                                     {{-- Image Preview --}}
@@ -1193,7 +1193,10 @@
                                         </button>
                                     @endif
 
-                                    @if ($birthdate && strtotime($birthdate) < strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if (
+                                        $birthdate &&
+                                            strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) <
+                                                strtotime(\Carbon\Carbon::now()->subYears(60)))
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">
@@ -1319,7 +1322,7 @@
                                     x-on:livewire-upload-cancel="uploading = false"
                                     x-on:livewire-upload-error="uploading = false;"
                                     x-on:livewire-upload-progress="progress = $event.detail.progress;"
-                                    class="relative overflow-hidden flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
+                                    class="z-10 relative overflow-hidden flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
                                             {{ $errors->has('image_file_path')
                                                 ? 'border-red-300 bg-red-100 text-red-500 hover:text-orange-500'
                                                 : 'border-indigo-300 bg-indigo-50 text-gray-500 hover:text-indigo-500' }}">
@@ -1440,7 +1443,7 @@
                         </div>
 
                         {{-- Spouse First Name --}}
-                        <div class=" relative col-span-full sm:col-span-2 xl:col-span-3  pb-1">
+                        <div class=" relative col-span-full sm:col-span-2 xl:col-span-3 pb-1">
                             <label for="edit_spouse_first_name"
                                 class="flex items-end mb-1 font-medium h-6 {{ in_array($civil_status, ['Married', 'Separated', 'Widowed']) ? 'text-indigo-1100' : 'text-gray-400' }}">
                                 <span class="relative"> Spouse

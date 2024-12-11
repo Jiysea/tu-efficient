@@ -718,6 +718,7 @@ class AddBeneficiariesModal extends Component
             }
 
             $this->js('$wire.closeBirthdate();');
+            $this->dispatch('init-reload')->self();
         }
 
         if ($property === 'civil_status') {

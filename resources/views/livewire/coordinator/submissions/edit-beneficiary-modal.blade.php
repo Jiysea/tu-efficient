@@ -1,5 +1,4 @@
-<div x-cloak x-show="editBeneficiaryModal"
-    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<div x-cloak x-show="editBeneficiaryModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
     <!-- Modal -->
     <div x-show="editBeneficiaryModal" x-trap.noautofocus.noscroll="editBeneficiaryModal"
@@ -381,7 +380,7 @@
                                                                     class="{{ $errors->has('reason_image_file_path')
                                                                         ? 'border-red-300 bg-red-50 text-red-500 hover:text-orange-500'
                                                                         : 'border-blue-300 bg-blue-50 text-gray-500 hover:text-blue-500' }} 
-                                                                                relative flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
+                                                                                z-10 relative flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
                                                                                 overflow-hidden">
 
                                                                     {{-- Image Preview --}}
@@ -1164,7 +1163,10 @@
                                         </button>
                                     @endif
 
-                                    @if ($birthdate && strtotime($birthdate) < strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if (
+                                        $birthdate &&
+                                            strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) <
+                                                strtotime(\Carbon\Carbon::now()->subYears(60)))
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
@@ -1290,7 +1292,7 @@
                                     x-on:livewire-upload-cancel="uploading = false"
                                     x-on:livewire-upload-error="uploading = false;"
                                     x-on:livewire-upload-progress="progress = $event.detail.progress;"
-                                    class="relative overflow-hidden flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
+                                    class="z-10 relative overflow-hidden flex flex-col items-center justify-center size-full border-2 border-dashed rounded cursor-pointer duration-200 ease-in-out
                                             {{ $errors->has('image_file_path')
                                                 ? 'border-red-300 bg-red-100 text-red-500 hover:text-orange-500'
                                                 : 'border-blue-300 bg-blue-50 text-gray-500 hover:text-blue-500' }}">

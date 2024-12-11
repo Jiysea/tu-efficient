@@ -24,7 +24,7 @@ class SystemsLog extends Model
         'new_data',
         'regional_office',
         'field_office',
-        'log_type',
+        'log_type', // create, update, delete, archive, restore, initialize, error
         'log_timestamp',
     ];
 

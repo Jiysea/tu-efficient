@@ -12,6 +12,7 @@ use App\Models\SystemsLog;
 use App\Models\User;
 use App\Models\UserSetting;
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Collection;
 
 class LogIt
 {
@@ -242,7 +243,7 @@ class LogIt
         ]);
     }
 
-    public static function set_add_beneficiary(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_add_beneficiary(Beneficiary $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -254,7 +255,7 @@ class LogIt
         ]);
     }
 
-    public static function set_add_beneficiary_special_case(Beneficiary $beneficiary, Batch $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_add_beneficiary_special_case(Beneficiary $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,

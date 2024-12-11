@@ -183,7 +183,7 @@ class CreateProjectModal extends Component
             'minimum_wage' => $this->minimum_wage,
             'total_slots' => $this->total_slots,
             'days_of_work' => $this->days_of_work,
-            'payroll_status' => 'pending',
+            'status' => 'pending',
         ]);
 
         LogIt::set_create_project($implementation, auth()->user());
