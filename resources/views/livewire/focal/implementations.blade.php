@@ -91,7 +91,7 @@ window.addEventListener('resize', () => {
                 {{-- Loading State --}}
                 <template x-if="!isMobile">
                     <svg class="text-indigo-900 size-6 animate-spin" wire:loading
-                        wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary"
+                        wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary, showExport"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4">
@@ -108,7 +108,7 @@ window.addEventListener('resize', () => {
 
                         {{-- MD:Loading State --}}
                         <svg class="text-indigo-900 size-6 animate-spin" wire:loading
-                            wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary"
+                            wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary, showExport"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                 stroke-width="4">
@@ -1234,112 +1234,165 @@ window.addEventListener('resize', () => {
                                         class="w-full flex flex-col items-center justify-center gap-4 pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
 
                                         {{-- Annex Type --}}
-                                        <div class="relative w-full flex items-center gap-2">
+                                        <div x-data="exporting" class="relative w-full flex items-center gap-2">
                                             <span class="text-sm font-medium whitespace-nowrap">Annex Type:</span>
-                                            <div class="flex flex-col gap-2">
-                                                @if ($exportFormat === 'xlsx')
-                                                    <span class="flex items-center flex-wrap gap-2">
-                                                        {{-- Annex E-1 (COS) --}}
-                                                        <label for="annex_e1"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e1'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex E-1 (COS)
-                                                            <input type="checkbox" class="hidden absolute inset-0"
-                                                                id="annex_e1" wire:model.live="exportType.annex_e1">
-                                                        </label>
-                                                        {{-- Annex E-2 (COS - Co-Partner) --}}
-                                                        <label for="annex_e2"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_e2'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex E-2 (COS - Co-Partner)
-                                                            <input type="checkbox" class="hidden absolute inset-0"
-                                                                id="annex_e2" wire:model.live="exportType.annex_e2">
-                                                        </label>
-                                                        {{-- Annex J-2 (Attendance Sheet) --}}
-                                                        <label for="annex_j2"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_j2'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex J-2 (Attendance Sheet)
-                                                            <input type="checkbox" class="hidden absolute inset-0"
-                                                                id="annex_j2" wire:model.live="exportType.annex_j2">
-                                                        </label>
-                                                    </span>
-                                                    <span class="flex items-center flex-wrap gap-2">
-                                                        {{-- Annex L (Payroll) --}}
-                                                        <label for="annex_l"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex L (Payroll)
-                                                            <input type="checkbox" class="hidden absolute inset-0"
-                                                                id="annex_l" wire:model.live="exportType.annex_l">
-                                                        </label>
-                                                        {{-- Annex L (Payroll w/ Sign) --}}
-                                                        <label for="annex_l_sign"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportType['annex_l_sign'] ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex L (Payroll w/ Sign)
-                                                            <input type="checkbox" class="hidden absolute inset-0"
-                                                                id="annex_l_sign"
-                                                                wire:model.live="exportType.annex_l_sign">
-                                                        </label>
-                                                    </span>
-                                                @elseif($exportFormat === 'csv')
-                                                    <span class="flex items-center flex-wrap gap-2">
-                                                        {{-- Annex E-1 (COS) --}}
-                                                        <label for="annex_e1_csv"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e1' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex E-1 (COS)
-                                                            <input type="radio" class="hidden absolute inset-0"
-                                                                id="annex_e1_csv" value="annex_e1"
-                                                                wire:model.live="exportTypeCsv">
-                                                        </label>
-                                                        {{-- Annex E-2 (COS - Co-Partner) --}}
-                                                        <label for="annex_e2_csv"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_e2' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex E-2 (COS - Co-Partner)
-                                                            <input type="radio" class="hidden absolute inset-0"
-                                                                id="annex_e2_csv" value="annex_e2"
-                                                                wire:model.live="exportTypeCsv">
-                                                        </label>
-                                                        {{-- Annex J-2 (Attendance Sheet) --}}
-                                                        <label for="annex_j2_csv"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_j2' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex J-2 (Attendance Sheet)
-                                                            <input type="radio" class="hidden absolute inset-0"
-                                                                id="annex_j2_csv" value="annex_j2"
-                                                                wire:model.live="exportTypeCsv">
-                                                        </label>
-                                                    </span>
-                                                    <span class="flex items-center flex-wrap gap-2">
-                                                        {{-- Annex L (Payroll) --}}
-                                                        <label for="annex_l_csv"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex L (Payroll)
-                                                            <input type="radio" class="hidden absolute inset-0"
-                                                                id="annex_l_csv" value="annex_l"
-                                                                wire:model.live="exportTypeCsv">
-                                                        </label>
-                                                        {{-- Annex L (Payroll w/ Sign) --}}
-                                                        <label for="annex_l_sign_csv"
-                                                            class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportTypeCsv === 'annex_l_sign' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
-                                                            Annex L (Payroll w/ Sign)
-                                                            <input type="radio" class="hidden absolute inset-0"
-                                                                id="annex_l_sign_csv" value="annex_l_sign"
-                                                                wire:model.live="exportTypeCsv">
-                                                        </label>
-                                                    </span>
-                                                @endif
+
+                                            {{-- For XLSX --}}
+                                            <div x-show="exportFormat === 'xlsx'" class="flex flex-col gap-2">
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex E-1 (COS) --}}
+                                                    <label for="annex_e1"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': e1_x,
+                                                            'bg-gray-200 text-gray-500': !e1_x,
+                                                        }">
+                                                        Annex E-1 (COS)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_e1" wire:model.live="exportType.annex_e1">
+                                                    </label>
+                                                    {{-- Annex E-2 (COS - Co-Partner) --}}
+                                                    <label for="annex_e2"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': e2_x,
+                                                            'bg-gray-200 text-gray-500': !e2_x,
+                                                        }">
+                                                        Annex E-2 (COS - Co-Partner)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_e2" wire:model.live="exportType.annex_e2">
+                                                    </label>
+                                                    {{-- Annex J-2 (Attendance Sheet) --}}
+                                                    <label for="annex_j2"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': j2_x,
+                                                            'bg-gray-200 text-gray-500': !j2_x,
+                                                        }">
+                                                        Annex J-2 (Attendance Sheet)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_j2" wire:model.live="exportType.annex_j2">
+                                                    </label>
+                                                </span>
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex L (Payroll) --}}
+                                                    <label for="annex_l"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': l_x,
+                                                            'bg-gray-200 text-gray-500': !l_x,
+                                                        }">
+                                                        Annex L (Payroll)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_l" wire:model.live="exportType.annex_l">
+                                                    </label>
+                                                    {{-- Annex L (Payroll w/ Sign) --}}
+                                                    <label for="annex_l_sign"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': l_sign_x,
+                                                            'bg-gray-200 text-gray-500': !l_sign_x,
+                                                        }">
+                                                        Annex L (Payroll w/ Sign)
+                                                        <input type="checkbox" class="hidden absolute inset-0"
+                                                            id="annex_l_sign"
+                                                            wire:model.live="exportType.annex_l_sign">
+                                                    </label>
+                                                </span>
                                             </div>
+
+                                            {{-- For CSV --}}
+                                            <div x-show="exportFormat === 'csv'" class="flex flex-col gap-2">
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex E-1 (COS) --}}
+                                                    <label for="annex_e1_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': csv_type === 'annex_e1',
+                                                            'bg-gray-200 text-gray-500': csv_type !== 'annex_e1',
+                                                        }">
+                                                        Annex E-1 (COS)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_e1_csv" value="annex_e1"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                    {{-- Annex E-2 (COS - Co-Partner) --}}
+                                                    <label for="annex_e2_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': csv_type === 'annex_e2',
+                                                            'bg-gray-200 text-gray-500': csv_type !== 'annex_e2',
+                                                        }">
+                                                        Annex E-2 (COS - Co-Partner)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_e2_csv" value="annex_e2"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                    {{-- Annex J-2 (Attendance Sheet) --}}
+                                                    <label for="annex_j2_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': csv_type === 'annex_j2',
+                                                            'bg-gray-200 text-gray-500': csv_type !== 'annex_j2',
+                                                        }">
+                                                        Annex J-2 (Attendance Sheet)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_j2_csv" value="annex_j2"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                </span>
+                                                <span class="flex items-center flex-wrap gap-2">
+                                                    {{-- Annex L (Payroll) --}}
+                                                    <label for="annex_l_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': csv_type === 'annex_l',
+                                                            'bg-gray-200 text-gray-500': csv_type !== 'annex_l',
+                                                        }">
+                                                        Annex L (Payroll)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_l_csv" value="annex_l"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                    {{-- Annex L (Payroll w/ Sign) --}}
+                                                    <label for="annex_l_sign_csv"
+                                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                        :class="{
+                                                            'bg-indigo-700 text-indigo-50': csv_type === 'annex_l_sign',
+                                                            'bg-gray-200 text-gray-500': csv_type !== 'annex_l_sign',
+                                                        }">
+                                                        Annex L (Payroll w/ Sign)
+                                                        <input type="radio" class="hidden absolute inset-0"
+                                                            id="annex_l_sign_csv" value="annex_l_sign"
+                                                            wire:model.live="exportTypeCsv">
+                                                    </label>
+                                                </span>
+                                            </div>
+
+
                                         </div>
 
                                         {{-- File Format --}}
-                                        <div class="relative w-full flex items-center gap-2">
+                                        <div x-data="exporting" class="relative w-full flex items-center gap-2">
                                             <span class="text-sm font-medium">File Format:</span>
                                             {{-- XLSX --}}
                                             <label for="xlsx-radio"
-                                                class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'xlsx' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                :class="{
+                                                    'bg-indigo-700 text-indigo-50': exportFormat === 'xlsx',
+                                                    'bg-gray-200 text-gray-500': exportFormat !== 'xlsx',
+                                                }">
                                                 XLSX
                                                 <input type="radio" class="hidden absolute inset-0" id="xlsx-radio"
                                                     value="xlsx" wire:model.live="exportFormat">
                                             </label>
                                             {{-- CSV --}}
                                             <label for="csv-radio"
-                                                class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold {{ $exportFormat === 'csv' ? 'bg-indigo-700 text-indigo-50' : 'bg-gray-200 text-gray-500' }}">
+                                                class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                                :class="{
+                                                    'bg-indigo-700 text-indigo-50': exportFormat === 'csv',
+                                                    'bg-gray-200 text-gray-500': exportFormat !== 'csv',
+                                                }">
                                                 CSV
                                                 <input type="radio" class="hidden absolute inset-0" id="csv-radio"
                                                     value="csv" wire:model.live="exportFormat">
@@ -1629,13 +1682,14 @@ window.addEventListener('resize', () => {
 
                                                 {{-- Confirm Button --}}
                                                 <button type="button"
-                                                    @if ($this->exportBatches->isNotEmpty() && in_array(true, $exportType, true) === true) wire:click="exportAnnex"
+                                                    @if (
+                                                        $this->exportBatches->isNotEmpty() &&
+                                                            ((in_array(true, $exportType, true) === true && $exportFormat === 'xlsx') || $exportFormat === 'csv')) wire:click="exportAnnex"
                                                     @else
                                                     disabled @endif
                                                     class="duration-200 ease-in-out flex items-center justify-center px-3 py-2 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">CONFIRM</button>
                                             </div>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
@@ -1710,5 +1764,15 @@ window.addEventListener('resize', () => {
                 initFlowbite();
             }, 1);
         });
+
+        Alpine.data('exporting', () => ({
+            exportFormat: $wire.entangle('exportFormat'),
+            csv_type: $wire.entangle('exportTypeCsv'),
+            e1_x: $wire.entangle('exportType.annex_e1'),
+            e2_x: $wire.entangle('exportType.annex_e2'),
+            j2_x: $wire.entangle('exportType.annex_j2'),
+            l_x: $wire.entangle('exportType.annex_l'),
+            l_sign_x: $wire.entangle('exportType.annex_l_sign'),
+        }));
     </script>
 @endscript

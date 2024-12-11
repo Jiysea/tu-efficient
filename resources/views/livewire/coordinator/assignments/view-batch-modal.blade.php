@@ -5,10 +5,10 @@
         accessCodeModal: $wire.entangle('accessCodeModal'),
         confirmModal: $wire.entangle('confirmModal'),
     }" x-show="viewBatchModal" x-trap.noautofocus.noscroll="viewBatchModal"
-        class="min-h-screen p-4 flex items-center justify-center overflow-y-auto z-50 select-none">
+        class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="size-full max-w-4xl">
+        <div class="w-full max-w-4xl">
             <div class="relative bg-white text-blue-1100 rounded-md shadow">
 
                 <!-- Modal Header -->
@@ -51,10 +51,10 @@
 
                 {{-- Modal body --}}
                 <form wire:submit.prevent="saveProject" class="py-5 px-3 md:px-12 text-xs">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
 
                         {{-- Batch Number --}}
-                        <div class="flex flex-1 flex-col relative mb-4">
+                        <div class="flex flex-1 flex-col relative">
                             <p class="block mb-1 font-medium">
                                 Batch Number
                             </p>
@@ -62,17 +62,40 @@
                                 class="flex flex-1 text-sm rounded p-2.5 bg-blue-50 text-blue-900 font-medium">{{ $this->batch?->batch_num }}</span>
                         </div>
 
-                        {{-- Barangay --}}
-                        <div class="flex flex-1 flex-col relative mb-4">
-                            <p class="block mb-1 font-medium">
-                                Barangay
-                            </p>
-                            <span
-                                class="flex flex-1 text-sm rounded p-2.5 bg-blue-50 text-blue-900 font-medium">{{ $this->batch?->barangay_name }}</span>
-                        </div>
+                        @if ($this->batch?->is_sectoral)
+                            {{-- Sector Title OFF --}}
+                            <div class="relative flex flex-col sm:col-span-2">
+                                <p class="mb-1 font-medium text-blue-1100 ">
+                                    Sector Title
+                                </p>
+                                <span class="flex flex-1 text-sm rounded p-2.5 bg-blue-50 text-blue-700 font-medium">
+                                    <span
+                                        class="whitespace-nowrap overflow-x-auto scrollbar-none select-text">{{ $this->batch?->sector_title }}
+                                    </span>
+                                </span>
+                            </div>
+                        @else
+                            {{-- District OFF --}}
+                            <div class="relative flex flex-col">
+                                <p class="block mb-1 font-medium text-blue-1100">
+                                    District
+                                </p>
+                                <span
+                                    class="flex flex-1 text-sm rounded p-2.5 bg-blue-50 text-blue-700 font-medium">{{ $this->batch?->district }}</span>
+                            </div>
+
+                            {{-- Barangay OFF --}}
+                            <div class="relative flex flex-col">
+                                <p class="block mb-1 font-medium text-blue-1100">
+                                    Barangay
+                                </p>
+                                <span
+                                    class="flex flex-1 text-sm rounded p-2.5 bg-blue-50 text-blue-700 font-medium">{{ $this->batch?->barangay_name }}</span>
+                            </div>
+                        @endif
 
                         {{-- Slots Allocated --}}
-                        <div class="flex flex-1 flex-col relative mb-4">
+                        <div class="flex flex-1 flex-col relative">
                             <p class="block mb-1 font-medium">
                                 Current / Total Slots
                             </p>
@@ -81,7 +104,7 @@
                         </div>
 
                         {{-- Other Coordinators --}}
-                        <div class="flex flex-1 flex-col col-span-full relative mb-4">
+                        <div class="flex flex-1 flex-col col-span-full relative">
                             <p class="block mb-1 font-medium">
                                 Other Coordinators
                             </p>
@@ -93,15 +116,56 @@
                                         {{ $this->getFullName($assignment) }}
                                     </span>
                                 @empty
-                                    <span class="w-full text-center bg-blue-200 rounded px-2 py-1">
+                                    <span class="w-full text-center bg-red-200 rounded px-2 py-1">
                                         NO OTHER COORDINATORS
                                     </span>
                                 @endforelse
                             </div>
                         </div>
 
+                        {{-- Type of Batch OFF --}}
+                        <div class="relative flex flex-col">
+                            <p class="flex justify-center mb-1 font-medium text-blue-1100">
+                                Type of Batch
+                            </p>
+                            <span class="flex justify-center text-sm rounded p-1.5 font-medium">
+                                <span
+                                    class="rounded-full py-1 px-3 font-semibold {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">{{ $this->batch?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
+                            </span>
+                        </div>
+
+                        {{-- Approval Status OFF --}}
+                        <div class="relative flex flex-col">
+                            <p class="flex justify-center mb-1 font-medium text-blue-1100">
+                                Approval Status
+                            </p>
+                            <span class="flex justify-center text-sm rounded p-1.5 text-blue-700 font-medium uppercase">
+                                <span class="rounded-full py-1 px-3 font-semibold"
+                                    :class="{
+                                        'bg-amber-300 text-amber-900': {{ json_encode($this->batch?->approval_status === 'pending') }},
+                                        'bg-green-300 text-green-1000': {{ json_encode($this->batch?->approval_status === 'approved') }},
+                                    }">{{ $this->batch?->approval_status }}</span>
+                            </span>
+                        </div>
+
+                        {{-- Submission Status OFF --}}
+                        <div class="relative flex flex-col">
+                            <p class="flex justify-center mb-1 font-medium text-blue-1100">
+                                Submission Status
+                            </p>
+                            <span class="flex justify-center text-sm rounded p-1.5 text-blue-700 font-medium uppercase">
+                                <span class="rounded-full py-1 px-3 font-semibold"
+                                    :class="{
+                                        'bg-amber-200 text-amber-900': {{ json_encode($this->batch?->submission_status === 'unopened') }},
+                                        'bg-green-200 text-green-1000': {{ json_encode($this->batch?->submission_status === 'submitted') }},
+                                        'bg-blue-200 text-blue-900': {{ json_encode($this->batch?->submission_status === 'encoding') }},
+                                        'bg-red-200 text-red-900': {{ json_encode($this->batch?->submission_status === 'revalidate') }},
+                                    }">{{ $this->batch?->submission_status }}</span>
+                            </span>
+                        </div>
+
                         {{-- Date Created / Last Updated --}}
-                        <div class="flex items-center justify-between col-span-full relative mb-4">
+                        <div class="flex items-center justify-between col-span-full relative">
                             <span class="flex items-center justify-center">
                                 <p class="block font-medium">
                                     Date Created:
