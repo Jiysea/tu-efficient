@@ -2,7 +2,7 @@
     x-show="promptRestoreModal">
 
     <!-- Modal -->
-    <div x-trap.noautofocus.noscroll="promptRestoreModal"
+    <div x-trap.noautofocus.noreturn.noscroll="promptRestoreModal"
         class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         {{-- The Modal --}}

@@ -46,7 +46,6 @@ class Submissions extends Component
     public $defaultArchive;
     public $showAlert = false;
     public $alertMessage = '';
-    public $identity;
     public $addBeneficiariesModal = false;
     public $editBeneficiaryModal = false;
     public $deleteBeneficiaryModal = false;
@@ -94,7 +93,7 @@ class Submissions extends Component
     public $defaultStart;
     public $defaultEnd;
     public $approvalStatuses = [
-        'approved' => false,
+        'approved' => true,
         'pending' => true,
     ];
 
@@ -250,61 +249,6 @@ class Submissions extends Component
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    public function setStartDate($value)
-    {
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->start = $choosenDate . ' ' . $currentTime;
-        $this->batches_on_page = $this->defaultBatches_on_page;
-        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
-
-        if ($this->batches->isNotEmpty()) {
-            $this->batchId = encrypt($this->batches[0]->id);
-        } else {
-            $this->batchId = null;
-            $this->searchBatches = null;
-            $this->searchBeneficiaries = null;
-        }
-
-        $this->beneficiaryId = null;
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->dispatch('init-reload')->self();
-        $this->dispatch('scroll-to-top')->self();
-    }
-
-    public function setEndDate($value)
-    {
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-
-        $this->end = $choosenDate . ' ' . $currentTime;
-        $this->batches_on_page = $this->defaultBatches_on_page;
-        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
-
-        if ($this->batches->isNotEmpty()) {
-            $this->batchId = encrypt($this->batches[0]->id);
-        } else {
-            $this->batchId = null;
-            $this->searchBatches = null;
-            $this->searchBeneficiaries = null;
-        }
-
-        if (strtotime($this->start) > strtotime($this->end)) {
-            $start = Carbon::parse($this->end)->subMonth()->format('Y-m-d H:i:s');
-            $this->start = $start;
-            $this->dispatch('modifyStart', newStart: Carbon::parse($this->start)->format('m/d/Y'))->self();
-        }
-
-        $this->beneficiaryId = null;
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->dispatch('init-reload')->self();
-        $this->dispatch('scroll-to-top')->self();
-    }
 
     public function selectBatchRow($key, $encryptedId)
     {
@@ -316,7 +260,7 @@ class Submissions extends Component
         $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
 
         $this->dispatch('init-reload')->self();
-        $this->dispatch('scroll-to-top')->self();
+        $this->dispatch('scroll-to-beneficiaries')->self();
     }
 
     public function selectBeneficiaryRow($key, $encryptedId)
@@ -325,20 +269,26 @@ class Submissions extends Component
             $this->selectedBeneficiaryRow = -1;
             $this->beneficiaryId = null;
 
-            $this->identity = null;
-
         } else {
             $this->selectedBeneficiaryRow = $key;
             $this->beneficiaryId = $encryptedId;
+        }
 
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[Computed]
+    public function identity()
+    {
+        if ($this->credentials->isNotEmpty()) {
             foreach ($this->credentials as $credential) {
                 if ($credential->for_duplicates === 'no') {
-                    $this->identity = $credential->image_file_path;
+                    return $credential->image_file_path;
                 }
             }
         }
 
-        $this->dispatch('init-reload')->self();
+        return null;
     }
 
     public function applyFilter()
@@ -522,9 +472,9 @@ class Submissions extends Component
             ->select(
                 [
                     'batches.id',
-                    'batches.sector_title',
                     'batches.batch_num',
                     'batches.is_sectoral',
+                    'batches.sector_title',
                     'batches.barangay_name',
                     'batches.approval_status',
                     'batches.submission_status'
@@ -532,13 +482,14 @@ class Submissions extends Component
             )
             ->groupBy([
                 'batches.id',
-                'batches.sector_title',
                 'batches.batch_num',
                 'batches.is_sectoral',
+                'batches.sector_title',
                 'batches.barangay_name',
                 'batches.approval_status',
                 'batches.submission_status'
             ])
+            ->latest('batches.updated_at')
             ->orderBy('batches.id', 'desc')
             ->get();
 
@@ -665,28 +616,26 @@ class Submissions extends Component
     }
 
     #[Computed]
+    public function checkBeneficiaryCount()
+    {
+        return Beneficiary::where('beneficiaries.batches_id', $this->batchId ? decrypt($this->batchId) : null)
+            ->count();
+    }
+
+    #[Computed]
     public function beneficiarySlots()
     {
-        if ($this->batchId) {
+        $batch = Batch::where('id', $this->batchId ? decrypt($this->batchId) : null)
+            ->first();
 
-            $batch = Batch::where('id', decrypt($this->batchId))
-                ->first();
+        $totalSlots = $batch?->slots_allocated ?? 0;
 
-            $totalSlots = $batch->slots_allocated;
-
-            $totalBeneficiaries = Beneficiary::where('beneficiaries.batches_id', decrypt($this->batchId))
-                ->count();
-
-
-            return [
-                'slots_allocated' => $totalSlots ?? 0,
-                'num_of_beneficiaries' => $totalBeneficiaries,
-            ];
-        }
+        $totalBeneficiaries = Beneficiary::where('beneficiaries.batches_id', $batch->id)
+            ->count();
 
         return [
-            'slots_allocated' => 0,
-            'num_of_beneficiaries' => 0,
+            'slots_allocated' => $totalSlots,
+            'num_of_beneficiaries' => $totalBeneficiaries,
         ];
     }
 

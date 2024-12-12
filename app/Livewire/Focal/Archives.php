@@ -163,12 +163,12 @@ class Archives extends Component
                 'id' => uniqid(),
                 'color' => 'indigo'
             ];
-
-            $this->js('promptRestoreModal = false;');
-            $this->actionId = null;
-            $this->archiveId = null;
-            $this->selectedRowKey = -1;
         }
+
+        $this->js('promptRestoreModal = false;');
+        $this->actionId = null;
+        $this->archiveId = null;
+        $this->selectedRowKey = -1;
     }
 
     public function permanentlyDelete()

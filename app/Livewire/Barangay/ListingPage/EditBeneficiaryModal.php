@@ -32,6 +32,9 @@ class EditBeneficiaryModal extends Component
 
     #[Reactive]
     #[Locked]
+    public $accessCode;
+    #[Reactive]
+    #[Locked]
     public $beneficiaryId;
     #[Locked]
     public $maxDate;
@@ -547,9 +550,7 @@ class EditBeneficiaryModal extends Component
                     $identity->save();
 
                     if ($file) {
-                        LogIt::set_edit_beneficiary_identity($beneficiary, $batch, auth()->user());
-                    } else {
-                        LogIt::set_remove_beneficiary_identity($beneficiary, $batch, auth()->user());
+                        LogIt::set_barangay_edit_beneficiary_identity($implementation, $batch, $beneficiary, $this->accessCode);
                     }
                     $isChanged = true;
                 }
@@ -592,11 +593,8 @@ class EditBeneficiaryModal extends Component
                     if ($special_case->isDirty()) {
                         $special_case->save();
 
-                        if ($file) {
-                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
-                        } else {
-                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
-                        }
+                        LogIt::set_barangay_edit_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, $this->accessCode);
+
                         $isChanged = true;
                     }
 
@@ -611,9 +609,9 @@ class EditBeneficiaryModal extends Component
                             Storage::delete($special_case->image_file_path);
                         }
                     }
-
                     $special_case->delete();
-                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
+
+                    LogIt::set_barangay_remove_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, $this->accessCode);
                     $isChanged = true;
                 } else {
                     unset($this->beneficiary, $this->credentials);
@@ -623,7 +621,7 @@ class EditBeneficiaryModal extends Component
             if ($isChanged) {
                 $beneficiary->updated_at = now();
                 $beneficiary->save();
-                LogIt::set_edit_beneficiary($beneficiary, $batch, auth()->user());
+                LogIt::set_barangay_edit_beneficiary($implementation, $batch, $beneficiary, $this->accessCode);
                 $this->dispatch('edit-beneficiary');
             }
 
@@ -1086,6 +1084,7 @@ class EditBeneficiaryModal extends Component
     public function resetEditBeneficiary()
     {
         $this->resetExcept(
+            'accessCode',
             'beneficiaryId',
             'duplicationThreshold',
             'maximumIncome',

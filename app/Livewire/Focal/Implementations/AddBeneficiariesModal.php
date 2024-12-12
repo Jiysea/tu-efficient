@@ -402,6 +402,13 @@ class AddBeneficiariesModal extends Component
         DB::transaction(function () {
             $batch = Batch::find(decrypt($this->batchId));
             $implementation = Implementation::find($batch->implementations_id);
+            $beneficiariesCount = Beneficiary::where('batches_id', $batch->id)
+                ->count();
+
+            if ($batch?->slots_allocated <= $beneficiariesCount) {
+                $this->dispatch('cannot-add-beneficiary');
+                return;
+            }
 
             $this->normalizeStrings();
 
@@ -475,9 +482,9 @@ class AddBeneficiariesModal extends Component
                     'for_duplicates' => 'yes',
                 ]);
 
-                LogIt::set_add_beneficiary_special_case($beneficiary, $batch, auth()->user());
+                LogIt::set_add_beneficiary_special_case($implementation, $beneficiary, $batch, auth()->user());
             } else {
-                LogIt::set_add_beneficiary($beneficiary, $batch, auth()->user());
+                LogIt::set_add_beneficiary($implementation, $beneficiary, $batch, auth()->user());
             }
         });
 

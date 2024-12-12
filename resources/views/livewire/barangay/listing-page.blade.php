@@ -1171,10 +1171,10 @@
         </div>
 
         {{-- Add Beneficiaries Modal --}}
-        <livewire:barangay.listing-page.add-beneficiaries-modal :$batchId />
+        <livewire:barangay.listing-page.add-beneficiaries-modal :$batchId :$accessCode />
 
         {{-- Edit Beneficiary Modal --}}
-        <livewire:barangay.listing-page.edit-beneficiary-modal :$beneficiaryId />
+        <livewire:barangay.listing-page.edit-beneficiary-modal :$beneficiaryId :$accessCode />
 
         {{-- View Credentials Modal --}}
         <livewire:barangay.listing-page.view-credentials-modal :$credentialId />

@@ -130,7 +130,7 @@
                             </p>
                             <span class="flex justify-center text-sm rounded p-1.5 font-medium">
                                 <span
-                                    class="rounded-full py-1 px-3 font-semibold {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">{{ $this->batch?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
+                                    class="rounded-full py-1 px-3 font-semibold {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-emerald-200 text-emerald-800' }}">{{ $this->batch?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
                             </span>
                         </div>
 

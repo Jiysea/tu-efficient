@@ -301,7 +301,8 @@ window.addEventListener('resize', () => {
                                             stroke="none" fill="currentColor" fill-rule="evenodd"></path>
                                     </g>
                                 </svg>
-                                <h1 class="font-bold text-base">Beneficiaries</h1>
+                                <h1 class="hidden sm:inline lg:hidden 2xl:inline font-bold text-base">
+                                    Beneficiaries</h1>
 
                                 {{-- Beneficiary Count --}}
                                 @if ($this->batches->isNotEmpty())
@@ -372,10 +373,12 @@ window.addEventListener('resize', () => {
                                             </span>
 
                                             {{-- Search Box --}}
-                                            <div class="relative flex flex-1 items-center">
-                                                <div
-                                                    class="{{ $this->batches->isEmpty() && (!isset($searchBatches) || empty($searchBatches)) ? 'text-gray-500' : 'text-blue-500' }} absolute z-50 inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                            <label for="searchBatches"
+                                                class="relative flex flex-1 items-center justify-center duration-200 ease-in-out rounded border box-border focus:ring-0 outline-none
+                                                {{ $this->batches->isEmpty() && (!isset($searchBatches) || empty($searchBatches)) ? 'text-gray-500 border-gray-300' : 'border-blue-300 hover:border-blue-500 focus-within:border-blue-500 text-blue-500 hover:text-blue-700 focus-within:text-blue-700 hover:bg-blue-50 focus-within:bg-blue-50' }}">
 
+                                                <div
+                                                    class="absolute start-2 flex items-center justify-center pointer-events-none">
                                                     {{-- Loading Icon --}}
                                                     <svg class="size-3 animate-spin" wire:loading
                                                         wire:target="searchBatches" xmlns="http://www.w3.org/2000/svg"
@@ -390,20 +393,20 @@ window.addEventListener('resize', () => {
 
                                                     {{-- Search Icon --}}
                                                     <svg class="size-3" wire:loading.remove
-                                                        wire:target="searchBatches" aria-hidden="true"
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 20 20">
-                                                        <path stroke="currentColor" stroke-linecap="round"
-                                                            stroke-linejoin="round" stroke-width="2"
-                                                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                                        wire:target="searchBatches" xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 24 24" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+                                                            clip-rule="evenodd" />
                                                     </svg>
                                                 </div>
-                                                <input type="text" id="batch-search" maxlength="100"
-                                                    @if ($this->batches->isEmpty() && (!isset($searchBatches) || empty($searchBatches))) disabled @endif
-                                                    autocomplete="off" wire:model.live.debounce.300ms="searchBatches"
-                                                    class="duration-200 outline-none ease-in-out ps-6 py-1.5 text-xs disabled:placeholder-gray-500 disabled:border-gray-300 disabled:bg-gray-50 text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="Search for batch numbers">
-                                            </div>
+
+                                                <input id="searchBatches" autofocus autocomplete="off"
+                                                    wire:model.live.debounce.300ms="searchBatches" type="text"
+                                                    class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full py-1.5 ps-6 text-xs disabled:placeholder-gray-300 selection:text-blue-100 selection:bg-blue-700 text-blue-1100 placeholder-blue-500 hover:placeholder-blue-700 focus:placeholder-blue-700"
+                                                    placeholder="Search batches"
+                                                    @if ($this->batches->isEmpty() && (!isset($searchBatches) || empty($searchBatches))) disabled @endif>
+                                            </label>
 
                                             {{-- Filter Button --}}
                                             <div x-data="{ open: false }" class="relative">
@@ -603,7 +606,7 @@ window.addEventListener('resize', () => {
                                                             wire:click="selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
                                                             class="flex items-center gap-2 w-full px-1 py-2 text-xs hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
                                                             <span
-                                                                class="rounded px-1.5 py-0.5 uppercase {{ $batch->is_sectoral ? 'bg-blue-200 text-blue-800' : 'bg-rose-200 text-rose-800' }}">
+                                                                class="font-medium rounded px-1.5 py-0.5 uppercase {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-emerald-200 text-emerald-800' }}">
                                                                 {{ $batch->is_sectoral ? 'ST' : 'NS' }}
                                                             </span>
 
@@ -718,44 +721,54 @@ window.addEventListener('resize', () => {
                         </div>
 
                         {{-- 2nd Row --}}
-                        <div class="flex items-center justify-end text-xs">
+                        <div class="flex items-center justify-between w-full text-xs">
 
-                            {{-- Barangay/Sector Title --}}
-                            <div class="flex flex-1 items-center gap-1">
-                                @if (!is_null($this->batch?->is_sectoral))
-                                    <p class="text-blue-1100">
-                                        @if ($this->batch?->is_sectoral)
-                                            Sector:
-                                        @elseif($this->batch?->is_sectoral === 0)
-                                            Barangay:
-                                        @endif
-                                    </p>
-                                @endif
+                            @if ($this->batch)
+                                {{-- Barangay or Sector --}}
+                                <div class="flex items-center gap-1">
 
-                                <span
-                                    class="font-medium rounded px-2 py-1 {{ $this->batch ? 'text-blue-700 bg-blue-100' : 'text-red-700 bg-red-100' }} ">
-                                    @if ($this->batch?->is_sectoral)
-                                        {{ $this->batch?->sector_title }}
-                                    @elseif($this->batch?->is_sectoral === 0)
-                                        {{ $this->batch?->barangay_name }}
-                                    @else
-                                        No Batch Choosen
-                                    @endif
-                                </span>
-
-                                @if (!is_null($this->batch?->is_sectoral))
-
-                                    <span
-                                        class="rounded px-2 py-1 uppercase {{ $this->batch?->is_sectoral ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700' }}">
-                                        @if ($this->batch?->is_sectoral)
-                                            ST
-                                        @elseif($this->batch?->is_sectoral === 0)
-                                            NS
-                                        @endif
+                                    <span class="text-blue-1100">
+                                        {{ $this->batch?->is_sectoral ? 'Sector:' : 'Barangay:' }}
                                     </span>
 
-                                @endif
-                            </div>
+                                    <span
+                                        class="font-medium rounded px-2 py-1 {{ $this->batch?->is_sectoral ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">
+                                        {{ $this->batch?->is_sectoral ? $this->batch?->sector_title : $this->batch?->barangay_name }}
+                                    </span>
+
+                                    <span
+                                        class="font-medium rounded p-1 uppercase {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-emerald-200 text-emerald-900' }}">
+                                        {{ $this->batch?->is_sectoral ? 'ST' : 'NS' }}
+                                    </span>
+
+                                </div>
+
+                                {{-- Approval && Submission Statuses  --}}
+                                <div class="flex items-center gap-1">
+                                    <span class="font-semibold rounded px-2 py-1 uppercase"
+                                        :class="{
+                                            'bg-green-300 text-green-1000': {{ json_encode($this->batch?->approval_status === 'approved') }},
+                                            'bg-amber-300 text-amber-950': {{ json_encode($this->batch?->approval_status === 'pending') }},
+                                        }">
+                                        {{ $this->batch?->approval_status }}
+                                    </span>
+
+                                    <span class="font-semibold rounded px-2 py-1 uppercase"
+                                        :class="{
+                                            'bg-green-200 text-green-1000': {{ json_encode($this->batch?->submission_status === 'submitted') }},
+                                            'bg-amber-200 text-amber-950': {{ json_encode($this->batch?->submission_status === 'unopened') }},
+                                            'bg-blue-200 text-blue-950': {{ json_encode($this->batch?->submission_status === 'encoding') }},
+                                            'bg-red-200 text-red-950': {{ json_encode($this->batch?->submission_status === 'revalidate') }},
+                                        }">
+                                        {{ $this->batch?->submission_status }}
+                                    </span>
+                                </div>
+                            @else
+                                <div
+                                    class="flex items-center justify-center font-medium rounded px-2 py-1 text-zinc-700 bg-zinc-100">
+                                    No Batch Available
+                                </div>
+                            @endif
                         </div>
 
                         {{-- 3rd Row --}}
@@ -773,14 +786,13 @@ window.addEventListener('resize', () => {
                                 </div>
 
                                 {{-- Search Box --}}
-                                <div class="relative flex flex-1 w-full items-center">
+                                <label for="searchBeneficiaries"
+                                    class="relative flex flex-1 items-center justify-center duration-200 ease-in-out rounded border box-border focus:ring-0 outline-none
+                                                {{ $this->checkBeneficiaryCount <= 0 ? 'text-gray-500 border-gray-300' : 'border-blue-300 hover:border-blue-500 focus-within:border-blue-500 text-blue-500 hover:text-blue-700 focus-within:text-blue-700 hover:bg-blue-50 focus-within:bg-blue-50' }}">
 
-                                    {{-- Search Icon --}}
-                                    <div
-                                        class="{{ is_null($batchId) && empty($batchId) ? 'text-gray-500' : 'text-blue-500' }} absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
-
+                                    <div class="absolute start-2 flex items-center justify-center pointer-events-none">
                                         {{-- Loading Icon --}}
-                                        <svg class="size-3 animate-spin" wire:loading
+                                        <svg class="size-4 animate-spin" wire:loading
                                             wire:target="searchBeneficiaries" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -792,25 +804,30 @@ window.addEventListener('resize', () => {
                                         </svg>
 
                                         {{-- Search Icon --}}
-                                        <svg class="size-3" wire:loading.remove wire:target="searchBeneficiaries"
-                                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                            viewBox="0 0 20 20">
-                                            <path stroke="currentColor" stroke-linecap="round"
-                                                stroke-linejoin="round" stroke-width="2"
-                                                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                        <svg class="size-4" wire:loading.remove wire:target="searchBeneficiaries"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                     </div>
-                                    <input @if (!isset($batchId) && empty($batchId)) disabled @endif type="text"
-                                        id="beneficiary-search" maxlength="100" autocomplete="off"
-                                        wire:model.live.debounce.350ms="searchBeneficiaries"
-                                        class="{{ !isset($batchId) && empty($batchId) ? 'placeholder-gray-500 border-gray-300 bg-gray-50' : 'text-blue-1100 placeholder-blue-500 border-blue-300 bg-blue-50 focus:ring-blue-500 focus:border-blue-500' }} caret-blue-700 w-full ps-6 py-1.5 border outline-none text-xs rounded duration-200 ease-in-out"
-                                        placeholder="Search for beneficiaries">
-                                </div>
+
+                                    <input id="searchBeneficiaries" autocomplete="off"
+                                        wire:model.live.debounce.300ms="searchBeneficiaries" type="text"
+                                        class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full py-1.5 ps-8 text-xs disabled:placeholder-gray-300 selection:text-blue-100 selection:bg-blue-700 text-blue-1100 placeholder-blue-500 hover:placeholder-blue-700 focus:placeholder-blue-700"
+                                        placeholder="Search for beneficiaries"
+                                        @if ($this->checkBeneficiaryCount <= 0) disabled @endif>
+                                </label>
 
                                 {{-- Add Button --}}
                                 <button
-                                    @if ($this->beneficiarySlots['slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
-                                    class="flex items-center gap-2 {{ $this->beneficiarySlots['slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'] ? 'bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500' : 'bg-blue-300 text-blue-50' }} rounded px-4 py-1 text-sm font-bold duration-200 ease-in-out">
+                                    @if (
+                                        $batchId &&
+                                            $this->beneficiarySlots['slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'] &&
+                                            $this->batch->approval_status !== 'approved' &&
+                                            ($this->batch->submission_status === 'submitted' || $this->batch->submission_status === 'unopened')) @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
+                                    class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-4 py-1 text-sm font-bold duration-200 ease-in-out">
                                     ADD
                                     <svg class="size-4" xmlns="http://www.w3.org/2000/svg"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -972,12 +989,12 @@ window.addEventListener('resize', () => {
                                         <div
                                             class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-20 aspect-square">
 
-                                            @if ($identity)
+                                            @if ($this->identity)
                                                 <button tabindex="-1"
                                                     class="relative flex items-center justify-center rounded size-20 aspect-square outline-none"
                                                     wire:click="viewCredential('identity')">
                                                     <img class="size-[90%] object-contain"
-                                                        src="{{ route('credentials.show', ['filename' => $identity]) }}">
+                                                        src="{{ route('credentials.show', ['filename' => $this->identity]) }}">
 
                                                     <div class="absolute bg-black opacity-10 rounded size-full flex items-center justify-center"
                                                         wire:loading wire:target="viewCredential('identity')">
@@ -1127,7 +1144,6 @@ window.addEventListener('resize', () => {
                                             </div>
                                         </div>
                                     </div>
-
                                 </div>
 
                                 {{-- Identity Information --}}
@@ -1138,12 +1154,12 @@ window.addEventListener('resize', () => {
                                     <div
                                         class="flex flex-col items-center justify-center bg-gray-50 text-gray-400 border-gray-300 border rounded mb-2 size-20 aspect-square">
 
-                                        @if ($identity)
+                                        @if ($this->identity)
                                             <button tabindex="-1"
                                                 class="relative flex items-center justify-center rounded size-20 aspect-square outline-none"
                                                 wire:click="viewCredential('identity')">
                                                 <img class="size-[90%] object-contain"
-                                                    src="{{ route('credentials.show', ['filename' => $identity]) }}">
+                                                    src="{{ route('credentials.show', ['filename' => $this->identity]) }}">
 
                                                 <div class="absolute bg-black opacity-10 rounded size-full flex items-center justify-center"
                                                     wire:loading wire:target="viewCredential('identity')">
@@ -2299,7 +2315,7 @@ window.addEventListener('resize', () => {
 
                                                                 {{-- Type of Batch --}}
                                                                 <span
-                                                                    class="sticky flex items-center justify-center font-semibold p-1 rounded {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-indigo-200 text-indigo-900' }}">
+                                                                    class="sticky flex items-center justify-center font-semibold p-1 rounded {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-emerald-200 text-emerald-900' }}">
                                                                     {{ $batch->is_sectoral ? 'ST' : 'NS' }}
                                                                 </span>
 

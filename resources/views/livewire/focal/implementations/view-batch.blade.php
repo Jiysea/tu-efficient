@@ -463,7 +463,7 @@
                                             </label>
                                             {{-- Non-Sectoral --}}
                                             <label for="non-sectoral-radio-edit"
-                                                class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ !$is_sectoral ? 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
+                                                class="relative duration-200 ease-in-out cursor-pointer border border-transparent whitespace-nowrap flex flex-1 items-center justify-center p-2.5 rounded font-semibold {{ !$is_sectoral ? 'bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-emerald-50' : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-500 active:text-gray-600' }}">
                                                 Non-Sectoral
                                                 <input type="radio" class="hidden absolute inset-0"
                                                     id="non-sectoral-radio-edit" value="0"
@@ -482,7 +482,7 @@
                                         <span
                                             class="flex text-xs rounded p-2.5 bg-indigo-50 text-indigo-700 font-medium">
                                             <span
-                                                class="rounded-full py-1 px-3 font-semibold {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">{{ $this->batch?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
+                                                class="rounded-full py-1 px-3 font-semibold {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-emerald-200 text-emerald-800' }}">{{ $this->batch?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
                                         </span>
                                     @endif
                                 </div>
@@ -847,7 +847,7 @@
                                     <span
                                         class="flex justify-center text-sm rounded p-1.5 text-indigo-700 font-medium">
                                         <span
-                                            class="rounded-full py-1 px-3 font-semibold {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">{{ $this->batch?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
+                                            class="rounded-full py-1 px-3 font-semibold {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-emerald-200 text-emerald-800' }}">{{ $this->batch?->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}</span>
                                     </span>
                                 </div>
 

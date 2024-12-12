@@ -8,8 +8,6 @@ use App\Models\Code;
 use App\Models\Credential;
 use App\Models\Implementation;
 use App\Services\LogIt;
-use App\Services\MoneyFormat;
-use Carbon\Carbon;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -99,6 +97,7 @@ class ListingPage extends Component
         if ($this->beneficiaryCount === $this->batch?->slots_allocated) {
             DB::transaction(function () {
                 $batch = Batch::find($this->batch->id);
+                $implementation = Implementation::find($batch->implementations_id);
 
                 $batch->submission_status = 'submitted';
                 Code::where('access_code', decrypt($this->accessCode))
@@ -108,7 +107,7 @@ class ListingPage extends Component
                     ]);
                 $batch->save();
 
-                LogIt::set_barangay_submit($batch, $this->implementation, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount);
+                LogIt::set_barangay_submit($implementation, $batch, count($this->beneficiaries), $batch->slots_allocated, $this->specialCasesCount, $this->accessCode);
             });
 
             $this->submitBatchModal = false;
@@ -182,16 +181,14 @@ class ListingPage extends Component
     #[Computed]
     public function batch()
     {
-        if ($this->accessCode) {
-            # do a query of the batch using the access code
-            $batch = Batch::join('codes', 'codes.batches_id', '=', 'batches.id')
-                ->where('codes.access_code', decrypt($this->accessCode))
-                ->select('batches.*')
-                ->first();
+        # do a query of the batch using the access code
+        $batch = Batch::join('codes', 'codes.batches_id', '=', 'batches.id')
+            ->where('codes.access_code', $this->accessCode ? decrypt($this->accessCode) : null)
+            ->select('batches.*')
+            ->first();
 
-            $this->batchId = encrypt($batch->id);
-            return $batch;
-        }
+        $this->batchId = encrypt($batch->id);
+        return $batch;
     }
 
     #[Computed]
@@ -206,7 +203,7 @@ class ListingPage extends Component
     {
         if ($this->accessCode) {
             # do a query of all the beneficiaries listed on a particular batch
-            $beneficiaries = Beneficiary::where('batches_id', $this->batch->id)
+            return Beneficiary::where('batches_id', $this->batch?->id)
                 ->when($this->searchBeneficiaries, function ($q) {
                     # Check if the search field starts with '#' and filter by contact number
                     if (str_contains($this->searchBeneficiaries, '#')) {
@@ -232,7 +229,6 @@ class ListingPage extends Component
 
                     # Otherwise, search by first, middle, last or extension name
                     else {
-
                         $q->where(function ($query) {
                             $query->where('beneficiaries.first_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
                                 ->orWhere('beneficiaries.middle_name', 'LIKE', '%' . $this->searchBeneficiaries . '%')
@@ -241,72 +237,49 @@ class ListingPage extends Component
                         });
                     }
                 })
-
                 ->take($this->beneficiaries_on_page)
                 ->get();
-
-            return $beneficiaries;
         }
     }
 
     #[Computed]
     public function beneficiaryCount()
     {
-        if ($this->accessCode) {
-            $beneficiariesCount = Beneficiary::where('batches_id', $this->batch?->id)
-                ->count();
-
-            return $beneficiariesCount;
-        }
+        return Beneficiary::where('batches_id', $this->accessCode ? $this->batch?->id : null)
+            ->count();
     }
 
     #[Computed]
     public function specialCasesCount()
     {
-        if ($this->accessCode) {
-            $beneficiariesCount = Beneficiary::where('batches_id', $this->batch?->id)
-                ->where('beneficiary_type', 'special case')
-                ->count();
-
-            return $beneficiariesCount;
-        }
+        return Beneficiary::where('batches_id', $this->accessCode ? $this->batch?->id : null)
+            ->where('beneficiary_type', 'special case')
+            ->count();
     }
 
     #[Computed]
     public function credentials()
     {
-        if ($this->beneficiaryId) {
-            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
-                ->get();
-
-            return $credentials;
-        }
+        return Credential::where('beneficiaries_id', $this->beneficiaryId ? decrypt($this->beneficiaryId) : null)
+            ->get();
     }
 
     #[Computed]
     public function getIdType()
     {
-        $type_of_id = null;
-
-        if ($this->beneficiaryId) {
-
-            if (str_contains($this->beneficiary->type_of_id, 'PWD')) {
-                $type_of_id = 'PWD ID';
-            } else if (str_contains($this->beneficiary->type_of_id, 'COMELEC')) {
-                $type_of_id = 'Voter\'s ID';
-            } else if (str_contains($this->beneficiary->type_of_id, 'PhilID')) {
-                $type_of_id = 'PhilID';
-            } else if (str_contains($this->beneficiary->type_of_id, '4Ps')) {
-                $type_of_id = '4Ps ID';
-            } else if (str_contains($this->beneficiary->type_of_id, 'IBP')) {
-                $type_of_id = 'IBP ID';
-            } else {
-                $type_of_id = $this->beneficiary->type_of_id;
-            }
-
+        if (str_contains($this->beneficiary?->type_of_id, 'PWD')) {
+            return 'PWD ID';
+        } else if (str_contains($this->beneficiary?->type_of_id, 'COMELEC')) {
+            return 'Voter\'s ID';
+        } else if (str_contains($this->beneficiary?->type_of_id, 'PhilID')) {
+            return 'PhilID';
+        } else if (str_contains($this->beneficiary?->type_of_id, '4Ps')) {
+            return '4Ps ID';
+        } else if (str_contains($this->beneficiary?->type_of_id, 'IBP')) {
+            return 'IBP ID';
+        } else {
+            return $this->beneficiary?->type_of_id;
         }
-
-        return $type_of_id;
     }
 
     #[Computed]
@@ -397,10 +370,12 @@ class ListingPage extends Component
 
         DB::transaction(function () {
 
-            $beneficiary = Beneficiary::find(decrypt($this->beneficiaryId));
-            $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+            $beneficiary = Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+            $batch = Batch::find($beneficiary->batches_id);
+            $implementation = Implementation::find($batch->implementations_id);
+            $credentials = Credential::where('beneficiaries_id', $beneficiary ? $beneficiary->id : null)
                 ->get();
-            $old = $beneficiary;
+
             foreach ($credentials as $credential) {
                 if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
                     Storage::delete($credential->image_file_path);
@@ -409,7 +384,7 @@ class ListingPage extends Component
             }
             $beneficiary->delete();
 
-            LogIt::set_barangay_delete_beneficiary($beneficiary);
+            LogIt::set_barangay_delete_beneficiary($implementation, $batch, $beneficiary, $this->accessCode);
             $this->beneficiaryId = null;
             $this->selectedBeneficiaryRow = -1;
 
@@ -458,6 +433,6 @@ class ListingPage extends Component
     {
         $this->authorizeBeforeExecuting();
         return view('livewire.barangay.listing-page')
-            ->title("Brgy. " . $this->batch->barangay_name . " | TU-Efficient");
+            ->title(($this->batch?->is_sectoral ? $this->batch?->sector_title : ("Brgy. " . $this->batch?->barangay_name)) . " | TU-Efficient");
     }
 }

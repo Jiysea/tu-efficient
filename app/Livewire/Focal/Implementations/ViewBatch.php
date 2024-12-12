@@ -477,6 +477,7 @@ class ViewBatch extends Component
     public function editBatch()
     {
         $batch = Batch::find(decrypt($this->passedBatchId));
+        $implementation = Implementation::find($batch->implementations_id);
         $assignmentsDirty = false;
 
         if ($this->isEmpty) {
@@ -718,7 +719,7 @@ class ViewBatch extends Component
                 $batch->save();
             }
 
-            LogIt::set_edit_batches($batch, auth()->user());
+            LogIt::set_edit_batches($implementation, $batch, auth()->user());
             $this->dispatch('edit-batch');
         }
 

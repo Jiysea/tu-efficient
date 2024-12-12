@@ -366,9 +366,9 @@ class AssignBatchesModal extends Component
         $this->validate(['temporaryBatchesList' => 'required'], ['temporaryBatchesList.required' => 'There should be at least 1 :attribute before finishing.',], ['temporaryBatchesList' => 'batch assignment',]);
 
         foreach ($this->temporaryBatchesList as $keyBatch => $batch) {
-
+            $implementation = Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
             $batch = Batch::create([
-                'implementations_id' => decrypt($this->implementationId),
+                'implementations_id' => $implementation->id,
                 'batch_num' => $batch['batch_num'],
                 'is_sectoral' => $batch['is_sectoral'],
                 'sector_title' => $batch['sector_title'],
@@ -380,7 +380,7 @@ class AssignBatchesModal extends Component
             ]);
 
             $batch_id = $batch->id;
-            LogIt::set_create_batches($batch, auth()->user());
+            LogIt::set_create_batches($implementation, $batch, auth()->user());
 
             foreach ($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'] as $coordinator) {
                 $assignment = Assignment::create([

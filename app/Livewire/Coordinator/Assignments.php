@@ -47,7 +47,7 @@ class Assignments extends Component
     public $defaultEnd;
 
     public $approvalStatuses = [
-        'approved' => false,
+        'approved' => true,
         'pending' => true,
     ];
 

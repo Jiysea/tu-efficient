@@ -605,9 +605,9 @@ class ViewBeneficiary extends Component
                     $identity->save();
 
                     if ($file) {
-                        LogIt::set_edit_beneficiary_identity($beneficiary, $batch, auth()->user());
+                        LogIt::set_edit_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
                     } else {
-                        LogIt::set_remove_beneficiary_identity($beneficiary, $batch, auth()->user());
+                        LogIt::set_remove_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
                     }
                     $isChanged = true;
                 }
@@ -651,9 +651,9 @@ class ViewBeneficiary extends Component
                         $special_case->save();
 
                         if ($file) {
-                            LogIt::set_edit_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
+                            LogIt::set_edit_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
                         } else {
-                            LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
+                            LogIt::set_remove_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
                         }
                         $isChanged = true;
                     }
@@ -671,7 +671,7 @@ class ViewBeneficiary extends Component
                     }
 
                     $special_case->delete();
-                    LogIt::set_remove_beneficiary_special_case($beneficiary, $special_case, $batch, auth()->user());
+                    LogIt::set_remove_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
                     $isChanged = true;
                 } else {
                     unset($this->beneficiary, $this->credentials);
@@ -681,7 +681,7 @@ class ViewBeneficiary extends Component
             if ($isChanged) {
                 $beneficiary->updated_at = now();
                 $beneficiary->save();
-                LogIt::set_edit_beneficiary($beneficiary, $batch, auth()->user());
+                LogIt::set_edit_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 $this->dispatch('edit-beneficiary');
             }
 

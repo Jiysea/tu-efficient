@@ -2,7 +2,7 @@
     x-show="promptDeleteModal">
 
     <!-- Modal -->
-    <div x-trap.noautofocus.noscroll="promptDeleteModal"
+    <div x-trap.noautofocus.noreturn.noscroll="promptDeleteModal"
         class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         {{-- The Modal --}}

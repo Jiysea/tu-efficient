@@ -11,8 +11,10 @@ use App\Models\Implementation;
 use App\Models\SystemsLog;
 use App\Models\User;
 use App\Models\UserSetting;
+use DB;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
+use Request;
 
 class LogIt
 {
@@ -194,11 +196,11 @@ class LogIt
         ]);
     }
 
-    public static function set_create_batches(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_create_batches(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Created a batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Created a batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'create',
@@ -243,11 +245,11 @@ class LogIt
         ]);
     }
 
-    public static function set_add_beneficiary(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_add_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Added ' . self::full_name($beneficiary) . ' as beneficiary from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Added ' . self::full_name($beneficiary) . ' as beneficiary in batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'create',
@@ -255,11 +257,11 @@ class LogIt
         ]);
     }
 
-    public static function set_add_beneficiary_special_case(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_add_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Added ' . self::full_name($beneficiary) . ' as a special case beneficiary from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Added ' . self::full_name($beneficiary) . ' as a special case beneficiary in batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'create',
@@ -303,11 +305,11 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_batches(Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_batches(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Modified a batch \'' . $batch->batch_num . '\' -> in implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Modified a batch \'' . $batch->batch_num . '\' -> in implementation project \'' . $implementation->project_num . '\'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'update',
@@ -315,11 +317,11 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_beneficiary(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'A beneficiary (' . self::full_name($beneficiary) . ') is modified from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'A beneficiary (' . self::full_name($beneficiary) . ') is modified in batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'update',
@@ -327,11 +329,11 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_beneficiary_identity(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'update',
@@ -339,7 +341,7 @@ class LogIt
         ]);
     }
 
-    public static function set_remove_beneficiary_identity(Beneficiary|Collection $beneficiary, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_remove_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $beneficiary->toArray(),
@@ -348,7 +350,7 @@ class LogIt
 
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'old_data' => json_encode($stackedData),
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
@@ -357,11 +359,11 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_beneficiary_special_case(Beneficiary|Collection $beneficiary, Credential|Collection $credential, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Modified the special case (description: \'' . $credential->image_description . '\') from a beneficiary (' . self::full_name($beneficiary) . ') in batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'update',
@@ -369,7 +371,7 @@ class LogIt
         ]);
     }
 
-    public static function set_remove_beneficiary_special_case(Beneficiary|Collection $beneficiary, Credential|Collection $credential, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_remove_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             $beneficiary->toArray(),
@@ -378,7 +380,7 @@ class LogIt
 
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch \'' . $batch->batch_num . '\' -> implementation project \'' . Implementation::find($batch->implementations_id)->project_num . '\'.',
+            'description' => 'Removed the special case (description: \'' . $credential->image_description . '\') from a beneficiary (' . self::full_name($beneficiary) . ') in batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'old_data' => json_encode($stackedData),
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
@@ -580,76 +582,181 @@ class LogIt
     }
 
     # -------------------------------------------------------------------------------------------------------------------
-    # Coordinators -------------------------------------------------------------------------------------------------------------------
+    # Coordinators (END) -------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------
 
     # ----------------------------------------------------------------------------------------------------------------------
-    # Barangays ----------------------------------------------------------------------------------------------------------------------
+    # Barangays (START) ----------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------------------------------
 
-    public static function set_barangay_add_beneficiary(Beneficiary|Collection $beneficiary)
+    public static function set_barangay_add_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
     {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
         SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Added ' . self::full_name($beneficiary) . ' in batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_barangay_added_special_case(Beneficiary|Collection $beneficiary)
+    public static function set_barangay_added_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
     {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
         SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A barangay official added ' . self::full_name($beneficiary) . ' as a special case beneficiary from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Added ' . self::full_name($beneficiary) . ' as a special case beneficiary in batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_barangay_edit_beneficiary(Beneficiary|Collection $beneficiary)
+    public static function set_barangay_edit_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
     {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
         SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A barangay official modified ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Modified ' . self::full_name($beneficiary) . ' in batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_barangay_edit_beneficiary_special_case(Beneficiary|Collection $beneficiary, Credential $credential)
+    public static function set_barangay_edit_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, string $access_code, mixed $timestamp = null)
     {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
         SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A barangay official modified a beneficiary\'s (' . self::full_name($beneficiary) . ') special case (description: \'' . $credential->image_description . '\') from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Modified a special case (description: \'' . $credential->image_description . '\') from a beneficiary (' . self::full_name($beneficiary) . ') in batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_barangay_submit(Batch|Collection $batch, Implementation|Collection $implementation, int $added_count, int $slots_allocated, int $special_cases)
+    public static function set_barangay_remove_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, string $access_code, mixed $timestamp = null)
     {
+        $stackedData = [
+            $beneficiary->toArray(),
+            $credential->toArray(),
+            [
+                'access_code' => $access_code
+            ]
+        ];
+
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
         SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A barangay official has submitted a list of (' . $added_count . ') / (' . $slots_allocated . ') beneficiaries with (' . $special_cases . ') special cases. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Deleted a special case (description: \'' . $credential->image_description . '\') from a beneficiary (' . self::full_name($beneficiary) . ') due to modifying the beneficiary\'s information. Batch \'' . $batch->batch_num . '\' -> Project \'' . $implementation->project_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
 
-    public static function set_barangay_delete_beneficiary(Beneficiary|Collection $beneficiary)
+    public static function set_barangay_edit_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
     {
-        $batch = Batch::find($beneficiary->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
         SystemsLog::create([
             'users_id' => null,
-            'log_timestamp' => now(),
-            'description' => 'A barangay official deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> implementation project ' . $implementation->project_num . '.',
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Modified proof of identity (ID Picture) from a beneficiary (' . self::full_name($beneficiary) . ') in batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
         ]);
     }
+
+    public static function set_barangay_submit(Implementation|Collection $implementation, Batch|Collection $batch, int $added_count, int $slots_allocated, int $special_cases, string $access_code, mixed $timestamp = null)
+    {
+        $user = self::get_user_based_on_implementation($implementation);
+
+        SystemsLog::create([
+            'users_id' => null,
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Submitted a list of (' . $added_count . ') / (' . $slots_allocated . ') beneficiaries with (' . $special_cases . ') special cases in project \'' . $implementation->project_num . '\' -> batch \'' . $batch->batch_num . '\'.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    # Not Yet Implemented
+    public static function set_barangay_archive_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $implementation->toArray(),
+            $batch->toArray(),
+            $beneficiary->toArray(),
+            [
+                'access_code' => $access_code
+            ]
+        ];
+
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
+        SystemsLog::create([
+            'users_id' => null,
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Archived ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> project ' . $implementation->project_num . '.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'archive',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_barangay_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
+    {
+        $stackedData = [
+            $implementation->toArray(),
+            $batch->toArray(),
+            $beneficiary->toArray(),
+            [
+                'access_code' => $access_code
+            ]
+        ];
+
+        $user = self::get_user_based_on_beneficiary($beneficiary);
+
+        SystemsLog::create([
+            'users_id' => null,
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> project ' . $implementation->project_num . '.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    # ----------------------------------------------------------------------------------------------------------------------
+    # Barangays (END) ----------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------------------------------
 
     # Miscellaneous ----------------------------------------------------------------------------------------------------
 
@@ -665,6 +772,16 @@ class LogIt
             'log_type' => 'error',
             'log_timestamp' => $timestamp ?? now(),
         ]);
+    }
+
+    protected static function get_user_based_on_beneficiary(Beneficiary|Collection $beneficiary)
+    {
+        return User::find(Assignment::where('batches_id', Batch::find($beneficiary->batches_id, 'id')->id)->first('users_id')->users_id);
+    }
+
+    protected static function get_user_based_on_implementation(Implementation|Collection $implementation)
+    {
+        return User::find(Implementation::find($implementation->id, 'users_id')->users_id);
     }
 
     protected static function full_name(User|Authenticatable|Beneficiary|array|int $person)

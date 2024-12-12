@@ -532,7 +532,7 @@ window.addEventListener('resize', () => {
                                             <td class="py-2 text-center">
                                                 <span
                                                     class="px-3 py-1 text-xs rounded-full font-semibold uppercase 
-                                                    {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-indigo-200 text-indigo-800' }}">
+                                                    {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-emerald-200 text-emerald-900' }}">
                                                     {{ $batch->is_sectoral ? 'SECTORAL' : 'NON-SECTORAL' }}
                                                 </span>
                                             </td>
@@ -1567,7 +1567,7 @@ window.addEventListener('resize', () => {
 
                                                                         {{-- Type of Batch --}}
                                                                         <span
-                                                                            class="sticky flex items-center justify-center font-semibold p-1 rounded {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-indigo-200 text-indigo-900' }}">
+                                                                            class="sticky flex items-center justify-center font-semibold p-1 rounded {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-emerald-200 text-emerald-900' }}">
                                                                             {{ $batch->is_sectoral ? 'ST' : 'NS' }}
                                                                         </span>
 

@@ -30,6 +30,9 @@ class AddBeneficiariesModal extends Component
 
     #[Reactive]
     #[Locked]
+    public $accessCode;
+    #[Reactive]
+    #[Locked]
     public $batchId;
     #[Locked]
     public $maxDate;
@@ -419,7 +422,7 @@ class AddBeneficiariesModal extends Component
         DB::transaction(function () {
             $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
             $implementation = Implementation::find($batch->implementations_id);
-            $beneficiariesCount = Beneficiary::where('batches_id', $this->batchId ? decrypt($this->batchId) : null)
+            $beneficiariesCount = Beneficiary::where('batches_id', $batch->id)
                 ->count();
 
             if ($batch?->slots_allocated <= $beneficiariesCount) {
@@ -498,9 +501,9 @@ class AddBeneficiariesModal extends Component
                     'image_file_path' => $file,
                     'for_duplicates' => 'yes',
                 ]);
-                LogIt::set_barangay_added_special_case($beneficiary);
+                LogIt::set_barangay_added_special_case($implementation, $batch, $beneficiary, $this->accessCode);
             } else {
-                LogIt::set_barangay_add_beneficiary($beneficiary);
+                LogIt::set_barangay_add_beneficiary($implementation, $batch, $beneficiary, $this->accessCode);
             }
 
         });
@@ -793,6 +796,7 @@ class AddBeneficiariesModal extends Component
     public function resetBeneficiaries()
     {
         $this->resetExcept(
+            'accessCode',
             'batchId',
             'maximumIncome',
             'duplicationThreshold'
