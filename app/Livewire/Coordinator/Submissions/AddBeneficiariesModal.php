@@ -401,7 +401,7 @@ class AddBeneficiariesModal extends Component
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
-            $batch = Batch::find(decrypt($this->batchId));
+            $batch = Batch::lockForUpdate()->find(decrypt($this->batchId));
             $implementation = Implementation::find($batch->implementations_id);
             $beneficiariesCount = Beneficiary::where('batches_id', $batch->id)
                 ->count();
@@ -415,6 +415,13 @@ class AddBeneficiariesModal extends Component
 
             # Re-Check for Duplicates
             $this->nameCheck();
+
+            if ($this->isPerfectDuplicate) {
+                DB::rollBack();
+                $this->dispatch('alertNotification', type: 'duplicate', message: 'This beneficiary has a perfect duplicate.', color: 'red');
+                $this->js('$wire.$refresh();');
+                return;
+            }
 
             $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
             $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
@@ -483,9 +490,9 @@ class AddBeneficiariesModal extends Component
                     'for_duplicates' => 'yes',
                 ]);
 
-                LogIt::set_add_beneficiary_special_case($implementation, $beneficiary, $batch, auth()->user());
+                LogIt::set_add_beneficiary_special_case($implementation, $batch, $beneficiary, auth()->user());
             } else {
-                LogIt::set_add_beneficiary($implementation, $beneficiary, $batch, auth()->user());
+                LogIt::set_add_beneficiary($implementation, $batch, $beneficiary, auth()->user());
             }
 
         });

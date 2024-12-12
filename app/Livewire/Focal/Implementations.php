@@ -37,7 +37,7 @@ class Implementations extends Component
     public $projectNumPrefix;
     public $duplicationThreshold;
     public $allSimilarityResults;
-
+    public $alerts = [];
     # ------------------------------------------
 
     #[Locked]
@@ -824,6 +824,34 @@ class Implementations extends Component
     {
         return UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
+    }
+
+    #[On('alertNotification')]
+    public function alertNotification($type, $message, $color)
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        $this->selectedBeneficiaryRow = -1;
+
+        $this->alerts[] = [
+            'message' => $message,
+            'id' => uniqid(),
+            'color' => $color
+        ];
+
+        $this->dispatch('init-reload')->self();
+    }
+
+    public function removeAlert($id)
+    {
+        $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {
+            return $alert['id'] !== $id;
+        });
     }
 
     public function mount()

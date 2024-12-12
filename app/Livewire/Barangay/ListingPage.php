@@ -36,6 +36,7 @@ class ListingPage extends Component
     public $credentialId;
     public $identity;
     public $special;
+    public $alerts = [];
     public $showAlert = false;
     public $alertMessage = '';
 
@@ -393,6 +394,25 @@ class ListingPage extends Component
             $this->dispatch('show-alert');
             $this->dispatch('init-reload')->self();
 
+        });
+    }
+
+    #[On('alertNotification')]
+    public function alertNotification($type, $message, $color)
+    {
+        $this->alerts[] = [
+            'message' => $message,
+            'id' => uniqid(),
+            'color' => $color
+        ];
+
+        $this->dispatch('init-reload')->self();
+    }
+
+    public function removeAlert($id)
+    {
+        $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {
+            return $alert['id'] !== $id;
         });
     }
 
