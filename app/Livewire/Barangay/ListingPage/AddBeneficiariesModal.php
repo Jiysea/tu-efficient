@@ -438,7 +438,6 @@ class AddBeneficiariesModal extends Component
             if ($this->isPerfectDuplicate) {
                 DB::rollBack();
                 $this->dispatch('alertNotification', type: 'duplicate', message: 'This beneficiary has a perfect duplicate.', color: 'red');
-                $this->js('$wire.$refresh();');
                 return;
             }
 

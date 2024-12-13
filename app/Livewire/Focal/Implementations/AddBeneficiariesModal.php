@@ -406,19 +406,19 @@ class AddBeneficiariesModal extends Component
                 ->count();
 
             if ($batch?->slots_allocated <= $beneficiariesCount) {
-                $this->dispatch('cannot-add-beneficiary');
+                DB::rollBack();
+                $this->dispatch('alertNotification', type: 'duplicate', message: 'The occupied slots have reached the max limit.', color: 'red');
                 return;
             }
 
             $this->normalizeStrings();
 
-            # Re-Check for Duplicates
+            # Re-Check for Duplicates for Simultaneous checks
             $this->nameCheck();
 
             if ($this->isPerfectDuplicate) {
                 DB::rollBack();
                 $this->dispatch('alertNotification', type: 'duplicate', message: 'This beneficiary has a perfect duplicate.', color: 'red');
-                $this->js('$wire.$refresh();');
                 return;
             }
 

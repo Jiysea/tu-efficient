@@ -1,5 +1,5 @@
 <div x-cloak class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50"
-    x-show="promptRestoreModal">
+    x-show="promptRestoreModal" @keydown.escape.window="promptRestoreModal = false">
 
     <!-- Modal -->
     <div x-trap.noautofocus.noreturn.noscroll="promptRestoreModal"
@@ -28,7 +28,7 @@
 
                         {{-- Close Button --}}
                         <button type="button" @click="promptRestoreModal = false;"
-                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

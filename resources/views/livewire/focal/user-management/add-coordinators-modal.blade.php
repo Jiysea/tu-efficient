@@ -1,7 +1,7 @@
 <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-    x-show="addCoordinatorsModal">
+    x-show="addCoordinatorsModal" @keydown.escape.window="addCoordinatorsModal">
 
-    <div x-show="addCoordinatorsModal" x-trap.noscroll="addCoordinatorsModal"
+    <div x-show="addCoordinatorsModal" x-trap.noscroll.noautofocus="addCoordinatorsModal"
         class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
         {{-- The Modal --}}
@@ -33,7 +33,7 @@
 
                         {{-- Close Button --}}
                         <button type="button" @click="$wire.resetCoordinators(); addCoordinatorsModal = false;"
-                            class="text-indigo-400 outline-none hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="text-indigo-400 outline-none focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

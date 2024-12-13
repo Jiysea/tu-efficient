@@ -1,13 +1,12 @@
-<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-    x-show="createProjectModal">
-
+<div x-cloak @keydown.window.escape="$wire.resetProject(); createProjectModal = false"
+    class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50" x-show="createProjectModal">
 
     <!-- Modal -->
-    <div x-show="createProjectModal" x-trap.noscroll="createProjectModal"
-        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+    <div x-show="createProjectModal" x-trap.noscroll.noautofocus="createProjectModal"
+        class="relative h-full p-4 flex items-start justify-center z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="relative size-full max-w-6xl">
+        <div class="w-full max-w-6xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -32,8 +31,8 @@
                         </div>
 
                         {{-- Close Button --}}
-                        <button type="button" @click="createProjectModal = false; $wire.resetProject();"
-                            class="text-indigo-400 outline-none hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                        <button type="button" @click="$wire.resetProject(); createProjectModal = false;"
+                            class="text-indigo-400 outline-none focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

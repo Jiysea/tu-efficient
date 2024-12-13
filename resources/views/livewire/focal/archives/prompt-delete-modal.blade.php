@@ -1,5 +1,5 @@
-<div x-cloak class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50"
-    x-show="promptDeleteModal">
+<div x-cloak class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50" x-show="promptDeleteModal"
+    @keydown.escape.window="promptDeleteModal = false">
 
     <!-- Modal -->
     <div x-trap.noautofocus.noreturn.noscroll="promptDeleteModal"

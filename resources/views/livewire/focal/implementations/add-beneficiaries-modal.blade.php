@@ -1,4 +1,6 @@
-<div x-cloak x-show="addBeneficiariesModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<div x-cloak x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }" x-show="addBeneficiariesModal"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.window.escape="if(!addReasonModal) {$wire.resetBeneficiaries(); $wire.clearAvgIncome(); addBeneficiariesModal = false;}">
 
     <!-- Modal -->
     <div x-show="addBeneficiariesModal" x-trap.noautofocus.noscroll="addBeneficiariesModal"
@@ -56,8 +58,7 @@
                         class="grid gap-x-2.5 gap-y-6 grid-cols-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
-                        <div x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }"
-                            class="{{ isset($similarityResults) ? '' : 'hidden' }} relative col-span-full">
+                        <div class="{{ isset($similarityResults) ? '' : 'hidden' }} relative col-span-full">
 
                             <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
                                 :class="{
@@ -343,6 +344,7 @@
 
                             {{-- Add Reason Modal --}}
                             <div x-cloak x-show="addReasonModal"
+                                @keydown.window.escape="$wire.resetReason(); addReasonModal = false;"
                                 class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
                                 <!-- Modal -->
@@ -380,7 +382,7 @@
                                                         </div>
                                                         <button type="button"
                                                             @click="$wire.resetReason(); addReasonModal = false;"
-                                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                                             <svg class="size-3" aria-hidden="true"
                                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 14 14">

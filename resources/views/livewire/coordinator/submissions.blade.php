@@ -1768,7 +1768,7 @@ window.addEventListener('resize', () => {
 
                         {{-- Delete Beneficiary Modal --}}
                         <div x-cloak class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50"
-                            x-show="deleteBeneficiaryModal">
+                            x-show="deleteBeneficiaryModal" @keydown.escape.window="deleteBeneficiaryModal">
 
                             <!-- Modal -->
                             <div x-show="deleteBeneficiaryModal" x-trap.noscroll.noautofocus="deleteBeneficiaryModal"
@@ -1785,7 +1785,7 @@ window.addEventListener('resize', () => {
 
                                             {{-- Close Button --}}
                                             <button type="button" @click="deleteBeneficiaryModal = false;"
-                                                class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                                 <svg class="size-3" aria-hidden="true"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 14 14">
@@ -1845,7 +1845,7 @@ window.addEventListener('resize', () => {
             <livewire:coordinator.submissions.import-file-modal :$batchId />
 
             {{-- Approve Submission Modal --}}
-            <div x-cloak>
+            <div x-cloak @keydown.escape.window="approveSubmissionModal">
                 <!-- Modal Backdrop -->
                 <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
                     x-show="approveSubmissionModal">
@@ -1882,7 +1882,7 @@ window.addEventListener('resize', () => {
                                     {{-- Close Modal --}}
                                     <button type="button"
                                         @click="$wire.resetPassword(); approveSubmissionModal = false;"
-                                        class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                        class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                         <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 14 14">
                                             <path stroke="currentColor" stroke-linecap="round"
@@ -1933,7 +1933,7 @@ window.addEventListener('resize', () => {
             </div>
 
             {{-- Export Summary Modal --}}
-            <div x-cloak>
+            <div x-cloak @keydown.escape.window="showExportModal">
                 <!-- Modal Backdrop -->
                 <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="showExportModal">
                 </div>
@@ -1968,7 +1968,7 @@ window.addEventListener('resize', () => {
 
                                     {{-- Close Button --}}
                                     <button type="button" @click="$wire.resetExport(); showExportModal = false;"
-                                        class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                        class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                         <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 14 14">
                                             <path stroke="currentColor" stroke-linecap="round"

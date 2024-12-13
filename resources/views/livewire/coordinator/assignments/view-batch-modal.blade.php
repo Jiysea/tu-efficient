@@ -1,10 +1,11 @@
-<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewBatchModal">
+<div x-cloak x-data="{
+    accessCodeModal: $wire.entangle('accessCodeModal'),
+    confirmModal: $wire.entangle('confirmModal'),
+}" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    x-show="viewBatchModal" @keydown.window.escape="if(!accessCodeModal && !confirmModal) viewBatchModal = false">
 
     <!-- Modal -->
-    <div x-data="{
-        accessCodeModal: $wire.entangle('accessCodeModal'),
-        confirmModal: $wire.entangle('confirmModal'),
-    }" x-show="viewBatchModal" x-trap.noautofocus.noscroll="viewBatchModal"
+    <div x-show="viewBatchModal" x-trap.noautofocus.noscroll="viewBatchModal"
         class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         {{-- The Modal --}}
@@ -36,7 +37,7 @@
 
                         {{-- Close Modal --}}
                         <button type="button" @click="viewBatchModal = false;"
-                            class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -230,13 +231,13 @@
         </div>
 
         {{-- OPEN ACCESS / GENERATE CODE MODAL --}}
-        <div x-cloak>
+        <div x-cloak @keydown.window.escape="accessCodeModal">
             <!-- Modal Backdrop -->
             <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="accessCodeModal">
             </div>
 
             <!-- Modal -->
-            <div x-show="accessCodeModal" x-trap.noscroll="accessCodeModal"
+            <div x-show="accessCodeModal" x-trap.noscroll.noautofocus="accessCodeModal"
                 class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
 
                 {{-- The Modal --}}
@@ -264,7 +265,7 @@
 
                                 {{-- Close Modal --}}
                                 <button type="button" @click="accessCodeModal = false;"
-                                    class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                    class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                     <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 14 14">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -336,10 +337,11 @@
         </div>
 
         {{-- CONFIRMATION MODAL --}}
-        <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="confirmModal">
+        <div x-cloak @keydown.window.escape="confirmModal"
+            class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="confirmModal">
 
             <!-- Modal -->
-            <div x-show="confirmModal" x-trap.noscroll="confirmModal"
+            <div x-show="confirmModal" x-trap.noscroll.noautofocus="confirmModal"
                 class="relative h-full p-4 flex justify-center items-center overflow-y-auto z-50 select-none">
 
                 {{-- The Modal --}}
@@ -376,7 +378,7 @@
 
                                 {{-- Close Modal --}}
                                 <button type="button" @click="$wire.resetConfirm(); confirmModal = false;"
-                                    class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 focus:bg-blue-200 focus:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                    class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                     <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 14 14">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

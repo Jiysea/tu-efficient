@@ -506,8 +506,8 @@ class ViewBeneficiary extends Component
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
-            $beneficiary = Beneficiary::find($this->passedBeneficiaryId ? decrypt($this->passedBeneficiaryId) : null);
-            $batch = Batch::find($beneficiary->batches_id);
+            $beneficiary = Beneficiary::lockForUpdate()->find($this->passedBeneficiaryId ? decrypt($this->passedBeneficiaryId) : null);
+            $batch = Batch::lockForUpdate()->find($beneficiary->batches_id);
             $implementation = Implementation::find($batch->implementations_id);
             $isChanged = false;
 
@@ -515,6 +515,12 @@ class ViewBeneficiary extends Component
 
             # Re-Check for Duplicates
             $this->nameCheck();
+
+            if ($this->isPerfectDuplicate) {
+                DB::rollBack();
+                $this->dispatch('alertNotification', type: 'duplicate', message: 'This beneficiary has a perfect duplicate.', color: 'red');
+                return;
+            }
 
             # Filter the necessitites
             $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
@@ -544,7 +550,7 @@ class ViewBeneficiary extends Component
             # then send an optimistic lock notification and close the modal to refresh the records.
             if (!$beneficiary) {
                 $this->dispatch('optimistic-lock', message: 'This record has been updated by someone else. Refreshing...');
-                $this->resetViewBeneficiary();
+                $this->resetBeneficiaries();
                 return;
             } else {
                 $beneficiary->fill([
@@ -685,7 +691,7 @@ class ViewBeneficiary extends Component
                 $this->dispatch('edit-beneficiary');
             }
 
-            $this->resetViewBeneficiary();
+            $this->resetBeneficiaries();
         });
 
     }
@@ -872,7 +878,7 @@ class ViewBeneficiary extends Component
                     LogIt::set_archive_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 }
 
-                $this->resetViewBeneficiary();
+                $this->resetBeneficiaries();
                 $this->js('viewBeneficiaryModal = false;');
                 $this->dispatch('archive-beneficiary');
             }
@@ -895,7 +901,7 @@ class ViewBeneficiary extends Component
                     LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 }
 
-                $this->resetViewBeneficiary();
+                $this->resetBeneficiaries();
                 $this->js('viewBeneficiaryModal = false;');
                 $this->dispatch('delete-beneficiary');
             }
@@ -1222,7 +1228,7 @@ class ViewBeneficiary extends Component
         $this->resetValidation('barangay_name');
     }
 
-    public function resetViewBeneficiary()
+    public function resetBeneficiaries()
     {
         $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold', 'maximumIncome', 'defaultArchive');
     }

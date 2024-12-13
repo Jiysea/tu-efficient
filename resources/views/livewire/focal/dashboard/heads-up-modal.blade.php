@@ -7,7 +7,7 @@
     x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
 
     <!-- Modal -->
-    <div x-show="showModal" x-trap.noscroll="showModal"
+    <div x-show="showModal" x-trap.noscroll.noautofocus="showModal"
         class="relative h-full overflow-y-auto p-4 flex items-center justify-center select-none"
         x-transition:enter="transition ease-in-out duration-300" x-transition:enter-start="opacity-0 transform scale-90"
         x-transition:enter-end="opacity-100 transform scale-100"
@@ -35,7 +35,7 @@
                             </svg>
                         </div>
                         <button @click="showModal = false"
-                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

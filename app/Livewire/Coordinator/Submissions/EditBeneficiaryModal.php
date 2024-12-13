@@ -448,8 +448,8 @@ class EditBeneficiaryModal extends Component
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
-            $beneficiary = Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
-            $batch = Batch::find($beneficiary->batches_id);
+            $beneficiary = Beneficiary::lockForUpdate()->find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+            $batch = Batch::lockForUpdate()->find($beneficiary->batches_id);
             $implementation = Implementation::find($batch->implementations_id);
             $isChanged = false;
 
@@ -457,6 +457,12 @@ class EditBeneficiaryModal extends Component
 
             # Re-Check for Duplicates
             $this->nameCheck();
+
+            if ($this->isPerfectDuplicate) {
+                DB::rollBack();
+                $this->dispatch('alertNotification', type: 'duplicate', message: 'This beneficiary has a perfect duplicate.', color: 'red');
+                return;
+            }
 
             # Filter the necessitites
             $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
@@ -486,7 +492,7 @@ class EditBeneficiaryModal extends Component
             # then send an optimistic lock notification and close the modal to refresh the records.
             if (!$beneficiary) {
                 $this->dispatch('optimistic-lock', message: 'This record has been updated by someone else. Refreshing...');
-                $this->resetEditBeneficiary();
+                $this->resetBeneficiaries();
                 return;
             } else {
                 $beneficiary->fill([
@@ -628,7 +634,7 @@ class EditBeneficiaryModal extends Component
             }
 
             $this->js('editBeneficiaryModal = false;');
-            $this->resetEditBeneficiary();
+            $this->resetBeneficiaries();
         });
 
     }
@@ -1038,7 +1044,7 @@ class EditBeneficiaryModal extends Component
         $this->isResolved = false;
     }
 
-    public function resetEditBeneficiary()
+    public function resetBeneficiaries()
     {
         $this->resetExcept(
             'beneficiaryId',

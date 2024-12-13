@@ -26,8 +26,6 @@ class ViewProject extends Component
 
     # ---------------------------------
     public $editMode = false;
-    public $isEmpty;
-    public $isApproved;
     public $deleteProjectModal = false;
     public $isAutoComputeEnabled = false;
     public $projectNumPrefix;
@@ -279,40 +277,35 @@ class ViewProject extends Component
         $this->resetValidation();
     }
 
-    public function checkApproved()
+    #[Computed]
+    public function isConcluded()
     {
-        if ($this->passedProjectId) {
-            $query = Batch::where('implementations_id', decrypt($this->passedProjectId))
-                ->where('approval_status', 'approved')
-                ->exists();
+        $implementation = Implementation::find($this->passedProjectId ? decrypt($this->passedProjectId) : null);
 
-            # If there's any rows that exists...
-            if ($query) {
-                # then it's not empty
-                $this->isApproved = true;
-            } else {
-                # otherwise, it is empty.
-                $this->isApproved = false;
-            }
+        # If the implementation project has already concluded...
+        if ($implementation?->status === 'concluded') {
+            # then it is concluded
+            return true;
         }
+        # otherwise, it is not yet concluded.
+        return false;
     }
 
     # Checks if there are any existing batches row created that associates with this project
-    public function checkEmpty()
+    #[Computed]
+    public function isEmpty()
     {
-        if ($this->passedProjectId) {
-            $query = Batch::where('implementations_id', decrypt($this->passedProjectId))
-                ->exists();
+        $query = Batch::where('implementations_id', $this->passedProjectId ? decrypt($this->passedProjectId) : null)
+            ->exists();
 
-            # If there's any rows that exists...
-            if ($query) {
-                # then it's not empty
-                $this->isEmpty = false;
-            } else {
-                # otherwise, it is empty.
-                $this->isEmpty = true;
-            }
+        # If there's any rows that exists...
+        if ($query) {
+            # then it's not empty
+            return false;
         }
+
+        # otherwise, it is empty.
+        return true;
     }
 
     #[Computed]
@@ -325,18 +318,12 @@ class ViewProject extends Component
     public function mount()
     {
 
-
     }
 
     public function render()
     {
         $this->defaultMinimumWage = $this->settings->get('minimum_wage', config('settings.minimum_wage'));
         $this->projectNumPrefix = $this->settings->get('project_number_prefix', config('settings.project_number_prefix'));
-
-        # Check if there's no batches made with this project yet
-        $this->checkEmpty();
-        $this->checkApproved();
-
 
         return view('livewire.focal.implementations.view-project');
     }

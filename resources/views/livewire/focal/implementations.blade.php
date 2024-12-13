@@ -1177,7 +1177,7 @@ window.addEventListener('resize', () => {
                     <livewire:focal.implementations.import-file-modal :$batchId />
 
                     {{-- Export Summary Modal --}}
-                    <div x-cloak>
+                    <div x-cloak @keydown.escape.window="$wire.resetExport(); showExportModal = false;">
                         <!-- Modal Backdrop -->
                         <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
                             x-show="showExportModal">
@@ -1214,7 +1214,7 @@ window.addEventListener('resize', () => {
                                             {{-- Close Button --}}
                                             <button type="button"
                                                 @click="$wire.resetExport(); showExportModal = false;"
-                                                class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                                 <svg class="size-3" aria-hidden="true"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 14 14">

@@ -1,4 +1,6 @@
-<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewCredentialsModal"
+<div x-cloak x-data="{ viewImageModal: $wire.entangle('viewImageModal') }" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    x-show="viewCredentialsModal"
+    @keydown.window.escape="if(!viewImageModal) {$wire.resetViewCredentials(); viewCredentialsModal = false;}"
     x-trap.noautofocus.noscroll="viewCredentialsModal">
 
     <!-- Modal -->
@@ -7,7 +9,7 @@
 
         {{-- The Modal --}}
         <div class="w-full max-w-4xl">
-            <div x-data="{ viewImageModal: $wire.entangle('viewImageModal') }" class="relative bg-white rounded-md shadow">
+            <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
@@ -36,7 +38,7 @@
 
                         {{-- Close Button --}}
                         <button type="button" @click="$wire.resetViewCredentials(); viewCredentialsModal = false;"
-                            class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -202,17 +204,17 @@
                 @endif
 
                 {{-- View Image Modal --}}
-                <div x-cloak x-show="viewImageModal" x-trap.noscroll="viewImageModal"
+                <div x-cloak x-show="viewImageModal" @keydown.window.escape="viewImageModal = false"
                     class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
                     <!-- Modal -->
-                    <div x-show="viewImageModal" x-trap.noscroll="viewImageModal"
+                    <div x-show="viewImageModal" x-trap.noscroll.noautofocus="viewImageModal"
                         class="relative h-full overflow-y-auto p-4 flex items-start sm:items-center justify-center select-none">
 
                         <div class="w-full">
                             {{-- Close Button --}}
                             <button type="button" @click="viewImageModal = false;"
-                                class="absolute flex items-center justify-center top-0 right-0 m-4 outline-none text-blue-50 hover:bg-blue-50 hover:text-blue-800 rounded size-8 duration-300 ease-in-out">
+                                class="absolute flex items-center justify-center top-0 right-0 m-4 outline-none text-blue-50 focus:bg-indigo-50 focus:text-indigo-800 hover:bg-blue-50 hover:text-blue-800 rounded size-8 duration-300 ease-in-out">
                                 <svg class="size-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                     fill="none" viewBox="0 0 14 14">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

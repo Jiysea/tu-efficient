@@ -311,7 +311,7 @@ class ListingPage extends Component
     public function authorizeBeforeExecuting()
     {
         # do a query for that code (if it's set)
-        $access = Code::where('access_code', decrypt($this->accessCode))
+        $access = Code::lockForUpdate()->where('access_code', decrypt($this->accessCode))
             ->where('is_accessible', 'yes')
             ->first();
 

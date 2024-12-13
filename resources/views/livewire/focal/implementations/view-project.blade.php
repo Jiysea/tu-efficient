@@ -1,11 +1,12 @@
-<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50" x-show="viewProjectModal">
+<div x-cloak x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }" @keydown.window.escape="if (!deleteProjectModal) viewProjectModal = false"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewProjectModal">
 
     <!-- Modal -->
-    <div x-show="viewProjectModal" x-trap.noscroll="viewProjectModal"
-        class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
+    <div x-show="viewProjectModal" x-trap.noautofocus.noscroll="viewProjectModal"
+        class="relative h-full p-4 flex items-start overflow-y-auto justify-center z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="relative size-full max-w-5xl">
+        <div class="w-full max-w-5xl">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal Header -->
@@ -30,7 +31,7 @@
 
                         {{-- Close Button --}}
                         <button type="button" @click="$wire.resetViewProject(); viewProjectModal = false;"
-                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -76,7 +77,7 @@
 
                             {{-- Budget --}}
                             <div class="flex flex-1 flex-col relative">
-                                @if ($isEmpty)
+                                @if ($this->isEmpty)
                                     <label for="budget_amount" class="block mb-1  font-medium text-indigo-1100 ">
                                         <span class="relative">Budget
                                             <span
@@ -117,7 +118,7 @@
 
                             {{-- Minimum Wage --}}
                             <div class="flex flex-1 flex-col relative">
-                                @if ($isEmpty)
+                                @if ($this->isEmpty)
                                     <label for="minimum_wage" class="block mb-1  font-medium text-indigo-1100 ">
                                         <span class="relative">Minimum Wage
                                             <span
@@ -158,7 +159,7 @@
 
                             {{-- Total Slots --}}
                             <div class="flex flex-1 flex-col relative">
-                                @if ($isEmpty)
+                                @if ($this->isEmpty)
                                     <div class="flex items-center">
                                         <label for="total_slots"
                                             class="block mb-1 whitespace-nowrap font-medium text-indigo-1100 ">
@@ -204,7 +205,7 @@
 
                             {{-- Days Of Work --}}
                             <div class="flex flex-1 flex-col relative">
-                                @if ($isEmpty)
+                                @if ($this->isEmpty)
                                     <label for="days_of_work" class="block mb-1  font-medium text-indigo-1100 ">
                                         <span class="relative">Days of Work
                                             <span
@@ -275,16 +276,10 @@
 
                             {{-- Save & Cancel Buttons --}}
                             <div
-                                class="flex items-center {{ $isEmpty ? 'justify-end' : 'justify-between' }} col-span-full gap-2 sm:gap-4">
-                                @if (!$isEmpty)
+                                class="flex items-center {{ $this->isEmpty ? 'justify-end' : 'justify-between' }} col-span-full gap-2 sm:gap-4">
+                                @if (!$this->isEmpty)
                                     <span
                                         class="flex flex-1 items-center justify-start font-medium border bg-red-100 border-red-300 text-red-950 rounded text-xs p-3 outline-none">
-                                        <svg class="size-3.5 me-2" aria-hidden="true"
-                                            xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                            viewBox="0 0 20 20">
-                                            <path
-                                                d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                        </svg>
                                         Some fields can only be editable if this project has no batches yet.
                                     </span>
                                 @endif
@@ -368,10 +363,10 @@
                             </div>
 
                             {{-- Edit | Delete Buttons OFF --}}
-                            <div x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }" class="flex justify-center items-end">
+                            <div class="flex justify-center items-end">
                                 <button type="button" wire:loading.attr="disabled" wire:target="toggleEdit"
-                                    @if (!$isApproved) wire:click.prevent="toggleEdit" @else disabled @endif
-                                    class="duration-200 ease-in-out flex flex-1 gap-2 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                    @if (!$this->isConcluded) wire:click.prevent="toggleEdit" @else disabled @endif
+                                    class="duration-200 ease-in-out flex flex-1 gap-2 items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm {{ $this->isConcluded ? 'cursor-not-allowed bg-gray-300 text-gray-500' : 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' }}">
                                     EDIT
                                     {{-- Loading Icon --}}
                                     <svg class="size-4 animate-spin" wire:loading wire:target="toggleEdit"
@@ -399,8 +394,8 @@
 
                                 {{-- Delete/Trash Button --}}
                                 <button type="button"
-                                    @if ($isEmpty) @click="deleteProjectModal = !deleteProjectModal;" @else disabled @endif
-                                    class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2.5 rounded outline-none font-bold text-sm disabled:border disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                    @if ($this->isEmpty) @click="deleteProjectModal = !deleteProjectModal;" @else disabled @endif
+                                    class="duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2.5 rounded outline-none font-bold text-sm {{ !$this->isEmpty ? 'cursor-not-allowed bg-gray-300 text-gray-500' : 'bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50' }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                         viewBox="0, 0, 400,400">
@@ -414,15 +409,14 @@
                                 </button>
 
                                 {{-- Delete Project Modal --}}
-                                <div x-cloak>
+                                <div x-cloak @keydown.window.escape="deleteProjectModal = false">
                                     <!-- Modal Backdrop -->
                                     <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
                                         x-show="deleteProjectModal">
                                     </div>
 
                                     <!-- Modal -->
-                                    <div x-trap.inert="deleteProjectModal" x-show="deleteProjectModal"
-                                        x-trap.noscroll="deleteProjectModal"
+                                    <div x-trap.noscroll.noautofocus="deleteProjectModal" x-show="deleteProjectModal"
                                         class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
 
                                         {{-- The Modal --}}
@@ -436,7 +430,7 @@
 
                                                     {{-- Close Button --}}
                                                     <button type="button" @click="deleteProjectModal = false;"
-                                                        class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                        class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                                         <svg class="size-3" aria-hidden="true"
                                                             xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 14 14">

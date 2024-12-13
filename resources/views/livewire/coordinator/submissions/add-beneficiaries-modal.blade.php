@@ -1,4 +1,6 @@
-<div x-cloak x-show="addBeneficiariesModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<div x-cloak x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }" x-show="addBeneficiariesModal"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.window.escape="if(!addReasonModal) {$wire.resetBeneficiaries(); $wire.clearAvgIncome(); addBeneficiariesModal = false;}">
 
     <!-- Modal -->
     <div x-show="addBeneficiariesModal" x-trap.noautofocus.noscroll="addBeneficiariesModal"
@@ -56,8 +58,7 @@
                         class="grid gap-x-2.5 gap-y-6 grid-cols-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
-                        <div x-data="{ expanded: $wire.entangle('expanded'), addReasonModal: $wire.entangle('addReasonModal') }"
-                            class="{{ isset($similarityResults) ? '' : 'hidden' }} relative col-span-full">
+                        <div class="{{ isset($similarityResults) ? '' : 'hidden' }} relative col-span-full">
 
                             <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
                                 :class="{
@@ -342,7 +343,7 @@
                             </div>
 
                             {{-- Add Reason Modal --}}
-                            <div x-cloak x-show="addReasonModal"
+                            <div x-cloak x-show="addReasonModal" @keydown.window.escape="$wire.resetReason(); addReasonModal = false;"
                                 class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
                                 <!-- Modal -->
@@ -379,7 +380,7 @@
                                                         </div>
                                                         <button type="button"
                                                             @click="$wire.resetReason(); addReasonModal = false;"
-                                                            class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                            class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                                             <svg class="size-3" aria-hidden="true"
                                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 14 14">
@@ -1187,7 +1188,10 @@
                                         </button>
                                     @endif
 
-                                    @if ($birthdate && strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) < strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if (
+                                        $birthdate &&
+                                            strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) <
+                                                strtotime(\Carbon\Carbon::now()->subYears(60)))
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">

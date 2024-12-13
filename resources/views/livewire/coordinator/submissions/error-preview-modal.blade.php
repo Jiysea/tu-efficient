@@ -1,7 +1,8 @@
-<div x-cloak x-show="errorPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<div x-cloak x-show="errorPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.window.escape="errorPreviewModal">
 
     <!-- Modal -->
-    <div x-show="errorPreviewModal" x-trap.noscroll="errorPreviewModal"
+    <div x-show="errorPreviewModal" x-trap.noscroll.noautofocus="errorPreviewModal"
         class="relative h-full overflow-y-auto p-4 flex items-center justify-center select-none">
 
         <div class="size-full max-w-5xl">
@@ -34,7 +35,7 @@
                         {{-- Close Button --}}
                         <button type="button" @click="errorPreviewModal = false;" wire:loading.attr="disabled"
                             wire:target="validateFile"
-                            class="outline-none text-red-400 hover:bg-red-200 hover:text-red-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
+                            class="outline-none text-red-400 focus:bg-red-200 focus:text-red-900 hover:bg-red-200 hover:text-red-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

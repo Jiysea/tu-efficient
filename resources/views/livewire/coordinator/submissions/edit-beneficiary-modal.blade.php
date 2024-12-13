@@ -1,4 +1,6 @@
-<div x-cloak x-show="editBeneficiaryModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<div x-cloak x-data="{ confirmTypeChangeModal: $wire.entangle('confirmTypeChangeModal') }" x-show="editBeneficiaryModal"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.window.escape="if(!confirmTypeChangeModal) {$wire.resetBeneficiaries(); $wire.clearAvgIncome(); editBeneficiaryModal = false;}">
 
     <!-- Modal -->
     <div x-show="editBeneficiaryModal" x-trap.noautofocus.noscroll="editBeneficiaryModal"
@@ -6,7 +8,7 @@
 
         <!-- Modal content -->
         <div class="w-full max-w-screen-xl">
-            <div x-data="{ confirmTypeChangeModal: $wire.entangle('confirmTypeChangeModal') }" class="relative bg-white rounded-md shadow">
+            <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
@@ -32,7 +34,7 @@
 
                         <button type="button"
                             class="text-blue-400 bg-transparent focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 outline-none rounded size-8 ms-auto inline-flex justify-center items-center focus:outline-none duration-200 ease-in-out"
-                            @click="$wire.resetEditBeneficiary(); $wire.clearAvgIncome(); editBeneficiaryModal = false;">
+                            @click="$wire.resetBeneficiaries(); $wire.clearAvgIncome(); editBeneficiaryModal = false;">
                             <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -1535,7 +1537,18 @@
 
                 {{-- Confirm Beneficiary Type Change Modal --}}
                 <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-                    x-show="confirmTypeChangeModal">
+                    x-show="confirmTypeChangeModal" 
+                    @if ($confirmChangeType === 'beneficiary_type')
+                    @keydown.window.escape="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
+                @elseif($confirmChangeType === 'first_name')
+                    @keydown.window.escape="$wire.set('first_name', '{{ $this->beneficiary?->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                @elseif($confirmChangeType === 'middle_name')
+                    @keydown.window.escape="$wire.setFieldName('middle_name'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                @elseif($confirmChangeType === 'last_name')
+                    @keydown.window.escape="$wire.set('last_name', '{{ $this->beneficiary?->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                @elseif($confirmChangeType === 'extension_name') 
+                    @keydown.window.escape="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" 
+                @endif>
 
                     <!-- Modal -->
                     <div x-show="confirmTypeChangeModal" x-trap.noreturn.noautofocus="confirmTypeChangeModal"
@@ -1561,7 +1574,7 @@
                                         @click="$wire.set('last_name', '{{ $this->beneficiary->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
                                     @elseif($confirmChangeType === 'extension_name') 
                                         @click="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" @endif
-                                        class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                        class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                         <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 14 14">
                                             <path stroke="currentColor" stroke-linecap="round"

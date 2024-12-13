@@ -791,6 +791,7 @@ window.addEventListener('resize', () => {
                 </div>
             </div>
         </div>
+
         {{-- Alert Bar --}}
         <div x-data="{
             successShow: $wire.entangle('showAlert'),

@@ -1,4 +1,6 @@
-<div x-cloak x-show="addBeneficiariesModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<<div x-cloak x-data="{ addReasonModal: $wire.entangle('addReasonModal') }" x-show="addBeneficiariesModal"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.window.escape="if(!addReasonModal) {$wire.resetBeneficiaries(); $wire.clearAvgIncome(); addBeneficiariesModal = false;}">
 
     <!-- Modal -->
     <div x-show="addBeneficiariesModal" x-trap.noautofocus.noscroll="addBeneficiariesModal"
@@ -56,8 +58,7 @@
                         class="grid gap-x-2.5 gap-y-6 grid-cols-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 text-xs">
 
                         {{-- Similarity Results --}}
-                        <div x-data="{ addReasonModal: $wire.entangle('addReasonModal') }"
-                            class="{{ isset($similarityResults) ? '' : 'hidden' }} relative col-span-full">
+                        <div class="{{ isset($similarityResults) ? '' : 'hidden' }} relative col-span-full">
 
                             <div class="flex items-center justify-between border rounded text-xs p-2 duration-200 ease-in-out"
                                 :class="{
@@ -130,6 +131,7 @@
 
                             {{-- Add Reason Modal --}}
                             <div x-cloak x-show="addReasonModal"
+                                @keydown.window.escape="$wire.resetReason(); addReasonModal = false;"
                                 class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
                                 <!-- Modal -->
@@ -165,7 +167,7 @@
                                                         </div>
                                                         <button type="button"
                                                             @click="$wire.resetReason(); addReasonModal = false;"
-                                                            class="outline-none text-green-400 hover:bg-green-200 hover:text-green-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                                            class="outline-none text-green-400 focus:bg-green-200 focus:text-green-900 hover:bg-green-200 hover:text-green-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                                             <svg class="size-3" aria-hidden="true"
                                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 14 14">
@@ -977,7 +979,10 @@
                                         </button>
                                     @endif
 
-                                    @if ($birthdate && strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) < strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if (
+                                        $birthdate &&
+                                            strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) <
+                                                strtotime(\Carbon\Carbon::now()->subYears(60)))
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-green-1100 hover:text-green-900 focus:text-green-900 active:text-green-1000 hover:bg-green-100 focus:bg-green-100 active:bg-green-200">
@@ -1342,101 +1347,101 @@
             </div>
         </div>
     </div>
-</div>
-@script
-    <script>
-        $wire.on('init-reload', () => {
-            setTimeout(() => {
-                initFlowbite();
-            }, 1);
-        });
-
-        const image_file_path = document.getElementById('image_file_path');
-        const id_dropzone = document.getElementById('id_dropzone');
-        let initialError = null; // Check if error styles exist
-        const errorStyles = ['text-red-500'];
-        const defaultStyles = ['text-gray-500'];
-        const errorDragStyles = ['text-orange-500'];
-        const defaultDragStyles = ['text-green-500'];
-
-        id_dropzone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            initialError = id_dropzone.classList.contains('text-red-500');
-            initialError ? id_dropzone.classList.remove(...errorStyles) : id_dropzone.classList.remove(...
-                defaultStyles);
-            initialError ? id_dropzone.classList.add(...errorDragStyles) : id_dropzone.classList.add(...
-                defaultDragStyles);
-        });
-
-        id_dropzone.addEventListener('dragleave', () => {
-            initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
-                'text-orange-500');
-            initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
-            initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
-                defaultDragStyles);
-        });
-
-        id_dropzone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
-                'text-orange-500');
-            initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
-            initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
-                defaultDragStyles);
-
-            files = e.dataTransfer.files;
-            if (files.length) {
-                image_file_path.files = files;
-                image_file_path.dispatchEvent(new Event('change'));
-            }
-        });
-
-        $wire.on('load-reason', () => {
-            const reason_image_file_path = document.getElementById('reason_image_file_path');
-            const reason_dropzone = document.getElementById('reason_dropzone');
-            reason_dropzone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                initialError = reason_dropzone.classList.contains('text-red-500');
-                initialError ? reason_dropzone.classList.remove(...errorStyles) : reason_dropzone.classList
-                    .remove(...
-                        defaultStyles);
-                initialError ? reason_dropzone.classList.add(...errorDragStyles) : reason_dropzone.classList
-                    .add(...
-                        defaultDragStyles);
+    </div>
+    @script
+        <script>
+            $wire.on('init-reload', () => {
+                setTimeout(() => {
+                    initFlowbite();
+                }, 1);
             });
 
-            reason_dropzone.addEventListener('dragleave', () => {
-                initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
-                    .classList.contains(
-                        'text-orange-500');
-                initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
-                    .add(...
-                        defaultStyles);
-                initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
-                    .classList.remove(
-                        ...
-                        defaultDragStyles);
+            const image_file_path = document.getElementById('image_file_path');
+            const id_dropzone = document.getElementById('id_dropzone');
+            let initialError = null; // Check if error styles exist
+            const errorStyles = ['text-red-500'];
+            const defaultStyles = ['text-gray-500'];
+            const errorDragStyles = ['text-orange-500'];
+            const defaultDragStyles = ['text-green-500'];
+
+            id_dropzone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                initialError = id_dropzone.classList.contains('text-red-500');
+                initialError ? id_dropzone.classList.remove(...errorStyles) : id_dropzone.classList.remove(...
+                    defaultStyles);
+                initialError ? id_dropzone.classList.add(...errorDragStyles) : id_dropzone.classList.add(...
+                    defaultDragStyles);
             });
 
-            reason_dropzone.addEventListener('drop', function(e) {
+            id_dropzone.addEventListener('dragleave', () => {
+                initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
+                    'text-orange-500');
+                initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
+                initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
+                    defaultDragStyles);
+            });
+
+            id_dropzone.addEventListener('drop', function(e) {
                 e.preventDefault();
-                initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
-                    .classList.contains(
-                        'text-orange-500');
-                initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
-                    .add(...
-                        defaultStyles);
-                initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
-                    .classList.remove(
-                        ...
-                        defaultDragStyles);
+                initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
+                    'text-orange-500');
+                initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
+                initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
+                    defaultDragStyles);
 
                 files = e.dataTransfer.files;
                 if (files.length) {
-                    reason_image_file_path.files = files;
-                    reason_image_file_path.dispatchEvent(new Event('change'));
+                    image_file_path.files = files;
+                    image_file_path.dispatchEvent(new Event('change'));
                 }
             });
-        });
-    </script>
-@endscript
+
+            $wire.on('load-reason', () => {
+                const reason_image_file_path = document.getElementById('reason_image_file_path');
+                const reason_dropzone = document.getElementById('reason_dropzone');
+                reason_dropzone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    initialError = reason_dropzone.classList.contains('text-red-500');
+                    initialError ? reason_dropzone.classList.remove(...errorStyles) : reason_dropzone.classList
+                        .remove(...
+                            defaultStyles);
+                    initialError ? reason_dropzone.classList.add(...errorDragStyles) : reason_dropzone.classList
+                        .add(...
+                            defaultDragStyles);
+                });
+
+                reason_dropzone.addEventListener('dragleave', () => {
+                    initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
+                        .classList.contains(
+                            'text-orange-500');
+                    initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
+                        .add(...
+                            defaultStyles);
+                    initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
+                        .classList.remove(
+                            ...
+                            defaultDragStyles);
+                });
+
+                reason_dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
+                        .classList.contains(
+                            'text-orange-500');
+                    initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
+                        .add(...
+                            defaultStyles);
+                    initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
+                        .classList.remove(
+                            ...
+                            defaultDragStyles);
+
+                    files = e.dataTransfer.files;
+                    if (files.length) {
+                        reason_image_file_path.files = files;
+                        reason_image_file_path.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+        </script>
+    @endscript

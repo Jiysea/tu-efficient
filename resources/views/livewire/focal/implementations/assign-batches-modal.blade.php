@@ -1,7 +1,8 @@
-<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="assignBatchesModal">
+<div x-cloak @keydown.window.escape="$wire.resetBatches(); assignBatchesModal = false"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="assignBatchesModal">
 
     <!-- Modal -->
-    <div x-show="assignBatchesModal" x-trap.noscroll="assignBatchesModal"
+    <div x-show="assignBatchesModal" x-trap.noscroll.noautofocus="assignBatchesModal"
         class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         {{-- The Modal --}}
@@ -30,7 +31,7 @@
 
                         {{-- Close Modal --}}
                         <button type="button" @click="$wire.resetBatches(); assignBatchesModal = false;"
-                            class="text-indigo-400 bg-transparent hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 inline-flex justify-center items-center outline-none duration-200 ease-in-out">
+                            class="text-indigo-400 bg-transparent focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 inline-flex justify-center items-center outline-none duration-200 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

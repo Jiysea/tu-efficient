@@ -1046,7 +1046,8 @@ window.addEventListener('resize', () => {
     </div>
 
     {{-- Export Summary Modal --}}
-    <div x-cloak x-show="showExportModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+    <div x-cloak x-show="showExportModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.escape.window="$wire.resetExport(); showExportModal = false;">
 
         <!-- Modal -->
         <div x-show="showExportModal" x-trap.noautofocus.noscroll="showExportModal"
@@ -1078,7 +1079,7 @@ window.addEventListener('resize', () => {
 
                             {{-- Close Button --}}
                             <button type="button" @click="$wire.resetExport(); showExportModal = false;"
-                                class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                 <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                     fill="none" viewBox="0 0 14 14">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

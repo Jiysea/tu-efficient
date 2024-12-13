@@ -1,11 +1,13 @@
-<div x-cloak class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewBatchModal">
+<div x-cloak x-data="{
+    accessCodeModal: $wire.entangle('accessCodeModal'),
+    forceApproveModal: $wire.entangle('forceApproveModal'),
+    pendBatchModal: $wire.entangle('pendBatchModal')
+}"
+    @keydown.window.escape="if(!accessCodeModal && !forceApproveModal && !pendBatchModal) {$wire.resetViewBatch(); viewBatchModal = false;}"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewBatchModal">
 
     <!-- Modal -->
-    <div x-data="{
-        accessCodeModal: $wire.entangle('accessCodeModal'),
-        forceApproveModal: $wire.entangle('forceApproveModal'),
-        pendBatchModal: $wire.entangle('pendBatchModal')
-    }" x-show="viewBatchModal" x-trap.noscroll="viewBatchModal"
+    <div x-show="viewBatchModal" x-trap.noscroll.noautofocus="viewBatchModal"
         class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         {{-- The Modal --}}
@@ -943,14 +945,14 @@
                 @endif
 
                 {{-- Force Approve Modal --}}
-                <div x-cloak>
+                <div x-cloak @keydown.window.escape="$wire.resetPasswords(); forceApproveModal = false;">
                     <!-- Modal Backdrop -->
                     <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
                         x-show="forceApproveModal">
                     </div>
 
                     <!-- Modal -->
-                    <div x-show="forceApproveModal" x-trap.noscroll="forceApproveModal"
+                    <div x-show="forceApproveModal" x-trap.noscroll.noautofocus="forceApproveModal"
                         class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
 
                         {{-- The Modal --}}
@@ -980,7 +982,7 @@
                                         {{-- Close Modal --}}
                                         <button type="button"
                                             @click="$wire.resetPasswords(); forceApproveModal = false;"
-                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 14 14">
                                                 <path stroke="currentColor" stroke-linecap="round"
@@ -1035,13 +1037,13 @@
                 </div>
 
                 {{-- Pend Batch Modal --}}
-                <div x-cloak>
+                <div x-cloak @keydown.window.escape="$wire.resetPasswords(); pendBatchModal = false">
                     <!-- Modal Backdrop -->
                     <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="pendBatchModal">
                     </div>
 
                     <!-- Modal -->
-                    <div x-show="pendBatchModal" x-trap.noscroll="pendBatchModal"
+                    <div x-show="pendBatchModal" x-trap.noscroll.noautofocus="pendBatchModal"
                         class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
 
                         {{-- The Modal --}}
@@ -1072,7 +1074,7 @@
                                         {{-- Close Modal --}}
                                         <button type="button"
                                             @click="$wire.resetPasswords(); pendBatchModal = false;"
-                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 14 14">
                                                 <path stroke="currentColor" stroke-linecap="round"

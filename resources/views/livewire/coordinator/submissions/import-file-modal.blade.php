@@ -1,13 +1,15 @@
-<div x-cloak x-show="importFileModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<div x-cloak x-data="{ step: $wire.entangle('step'), errorPreviewModal: $wire.entangle('errorPreviewModal'), downloadSampleModal: $wire.entangle('downloadSampleModal') }"
+    @keydown.window.escape="if(!errorPreviewModal && !downloadSampleModal) {$wire.resetImports(); importFileModal = false;}"
+    x-show="importFileModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
 
     <!-- Modal -->
-    <div x-show="importFileModal" x-trap.noscroll="importFileModal"
+    <div x-show="importFileModal" x-trap.noscroll.noautofocus="importFileModal"
         class="relative h-full overflow-y-auto p-4 flex items-center justify-center select-none">
 
         <div class="w-full max-w-5xl">
 
             <!-- Modal content -->
-            <div x-data="{ step: $wire.entangle('step'), errorPreviewModal: $wire.entangle('errorPreviewModal'), downloadSampleModal: $wire.entangle('downloadSampleModal') }" class="relative bg-white rounded-md shadow">
+            <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
@@ -1804,11 +1806,11 @@
                 <livewire:coordinator.submissions.error-preview-modal :$errorId />
 
                 {{-- Download Sample Format Modal --}}
-                <div x-cloak x-show="downloadSampleModal"
+                <div x-cloak x-show="downloadSampleModal" @keydown.window.escape="downloadSampleModal"
                     class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto  backdrop-blur-sm z-50">
 
                     <!-- Modal -->
-                    <div x-show="downloadSampleModal" x-trap.noscroll="downloadSampleModal"
+                    <div x-show="downloadSampleModal" x-trap.noscroll.noautofocus="downloadSampleModal"
                         class="min-h-screen p-4 flex items-center justify-center z-50 select-none">
 
                         <div class="relative">
@@ -1835,7 +1837,7 @@
                                             </svg>
                                         </div>
                                         <button type="button" @click="downloadSampleModal = false;"
-                                            class="outline-none text-blue-400 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
+                                            class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-200 ease-in-out">
                                             <svg class="size-3" aria-hidden="true"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 14 14">

@@ -1,12 +1,14 @@
-<div x-cloak x-show="viewBeneficiaryModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50">
+<div x-cloak x-data="{ editMode: $wire.entangle('editMode'), deleteBeneficiaryModal: $wire.entangle('deleteBeneficiaryModal'), viewCredentialsModal: $wire.entangle('viewCredentialsModal'), confirmTypeChangeModal: $wire.entangle('confirmTypeChangeModal') }" x-show="viewBeneficiaryModal"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.window.escape="if(!deleteBeneficiaryModal && !viewCredentialsModal && !confirmTypeChangeModal) {$wire.resetBeneficiaries(); $wire.clearAvgIncome(); viewBeneficiaryModal = false;}">
 
     <!-- Modal -->
     <div x-show="viewBeneficiaryModal" x-trap.noscroll.noautofocus="viewBeneficiaryModal"
         class="relative h-full overflow-y-auto p-4 flex items-start justify-center z-50 select-none">
 
         {{-- The Modal --}}
-        <div class="w-full">
-            <div x-data="{ editMode: $wire.entangle('editMode'), deleteBeneficiaryModal: $wire.entangle('deleteBeneficiaryModal'), viewCredentialsModal: $wire.entangle('viewCredentialsModal'), confirmTypeChangeModal: $wire.entangle('confirmTypeChangeModal') }" class="relative bg-white rounded-md shadow">
+        <div class="w-full max-w-screen-xl">
+            <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
@@ -32,8 +34,8 @@
 
                         {{-- Close Button --}}
                         <button type="button"
-                            @click="$wire.resetViewBeneficiary(); $wire.clearAvgIncome(); viewBeneficiaryModal = false;"
-                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            @click="$wire.resetBeneficiaries(); $wire.clearAvgIncome(); viewBeneficiaryModal = false;"
+                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -1828,7 +1830,8 @@
                 </div>
 
                 {{-- Delete Beneficiary Modal --}}
-                <div x-cloak class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50"
+                <div x-cloak @keydown.window.escape="deleteBeneficiaryModal = false"
+                    class="fixed inset-0 bg-black overflow-y-auto bg-opacity-50 backdrop-blur-sm z-50"
                     x-show="deleteBeneficiaryModal">
 
                     <!-- Modal -->
@@ -1859,7 +1862,7 @@
 
                                         {{-- Close Button --}}
                                         <button type="button" @click="deleteBeneficiaryModal = false;"
-                                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                             <svg class="size-3" aria-hidden="true"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 14 14">
@@ -1916,7 +1919,19 @@
                 <livewire:focal.implementations.view-credentials-modal :$passedCredentialId />
 
                 {{-- Confirm Beneficiary Type Change Modal --}}
-                <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
+                <div x-cloak 
+                    @if ($confirmChangeType === 'beneficiary_type')
+                        @keydown.window.escape="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
+                    @elseif($confirmChangeType === 'first_name')
+                        @keydown.window.escape="$wire.set('first_name', '{{ $this->beneficiary?->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                    @elseif($confirmChangeType === 'middle_name')
+                        @keydown.window.escape="$wire.setFieldName('middle_name'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                    @elseif($confirmChangeType === 'last_name')
+                        @keydown.window.escape="$wire.set('last_name', '{{ $this->beneficiary?->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
+                    @elseif($confirmChangeType === 'extension_name') 
+                        @keydown.window.escape="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" 
+                    @endif
+                    class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
                     x-show="confirmTypeChangeModal">
 
                     <!-- Modal -->
@@ -1943,7 +1958,7 @@
                                         @click="$wire.set('last_name', '{{ $this->beneficiary?->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
                                     @elseif($confirmChangeType === 'extension_name') 
                                         @click="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" @endif
-                                        class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                        class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                                         <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 14 14">
                                             <path stroke="currentColor" stroke-linecap="round"
