@@ -64,15 +64,15 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">
-                            {{-- Loading State --}}
 
+                            {{-- General Search Box --}}
                             <div class="relative me-2">
-                                <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                <div
+                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->users->isNotEmpty() || $searchUsers ? 'text-indigo-800' : 'text-zinc-400' }}">
 
                                     {{-- Loading Icon --}}
-                                    <svg class="size-3 text-indigo-500 animate-spin" wire:loading
-                                        wire:target="searchUsers" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24">
+                                    <svg class="size-3 animate-spin" wire:loading wire:target="searchUsers"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
                                         </circle>
@@ -82,18 +82,23 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                                     </svg>
 
                                     {{-- Search Icon --}}
-                                    <svg class="size-3 text-indigo-500" wire:loading.remove wire:target="searchUsers"
-                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 20 20">
+                                    <svg class="size-3" wire:loading.remove wire:target="searchUsers" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="user-search" maxlength="100"
-                                    wire:model.live.debounce.300ms="searchUsers" autocomplete="off"
-                                    class="ps-7 py-1 text-xs text-indigo-1100 placeholder-indigo-500 border border-indigo-300 rounded w-full bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500"
+
+                                {{-- Search Input Bar --}}
+                                <input type="text" id="searchUsers" maxlength="100" autocomplete="off"
+                                    @if ($this->users->isEmpty() && !$searchUsers) disabled @endif
+                                    wire:model.live.debounce.300ms="searchUsers"
+                                    class="{{ $this->users->isNotEmpty() || $searchUsers
+                                        ? 'selection:bg-indigo-700 selection:text-indigo-50 text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full"
                                     placeholder="Search for coordinators">
                             </div>
+
                             <button @click="addCoordinatorsModal = !addCoordinatorsModal;"
                                 class="flex items-center bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 rounded-md px-4 py-1 text-sm font-bold focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 duration-200 ease-in-out">
                                 <span class="md:block hidden">ADD COORDINATORS</span>
@@ -313,6 +318,56 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 clip-rule="evenodd" />
         </svg>
         <p x-text="successMessage"></p>
+    </div>
+
+    {{-- Alert Notifications --}}
+    <div x-data="{
+        alerts: $wire.entangle('alerts'),
+        timeouts: {},
+        removeAlert(id) {
+            clearTimeout(this.timeouts[id]);
+            this.timeouts[id];
+            $wire.removeAlert(id);
+        },
+        setupTimeouts() {
+            if (Array.isArray(this.alerts) && this.alerts.length > 0) {
+                this.alerts.forEach(alert => {
+                    if (!this.timeouts[alert.id]) {
+                        this.timeouts[alert.id] = setTimeout(() => {
+                            this.removeAlert(alert.id);
+                        }, 3000);
+                    }
+                });
+            }
+        }
+    }" x-effect="setupTimeouts()" class="fixed left-6 bottom-6 z-50 flex flex-col gap-y-3">
+        {{-- Loop through alerts --}}
+        <template x-for="alert in alerts" :key="alert.id">
+            <div x-show="show" x-data="{ show: false }" x-init="$nextTick(() => { show = true });"
+                x-transition:enter="transition ease-in-out duration-300 origin-left"
+                x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
+                class="flex items-center gap-2 border rounded-lg text-sm sm:text-md font-bold p-3 select-none"
+                :class="`bg-${alert.color}-200 text-${alert.color}-900 border-${alert.color}-500`" role="alert">
+
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current size-4">
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z"
+                        clip-rule="evenodd" />
+                </svg>
+                <p x-text="alert.message"></p>
+                <button type="button" @click="removeAlert(alert.id)" class="p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" xmlns:xlink="http://www.w3.org/1999/xlink"
+                        width="400" height="400" viewBox="0, 0, 400,400">
+                        <g>
+                            <path
+                                d="M177.897 17.596 C 52.789 32.733,-20.336 167.583,35.137 280.859 C 93.796 400.641,258.989 419.540,342.434 316.016 C 445.776 187.805,341.046 -2.144,177.897 17.596 M146.875 125.950 C 148.929 126.558,155.874 132.993,174.805 151.829 L 200.000 176.899 225.195 151.829 C 245.280 131.845,251.022 126.556,253.503 125.759 C 264.454 122.238,275.000 129.525,275.000 140.611 C 275.000 147.712,274.055 148.915,247.831 175.195 L 223.080 200.000 247.831 224.805 C 274.055 251.085,275.000 252.288,275.000 259.389 C 275.000 270.771,263.377 278.313,252.691 273.865 C 250.529 272.965,242.208 265.198,224.805 247.831 L 200.000 223.080 175.195 247.769 C 154.392 268.476,149.792 272.681,146.680 273.836 C 134.111 278.498,121.488 265.871,126.173 253.320 C 127.331 250.217,131.595 245.550,152.234 224.799 L 176.909 199.989 152.163 175.190 C 135.672 158.663,127.014 149.422,126.209 147.486 C 122.989 139.749,126.122 130.459,133.203 126.748 C 137.920 124.276,140.678 124.115,146.875 125.950 "
+                                stroke="none" fill="currentColor" fill-rule="evenodd">
+                            </path>
+                        </g>
+                    </svg>
+                </button>
+            </div>
+        </template>
     </div>
 </div>
 

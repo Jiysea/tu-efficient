@@ -2,7 +2,7 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, isAboveBreakpoint: true, isMobile: window.innerWidth < 768 }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, isAboveBreakpoint: true, isMobile: window.innerWidth < 768, promptMultiDeleteModal: $wire.entangle('promptMultiDeleteModal') }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });
@@ -91,7 +91,7 @@ window.addEventListener('resize', () => {
                 {{-- Loading State --}}
                 <template x-if="!isMobile">
                     <svg class="text-indigo-900 size-6 animate-spin" wire:loading
-                        wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary, showExport"
+                        wire:target="calendarStart, calendarEnd, selectImplementationRow, viewImplementation, selectBatchRow, viewBatch, selectBeneficiaryRow, selectedBeneficiaryRow, selectShiftBeneficiary, viewBeneficiary, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, saveBatches, editBatch, deleteBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, removeBeneficiaries, showExport"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4">
@@ -108,7 +108,7 @@ window.addEventListener('resize', () => {
 
                         {{-- MD:Loading State --}}
                         <svg class="text-indigo-900 size-6 animate-spin" wire:loading
-                            wire:target="calendarStart, calendarEnd, selectImplementationRow, selectBatchRow, selectBeneficiaryRow, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, viewProject, saveBatches, editBatch, deleteBatch, viewBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, viewBeneficiary, showExport"
+                            wire:target="calendarStart, calendarEnd, selectImplementationRow, viewImplementation, selectBatchRow, viewBatch, selectBeneficiaryRow, selectedBeneficiaryRow, selectShiftBeneficiary, viewBeneficiary, loadMoreImplementations, loadMoreBeneficiaries, saveProject, editProject, deleteProject, saveBatches, editBatch, deleteBatch, saveBeneficiaries, editBeneficiary, deleteBeneficiary, archiveBeneficiary, removeBeneficiaries, showExport"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                 stroke-width="4">
@@ -225,8 +225,8 @@ window.addEventListener('resize', () => {
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="relative mx-2 flex items-center justify-end">
 
+                            {{-- General Search Box --}}
                             <div class="relative me-2">
-
                                 <div
                                     class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->implementations->isNotEmpty() || $searchProjects ? 'text-indigo-800' : 'text-zinc-400' }}">
 
@@ -251,14 +251,15 @@ window.addEventListener('resize', () => {
                                 </div>
 
                                 {{-- Search Input Bar --}}
-                                <input type="text" id="project-search" maxlength="100" autocomplete="off"
+                                <input type="text" id="searchProjects" maxlength="100" autocomplete="off"
                                     @if ($this->implementations->isEmpty() && !$searchProjects) disabled @endif
-                                    @input.debounce.300ms="$wire.searchProjects = $el.value; $wire.$refresh();"
+                                    wire:model.live.debounce.300ms="searchProjects"
                                     class="{{ $this->implementations->isNotEmpty() || $searchProjects
-                                        ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
-                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1.5 sm:py-1 text-2xs sm:text-xs border rounded w-full"
+                                        ? 'selection:bg-indigo-700 selection:text-indigo-50 text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full"
                                     placeholder="Search for projects">
                             </div>
+
                             <span class="relative" x-data="{ pop: false }">
                                 <button @mouseleave="pop = false;" @mouseenter="pop = true;"
                                     @click="createProjectModal = !createProjectModal;"
@@ -310,11 +311,15 @@ window.addEventListener('resize', () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody x-data="{ dblClicked: false }" class="relative text-xs">
+                                <tbody x-data="{ count: 0 }" class="relative text-xs">
                                     @foreach ($this->implementations as $key => $implementation)
                                         <tr wire:key="implementation-{{ $key }}"
-                                            @click="$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}');"
-                                            @dblclick="$wire.viewProject('{{ encrypt($implementation->id) }}')"
+                                            wire:loading.class="pointer-events-none"
+                                            wire:target="selectImplementationRow, viewImplementation"
+                                            @click="count++;"
+                                            @click.debounce.350ms="if(!$event.ctrlKey && count === 1) {$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}'); count = 0;}"
+                                            @click.ctrl="if($event.ctrlKey) {$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}'); count = 0;}"
+                                            @dblclick="if(!$event.ctrlKey) {$wire.viewImplementation({{ $key }}, '{{ encrypt($implementation->id) }}'); count = 0}"
                                             class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-50' : ' hover:bg-gray-50' }} whitespace-nowrap cursor-pointer">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
@@ -345,7 +350,7 @@ window.addEventListener('resize', () => {
 
                                                 {{-- View Button --}}
                                                 <button type="button"
-                                                    @click.stop="$wire.viewProject('{{ encrypt($implementation->id) }}');"
+                                                    @click.stop="$wire.viewImplementation({{ $key }}, '{{ encrypt($implementation->id) }}');"
                                                     id="implementationRowButton-{{ $key }}"
                                                     aria-label="{{ __('View Project') }}"
                                                     class="flex items-center justify-center z-0 p-1 outline-none rounded duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
@@ -431,7 +436,7 @@ window.addEventListener('resize', () => {
                     <livewire:focal.implementations.create-project-modal />
 
                     {{-- View Project Modal --}}
-                    <livewire:focal.implementations.view-project :$passedProjectId />
+                    <livewire:focal.implementations.view-project :$implementationId />
 
                 </div>
 
@@ -511,11 +516,14 @@ window.addEventListener('resize', () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="text-xs relative">
+                                <tbody x-data="{ count: 0 }" class="text-xs relative">
                                     @foreach ($this->batches as $key => $batch)
                                         <tr wire:key="batch-{{ $key }}"
-                                            @dblclick="$wire.viewBatch('{{ encrypt($batch->id) }}')"
-                                            @click="$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
+                                            wire:loading.class="pointer-events-none"
+                                            wire:target="selectBatchRow, viewBatch" @click="count++;"
+                                            @click.ctrl="if($event.ctrlKey) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0;}"
+                                            @click.debounce.350ms="if(!$event.ctrlKey && count === 1) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0;}"
+                                            @dblclick="if(!$event.ctrlKey) {$wire.viewBatch({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0}"
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-50' : ' hover:bg-gray-50' }}">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
@@ -539,7 +547,8 @@ window.addEventListener('resize', () => {
                                             <td class="py-1 ps-2">
 
                                                 {{-- View Button --}}
-                                                <button @click.stop="$wire.viewBatch('{{ encrypt($batch->id) }}');"
+                                                <button
+                                                    @click.stop="$wire.viewBatch({{ $key }}, '{{ encrypt($batch->id) }}');"
                                                     id="batchRowButton-{{ $key }}"
                                                     class="flex justify-center items-center z-0 p-1 font-medium rounded outline-none duration-200 ease-in-out {{ $selectedBatchRow === $key ? 'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50' : 'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300' }}">
 
@@ -649,15 +658,15 @@ window.addEventListener('resize', () => {
                     <livewire:focal.implementations.assign-batches-modal :$implementationId />
 
                     {{-- View Batch Modal --}}
-                    <livewire:focal.implementations.view-batch :$passedBatchId />
+                    <livewire:focal.implementations.view-batch :$batchId />
                 </div>
 
                 {{-- List of Beneficiaries --}}
                 <div class="relative lg:col-span-5 size-full rounded bg-white shadow" x-data="{ addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'), viewBeneficiaryModal: $wire.entangle('viewBeneficiaryModal'), importFileModal: $wire.entangle('importFileModal'), showExportModal: $wire.entangle('showExportModal') }">
 
                     {{-- Upper/Header --}}
-                    <div class="relative max-h-12 items-center grid row-span-1 grid-cols-2">
-                        <div class="inline-flex items-center my-2 col-span-1 text-indigo-900">
+                    <div class="relative flex items-center justify-center">
+                        <div class="inline-flex items-center my-2 text-indigo-900">
                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6 ms-2"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="384.37499999999994"
                                 viewBox="0, 0, 400,384.37499999999994">
@@ -683,15 +692,15 @@ window.addEventListener('resize', () => {
                         </div>
 
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
-                        <div class="relative col-span-1 px-2 flex flex-1 items-center justify-end gap-2">
+                        <div class="relative px-2 flex flex-1 items-center justify-end gap-2">
 
-                            {{-- Search Input Bar --}}
+                            {{-- General Search Box --}}
                             <div class="relative">
                                 <div
-                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->beneficiarySlots['num_of_beneficiaries'] ? 'text-indigo-800' : 'text-zinc-400' }}">
+                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->beneficiarySlots['num_of_beneficiaries'] || $searchBeneficiaries ? 'text-indigo-800' : 'text-zinc-400' }}">
 
                                     {{-- Loading Icon --}}
-                                    <svg class="size-4 animate-spin" wire:loading wire:target="searchBeneficiaries"
+                                    <svg class="size-3 animate-spin" wire:loading wire:target="searchBeneficiaries"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
@@ -709,12 +718,14 @@ window.addEventListener('resize', () => {
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="beneficiary-search" maxlength="100" autocomplete="off"
-                                    @if (!$this->beneficiarySlots['num_of_beneficiaries']) disabled @endif
-                                    @input.debounce.300ms="$wire.searchBeneficiaries = $el.value; $wire.$refresh();"
-                                    class="{{ $this->beneficiarySlots['num_of_beneficiaries']
-                                        ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
-                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} duration-200 ease-in-out ps-7 py-1.5 sm:py-1 text-2xs sm:text-xs border rounded w-full "
+
+                                {{-- Search Input Bar --}}
+                                <input type="text" id="searchBeneficiaries" maxlength="100" autocomplete="off"
+                                    @if (!$this->beneficiarySlots['num_of_beneficiaries'] && !$searchBeneficiaries) disabled @endif
+                                    wire:model.live.debounce.300ms="searchBeneficiaries"
+                                    class="{{ $this->beneficiarySlots['num_of_beneficiaries'] || $searchBeneficiaries
+                                        ? 'selection:bg-indigo-700 selection:text-indigo-50 text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full"
                                     placeholder="Search for beneficiaries">
                             </div>
 
@@ -820,9 +831,33 @@ window.addEventListener('resize', () => {
                                         <th scope="col" class="absolute h-full w-1 left-0">
                                             {{-- Selected Row Indicator --}}
                                         </th>
-                                        <th scope="col" class="pe-2 ps-4 py-2">
-                                            #
-                                        </th>
+
+                                        @if (count($selectedBeneficiaryRow) > 0)
+                                            <th scope="col" class="ps-1 py-2 pe-2 text-center">
+                                                {{-- Trash Bin/Delete Icon --}}
+                                                <button type="button"
+                                                    @if (count($selectedBeneficiaryRow) > 0) @click="promptMultiDeleteModal = true;"
+                                                    @else
+                                                    disabled @endif
+                                                    class="duration-200 ease-in-out flex shrink items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 bg-white hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                        height="400" viewBox="0, 0, 400,400">
+                                                        <g>
+                                                            <path
+                                                                d="M171.190 38.733 C 151.766 43.957,137.500 62.184,137.500 81.778 L 137.500 87.447 107.365 87.669 L 77.230 87.891 74.213 91.126 C 66.104 99.821,71.637 112.500,83.541 112.500 L 87.473 112.500 87.682 220.117 L 87.891 327.734 90.158 333.203 C 94.925 344.699,101.988 352.414,112.661 357.784 C 122.411 362.689,119.829 362.558,202.364 362.324 L 277.734 362.109 283.203 359.842 C 294.295 355.242,302.136 348.236,307.397 338.226 C 312.807 327.930,312.500 335.158,312.500 218.195 L 312.500 112.500 316.681 112.500 C 329.718 112.500,334.326 96.663,323.445 89.258 C 320.881 87.512,320.657 87.500,291.681 87.500 L 262.500 87.500 262.500 81.805 C 262.500 61.952,248.143 43.817,228.343 38.660 C 222.032 37.016,177.361 37.073,171.190 38.733 M224.219 64.537 C 231.796 68.033,236.098 74.202,237.101 83.008 L 237.612 87.500 200.000 87.500 L 162.388 87.500 162.929 83.008 C 164.214 72.340,170.262 65.279,179.802 63.305 C 187.026 61.811,220.311 62.734,224.219 64.537 M171.905 172.852 C 174.451 174.136,175.864 175.549,177.148 178.095 L 178.906 181.581 178.906 225.000 L 178.906 268.419 177.148 271.905 C 172.702 280.723,160.426 280.705,155.859 271.873 C 154.164 268.596,154.095 181.529,155.785 178.282 C 159.204 171.710,165.462 169.602,171.905 172.852 M239.776 173.257 C 240.888 174.080,242.596 175.927,243.573 177.363 L 245.349 179.972 245.135 225.476 C 244.898 276.021,245.255 272.640,239.728 276.767 C 234.458 280.702,226.069 278.285,222.852 271.905 L 221.094 268.419 221.094 225.000 L 221.094 181.581 222.852 178.095 C 226.079 171.694,234.438 169.304,239.776 173.257 "
+                                                                stroke="none" fill="currentColor"
+                                                                fill-rule="evenodd">
+                                                            </path>
+                                                        </g>
+                                                    </svg>
+                                                </button>
+                                            </th>
+                                        @else
+                                            <th scope="col" class="px-4 py-2 text-center">
+                                                #
+                                            </th>
+                                        @endif
                                         <th scope="col" class="px-2 py-2">
                                             first name
                                         </th>
@@ -900,31 +935,64 @@ window.addEventListener('resize', () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="text-xs">
+                                <tbody x-data="{ count: 0 }" class="text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
                                         <tr wire:key="beneficiary-{{ $key }}" {{-- @if ($this->nameCheck($beneficiary)[$key]['coEfficient'] * 100 > $duplicationThreshold) data-popover-target="beneficiary-pop-{{ $key }}"
                                             data-popover-trigger="hover" @endif --}}
-                                            @dblClick="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
+                                            @click="count++"
+                                            @click.ctrl="if($event.ctrlKey) {$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
+                                            @click.debounce.350ms="if(!$event.ctrlKey && !$event.shiftKey && count === 1) {$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0;}"
+                                            @click.shift="if($event.shiftKey) {$wire.selectShiftBeneficiary({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
+                                            @dblclick="if(!$event.ctrlKey && !$event.shiftKey) {$wire.viewBeneficiary({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
                                             class="relative border-b divide-x whitespace-nowrap cursor-pointer"
                                             :class="{
-                                                'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
-                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
-                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
-                                            
+                                                'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
                                             }">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
-                                                    'bg-indigo-700': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
-                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                    'bg-indigo-700': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
-                                            <th scope="row" class="pe-2 ps-4 py-2 font-medium">
-                                                {{ $key + 1 }}
-                                            </th>
+                                            @if (count($selectedBeneficiaryRow) > 0)
+                                                <th scope="row" class="p-2 text-center">
+                                                    <label tabindex="0" @click.stop
+                                                        class="relative flex flex-1 items-center gap-1 rounded p-1 outline-none border-2 cursor-pointer"
+                                                        :class="{
+                                                            'bg-indigo-700 border-indigo-700 text-indigo-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                            'bg-red-700 border-red-700 text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                            'border-zinc-300 text-transparent': {{ json_encode(!in_array($key, $selectedBeneficiaryRow)) }},
+                                                        }"
+                                                        for="check-beneficiary-{{ $key }}">
+
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-2.5"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd"></path>
+                                                            </g>
+                                                        </svg>
+
+                                                        <input id="check-beneficiary-{{ $key }}"
+                                                            type="checkbox" tabindex="-1" value={{ $key }}
+                                                            wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}', 'checkbox')"
+                                                            class="absolute hidden inset-0">
+                                                    </label>
+                                                </th>
+                                            @else
+                                                <th scope="row" class="px-4 py-2 font-medium text-center">
+                                                    {{ $key + 1 }}
+                                                </th>
+                                            @endif
                                             <td class="px-2 ">
                                                 {{ $beneficiary->first_name }}
                                             </td>
@@ -1001,14 +1069,14 @@ window.addEventListener('resize', () => {
 
                                                 {{-- View Button --}}
                                                 <button type="button"
-                                                    @click.stop="$wire.viewBeneficiary('{{ encrypt($beneficiary->id) }}');"
+                                                    @click.stop="$wire.viewBeneficiary({{ $key }}, '{{ encrypt($beneficiary->id) }}');"
                                                     id="beneficiaryRowButton-{{ $key }}"
                                                     class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out"
                                                     :class="{
-                                                        'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow === $key) }},
-                                                        'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && $selectedBeneficiaryRow !== $key) }},
-                                                        'hover:bg-red-700 focus:bg-red-700 text-red-900 hover:text-red-50 focus:text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                        'text-red-700 hover:text-red-900 focus:text-red-900 hover:bg-red-300 focus:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                        'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                        'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                        'hover:bg-red-700 focus:bg-red-700 text-red-900 hover:text-red-50 focus:text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                        'text-red-700 hover:text-red-900 focus:text-red-900 hover:bg-red-300 focus:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
                                                     
                                                     }">
 
@@ -1171,7 +1239,7 @@ window.addEventListener('resize', () => {
                     <livewire:focal.implementations.add-beneficiaries-modal :$batchId />
 
                     {{-- View Beneficiaries Modal --}}
-                    <livewire:focal.implementations.view-beneficiary :$passedBeneficiaryId />
+                    <livewire:focal.implementations.view-beneficiary :$beneficiaryId />
 
                     {{-- Import File Modal --}}
                     <livewire:focal.implementations.import-file-modal :$batchId />
@@ -1623,7 +1691,8 @@ window.addEventListener('resize', () => {
                                                                             <g>
                                                                                 <path
                                                                                     d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
-                                                                                    stroke="none" fill="currentColor"
+                                                                                    stroke="none"
+                                                                                    fill="currentColor"
                                                                                     fill-rule="evenodd"></path>
                                                                             </g>
                                                                         </svg>
@@ -1641,7 +1710,8 @@ window.addEventListener('resize', () => {
                                                                             <g>
                                                                                 <path
                                                                                     d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
-                                                                                    stroke="none" fill="currentColor"
+                                                                                    stroke="none"
+                                                                                    fill="currentColor"
                                                                                     fill-rule="evenodd"></path>
                                                                             </g>
                                                                         </svg>
@@ -1659,7 +1729,8 @@ window.addEventListener('resize', () => {
                                                                             <g>
                                                                                 <path
                                                                                     d="M28.642 13.710 C 17.961 17.627,11.930 27.414,12.661 39.645 C 13.208 48.819,14.371 50.486,34.057 70.324 L 51.512 87.913 45.092 91.335 C 16.276 106.692,12.891 110.231,12.891 125.000 C 12.891 142.347,8.258 138.993,99.219 187.486 C 138.105 208.218,174.754 227.816,180.660 231.039 C 190.053 236.164,192.025 236.948,196.397 237.299 L 201.395 237.701 211.049 247.388 C 221.747 258.122,221.627 257.627,214.063 259.898 C 199.750 264.194,187.275 262.111,169.753 252.500 C 148.071 240.607,28.689 177.141,27.332 176.786 C 24.779 176.118,15.433 186.072,13.702 191.302 C 11.655 197.487,12.276 207.141,15.021 211.791 C 20.209 220.580,17.082 218.698,99.219 262.486 C 138.105 283.218,174.840 302.864,180.851 306.144 L 191.781 312.109 199.601 312.109 C 208.733 312.109,207.312 312.689,234.766 297.765 L 251.953 288.422 260.903 297.306 C 265.825 302.192,269.692 306.315,269.497 306.470 C 267.636 307.938,219.572 333.017,216.016 334.375 C 209.566 336.839,195.517 337.462,188.275 335.607 C 181.558 333.886,183.489 334.878,100.148 290.322 C 17.221 245.988,26.705 249.778,19.140 257.949 C 9.782 268.056,9.995 283.074,19.635 292.854 C 24.062 297.344,26.747 298.850,99.219 337.486 C 138.105 358.218,174.840 377.864,180.851 381.144 L 191.781 387.109 199.647 387.109 C 209.010 387.109,202.356 390.171,259.666 359.492 L 300.974 337.380 324.510 360.767 C 346.368 382.486,348.381 384.279,352.734 385.895 C 365.447 390.614,379.540 385.290,385.303 373.590 C 387.943 368.230,387.927 355.899,385.273 350.781 C 381.586 343.670,52.871 16.129,47.432 14.148 C 42.118 12.211,33.289 12.006,28.642 13.710 M191.323 13.531 C 189.773 14.110,184.675 16.704,179.994 19.297 C 175.314 21.890,160.410 29.898,146.875 37.093 C 133.340 44.288,122.010 50.409,121.698 50.694 C 121.387 50.979,155.190 85.270,196.817 126.895 L 272.503 202.578 322.775 175.800 C 374.066 148.480,375.808 147.484,380.340 142.881 C 391.283 131.769,389.788 113.855,377.098 104.023 C 375.240 102.583,342.103 84.546,303.461 63.941 C 264.819 43.337,227.591 23.434,220.733 19.713 L 208.262 12.948 201.201 12.714 C 196.651 12.563,193.139 12.853,191.323 13.531 M332.061 198.065 C 309.949 209.881,291.587 219.820,291.257 220.150 C 290.927 220.480,297.593 227.668,306.071 236.125 L 321.484 251.500 347.612 237.539 C 383.915 218.142,387.375 214.912,387.466 200.334 C 387.523 191.135,378.828 176.525,373.323 176.571 C 372.741 176.576,354.174 186.248,332.061 198.065 M356.265 260.128 C 347.464 264.822,340.168 268.949,340.052 269.298 C 339.935 269.647,346.680 276.766,355.040 285.118 L 370.240 300.303 372.369 299.175 C 389.241 290.238,392.729 269.941,379.645 256.836 C 373.129 250.309,375.229 250.013,356.265 260.128 "
-                                                                                    stroke="none" fill="currentColor"
+                                                                                    stroke="none"
+                                                                                    fill="currentColor"
                                                                                     fill-rule="evenodd"></path>
                                                                             </g>
                                                                         </svg>
@@ -1697,31 +1768,10 @@ window.addEventListener('resize', () => {
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    {{-- Alert Bar --}}
-    <div x-data="{
-        successShow: $wire.entangle('showAlert'),
-        successMessage: $wire.entangle('alertMessage'),
-        init() {
-            window.addEventListener('show-alert', () => {
-                setTimeout(() => { $wire.showAlert = false; }, 3000);
-            });
-        },
-    }" x-cloak x-show="successShow"
-        x-transition:enter="transition ease-in-out duration-300 origin-left"
-        x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="origin-left transition ease-in-out duration-500"
-        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90"
-        class="fixed left-6 bottom-6 z-50 flex items-center bg-indigo-200 text-indigo-1000 border border-indigo-500 rounded-lg text-sm sm:text-md font-bold px-4 py-3 select-none"
-        role="alert">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current w-4 h-4 mr-2">
-            <path fill-rule="evenodd"
-                d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z"
-                clip-rule="evenodd" />
-        </svg>
-        <p x-text="successMessage"></p>
+            {{-- Modals --}}
+            <livewire:focal.implementations.prompt-multi-delete-modal :$beneficiaryIds />
+        </div>
     </div>
 
     {{-- Alert Notifications --}}

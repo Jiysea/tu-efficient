@@ -11,7 +11,7 @@ class Districts
      */
     public static function getDistricts($city_municipality, $province): array|null
     {
-        $districts = null;
+        $districts = [];
 
         # Davao del Sur
         if ($city_municipality === 'City of Davao') {

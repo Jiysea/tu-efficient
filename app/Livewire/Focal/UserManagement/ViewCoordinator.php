@@ -5,7 +5,10 @@ namespace App\Livewire\Focal\UserManagement;
 use App\Models\User;
 use App\Services\Essential;
 use App\Services\LogIt;
+use DB;
 use Hash;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Reactive;
@@ -166,40 +169,97 @@ class ViewCoordinator extends Component
 
     public function editCoordinator()
     {
-        $this->contact_num = '+63' . substr($this->contact_num, 1);
+        $this->validate();
 
-        $user = User::find($this->coordinatorId ? decrypt($this->coordinatorId) : null);
+        DB::transaction(function () {
+            try {
+                $user = User::findOrFail($this->coordinatorId ? decrypt($this->coordinatorId) : null);
+                if ($user->isEmailVerified()) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'Cannot modify since this coordinator has verified their email', color: 'red');
+                    return;
+                }
+                $this->authorize('modify-coordinator-focal', [$user]);
 
-        $user->fill([
-            'first_name' => mb_strtoupper(Essential::trimmer($this->first_name), "UTF-8"),
-            'middle_name' => $this->middle_name ? mb_strtoupper(Essential::trimmer($this->middle_name), "UTF-8") : null,
-            'last_name' => mb_strtoupper(Essential::trimmer($this->last_name), "UTF-8"),
-            'extension_name' => $this->extension_name ? mb_strtoupper(Essential::trimmer($this->extension_name), "UTF-8") : null,
-            'email' => mb_strtolower(Essential::trimmer($this->email), "UTF-8"),
-            'contact_num' => $this->contact_num,
-        ]);
+                $this->contact_num = '+63' . substr($this->contact_num, 1);
 
-        if ($user->isDirty()) {
-            $user->save();
-            LogIt::set_edit_user($user, auth()->user());
-            unset($this->user);
-            $this->dispatch('edit-coordinator');
-        }
+                $user->fill([
+                    'first_name' => mb_strtoupper(Essential::trimmer($this->first_name), "UTF-8"),
+                    'middle_name' => $this->middle_name ? mb_strtoupper(Essential::trimmer($this->middle_name), "UTF-8") : null,
+                    'last_name' => mb_strtoupper(Essential::trimmer($this->last_name), "UTF-8"),
+                    'extension_name' => $this->extension_name ? mb_strtoupper(Essential::trimmer($this->extension_name), "UTF-8") : null,
+                    'email' => mb_strtolower(Essential::trimmer($this->email), "UTF-8"),
+                    'contact_num' => $this->contact_num,
+                ]);
 
-        $this->resetView();
-        $this->dispatch('init-reload')->self();
+                if ($user->isDirty()) {
+                    $user->save();
+                    LogIt::set_edit_user($user, auth()->user());
+                    unset($this->user);
+                    $this->dispatch('alertNotification', type: null, message: 'Successfully modified a coordinator', color: 'indigo');
+                }
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: null, message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetView();
+            }
+        });
     }
 
     public function deleteCoordinator()
     {
-        $this->authorize('delete-coordinator-focal', [$this->user]);
+        DB::transaction(function () {
+            try {
+                $user = User::findOrFail($this->coordinatorId ? decrypt($this->coordinatorId) : null);
+                if ($user->isEmailVerified()) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'Cannot delete since this coordinator has verified their email', color: 'red');
+                    return;
+                }
+                $this->authorize('modify-coordinator-focal', [$user]);
 
-        $user = $this->user();
-        $this->user->delete();
+                $user->deleteOrFail();
 
-        LogIt::set_delete_user($user, auth()->user());
-        $this->js('viewCoordinatorModal = false;');
-        $this->dispatch('delete-coordinator');
+                LogIt::set_delete_user($user, auth()->user());
+                $this->dispatch('alertNotification', type: 'delete', message: 'Successfully deleted a coordinator', color: 'indigo');
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'delete', message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: 'delete', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'delete', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'delete', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->js('viewCoordinatorModal = false;');
+            }
+        });
     }
 
     public function resetView()

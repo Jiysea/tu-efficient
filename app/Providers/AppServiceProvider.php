@@ -31,22 +31,14 @@ class AppServiceProvider extends ServiceProvider
     {
         DB::statement('SET SESSION innodb_lock_wait_timeout = 5');
 
-        Gate::define('edit-implementation-focal', function (User $user, Implementation $implementation) {
+        Gate::define('implementation-focal', function (User $user, Implementation $implementation) {
             if ($implementation)
                 return $user->id === $implementation->users_id;
             else
                 return false;
         });
 
-        Gate::define('delete-implementation-focal', function (User $user, Implementation $implementation) {
-            if ($implementation)
-                return $user->id === $implementation->users_id;
-            else
-                return false;
-        });
-
-
-        Gate::define('delete-batch-focal', function (User $user, Batch $batch) {
+        Gate::define('batch-focal', function (User $user, Batch $batch) {
             $batch = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
                 ->where('batches.implementations_id', $batch->implementations_id)
                 ->where('implementations.users_id', $user->id)
@@ -59,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        Gate::define('delete-beneficiary-focal', function (User $user, Beneficiary $beneficiary) {
+        Gate::define('beneficiary-focal', function (User $user, Beneficiary $beneficiary) {
             $beneficiary = Implementation::join('batches', 'batches.implementations_id', '=', 'implementations.id')
                 ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
                 ->where('beneficiaries.id', $beneficiary->id)
@@ -74,7 +66,7 @@ class AppServiceProvider extends ServiceProvider
 
         });
 
-        Gate::define('delete-coordinator-focal', function (User $user, User $coordinator) {
+        Gate::define('modify-coordinator-focal', function (User $user, User $coordinator) {
             if ($coordinator->regional_office === $user->regional_office && $coordinator->field_office === $user->field_office && $user->user_type === 'focal') {
                 return true;
             } else {
@@ -83,9 +75,20 @@ class AppServiceProvider extends ServiceProvider
 
         });
 
-        Gate::define('approval-status-focal', function (User $user, Batch $batch) {
-            $implementation = Implementation::find($batch->implementations_id);
-            return $user->id === $implementation->users_id;
+        Gate::define('archives-focal', function (User $user, Archive $archive) {
+
+            if (!$archive) {
+                return false;
+            }
+
+            $batchId = $archive->data['batches_id'];
+            $users_id = Implementation::find(Batch::find($batchId)->implementations_id)->users_id;
+
+            if ($user->id === $users_id) {
+                return true;
+            } else {
+                return false;
+            }
         });
 
         # ------------------------------------------------------------------------------------------
@@ -111,38 +114,6 @@ class AppServiceProvider extends ServiceProvider
                 ->first();
 
             if (isset($assignments)) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        Gate::define('restore-beneficiary-focal', function (User $user, Archive $archive) {
-
-            if (!$archive) {
-                return false;
-            }
-
-            $batchId = $archive->data['batches_id'];
-            $users_id = Implementation::find(Batch::find($batchId)->implementations_id)->users_id;
-
-            if ($user->id === $users_id) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        Gate::define('permdelete-beneficiary-focal', function (User $user, Archive $archive) {
-
-            if (!$archive) {
-                return false;
-            }
-
-            $batchId = $archive->data['batches_id'];
-            $users_id = Implementation::find(Batch::find($batchId)->implementations_id)->users_id;
-
-            if ($user->id === $users_id) {
                 return true;
             } else {
                 return false;

@@ -14,8 +14,8 @@ use App\Services\Districts;
 use App\Services\LogIt;
 use Auth;
 use DB;
-use Exception;
 use Hash;
+use Illuminate\Auth\Access\AuthorizationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Reactive;
@@ -27,7 +27,7 @@ class ViewBatch extends Component
 {
     #[Reactive]
     #[Locked]
-    public $passedBatchId;
+    public $batchId;
     public $batchNumPrefix;
 
     # --------------------------------------------------------------------------
@@ -52,8 +52,6 @@ class ViewBatch extends Component
     public $searchCoordinator;
     public $searchBarangay;
     public $editMode = false;
-    #[Locked]
-    public $isEmpty = true;
     public $batchesCount;
     public $selectedBatchListRow = -1;
 
@@ -202,13 +200,9 @@ class ViewBatch extends Component
         DB::transaction(function () {
             try {
                 $this->validateOnly('password_force_approve');
-                $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+                $batch = Batch::lockForUpdate()->findOrFail($this->batchId ? decrypt($this->batchId) : null);
 
-                if (!$batch) {
-                    throw new Exception('This batch does not exist anymore.', 500);
-                }
-
-                $this->authorize('approval-status-focal', $batch);
+                $this->authorize('batch-focal', $batch);
 
                 if (in_array($batch->submission_status, ['encoding', 'revalidate'])) {
                     $accessCode = Code::where('batches_id', $batch->id)
@@ -229,21 +223,21 @@ class ViewBatch extends Component
 
                 LogIt::set_force_approve($this->batch, auth()->user());
                 $this->dispatch('refreshAfterOpening', message: 'Batch has been approved forcibly!');
-                $this->forceApproveModal = false;
 
-            } catch (Exception $e) {
-                $message = $e->getMessage();
-                if (get_class($e) === 'Illuminate\Auth\Access\AuthorizationException') {
-                    $message = 'An unauthorized action has been made.';
-                }
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while approving a batch. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: $e->getMessage(), color: 'red');
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
 
-                LogIt::set_log_exception($message, auth()->user(), $e->getTrace());
-
-                $this->dispatch('refreshAfterOpening', message: $message);
-                $this->forceApproveModal = false;
                 $this->js('viewBatchModal = false;');
+            } finally {
+                $this->forceApproveModal = false;
             }
-        });
+        }, 5);
     }
 
     public function pendBatch()
@@ -251,34 +245,30 @@ class ViewBatch extends Component
         DB::transaction(function () {
             try {
                 $this->validateOnly('password_pend_batch');
-                $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+                $batch = Batch::lockForUpdate()->findOrFail($this->batchId ? decrypt($this->batchId) : null);
 
-                if (!$batch) {
-                    throw new Exception('This batch does not exist anymore.', 500);
-                }
-
-                $this->authorize('approval-status-focal', $batch);
+                $this->authorize('batch-focal', $batch);
 
                 $batch->approval_status = 'pending';
                 $batch->save();
 
                 LogIt::set_pend_batch($this->batch, auth()->user());
                 $this->dispatch('refreshAfterOpening', message: 'Batch has been changed to pending!');
-                $this->pendBatchModal = false;
 
-            } catch (Exception $e) {
-                $message = $e->getMessage();
-                if (get_class($e) === 'Illuminate\Auth\Access\AuthorizationException') {
-                    $message = 'An unauthorized action has been made.';
-                }
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while marking a batch to pending. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: $e->getMessage(), color: 'red');
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
 
-                LogIt::set_log_exception($message, auth()->user(), $e->getTrace());
-
-                $this->dispatch('refreshAfterOpening', message: $message);
-                $this->forceApproveModal = false;
                 $this->js('viewBatchModal = false;');
+            } finally {
+                $this->pendBatchModal = false;
             }
-        });
+        }, 5);
     }
 
     public function resetPasswords()
@@ -353,7 +343,7 @@ class ViewBatch extends Component
         $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
             ->where('implementations.users_id', Auth::id())
             ->where('implementations.id', $this->implementation?->id)
-            ->whereNotIn('batches.id', [decrypt($this->passedBatchId)])
+            ->whereNotIn('batches.id', [$this->batchId ? decrypt($this->batchId) : null])
             ->select('batches.slots_allocated')
             ->get();
 
@@ -385,21 +375,20 @@ class ViewBatch extends Component
     }
 
     # Check if there are any existing beneficiaries under this batch
-    public function checkEmpty()
+    #[Computed]
+    public function isEmpty()
     {
-        if ($this->passedBatchId) {
-            $query = Beneficiary::where('batches_id', decrypt($this->passedBatchId))
-                ->exists();
+        $query = Beneficiary::where('batches_id', $this->batchId ? decrypt($this->batchId) : null)
+            ->exists();
 
-            # If there's any rows that exists...
-            if ($query) {
-                # then it's not empty
-                $this->isEmpty = false;
-            } else {
-                # otherwise, it is empty.
-                $this->isEmpty = true;
-            }
+        # If there's no rows...
+        if (!$query) {
+            # then it's empty
+            return true;
         }
+
+        # otherwise, it is empty.
+        return false;
     }
 
     public function toggleEditBatch()
@@ -407,13 +396,26 @@ class ViewBatch extends Component
         $this->editMode = !$this->editMode;
 
         if ($this->editMode) {
+            $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
+
+            if (!$batch) {
+                $this->js('viewBatchModal = false;');
+                $this->dispatch('alertNotification', type: 'batch-modify', message: 'This batch does not exist', color: 'red');
+                $this->resetExcept(
+                    'batchId',
+                    'batchNumPrefix',
+                    'code',
+                );
+                return;
+            }
+
             # Only initialize values on fields if edit mode is on
-            $this->batch_num = intval(substr($this->batch->batch_num, strlen($this->batchNumPrefix)));
-            $this->is_sectoral = $this->batch->is_sectoral;
-            $this->sector_title = $this->batch->sector_title;
-            $this->district = $this->batch->district;
-            $this->barangay_name = $this->batch->barangay_name;
-            $this->slots_allocated = $this->batch->slots_allocated;
+            $this->batch_num = intval(substr($batch?->batch_num, strlen($this->batchNumPrefix)));
+            $this->is_sectoral = $batch?->is_sectoral;
+            $this->sector_title = $batch?->sector_title;
+            $this->district = $batch?->district;
+            $this->barangay_name = $batch?->barangay_name;
+            $this->slots_allocated = $batch?->slots_allocated;
 
             # assign the coordinators by collection array
             foreach ($this->assignedCoordinators as $assignment) {
@@ -444,44 +446,10 @@ class ViewBatch extends Component
         }
     }
 
-    # Deletes the batch as long as there's empty beneficiaries on it
-    public function deleteBatch()
-    {
-        $assignments = Assignment::where('batches_id', decrypt($this->passedBatchId))
-            ->get();
-        $batch = Batch::find(decrypt($this->passedBatchId));
-        $implementation = Implementation::find($batch->implementations_id);
-        $codes = Code::where('batches_id', $batch->id)->get();
-
-        $this->authorize('delete-batch-focal', $batch);
-
-        foreach ($assignments as $assignment) {
-            $assignment->delete();
-        }
-
-        if ($codes->isNotEmpty()) {
-            foreach ($codes as $code) {
-                $code->delete();
-            }
-        }
-
-        $batch->delete();
-
-        $this->resetViewBatch();
-        LogIt::set_delete_batches($implementation, $batch, auth()->user());
-        $this->js('viewBatchModal = false;');
-        $this->dispatch('delete-batch');
-    }
-
     # saves the edits made on the batch
     public function editBatch()
     {
-        $batch = Batch::find(decrypt($this->passedBatchId));
-        $implementation = Implementation::find($batch->implementations_id);
-        $assignmentsDirty = false;
-
         if ($this->isEmpty) {
-
             # validate the fields before proceeding
             $this->validate(
                 [
@@ -567,71 +535,7 @@ class ViewBatch extends Component
                     'assigned_coordinators' => 'assigned coordinator',
                 ]
             );
-
-            # save any updates on the batch model
-            $batch->is_sectoral = $this->is_sectoral;
-
-            if ($this->is_sectoral) {
-
-                $batch->sector_title = $this->sector_title;
-                $batch->district = null;
-                $batch->barangay_name = null;
-
-            } elseif (!$this->is_sectoral) {
-
-                $batch->sector_title = null;
-                $batch->district = $this->district;
-                $batch->barangay_name = $this->barangay_name;
-
-            }
-
-            $batch->slots_allocated = $this->slots_allocated;
-
-            # first, get all the coordinators IDs to ignore
-            foreach ($this->assigned_coordinators as $assignedCoordinator) {
-
-                # create new assignments if these IDs hasn't been created yet
-                $ass = Assignment::firstOrCreate(
-                    [
-                        'batches_id' => $batch->id,
-                        'users_id' => decrypt($assignedCoordinator['users_id'])
-                    ]
-                );
-
-                # if it's a `create`, it will determine the Assignment model as `Dirty`
-                # and will log the newly assigned coordinator.
-                if ($ass->wasRecentlyCreated) {
-                    $assignmentsDirty = true;
-                    LogIt::set_assign_coordinator_to_batch($ass, auth()->user(), 'update');
-                }
-            }
-
-            # get all ignored IDs
-            $ignoredIDs = [];
-            foreach ($this->ignoredCoordinatorIDs as $id) {
-                $ignoredIDs[] = decrypt($id);
-            }
-
-            # then get all the assignments except those in the `whereNotIn`
-            $assignments = Assignment::where('batches_id', decrypt($this->passedBatchId))
-                ->whereNotIn('users_id', $ignoredIDs)
-                ->get();
-
-            # check first if there are any `assignments` returned
-            if ($assignments->isNotEmpty()) {
-
-                # then this means that there are some assignment changes
-                $assignmentsDirty = true;
-
-                # then remove those who were not in `ignoredCoordinatorIDs`
-                foreach ($assignments as $assignment) {
-                    $assignment->delete();
-                    LogIt::set_remove_coordinator_assignment($assignment, $batch, auth()->user());
-                }
-            }
-
         } else {
-
             # validate the fields before proceeding
             $this->validate(
                 [
@@ -661,69 +565,166 @@ class ViewBatch extends Component
                     'assigned_coordinators' => 'assigned coordinator',
                 ]
             );
+        }
 
-            # save any updates on the batch model
-            if ($batch->is_sectoral) {
-                $batch->sector_title = $this->sector_title;
-            } elseif (!$batch->is_sectoral) {
-                $batch->sector_title = null;
-            }
+        DB::transaction(function () {
+            try {
+                $batch = Batch::with([
+                    'implementation' => function ($query) {
+                        $query->lockForUpdate();
+                    }
+                ])->findOrFail(decrypt($this->batchId));
+                $implementation = $batch->implementation;
+                $assignmentsDirty = false;
+                $this->authorize('batch-focal', $batch);
 
-            # first, get all the coordinators IDs to ignore
-            foreach ($this->assigned_coordinators as $assignedCoordinator) {
+                if ($this->isEmpty) {
 
-                # create new assignments if these IDs hasn't been created yet
-                $ass = Assignment::firstOrCreate(
-                    [
-                        'batches_id' => $batch->id,
-                        'users_id' => decrypt($assignedCoordinator['users_id'])
-                    ]
-                );
+                    # save any updates on the batch model
+                    $batch->is_sectoral = $this->is_sectoral;
 
-                # if it's a `create`, it will determine the Assignment model as `Dirty`
-                # and will log the newly assigned coordinator.
-                if ($ass->wasRecentlyCreated) {
+                    if ($this->is_sectoral) {
+
+                        $batch->sector_title = $this->sector_title;
+                        $batch->district = null;
+                        $batch->barangay_name = null;
+
+                    } elseif (!$this->is_sectoral) {
+
+                        $batch->sector_title = null;
+                        $batch->district = $this->district;
+                        $batch->barangay_name = $this->barangay_name;
+
+                    }
+
+                    $batch->slots_allocated = $this->slots_allocated;
+
+                } else {
+                    # save any updates on the batch model
+                    if ($batch->is_sectoral) {
+                        $batch->sector_title = $this->sector_title;
+                    } elseif (!$batch->is_sectoral) {
+                        $batch->sector_title = null;
+                    }
+                }
+
+                # first, get all the coordinators IDs to ignore
+                foreach ($this->assigned_coordinators as $assignedCoordinator) {
+
+                    # create new assignments if these IDs hasn't been created yet
+                    $ass = Assignment::firstOrCreate(
+                        [
+                            'batches_id' => $batch->id,
+                            'users_id' => decrypt($assignedCoordinator['users_id'])
+                        ]
+                    );
+
+                    # if it's a `create`, it will determine the Assignment model as `Dirty`
+                    # and will log the newly assigned coordinator.
+                    if ($ass->wasRecentlyCreated) {
+                        $assignmentsDirty = true;
+                        LogIt::set_assign_coordinator_to_batch($ass, auth()->user(), 'update');
+                    }
+                }
+
+                # get all ignored IDs
+                $ignoredIDs = [];
+                foreach ($this->ignoredCoordinatorIDs as $id) {
+                    $ignoredIDs[] = decrypt($id);
+                }
+
+                # then get all the assignments except those in the `whereNotIn`
+                $assignments = Assignment::where('batches_id', decrypt($this->batchId))
+                    ->whereNotIn('users_id', $ignoredIDs)
+                    ->lockForUpdate()
+                    ->get();
+
+                # check first if there are any `assignments` returned
+                if ($assignments->isNotEmpty()) {
+
+                    # then this means that there are some assignment changes
                     $assignmentsDirty = true;
-                    LogIt::set_assign_coordinator_to_batch($ass, auth()->user(), 'update');
+
+                    # then remove those who were not in `ignoredCoordinatorIDs`
+                    foreach ($assignments as $assignment) {
+                        $assignment->deleteOrFail();
+                        LogIt::set_remove_coordinator_assignment($assignment, $batch, auth()->user());
+                    }
                 }
+
+                if ($batch->isDirty() || $assignmentsDirty) {
+
+                    if ($batch->isDirty()) {
+                        $batch->save();
+                    }
+
+                    LogIt::set_edit_batches($implementation, $batch, auth()->user());
+                    $this->dispatch('alertNotification', type: 'batch-modify', message: 'Successfully modified a batch', color: 'indigo');
+                }
+
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while deleting a batch. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: $e->getMessage(), color: 'red');
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->toggleEditBatch();
             }
+        });
+    }
 
-            # get all ignored IDs
-            $ignoredIDs = [];
-            foreach ($this->ignoredCoordinatorIDs as $id) {
-                $ignoredIDs[] = decrypt($id);
-            }
+    # Deletes the batch as long as there's empty beneficiaries on it
+    public function deleteBatch()
+    {
+        DB::transaction(function () {
+            try {
+                $batch = Batch::with([
+                    'implementation' => function ($query) {
+                        $query->lockForUpdate();
+                    }
+                ])->findOrFail(decrypt($this->batchId));
+                $implementation = $batch->implementation;
+                if (!$this->isEmpty) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: 'batch-modify', message: 'This batch is not empty', color: 'red');
+                    return;
+                }
+                $this->authorize('batch-focal', $batch);
 
-            # then get all the assignments except those in the `whereNotIn`
-            $assignments = Assignment::where('batches_id', decrypt($this->passedBatchId))
-                ->whereNotIn('users_id', $ignoredIDs)
-                ->get();
-
-            # check first if there are any `assignments` returned
-            if ($assignments->isNotEmpty()) {
-
-                # then this means that there are some assignment changes
-                $assignmentsDirty = true;
-
-                # then remove those who were not in `ignoredCoordinatorIDs`
+                $assignments = Assignment::where('batches_id', decrypt($this->batchId))
+                    ->lockForUpdate()
+                    ->get();
                 foreach ($assignments as $assignment) {
-                    $assignment->delete();
-                    LogIt::set_remove_coordinator_assignment($assignment, $batch, auth()->user());
+                    $assignment->deleteOrFail();
                 }
+
+                $codes = Code::where('batches_id', $batch->id)->get();
+                if ($codes->isNotEmpty()) {
+                    foreach ($codes as $code) {
+                        $code->deleteOrFail();
+                    }
+                }
+
+                $batch->deleteOrFail();
+
+                LogIt::set_delete_batches($implementation, $batch, auth()->user());
+                $this->dispatch('alertNotification', type: 'implementation', message: 'Successfully deleted a batch', color: 'indigo');
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while deleting a batch. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: $e->getMessage(), color: 'red');
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetViewBatch();
+                $this->js('viewBatchModal = false;');
             }
-        }
-
-        if ($batch->isDirty() || $assignmentsDirty) {
-
-            if ($batch->isDirty()) {
-                $batch->save();
-            }
-
-            LogIt::set_edit_batches($implementation, $batch, auth()->user());
-            $this->dispatch('edit-batch');
-        }
-
-        $this->toggleEditBatch();
+        }, 5);
     }
 
     #[Computed]
@@ -776,25 +777,21 @@ class ViewBatch extends Component
     #[Computed]
     public function implementation()
     {
-        $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
         return Implementation::find($batch->implementations_id);
     }
 
     #[Computed]
     public function batch()
     {
-        return Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        return Batch::find($this->batchId ? decrypt($this->batchId) : null);
     }
 
     #[Computed]
     public function assignments()
     {
-        if ($this->passedBatchId) {
-            $assignments = Assignment::where('batches_id', decrypt($this->passedBatchId))
-                ->get();
-
-            return $assignments;
-        }
+        return Assignment::where('batches_id', $this->batchId ? decrypt($this->batchId) : null)
+            ->get();
     }
 
     #[Computed]
@@ -866,20 +863,7 @@ class ViewBatch extends Component
 
     public function resetViewBatch()
     {
-        $this->reset(
-            'batch_num',
-            'barangay_name',
-            'slots_allocated',
-            'assigned_coordinators',
-            'editMode',
-            'remainingSlots',
-            'totalSlots',
-            'ignoredCoordinatorIDs',
-            'selectedCoordinatorKey',
-            'searchBarangay',
-            'searchCoordinator',
-            'deleteBatchModal',
-        );
+        $this->resetExcept('batchId', 'batchNumPrefix');
         $this->resetValidation();
     }
 
@@ -909,8 +893,6 @@ class ViewBatch extends Component
     public function render()
     {
         $this->batchNumPrefix = $this->settings->get('batch_number_prefix', config('settings.batch_number_prefix'));
-        # View Batch Modal
-        $this->checkEmpty();
         if ($this->batch) {
             $this->liveUpdateRemainingSlots();
         }

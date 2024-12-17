@@ -19,5 +19,6 @@ class Archive extends Model
     protected $casts = [
         'data' => 'array',
     ];
+
     public $timestamps = false;
 }

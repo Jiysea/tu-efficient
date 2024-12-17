@@ -5,6 +5,7 @@ use App\Livewire\Barangay\ListingPage;
 use App\Livewire\Coordinator\Assignments;
 use App\Livewire\Coordinator\Submissions;
 use App\Livewire\Coordinator\Forms;
+use App\Livewire\Coordinator\Tracking;
 use App\Livewire\Focal\ActivityLogs;
 use App\Livewire\Focal\Archives;
 use App\Livewire\Focal\Dashboard;
@@ -44,7 +45,6 @@ Route::middleware(['auth', 'verified', 'verified.mobile'])->group(function () {
     # For Coordinator pages
     Route::get('/coordinator/assignments', Assignments::class)->name('coordinator.assignments');
     Route::get('/coordinator/submissions/{batchId?}', Submissions::class)->name('coordinator.submissions');
-    Route::get('/coordinator/forms', Forms::class)->name('coordinator.forms');
 
     Route::get('/focal/settings', Settings::class)->name('focal.settings');
     Route::get('/coordinator/settings', CSettings::class)->name('coordinator.settings');

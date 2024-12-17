@@ -229,11 +229,14 @@ window.addEventListener('resize', () => {
 
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="flex items-center justify-end gap-2">
+
+                            {{-- General Search Box --}}
                             <div class="relative">
-                                <div class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none">
+                                <div
+                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->batches->isNotEmpty() || $searchBatches ? 'text-blue-800' : 'text-zinc-400' }}">
 
                                     {{-- Loading Icon --}}
-                                    <svg class="size-3 animate-spin" wire:loading wire:target="searchBatches"
+                                    <svg class="size-3.5 animate-spin" wire:loading wire:target="searchBatches"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
@@ -244,16 +247,21 @@ window.addEventListener('resize', () => {
                                     </svg>
 
                                     {{-- Search Icon --}}
-                                    <svg class="size-3 text-blue-500" aria-hidden="true" wire:loading.remove
-                                        wire:target="searchBatches" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    <svg class="size-3.5" wire:loading.remove wire:target="searchBatches"
+                                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="batch-search" maxlength="100" autocomplete="off"
-                                    wire:model.live.debounce.350ms="searchBatches"
-                                    class="duration-200 outline-none ease-in-out ps-7 py-1 text-xs text-blue-1100 placeholder-blue-500 border border-blue-300 rounded w-full bg-blue-50 focus:ring-blue-500 focus:border-blue-500"
+
+                                {{-- Search Input Bar --}}
+                                <input type="text" id="searchBatches" maxlength="100" autocomplete="off"
+                                    @if ($this->batches->isEmpty() && !$searchBatches) disabled @endif
+                                    wire:model.live.debounce.300ms="searchBatches"
+                                    class="{{ $this->batches->isNotEmpty() || $searchBatches
+                                        ? 'selection:bg-blue-700 selection:text-blue-50 text-blue-1100 placeholder-blue-500 border-blue-300 bg-blue-50 focus:ring-blue-500 focus:border-blue-500'
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1.5 text-xs border rounded w-full"
                                     placeholder="Search for batches">
                             </div>
 
@@ -453,22 +461,17 @@ window.addEventListener('resize', () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="relative text-xs">
+                                <tbody x-data="{ count: 0 }" class="relative text-xs">
                                     @foreach ($this->batches as $key => $batch)
-                                        <tr x-data="{ row: $wire.entangle('selectedBatchRow') }" wire:key="batch-{{ $key }}"
+                                        <tr wire:key="batch-{{ $key }}"
                                             wire:loading.class="pointer-events-none"
-                                            @click="row == {{ $key }}; $wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); $dispatch('scroll-top-beneficiaries');"
-                                            class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer"
-                                            :class="{
-                                                'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': row ==
-                                                    {{ $key }},
-                                                'hover:bg-gray-50': row != {{ $key }}
-                                            }">
-                                            <td class="absolute h-full w-1 left-0"
-                                                :class="{
-                                                    'bg-blue-700': row == {{ $key }},
-                                                    '': row != {{ $key }},
-                                                }">
+                                            wire:target="selectBatchRow, viewAssignment" @click="count++;"
+                                            @click.ctrl="if($event.ctrlKey) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0;}"
+                                            @click.debounce.350ms="if(!$event.ctrlKey && count === 1) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0;}"
+                                            @dblclick="if(!$event.ctrlKey) {$wire.viewAssignment({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0}"
+                                            class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900' : 'hover:bg-gray-50' }}">
+                                            <td
+                                                class="absolute h-full w-1 left-0 {{ $selectedBatchRow === $key ? 'bg-blue-700' : '' }}">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
                                             <td class="ps-4 pe-2 py-2">
@@ -514,7 +517,7 @@ window.addEventListener('resize', () => {
                                             {{-- Batch View --}}
                                             <td class="py-1">
                                                 <button type="button" wire:loading.attr="disabled"
-                                                    @click.stop="row == {{ $key }}; $wire.viewAssignment('{{ encrypt($batch->id) }}');"
+                                                    @click.stop="$wire.viewAssignment({{ $key }}, '{{ encrypt($batch->id) }}');"
                                                     id="assignmentRowButton-{{ $key }}"
                                                     aria-label="{{ __('View Assignment') }}"
                                                     class="flex items-center justify-center z-0 p-1 outline-none rounded duration-200 ease-in-out"
@@ -600,7 +603,7 @@ window.addEventListener('resize', () => {
                     @endif
 
                     {{-- View Batch Modal --}}
-                    <livewire:coordinator.assignments.view-batch-modal :$passedBatchId />
+                    <livewire:coordinator.assignments.view-batch-modal :$batchId />
                 </div>
 
                 {{-- List Overview & Beneficiaries Table --}}

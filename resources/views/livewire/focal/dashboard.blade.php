@@ -395,13 +395,16 @@ window.addEventListener('resize', () => {
                                         'block': show,
                                         'hidden': !show,
                                     }"
-                                    class="hidden end-0 absolute text-indigo-1100 bg-white whitespace-nowrap shadow-lg border border-indigo-100 rounded min-w-56 p-3 mt-2">
-                                    <div class="relative flex items-center justify-center py-1 text-indigo-700">
+                                    class="hidden end-0 absolute rounded p-3 mt-2 shadow-lg border border-indigo-100 text-indigo-1100 bg-white">
 
-                                        <div class="absolute flex items-center justify-center left-2">
-                                            {{-- Loading State --}}
-                                            <svg class="size-4 animate-spin duration-200 ease-in-out pointer-events-none"
-                                                wire:loading wire:target="searchProject"
+                                    {{-- Search Bar --}}
+                                    <label for="searchProject"
+                                        class="relative flex items-center justify-center duration-200 ease-in-out rounded border outline-none focus:ring-0
+                                                {{ $this->implementations->isEmpty() && !$searchProject ? 'text-gray-500 border-gray-300' : 'text-gray-500 hover:text-indigo-700 focus-within:text-indigo-700 hover:bg-indigo-50 focus-within:bg-indigo-50 border-gray-300 hover:border-indigo-700 focus-within:border-indigo-700' }}">
+                                        <div
+                                            class="absolute start-2 flex items-center justify-center pointer-events-none">
+                                            {{-- Loading Icon --}}
+                                            <svg class="size-4 animate-spin" wire:loading wire:target="searchProject"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -413,29 +416,31 @@ window.addEventListener('resize', () => {
                                             </svg>
 
                                             {{-- Search Icon --}}
-                                            <svg class="size-4 duration-200 ease-in-out pointer-events-none"
+                                            <svg class="size-4" wire:loading.remove wire:target="searchProject"
                                                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                wire:loading.remove wire:target="searchProject" fill="currentColor">
+                                                fill="currentColor">
                                                 <path fill-rule="evenodd"
                                                     d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
                                                     clip-rule="evenodd" />
                                             </svg>
                                         </div>
-                                        <input id="searchProject" wire:model.live.350ms="searchProject"
-                                            type="text" autocomplete="off"
-                                            class="rounded w-full ps-8 text-xs text-indigo-1100 border-indigo-200 hover:placeholder-indigo-500 hover:border-indigo-500 focus:border-indigo-900 focus:ring-1 focus:ring-indigo-900 focus:outline-none duration-200 ease-in-out"
-                                            placeholder="Search project number">
-                                    </div>
-                                    <ul
-                                        class="mt-2 text-sm overflow-y-auto h-44 scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
+
+                                        <input id="searchProject" autofocus autocomplete="off"
+                                            wire:model.live.debounce.300ms="searchProject" type="text"
+                                            class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full ps-8 text-xs {{ $this->implementations->isEmpty() && !$searchProject ? 'placeholder-gray-500' : 'text-indigo-1100 placeholder-gray-500 hover:placeholder-indigo-700 focus:placeholder-indigo-700' }}"
+                                            placeholder="Search for projects">
+                                    </label>
+
+                                    <div
+                                        class="mt-2 text-xs overflow-y-auto h-44 w-56 border border-transparent scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                                         @if ($this->implementations->isNotEmpty())
                                             @foreach ($this->implementations as $key => $implementation)
-                                                <li wire:key={{ $key }}>
+                                                <span wire:key={{ $key }}>
                                                     <button type="button"
                                                         wire:click="selectImplementation({{ $key }})"
                                                         @click="show= !show;" wire:loading.attr="disabled"
                                                         aria-label="{{ __('Implementation') }}"
-                                                        class="font-medium w-full flex items-center justify-start gap-2 px-3 py-1.5 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
+                                                        class="text-left font-medium w-full flex items-center justify-start gap-2 px-3 py-1.5 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
                                                         <span class="p-1 rounded font-semibold"
                                                             :class="{
                                                                 'bg-amber-100 text-amber-700': {{ json_encode($implementation?->status === 'pending') }},
@@ -445,18 +450,28 @@ window.addEventListener('resize', () => {
                                                             @if ($implementation?->status === 'pending')
                                                                 PE
                                                             @elseif($implementation?->status === 'signing')
-                                                                PO
+                                                                SG
                                                             @elseif($implementation?->status === 'concluded')
                                                                 FL
                                                             @endif
                                                         </span>
-                                                        {{ $implementation->project_num }}
+                                                        @if ($implementation->project_title)
+                                                            <span>
+                                                                {{ $implementation->project_num }}
+                                                                <span
+                                                                    class="text-gray-500">({{ $implementation->project_title }})</span>
+                                                            </span>
+                                                        @else
+                                                            <span>
+                                                                {{ $implementation->project_num }}
+                                                            </span>
+                                                        @endif
                                                     </button>
-                                                </li>
+                                                </span>
                                             @endforeach
                                         @else
                                             <div
-                                                class="flex flex-col font-medium flex-1 items-center justify-center size-full text-sm border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
+                                                class="flex flex-col font-medium flex-1 items-center justify-center text-center size-full border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
                                                 @if (isset($searchProject) && !empty($searchProject))
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                         class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
@@ -490,7 +505,7 @@ window.addEventListener('resize', () => {
                                                 @endif
                                             </div>
                                         @endif
-                                    </ul>
+                                    </div>
                                 </div>
 
                             </div>
@@ -1047,7 +1062,7 @@ window.addEventListener('resize', () => {
 
     {{-- Export Summary Modal --}}
     <div x-cloak x-show="showExportModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-    @keydown.escape.window="$wire.resetExport(); showExportModal = false;">
+        @keydown.escape.window="$wire.resetExport(); showExportModal = false;">
 
         <!-- Modal -->
         <div x-show="showExportModal" x-trap.noautofocus.noscroll="showExportModal"

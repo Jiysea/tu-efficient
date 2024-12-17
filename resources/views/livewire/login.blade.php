@@ -35,12 +35,11 @@
 
                 <div class="mt-6 space-y-2">
                     <form wire:submit.prevent="login" class="space-y-2">
-                        @csrf
                         <div class="relative pt-4">
                             @error('email')
                                 <p class="text-red-500 absolute top-0 right-1 z-10 text-xs">{{ $message }}</p>
                             @enderror
-                            <input type="text" wire:model.blur="email" id="email" autocomplete="off"
+                            <input type="text" wire:model.blur="email" id="email" autocomplete="off" autofocus
                                 class="text-sm duration-200 ease-in-out border rounded-lg outline-none block w-full px-5 py-2 
                                 {{ $errors->has('email')
                                     ? 'selection:bg-red-700 selection:text-red-100 bg-red-200 border-red-500 focus:ring-red-500 focus:border-red-600 text-red-900 placeholder-red-600'
@@ -96,7 +95,6 @@
                         </div>
                     </div>
                     <form wire:submit.prevent="access">
-                        @csrf
                         <div class="grid grid-cols-9 w-full place-items-stretch space-x-2">
                             <div class="relative col-span-7 flex w-full">
                                 <span

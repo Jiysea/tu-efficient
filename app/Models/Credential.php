@@ -18,6 +18,6 @@ class Credential extends Model
 
     public function beneficiary()
     {
-        $this->belongsTo(Beneficiary::class, 'beneficiaries_id');
+        return $this->belongsTo(Beneficiary::class, 'beneficiaries_id');
     }
 }

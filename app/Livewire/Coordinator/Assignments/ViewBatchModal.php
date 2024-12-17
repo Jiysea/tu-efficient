@@ -22,7 +22,7 @@ class ViewBatchModal extends Component
 {
     #[Reactive]
     #[Locked]
-    public $passedBatchId;
+    public $batchId;
     #[Locked]
     public $code;
     public $accessCodeModal = false;
@@ -60,13 +60,13 @@ class ViewBatchModal extends Component
     #[Computed]
     public function batch()
     {
-        return Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        return Batch::find($this->batchId ? decrypt($this->batchId) : null);
     }
 
     #[Computed]
     public function assignments()
     {
-        return Assignment::where('assignments.batches_id', $this->passedBatchId ? decrypt($this->passedBatchId) : null)
+        return Assignment::where('assignments.batches_id', $this->batchId ? decrypt($this->batchId) : null)
             ->join('users', 'users.id', '=', 'assignments.users_id')
             ->whereNotIn('assignments.users_id', [Auth::id()])
             ->get();
@@ -76,14 +76,14 @@ class ViewBatchModal extends Component
     public function currentSlots()
     {
         return Beneficiary::join('batches', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('batches.id', $this->passedBatchId ? decrypt($this->passedBatchId) : null)
+            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
             ->count();
     }
 
     #[Computed]
     public function accessCode()
     {
-        return Code::where('batches_id', $this->passedBatchId ? decrypt($this->passedBatchId) : null)
+        return Code::where('batches_id', $this->batchId ? decrypt($this->batchId) : null)
             ->where('is_accessible', 'yes')
             ->first();
     }
@@ -120,7 +120,7 @@ class ViewBatchModal extends Component
     {
         DB::transaction(function () {
 
-            $batch = Batch::lockForUpdate()->find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+            $batch = Batch::lockForUpdate()->find($this->batchId ? decrypt($this->batchId) : null);
 
             $code = '';
             for ($a = 0; $a < 8; $a++) {
@@ -130,11 +130,11 @@ class ViewBatchModal extends Component
 
             $code = Code::lockForUpdate()->updateOrCreate(
                 [
-                    'batches_id' => decrypt($this->passedBatchId),
+                    'batches_id' => decrypt($this->batchId),
                     'is_accessible' => 'yes',
                 ],
                 [
-                    'batches_id' => decrypt($this->passedBatchId),
+                    'batches_id' => decrypt($this->batchId),
                     'access_code' => $this->code,
                     'is_accessible' => 'yes',
                 ]
@@ -154,7 +154,7 @@ class ViewBatchModal extends Component
     {
         $this->validateOnly(field: 'password_confirm');
 
-        $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
         $this->authorize('check-coordinator', $batch);
 
         $checkSlots = Batch::whereHas('beneficiary')
@@ -184,7 +184,7 @@ class ViewBatchModal extends Component
     {
         $this->validateOnly('password_confirm');
 
-        $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
         $this->authorize('check-coordinator', $batch);
 
         Code::find($this->accessCode?->id)->update([
@@ -204,7 +204,7 @@ class ViewBatchModal extends Component
     {
         $this->validateOnly('password_confirm');
 
-        $batch = Batch::find($this->passedBatchId ? decrypt($this->passedBatchId) : null);
+        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
         $this->authorize('check-coordinator', $batch);
 
         $code = '';
@@ -215,11 +215,11 @@ class ViewBatchModal extends Component
 
         Code::updateOrCreate(
             [
-                'batches_id' => decrypt($this->passedBatchId),
+                'batches_id' => decrypt($this->batchId),
                 'is_accessible' => 'yes',
             ],
             [
-                'batches_id' => decrypt($this->passedBatchId),
+                'batches_id' => decrypt($this->batchId),
                 'access_code' => $this->code,
                 'is_accessible' => 'yes',
             ]

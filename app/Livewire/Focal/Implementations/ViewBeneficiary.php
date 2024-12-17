@@ -17,6 +17,8 @@ use App\Services\MoneyFormat;
 use Auth;
 use Carbon\Carbon;
 use DB;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Js;
 use Livewire\Attributes\Locked;
@@ -31,7 +33,7 @@ class ViewBeneficiary extends Component
     use WithFileUploads;
     #[Reactive]
     #[Locked]
-    public $passedBeneficiaryId;
+    public $beneficiaryId;
     #[Locked]
     public $passedCredentialId;
     #[Locked]
@@ -440,7 +442,7 @@ class ViewBeneficiary extends Component
             $this->js('$nextTick(() => { $dispatch("load-reason") })');
         } else {
             $this->resetExcept(
-                'passedBeneficiaryId',
+                'beneficiaryId',
                 'duplicationThreshold',
                 'maximumIncome',
             );
@@ -506,194 +508,319 @@ class ViewBeneficiary extends Component
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
-            $beneficiary = Beneficiary::lockForUpdate()->find($this->passedBeneficiaryId ? decrypt($this->passedBeneficiaryId) : null);
-            $batch = Batch::lockForUpdate()->find($beneficiary->batches_id);
-            $implementation = Implementation::find($batch->implementations_id);
-            $isChanged = false;
-
-            $this->normalizeStrings();
-
-            # Re-Check for Duplicates
-            $this->nameCheck();
-
-            if ($this->isPerfectDuplicate) {
-                DB::rollBack();
-                $this->dispatch('alertNotification', type: 'duplicate', message: 'This beneficiary has a perfect duplicate.', color: 'red');
-                return;
-            }
-
-            # Filter the necessitites
-            $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
-            $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
-            $this->contact_num = '+63' . substr($this->contact_num, 1);
-
-            if (!$this->is_sectoral) {
-                $this->district = $batch->district;
-                $this->barangay_name = $batch->barangay_name;
-            }
-
-            $beneficiary = Beneficiary::where('id', decrypt($this->passedBeneficiaryId))
-                ->where('updated_at', '<', Carbon::now())
-                ->first();
-
-            $identity = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
-                ->where('for_duplicates', 'no')
-                ->where('updated_at', '<', Carbon::now())
-                ->first();
-
-            $special_case = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
-                ->where('for_duplicates', 'yes')
-                ->where('updated_at', '<', Carbon::now())
-                ->first();
-
-            # If the system detects that it has already been updated/deleted before this request,
-            # then send an optimistic lock notification and close the modal to refresh the records.
-            if (!$beneficiary) {
-                $this->dispatch('optimistic-lock', message: 'This record has been updated by someone else. Refreshing...');
-                $this->resetBeneficiaries();
-                return;
-            } else {
-                $beneficiary->fill([
-                    'batches_id' => $batch->id,
-                    'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
-                    'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
-                    'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
-                    'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
-                    'birthdate' => $this->birthdate,
-                    'barangay_name' => $this->barangay_name,
-                    'contact_num' => $this->contact_num,
-                    'occupation' => $this->occupation ?? null,
-                    'avg_monthly_income' => $this->avg_monthly_income ?? null,
-                    'city_municipality' => $implementation->city_municipality,
-                    'province' => $implementation->province,
-                    'district' => $this->district,
-                    'type_of_id' => $this->type_of_id,
-                    'id_number' => $this->id_number,
-                    'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
-                    'beneficiary_type' => strtolower($this->beneficiary_type),
-                    'sex' => strtolower($this->sex),
-                    'civil_status' => strtolower($this->civil_status),
-                    'age' => $this->beneficiaryAge($this->birthdate),
-                    'dependent' => mb_strtoupper($this->dependent, "UTF-8"),
-                    'self_employment' => strtolower($this->self_employment),
-                    'skills_training' => $this->skills_training ?? null,
-                    'is_pwd' => strtolower($this->is_pwd),
-                    'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                    'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
-                    'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
-                    'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
-                    'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
-                ]);
-                if ($beneficiary->isDirty()) {
-                    $isChanged = true;
-                }
-            }
-
-            $file = null;
-
-            if ($identity) {
-
-                if ($this->image_file_path || is_null($this->saved_image_path)) {
-                    if ($this->image_file_path)
-                        $file = $this->image_file_path->store(path: 'credentials');
-
-                    if ($identity->image_file_path) {
-                        if (Storage::exists($identity->image_file_path)) {
-                            Storage::delete($identity->image_file_path);
-                        }
+            try {
+                # Eager loading with batches would help with preventing Deadlocks
+                $beneficiary = Beneficiary::with([
+                    'batch' => function ($q) {
+                        $q->lockForUpdate();
                     }
-                    $identity->fill([
-                        'image_file_path' => $file,
+                ])->lockForUpdate()->findOrFail($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+                $batch = $beneficiary->batch;
+                $implementation = Implementation::findOrFail($batch->implementations_id);
+                $isChanged = false;
+                $this->authorize('beneficiary-focal', $beneficiary);
+
+                $this->normalizeStrings();
+
+                # Re-Check for Duplicates
+                $this->nameCheck();
+
+                if ($this->isPerfectDuplicate) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'This beneficiary has a perfect duplicate.', color: 'red');
+                    return;
+                }
+
+                # Filter the necessitites
+                $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
+                $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
+                $this->contact_num = '+63' . substr($this->contact_num, 1);
+
+                if (!$this->is_sectoral) {
+                    $this->district = $batch->district;
+                    $this->barangay_name = $batch->barangay_name;
+                }
+
+                $beneficiary = Beneficiary::where('id', decrypt($this->beneficiaryId))
+                    ->where('updated_at', '<', Carbon::now())
+                    ->first();
+
+                $identity = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+                    ->where('for_duplicates', 'no')
+                    ->where('updated_at', '<', Carbon::now())
+                    ->first();
+
+                $special_case = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+                    ->where('for_duplicates', 'yes')
+                    ->where('updated_at', '<', Carbon::now())
+                    ->first();
+
+                # If the system detects that it has already been updated/deleted before this request,
+                # then send an optimistic lock notification and close the modal to refresh the records.
+                if (!$beneficiary) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Another user has modified this record. Please try again', color: 'red');
+                    $this->resetBeneficiaries();
+                    return;
+                } else {
+                    $beneficiary->fill([
+                        'batches_id' => $batch->id,
+                        'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
+                        'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
+                        'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
+                        'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
+                        'birthdate' => $this->birthdate,
+                        'barangay_name' => $this->barangay_name,
+                        'contact_num' => $this->contact_num,
+                        'occupation' => $this->occupation ?? null,
+                        'avg_monthly_income' => $this->avg_monthly_income ?? null,
+                        'city_municipality' => $implementation->city_municipality,
+                        'province' => $implementation->province,
+                        'district' => $this->district,
+                        'type_of_id' => $this->type_of_id,
+                        'id_number' => $this->id_number,
+                        'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
+                        'beneficiary_type' => strtolower($this->beneficiary_type),
+                        'sex' => strtolower($this->sex),
+                        'civil_status' => strtolower($this->civil_status),
+                        'age' => $this->beneficiaryAge($this->birthdate),
+                        'dependent' => mb_strtoupper($this->dependent, "UTF-8"),
+                        'self_employment' => strtolower($this->self_employment),
+                        'skills_training' => $this->skills_training ?? null,
+                        'is_pwd' => strtolower($this->is_pwd),
+                        'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+                        'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
+                        'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
+                        'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
+                        'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
                     ]);
-                }
-
-                if ($identity->isDirty()) {
-                    $identity->save();
-
-                    if ($file) {
-                        LogIt::set_edit_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
-                    } else {
-                        LogIt::set_remove_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
+                    if ($beneficiary->isDirty()) {
+                        $isChanged = true;
                     }
-                    $isChanged = true;
                 }
-            } else {
-                unset($this->beneficiary, $this->credentials);
-            }
 
-            if ($this->isPerfectDuplicate) {
+                $file = null;
 
-                if ($special_case) {
+                if ($identity) {
 
-                    if ($this->reason_image_file_path || $this->reason_saved_image_path) {
-                        if ($this->reason_image_file_path)
-                            $file = $this->reason_image_file_path->store(path: 'credentials');
-                        else
-                            $file = null;
+                    if ($this->image_file_path || is_null($this->saved_image_path)) {
+                        if ($this->image_file_path)
+                            $file = $this->image_file_path->store(path: 'credentials');
 
-                        if ($special_case->image_file_path) {
-                            if (Storage::exists($special_case->image_file_path)) {
-                                Storage::delete($special_case->image_file_path);
+                        if ($identity->image_file_path) {
+                            if (Storage::exists($identity->image_file_path)) {
+                                Storage::delete($identity->image_file_path);
                             }
                         }
-                        $special_case->fill([
-                            'image_description' => $this->image_description,
+                        $identity->fill([
                             'image_file_path' => $file,
                         ]);
-                    } elseif (is_null($this->reason_image_file_path) && is_null($this->reason_saved_image_path)) {
-                        if ($special_case->image_file_path) {
-                            if (Storage::exists($special_case->image_file_path)) {
-                                Storage::delete($special_case->image_file_path);
-                            }
-                        }
-
-                        $special_case->fill([
-                            'image_description' => $this->image_description,
-                            'image_file_path' => null,
-                        ]);
                     }
 
-                    if ($special_case->isDirty()) {
-                        $special_case->save();
+                    if ($identity->isDirty()) {
+                        $identity->save();
 
                         if ($file) {
-                            LogIt::set_edit_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
+                            LogIt::set_edit_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
                         } else {
-                            LogIt::set_remove_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
+                            LogIt::set_remove_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
                         }
                         $isChanged = true;
                     }
-
                 } else {
                     unset($this->beneficiary, $this->credentials);
                 }
 
-            } else {
-                if ($special_case) {
-                    if ($special_case->image_file_path) {
-                        if (Storage::exists($special_case->image_file_path)) {
-                            Storage::delete($special_case->image_file_path);
+                if ($this->isPerfectDuplicate) {
+
+                    if ($special_case) {
+
+                        if ($this->reason_image_file_path || $this->reason_saved_image_path) {
+                            if ($this->reason_image_file_path)
+                                $file = $this->reason_image_file_path->store(path: 'credentials');
+                            else
+                                $file = null;
+
+                            if ($special_case->image_file_path) {
+                                if (Storage::exists($special_case->image_file_path)) {
+                                    Storage::delete($special_case->image_file_path);
+                                }
+                            }
+                            $special_case->fill([
+                                'image_description' => $this->image_description,
+                                'image_file_path' => $file,
+                            ]);
+                        } elseif (is_null($this->reason_image_file_path) && is_null($this->reason_saved_image_path)) {
+                            if ($special_case->image_file_path) {
+                                if (Storage::exists($special_case->image_file_path)) {
+                                    Storage::delete($special_case->image_file_path);
+                                }
+                            }
+
+                            $special_case->fill([
+                                'image_description' => $this->image_description,
+                                'image_file_path' => null,
+                            ]);
+                        }
+
+                        if ($special_case->isDirty()) {
+                            $special_case->save();
+
+                            if ($file) {
+                                LogIt::set_edit_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
+                            } else {
+                                LogIt::set_remove_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
+                            }
+                            $isChanged = true;
+                        }
+
+                    } else {
+                        unset($this->beneficiary, $this->credentials);
+                    }
+
+                } else {
+                    if ($special_case) {
+                        if ($special_case->image_file_path) {
+                            if (Storage::exists($special_case->image_file_path)) {
+                                Storage::delete($special_case->image_file_path);
+                            }
+                        }
+
+                        $special_case->delete();
+                        LogIt::set_remove_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
+                        $isChanged = true;
+                    } else {
+                        unset($this->beneficiary, $this->credentials);
+                    }
+                }
+
+                if ($isChanged) {
+                    $beneficiary->updated_at = now();
+                    $beneficiary->save();
+                    LogIt::set_edit_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Successfully modified a beneficiary', color: 'indigo');
+                }
+
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'beneficiary-modify', message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    // LogIt::set_log_exception('Deadlock has occured while deleting a beneficiary', auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetBeneficiaries();
+            }
+        }, 5);
+
+    }
+
+    public function deleteBeneficiary()
+    {
+        # if the batch where this beneficiary belongs to is approved,
+        # then we should archive it
+        DB::transaction(function () {
+            try {
+                # Eager loading with batches would help with preventing Deadlocks
+                $beneficiary = Beneficiary::with([
+                    'batch' => function ($query) {
+                        $query->lockForUpdate();
+                    }
+                ])->lockForUpdate()->findOrFail($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+                $batch = $beneficiary->batch;
+                $implementation = Implementation::findOrFail($batch->implementations_id);
+                $this->authorize('beneficiary-focal', $beneficiary);
+                $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+                    ->get();
+
+                if ($this->defaultArchive) {
+
+                    # Archive their credentials first
+                    foreach ($credentials as $credential) {
+                        Archive::create([
+                            'last_id' => $credential->id,
+                            'source_table' => 'credentials',
+                            'data' => $credential->toArray(),
+                            'archived_at' => now()
+                        ]);
+                        $credential->deleteOrFail();
+                        if ($credential->for_duplicates === 'yes') {
+                            LogIt::set_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
                         }
                     }
 
-                    $special_case->delete();
-                    LogIt::set_remove_beneficiary_special_case($implementation, $batch, $beneficiary, $special_case, auth()->user());
-                    $isChanged = true;
-                } else {
-                    unset($this->beneficiary, $this->credentials);
+                    # then archive the Beneficiary record
+                    Archive::create([
+                        'last_id' => $beneficiary->id,
+                        'source_table' => 'beneficiaries',
+                        'data' => $beneficiary->makeHidden('batch')->toArray(),
+                        'archived_at' => now()
+                    ]);
+                    $beneficiary->deleteOrFail();
+
+                    if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                        LogIt::set_archive_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                    }
+
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Successfully archived a beneficiary', color: 'indigo');
                 }
+
+                # otherwise, we could just delete it.
+                else {
+                    foreach ($credentials as $credential) {
+                        if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
+                            Storage::delete($credential->image_file_path);
+                        }
+                        $credential->deleteOrFail();
+                        if ($credential->for_duplicates === 'yes') {
+                            LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                        }
+                    }
+
+                    $beneficiary->deleteOrFail();
+
+                    if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                        LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                    }
+
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Successfully deleted a beneficiary', color: 'indigo');
+                }
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while removing a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'beneficiary-modify', message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    // LogIt::set_log_exception('Deadlock has occured while deleting a beneficiary', auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetBeneficiaries();
+                $this->js('viewBeneficiaryModal = false;');
             }
-
-            if ($isChanged) {
-                $beneficiary->updated_at = now();
-                $beneficiary->save();
-                LogIt::set_edit_beneficiary($implementation, $batch, $beneficiary, auth()->user());
-                $this->dispatch('edit-beneficiary');
-            }
-
-            $this->resetBeneficiaries();
-        });
-
+        }, 5);
     }
 
     public function nameCheck()
@@ -731,7 +858,7 @@ class ViewBeneficiary extends Component
                 $this->extension_name = null;
             }
 
-            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, $this->duplicationThreshold, $this->passedBeneficiaryId);
+            $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, $this->duplicationThreshold, $this->beneficiaryId);
             $this->setCheckers($this->similarityResults);
 
             if (!isset($this->similarityResults)) {
@@ -836,96 +963,21 @@ class ViewBeneficiary extends Component
         }
     }
 
-    public function deleteBeneficiary()
-    {
-        $beneficiary = Beneficiary::find(decrypt($this->passedBeneficiaryId));
-        $this->authorize('delete-beneficiary-focal', $beneficiary);
-
-        # if the batch where this beneficiary belongs to is approved,
-        # then we should archive it
-        DB::transaction(function () use ($beneficiary) {
-            $batch = Batch::find($beneficiary->batches_id);
-            $implementation = Implementation::find($batch->implementations_id);
-            $credentials = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
-                ->get();
-
-            if ($this->defaultArchive) {
-
-                # Archive their credentials first
-                foreach ($credentials as $credential) {
-                    Archive::create([
-                        'last_id' => $credential->id,
-                        'source_table' => 'credentials',
-                        'data' => $credential->toArray(),
-                        'archived_at' => now()
-                    ]);
-                    $credential->delete();
-                    if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
-                    }
-                }
-
-                # then archive the Beneficiary record
-                Archive::create([
-                    'last_id' => $beneficiary->id,
-                    'source_table' => 'beneficiaries',
-                    'data' => $beneficiary->toArray(),
-                    'archived_at' => now()
-                ]);
-                $beneficiary->delete();
-
-                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_archive_beneficiary($implementation, $batch, $beneficiary, auth()->user());
-                }
-
-                $this->resetBeneficiaries();
-                $this->js('viewBeneficiaryModal = false;');
-                $this->dispatch('archive-beneficiary');
-            }
-
-            # otherwise, we could just delete it.
-            else {
-                foreach ($credentials as $credential) {
-                    if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
-                        Storage::delete($credential->image_file_path);
-                    }
-                    $credential->delete();
-                    if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
-                    }
-                }
-
-                $beneficiary->delete();
-
-                if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                    LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
-                }
-
-                $this->resetBeneficiaries();
-                $this->js('viewBeneficiaryModal = false;');
-                $this->dispatch('delete-beneficiary');
-            }
-        });
-    }
-
     #[Computed]
     public function projectInformation()
     {
-        if ($this->passedBeneficiaryId) {
-            $info = Implementation::join('batches', 'batches.implementations_id', '=', 'implementations.id')
-                ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
-                ->where('beneficiaries.id', decrypt($this->passedBeneficiaryId))
-                ->select(
-                    [
-                        'implementations.project_num',
-                        'batches.batch_num',
-                        'batches.submission_status',
-                        'batches.approval_status',
-                    ]
-                )
-                ->first();
-            return $info;
-        }
+        return Implementation::join('batches', 'batches.implementations_id', '=', 'implementations.id')
+            ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
+            ->where('beneficiaries.id', $this->beneficiaryId ? decrypt($this->beneficiaryId) : null)
+            ->select(
+                [
+                    'implementations.project_num',
+                    'batches.batch_num',
+                    'batches.submission_status',
+                    'batches.approval_status',
+                ]
+            )
+            ->first();
     }
 
     #[Computed]
@@ -1020,7 +1072,7 @@ class ViewBeneficiary extends Component
     #[Computed]
     public function credentials()
     {
-        $credentials = Credential::where('beneficiaries_id', decrypt($this->passedBeneficiaryId))
+        $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
             ->get();
 
         return $credentials;
@@ -1044,7 +1096,7 @@ class ViewBeneficiary extends Component
     #[Computed]
     public function beneficiary()
     {
-        $beneficiary = Beneficiary::find($this->passedBeneficiaryId ? decrypt($this->passedBeneficiaryId) : null);
+        $beneficiary = Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
         return $beneficiary;
 
     }
@@ -1105,6 +1157,8 @@ class ViewBeneficiary extends Component
         }
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($property)
     {
         if ($property === 'first_name') {
@@ -1230,7 +1284,7 @@ class ViewBeneficiary extends Component
 
     public function resetBeneficiaries()
     {
-        $this->resetExcept('passedBeneficiaryId', 'duplicationThreshold', 'maximumIncome', 'defaultArchive');
+        $this->resetExcept('beneficiaryId', 'duplicationThreshold', 'maximumIncome', 'defaultArchive');
     }
 
     #[Computed]

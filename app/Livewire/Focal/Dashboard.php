@@ -341,7 +341,12 @@ class Dashboard extends Component
     public function implementations()
     {
         $implementations = Implementation::where('users_id', Auth::id())
-            ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
+            ->when($this->searchProject, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
+                        ->orWhere('project_title', 'LIKE', '%' . $this->searchProject . '%');
+                });
+            })
             ->whereBetween('created_at', [$this->start, $this->end])
             ->latest('updated_at')
             ->get();
@@ -353,7 +358,6 @@ class Dashboard extends Component
     public function implementationsNoDate()
     {
         $implementations = Implementation::where('users_id', Auth::id())
-            ->where('project_num', 'LIKE', '%' . $this->searchProject . '%')
             ->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()])
             ->latest('updated_at')
             ->get();
@@ -491,6 +495,8 @@ class Dashboard extends Component
         return $batches;
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($prop)
     {
         if ($prop === 'defaultExportStart') {

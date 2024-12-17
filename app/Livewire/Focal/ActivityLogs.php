@@ -42,8 +42,11 @@ class ActivityLogs extends Component
     {
         return SystemsLog::where('regional_office', auth()->user()->regional_office)
             ->where('field_office', auth()->user()->field_office)
-            ->when($this->searchLogs, function ($q) {
-                $q->where('description', 'LIKE', '%' . $this->searchLogs . '%');
+            ->when($this->searchLogs, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('description', 'LIKE', '%' . $this->searchLogs . '%')
+                        ->orWhere('log_type', 'LIKE', '%' . $this->searchLogs . '%');
+                });
             })
             ->when($this->users_id, function ($q) {
                 $q->where('users_id', $this->users_id ? decrypt($this->users_id) : null);
@@ -124,6 +127,8 @@ class ActivityLogs extends Component
         return $name;
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($prop)
     {
         if ($prop === 'resultsFrequency') {

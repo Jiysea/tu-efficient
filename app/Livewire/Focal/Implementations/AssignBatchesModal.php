@@ -365,36 +365,53 @@ class AssignBatchesModal extends Component
     {
         $this->validate(['temporaryBatchesList' => 'required'], ['temporaryBatchesList.required' => 'There should be at least 1 :attribute before finishing.',], ['temporaryBatchesList' => 'batch assignment',]);
 
-        foreach ($this->temporaryBatchesList as $keyBatch => $batch) {
-            $implementation = Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
-            $batch = Batch::create([
-                'implementations_id' => $implementation->id,
-                'batch_num' => $batch['batch_num'],
-                'is_sectoral' => $batch['is_sectoral'],
-                'sector_title' => $batch['sector_title'],
-                'district' => $batch['district'],
-                'barangay_name' => $batch['barangay_name'],
-                'slots_allocated' => $batch['slots_allocated'],
-                'approval_status' => 'pending',
-                'submission_status' => 'unopened'
-            ]);
+        DB::transaction(function () {
 
-            $batch_id = $batch->id;
-            LogIt::set_create_batches($implementation, $batch, auth()->user());
+            try {
+                foreach ($this->temporaryBatchesList as $keyBatch => $batch) {
+                    $implementation = Implementation::lockForUpdate()->find($this->implementationId ? decrypt($this->implementationId) : null);
 
-            foreach ($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'] as $coordinator) {
-                $assignment = Assignment::create([
-                    'batches_id' => $batch_id,
-                    'users_id' => decrypt($coordinator['users_id']),
-                ]);
-                LogIt::set_assign_coordinator_to_batch($assignment, auth()->user());
+                    if (!$implementation) {
+                        DB::rollBack();
+                        $this->dispatch('alertNotification', type: 'implementation', message: 'The project does not exist', color: 'red');
+                        return;
+                    }
+
+                    $batch = Batch::create([
+                        'implementations_id' => $implementation->id,
+                        'batch_num' => $batch['batch_num'],
+                        'is_sectoral' => $batch['is_sectoral'],
+                        'sector_title' => $batch['sector_title'],
+                        'district' => $batch['district'],
+                        'barangay_name' => $batch['barangay_name'],
+                        'slots_allocated' => $batch['slots_allocated'],
+                        'approval_status' => 'pending',
+                        'submission_status' => 'unopened'
+                    ]);
+
+                    $batch_id = $batch->id;
+                    LogIt::set_create_batches($implementation, $batch, auth()->user());
+
+                    foreach ($this->temporaryBatchesList[$keyBatch]['assigned_coordinators'] as $coordinator) {
+                        $assignment = Assignment::create([
+                            'batches_id' => $batch_id,
+                            'users_id' => decrypt($coordinator['users_id']),
+                        ]);
+                        LogIt::set_assign_coordinator_to_batch($assignment, auth()->user());
+                    }
+                }
+
+                $this->dispatch('alertNotification', type: 'batch', message: 'Successfully assigned a batch', color: 'indigo');
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'batch', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetBatches();
+                $this->js('assignBatchesModal = false;');
             }
-        }
-
-        $this->resetBatches();
-        $this->js('assignBatchesModal = false;');
-        $this->dispatch('assign-batches');
-
+        }, 5);
     }
 
     # this function adds the selected coordinator from the `Add Coordinator` dropdown
@@ -612,6 +629,8 @@ class AssignBatchesModal extends Component
         }
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($prop)
     {
         if ($prop === 'district') {

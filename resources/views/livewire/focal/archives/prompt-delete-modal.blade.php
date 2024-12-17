@@ -28,7 +28,7 @@
 
                         {{-- Close Button --}}
                         <button type="button" @click="promptDeleteModal = false;"
-                            class="outline-none text-indigo-400 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
                             <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -60,6 +60,7 @@
 
                         {{-- Confirm Button --}}
                         <button type="button" wire:click="$parent.permanentlyDelete();"
+                            @click="promptDeleteModal = false;"
                             class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-red-700 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
                             CONFIRM
                         </button>

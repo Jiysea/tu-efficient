@@ -59,7 +59,7 @@
                         </button>
 
                         {{-- Confirm Button --}}
-                        <button type="button" wire:click="$parent.restoreRow();"
+                        <button type="button" wire:click="$parent.restoreRow();" @click="promptRestoreModal = false;"
                             class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-indigo-700 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                             CONFIRM
                         </button>

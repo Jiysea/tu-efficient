@@ -210,7 +210,7 @@ window.addEventListener('resize', () => {
                         </svg>
                     </template>
 
-                    {{-- Search Bar --}}
+                    {{-- General Search Box --}}
                     <div class="relative">
                         <div
                             class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->logs->isNotEmpty() || $searchLogs ? 'text-indigo-800' : 'text-zinc-400' }}">
@@ -235,12 +235,11 @@ window.addEventListener('resize', () => {
                         </div>
 
                         {{-- Search Input Bar --}}
-                        <input type="text" id="project-search" maxlength="100" autocomplete="off"
+                        <input type="text" id="searchLogs" maxlength="100" autocomplete="off"
                             @if ($this->logs->isEmpty() && !$searchLogs) disabled @endif
                             wire:model.live.debounce.300ms="searchLogs"
-                            @input.debounce.300ms="$wire.$dispatch('scroll-top-logs');"
                             class="{{ $this->logs->isNotEmpty() || $searchLogs
-                                ? 'text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
+                                ? 'selection:bg-indigo-700 selection:text-indigo-50 text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
                                 : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1.5 text-xs border rounded w-full"
                             placeholder="Search for logs">
                     </div>
@@ -473,7 +472,7 @@ window.addEventListener('resize', () => {
                                             <td class="px-2 py-2 select-text cursor-text">
                                                 {{ \Carbon\Carbon::parse($log->log_timestamp)->format('M d, Y @ h:i:s a') }}
                                             </td>
-                                            <td
+                                            <td @click.stop
                                                 class="px-2 py-2 max-w-[400px] md:max-w-[300px] lg:max-w-[500px] overflow-x-auto whitespace-nowrap scrollbar-none select-text cursor-text">
                                                 {{ $log->description }}
                                             </td>

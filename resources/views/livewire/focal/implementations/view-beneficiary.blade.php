@@ -1071,10 +1071,10 @@
                                 <span class="block mb-1 font-medium"
                                     :class="{
                                         'text-gray-500': {{ json_encode(!isset($district) || empty($district)) }},
-                                        'text-indigo-1100': {{ json_encode(!$errors->has('barangay_name') && $district) }},
+                                        'text-indigo-1100': {{ json_encode($district) }},
                                     }">
                                     <span class="relative">Barangay
-                                        <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                        <span class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
                                         </span>
                                     </span>
                                 </span>
@@ -1879,7 +1879,7 @@
 
                                 {{-- Modal body --}}
                                 <div
-                                    class="flex flex-col items-center justify-center gap-4 w-full pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
+                                    class="flex flex-col items-center justify-center w-full pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
                                     @if ($this->defaultArchive)
                                         <p class="font-medium text-sm mb-2">
                                             Are you sure about archiving this beneficiary?
@@ -1919,9 +1919,8 @@
                 <livewire:focal.implementations.view-credentials-modal :$passedCredentialId />
 
                 {{-- Confirm Beneficiary Type Change Modal --}}
-                <div x-cloak 
-                    @if ($confirmChangeType === 'beneficiary_type')
-                        @keydown.window.escape="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
+                <div x-cloak
+                    @if ($confirmChangeType === 'beneficiary_type') @keydown.window.escape="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
                     @elseif($confirmChangeType === 'first_name')
                         @keydown.window.escape="$wire.set('first_name', '{{ $this->beneficiary?->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
                     @elseif($confirmChangeType === 'middle_name')
@@ -1929,8 +1928,7 @@
                     @elseif($confirmChangeType === 'last_name')
                         @keydown.window.escape="$wire.set('last_name', '{{ $this->beneficiary?->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
                     @elseif($confirmChangeType === 'extension_name') 
-                        @keydown.window.escape="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" 
-                    @endif
+                        @keydown.window.escape="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" @endif
                     class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
                     x-show="confirmTypeChangeModal">
 

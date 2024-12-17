@@ -10,6 +10,7 @@ use App\Services\LogIt;
 use App\Services\MoneyFormat;
 use App\Services\Provinces;
 use Carbon\Carbon;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -22,7 +23,7 @@ class ViewProject extends Component
 {
     #[Reactive]
     #[Locked]
-    public $passedProjectId;
+    public $implementationId;
 
     # ---------------------------------
     public $editMode = false;
@@ -149,7 +150,7 @@ class ViewProject extends Component
     #[Computed]
     public function implementation()
     {
-        $implementation = Implementation::find($this->passedProjectId ? decrypt($this->passedProjectId) : null);
+        $implementation = Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
         return $implementation;
 
     }
@@ -186,44 +187,74 @@ class ViewProject extends Component
 
         DB::transaction(function () {
 
-            $implementation = Implementation::lockForUpdate()->find(decrypt($this->passedProjectId));
+            try {
+                $implementation = Implementation::lockForUpdate()->findOrFail(decrypt($this->implementationId));
 
-            $this->authorize('edit-implementation-focal', $implementation);
+                $this->authorize('implementation-focal', $implementation);
 
-            $this->project_num = $this->projectNumPrefix . Carbon::parse($this->implementation->created_at)->format('Y-') . $this->project_num;
-            $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
-            $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
+                $this->project_num = $this->projectNumPrefix . Carbon::parse($this->implementation->created_at)->format('Y-') . $this->project_num;
+                $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
+                $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
 
-            $implementation->project_num = $this->project_num;
-            $implementation->project_title = $this->project_title;
-            $implementation->budget_amount = $this->budget_amount;
-            $implementation->minimum_wage = $this->minimum_wage;
-            $implementation->total_slots = $this->total_slots;
-            $implementation->days_of_work = $this->days_of_work;
-            $implementation->province = $this->province;
-            $implementation->city_municipality = $this->city_municipality;
-            $implementation->purpose = $this->purpose;
+                $implementation->project_num = $this->project_num;
+                $implementation->project_title = $this->project_title;
+                $implementation->budget_amount = $this->budget_amount;
+                $implementation->minimum_wage = $this->minimum_wage;
+                $implementation->total_slots = $this->total_slots;
+                $implementation->days_of_work = $this->days_of_work;
+                $implementation->province = $this->province;
+                $implementation->city_municipality = $this->city_municipality;
+                $implementation->purpose = $this->purpose;
 
-            $this->toggleEdit();
-
-            if ($implementation->isDirty()) {
-                $implementation->save();
-                LogIt::set_edit_project($implementation, auth()->user());
-                $this->dispatch('edit-project');
+                if ($implementation->isDirty()) {
+                    $implementation->save();
+                    LogIt::set_edit_project($implementation, auth()->user());
+                    $this->dispatch('alertNotification', type: 'implementation-modify', message: 'Successfully modified a project', color: 'indigo');
+                }
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made modifying this project. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'implementation-modify', message: $e->getMessage(), color: 'red');
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->toggleEdit();
             }
-        });
+        }, 5);
     }
 
     public function deleteProject()
     {
-        $project = Implementation::find(decrypt($this->passedProjectId));
-        $this->authorize('delete-implementation-focal', $project);
-        $project->delete();
+        DB::transaction(function () {
+            try {
+                $project = Implementation::lockForUpdate()->findOrFail(decrypt($this->implementationId));
 
-        $this->resetViewProject();
-        LogIt::set_delete_project($project, auth()->user());
-        $this->js('viewProjectModal = false;');
-        $this->dispatch('delete-project');
+                if (!$this->isEmpty) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: 'implementation-modify', message: 'This project is not empty', color: 'red');
+                    return;
+                }
+                $this->authorize('implementation-focal', $project);
+
+                $project->deleteOrFail();
+
+                LogIt::set_delete_project($project, auth()->user());
+                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'Successfully deleted a project', color: 'indigo');
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while deleting this project. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'implementation-modify', message: $e->getMessage(), color: 'red');
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetViewProject();
+                $this->js('viewProjectModal = false;');
+            }
+        }, 5);
     }
 
     # a livewire action for toggling the auto computation for total slots
@@ -273,14 +304,14 @@ class ViewProject extends Component
 
     public function resetViewProject()
     {
-        $this->resetExcept('passedProjectId', 'projectNumPrefix', 'defaultMinimumWage', );
+        $this->resetExcept('implementationId', 'projectNumPrefix', 'defaultMinimumWage', );
         $this->resetValidation();
     }
 
     #[Computed]
     public function isConcluded()
     {
-        $implementation = Implementation::find($this->passedProjectId ? decrypt($this->passedProjectId) : null);
+        $implementation = Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
 
         # If the implementation project has already concluded...
         if ($implementation?->status === 'concluded') {
@@ -295,7 +326,7 @@ class ViewProject extends Component
     #[Computed]
     public function isEmpty()
     {
-        $query = Batch::where('implementations_id', $this->passedProjectId ? decrypt($this->passedProjectId) : null)
+        $query = Batch::where('implementations_id', $this->implementationId ? decrypt($this->implementationId) : null)
             ->exists();
 
         # If there's any rows that exists...

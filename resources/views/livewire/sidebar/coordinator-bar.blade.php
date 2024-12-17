@@ -246,6 +246,7 @@
 
                 <ul class="space-y-2 font-medium text-sm">
 
+                    {{-- Assignments --}}
                     <li x-data="{ hover: false }" class="relative">
                         <a href="{{ route('coordinator.assignments') }}" wire:loading.attr="disabled"
                             @mouseover="hover = true" @mouseleave="hover = false"
@@ -274,12 +275,14 @@
                                 'hidden': (open === true && isAboveBreakpoint === true),
                                 'inline-block': (open === false && isAboveBreakpoint === true),
                             }"
-                            class="absolute hidden left-full top-0 z-40 text-sm text-gray-500 bg-blue-50 border border-blue-200 rounded shadow-lg">
-                            <div class="px-3 py-2 font-semibold text-blue-1100">
+                            class="absolute hidden left-full top-0 z-40 text-sm border text-zinc-50 bg-zinc-900 border-zinc-300 rounded shadow-lg">
+                            <div class="px-3 py-2 font-semibold">
                                 <p>Assignments</p>
                             </div>
                         </div>
                     </li>
+
+                    {{-- Submissions --}}
                     <li x-data="{ hover: false }" class="relative">
                         <a href="{{ route('coordinator.submissions') }}" wire:loading.attr="disabled"
                             @mouseover="hover = true" @mouseleave="hover = false"
@@ -308,8 +311,8 @@
                                 'hidden': (open === true && isAboveBreakpoint === true),
                                 'inline-block': (open === false && isAboveBreakpoint === true),
                             }"
-                            class="absolute hidden left-full top-0 z-40 text-sm text-gray-500 bg-blue-50 border border-blue-200 rounded shadow-lg">
-                            <div class="px-3 py-2 font-semibold text-blue-1100">
+                            class="absolute hidden left-full top-0 z-40 text-sm border text-zinc-50 bg-zinc-900 border-zinc-300 rounded shadow-lg">
+                            <div class="px-3 py-2 font-semibold">
                                 <p>Submissions</p>
                             </div>
                         </div>
@@ -368,10 +371,11 @@
 
                                 {{-- Logout --}}
                                 <li>
-                                    <form method="POST" action="{{ route('logout') }}">
+                                    <form id="logout-form" method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" aria-label="{{ __('Logout') }}"
-                                            class="flex items-center w-full text-blue-1100 px-4 justify-start py-2 hover:bg-blue-200 hover:text-blue-900 duration-300 ease-in-out cursor-pointer">
+                                        <button type="button" id="logout-btn" @click="$wire.logout();"
+                                            aria-label="{{ __('Logout') }}"
+                                            class="flex items-center w-full text-blue-1100 px-4 justify-start py-2 disabled:cursor-not-allowed hover:bg-blue-200 hover:text-blue-900 duration-300 ease-in-out cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">

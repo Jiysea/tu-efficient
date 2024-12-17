@@ -1,4 +1,5 @@
-<div x-cloak x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }" @keydown.window.escape="if (!deleteProjectModal) viewProjectModal = false"
+<div x-cloak x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }"
+    @keydown.window.escape="if (!deleteProjectModal) {$wire.resetViewProject(); viewProjectModal = false}"
     class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewProjectModal">
 
     <!-- Modal -->

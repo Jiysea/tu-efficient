@@ -2,19 +2,22 @@
 
 namespace App\Livewire\Focal;
 
+use App\Models\Archive;
 use App\Models\Batch;
 use App\Models\Beneficiary;
+use App\Models\Credential;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Annex;
 use App\Services\Essential;
 use App\Services\JaccardSimilarity;
+use App\Services\LogIt;
 use Carbon\Carbon;
-use Crypt;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Js;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -23,6 +26,7 @@ use Livewire\Component;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Storage;
 
 #[Layout('layouts.app')]
 #[Title('Implementations | TU-Efficient')]
@@ -33,6 +37,10 @@ class Implementations extends Component
     #[Locked]
     public $batchId;
     #[Locked]
+    public $beneficiaryId;
+    #[Locked]
+    public array $beneficiaryIds = [];
+    #[Locked]
     public $exportBatchId;
     public $projectNumPrefix;
     public $duplicationThreshold;
@@ -40,22 +48,18 @@ class Implementations extends Component
     public $alerts = [];
     # ------------------------------------------
 
-    #[Locked]
-    public $passedProjectId;
     public $createProjectModal = false;
     public $viewProjectModal = false;
-    #[Locked]
-    public $passedBatchId;
     public $assignBatchesModal = false;
     public $viewBatchModal = false;
-    #[Locked]
-    public $passedBeneficiaryId;
     public $addBeneficiariesModal = false;
     public $viewBeneficiaryModal = false;
     public $importFileModal = false;
     public $showExportModal = false;
+    public $promptMultiDeleteModal = false;
 
     # -----------------------------------------
+
     public $defaultExportStart;
     public $defaultExportEnd;
     public $export_start;
@@ -83,7 +87,8 @@ class Implementations extends Component
     public $beneficiaries_on_page = 15;
     public $selectedImplementationRow = -1;
     public $selectedBatchRow = -1;
-    public $selectedBeneficiaryRow = -1;
+    public array $selectedBeneficiaryRow = [];
+    public $anchorBeneficiaryKey = -1;
     public $start;
     public $end;
     public $calendarStart;
@@ -214,29 +219,10 @@ class Implementations extends Component
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    public function viewProject(string $encryptedId)
-    {
-        $this->passedProjectId = $encryptedId;
-        $this->viewProjectModal = true;
-    }
-
-    public function viewBatch(string $encryptedId)
-    {
-        $this->passedBatchId = $encryptedId;
-        $this->viewBatchModal = true;
-    }
-
-    public function viewBeneficiary(string $encryptedId)
-    {
-        $this->passedBeneficiaryId = $encryptedId;
-        $this->viewBeneficiaryModal = true;
-    }
-
     public function selectImplementationRow($key, $encryptedId)
     {
         if ($key === $this->selectedImplementationRow) {
-            $this->selectedImplementationRow = -1;
-            $this->implementationId = null;
+            $this->resetImplementation();
             unset($this->implementations);
             unset($this->batches);
             unset($this->beneficiaries);
@@ -246,18 +232,30 @@ class Implementations extends Component
         }
 
         $this->beneficiaries_on_page = 15;
-        $this->batchId = null;
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
+        $this->resetBatch();
+        $this->resetBeneficiary();
 
         $this->dispatch('init-reload')->self();
+
+    }
+
+    public function viewImplementation($key, $encryptedId)
+    {
+        $this->selectedImplementationRow = $key;
+        $this->implementationId = $encryptedId;
+
+        $this->beneficiaries_on_page = 15;
+        $this->resetBatch();
+        $this->resetBeneficiary();
+
+        $this->dispatch('init-reload')->self();
+        $this->viewProjectModal = true;
     }
 
     public function selectBatchRow($key, $encryptedId)
     {
         if ($key === $this->selectedBatchRow) {
-            $this->selectedBatchRow = -1;
-            $this->batchId = null;
+            $this->resetBatch();
             unset($this->implementations);
             unset($this->batches);
             unset($this->beneficiaries);
@@ -267,9 +265,281 @@ class Implementations extends Component
         }
 
         $this->beneficiaries_on_page = 15;
-        $this->selectedBeneficiaryRow = -1;
+        $this->resetBeneficiary();
 
         $this->dispatch('init-reload')->self();
+    }
+
+    public function viewBatch($key, $encryptedId)
+    {
+        $this->selectedBatchRow = $key;
+        $this->batchId = $encryptedId;
+
+        $this->beneficiaries_on_page = 15;
+        $this->resetBeneficiary();
+
+        $this->dispatch('init-reload')->self();
+        $this->viewBatchModal = true;
+    }
+
+    public function selectBeneficiaryRow($key, $encryptedId, $type = 'row-based')
+    {
+        if ($type === 'row-based') {
+            if (!in_array($key, $this->selectedBeneficiaryRow) || count($this->selectedBeneficiaryRow) !== 1) {
+                $this->selectedBeneficiaryRow = [$key => $key];
+                $this->beneficiaryIds = [$key => $encryptedId];
+                $this->anchorBeneficiaryKey = $key;
+                $this->beneficiaryId = $encryptedId;
+            } else {
+                $this->resetBeneficiary();
+            }
+        } elseif ($type === 'checkbox') {
+            if (!in_array($key, $this->selectedBeneficiaryRow)) {
+                $this->selectedBeneficiaryRow[$key] = $key;
+                $this->beneficiaryIds[$key] = $encryptedId;
+                $this->anchorBeneficiaryKey = $key;
+                $this->beneficiaryId = $encryptedId;
+            } else {
+                unset($this->selectedBeneficiaryRow[$key], $this->beneficiaryIds[$key]);
+            }
+        } else {
+            $this->resetBeneficiary();
+        }
+        unset($this->implementations);
+        unset($this->batches);
+        $this->dispatch('init-reload')->self();
+    }
+
+    # Used to Multi-Select rows from the beneficiary table
+    public function selectShiftBeneficiary($key, $encryptedId)
+    {
+        # Checks if there are already selected `keys` to proceed with multi-select
+        if (count($this->selectedBeneficiaryRow) > 0) {
+
+            # First, we get the lowest and highest `key` value among the selected rows
+            $lowKey = min($this->selectedBeneficiaryRow);
+            $highKey = max($this->selectedBeneficiaryRow);
+            $centerKey = $this->anchorBeneficiaryKey;
+
+            # Temporarily store an instance of selected rows for later use
+            $tempSelectedRows = $this->selectedBeneficiaryRow;
+
+            # Empty the selected rows or basically reset them before we do the multi-select
+            # in order to avoid unexpected results
+            $this->selectedBeneficiaryRow = [];
+            $this->beneficiaryIds = [];
+
+            # When selecting a row in the table, there are 7 possibilities but before that here are some
+            # key points to note:
+            # - When you select a row, the system will store the `key` and the `id` of that row
+            # - The `id` is basically the beneficiary model ID
+            # - After storing the `key`, it will be used to indicate which rows were selected on the front-end
+            # - But when it comes to multi-selection, there would be more than 1 `key` stored
+            # - Basically, the `key`s will be stored in an Array (same goes for the `id`s)
+            # - The problem here would be to determine how to select rows closely similar to
+            #   the traditional multi-selection
+            # - That's why I get the `min` and `max` from the selected rows and
+            #   use the `key` as the Center
+            #
+            # Now for the 7 possibilities, this is based on traditional shift-click selection behavior:
+
+            # 1.) When the selected row `key` is LOWER THAN the lowest selected row
+            if ($key < $lowKey) {
+
+                foreach (range($key, $centerKey) as $num) {
+                    $this->selectedBeneficiaryRow[$num] = $num;
+                    $this->beneficiaryIds[$num] = encrypt($this->beneficiaries[$num]->id);
+                }
+            }
+
+            # 2.) When the selected row `key` is GREATER THAN the lowest selected row 
+            #       but LOWER THAN highest selected row
+            elseif ($key > $lowKey && $key < $centerKey && $key < $highKey) {
+
+                foreach (range($key, $centerKey) as $num) {
+                    $this->selectedBeneficiaryRow[$num] = $num;
+                    $this->beneficiaryIds[$num] = encrypt($this->beneficiaries[$num]->id);
+                }
+            }
+
+            # 3.) When the selected row `key` is EQUAL TO the lowest selected row 
+            #       & LOWER THAN the highest selected row
+            elseif ($key > $lowKey && $key > $centerKey && $key < $highKey) {
+
+                foreach (range($centerKey, $key) as $num) {
+                    $this->selectedBeneficiaryRow[$num] = $num;
+                    $this->beneficiaryIds[$num] = encrypt($this->beneficiaries[$num]->id);
+                }
+            }
+
+            # 4.) When the selected row `key` is GREATER THAN the lowest selected row 
+            #       & highest selected row
+            elseif ($key > $highKey) {
+
+                foreach (range($centerKey, $key) as $num) {
+                    $this->selectedBeneficiaryRow[$num] = $num;
+                    $this->beneficiaryIds[$num] = encrypt($this->beneficiaries[$num]->id);
+                }
+            }
+
+            # 5.) When the selected row `key` is EQUAL TO the highest selected row
+            #       but there are multiple selected rows
+            elseif (($key === $centerKey) && count($tempSelectedRows) > 1) {
+                $this->selectedBeneficiaryRow = [$key => $key];
+                $this->beneficiaryIds = [$key => $encryptedId];
+                $this->anchorBeneficiaryKey = $key;
+                $this->beneficiaryId = $encryptedId;
+            }
+
+            # 6.) When the selected row `key` is EQUAL TO the highest selected row
+            #       but there is only one selected row
+            elseif (($key === $centerKey) && count($tempSelectedRows) === 1) {
+                $this->resetBeneficiary();
+            }
+        }
+
+        # Otherwise, it will just select the single row if there are no selected rows yet
+        else {
+            $this->selectedBeneficiaryRow = [$key => $key];
+            $this->beneficiaryIds = [$key => $encryptedId];
+            $this->anchorBeneficiaryKey = $key;
+            $this->beneficiaryId = $encryptedId;
+        }
+
+        # Finally, we bust the cache just to make sure the rows were updated
+        unset($this->implementations);
+        unset($this->batches);
+        unset($this->beneficiaries);
+        $this->dispatch('init-reload')->self();
+    }
+
+    public function viewBeneficiary($key, $encryptedId)
+    {
+        $this->selectedBeneficiaryRow = [$key => $key];
+        $this->beneficiaryIds = [$key => $encryptedId];
+        $this->anchorBeneficiaryKey = $key;
+        $this->beneficiaryId = $encryptedId;
+
+        $this->dispatch('init-reload')->self();
+        $this->viewBeneficiaryModal = true;
+    }
+
+    public function removeBeneficiaries($defaultArchive)
+    {
+        $defaultArchive = decrypt($defaultArchive);
+        $count = count($this->selectedBeneficiaryRow);
+        DB::transaction(function () use ($defaultArchive, $count) {
+            try {
+                if (!$defaultArchive) {
+
+                    foreach ($this->beneficiaryIds as $key => $id) {
+
+                        # Eager loading with batches would help with preventing Deadlocks
+                        $beneficiary = Beneficiary::with([
+                            'batch' => function ($q) {
+                                $q->lockForUpdate();
+                            }
+                        ])->lockForUpdate()->findOrFail($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+                        $batch = $beneficiary->batch;
+                        $implementation = Implementation::findOrFail($batch->implementations_id);
+                        $this->authorize('delete-beneficiary-focal', $beneficiary);
+
+                        $credentials = Credential::where('beneficiaries_id', $id ? decrypt($id) : null)
+                            ->lockForUpdate()
+                            ->get();
+
+                        foreach ($credentials as $credential) {
+                            if (isset($credential->image_file_path) && Storage::exists($credential->image_file_path)) {
+                                $credential->deleteOrFail();
+                            }
+                            if ($credential->for_duplicates === 'yes') {
+                                LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                            }
+                        }
+
+                        $beneficiary->deleteOrFail();
+                        if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                            LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                        }
+                    }
+
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully deleted ' . ($count > 1 ? ($count . ' beneficiaries') : 'a beneficiary'), color: 'indigo');
+
+                } elseif ($defaultArchive) {
+
+                    foreach ($this->beneficiaryIds as $key => $id) {
+
+                        # Eager loading with batches would help with preventing Deadlocks
+                        $beneficiary = Beneficiary::with([
+                            'batch' => function ($query) {
+                                $query->lockForUpdate();
+                            }
+                        ])->lockForUpdate()->findOrFail($id ? decrypt($id) : null);
+                        $batch = $beneficiary->batch;
+                        $implementation = Implementation::findOrFail($batch->implementations_id);
+                        $this->authorize('delete-beneficiary-focal', $beneficiary);
+
+                        $credentials = Credential::where('beneficiaries_id', $id ? decrypt($id) : null)
+                            ->lockForUpdate()
+                            ->get();
+
+                        # Archive their credentials first
+                        foreach ($credentials as $credential) {
+
+                            Archive::create([
+                                'last_id' => $credential->id,
+                                'source_table' => 'credentials',
+                                'data' => $credential->toArray(),
+                                'archived_at' => now()
+                            ]);
+                            $credential->deleteOrFail();
+                            if ($credential->for_duplicates === 'yes') {
+                                LogIt::set_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                            }
+                        }
+
+                        # then archive the Beneficiary record
+                        Archive::create([
+                            'last_id' => $beneficiary->id,
+                            'source_table' => 'beneficiaries',
+                            'data' => $beneficiary->makeHidden('batch')->toArray(),
+                            'archived_at' => now()
+                        ]);
+                        $beneficiary->deleteOrFail();
+
+                        if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
+                            LogIt::set_archive_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                        }
+                    }
+
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully archived ' . ($count > 1 ? ($count . ' beneficiaries') : 'a beneficiary'), color: 'indigo');
+
+                }
+
+                $this->resetBeneficiary();
+                $this->dispatch('init-reload')->self();
+
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while removing beneficiaries. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'beneficiary', message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    // LogIt::set_log_exception('Deadlock has occured while deleting a beneficiary', auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            }
+        }, 5);
     }
 
     #[Computed]
@@ -439,6 +709,100 @@ class Implementations extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    // #[On('import-success-beneficiaries')]
+    // public function importSuccessBeneficiaries($count)
+    // {
+    //     $dateTimeFromEnd = $this->end;
+    //     $value = substr($dateTimeFromEnd, 0, 10);
+
+    //     $choosenDate = date('Y-m-d', strtotime($value));
+    //     $currentTime = date('H:i:s', strtotime(now()));
+    //     $this->end = $choosenDate . ' ' . $currentTime;
+
+    //     $this->selectedBeneficiaryRow = [];
+
+    //     $this->showAlert = true;
+    //     $this->alertMessage = 'Imported ' . $count . ' beneficiaries to the database.';
+    //     $this->dispatch('show-alert');
+    //     $this->dispatch('init-reload')->self();
+    // }
+
+    #[On('finished-importing')]
+    public function finishedImporting()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        if (!$this->importFileModal) {
+            $this->showAlert = true;
+            $this->alertMessage = 'Finished processing your import. Head to the Import tab.';
+            $this->dispatch('show-alert');
+        }
+        $this->dispatch('init-reload')->self();
+    }
+
+    #[On('refreshAfterOpening')]
+    public function refreshAfterOpening($message)
+    {
+        unset($this->batches);
+        unset($this->accessCode);
+
+        $this->showAlert = true;
+        $this->alertMessage = $message;
+        $this->dispatch('show-alert');
+        $this->dispatch('init-reload')->self();
+    }
+
+    # This will listen to dispatched events that are `Create, Update, Delete, and Error`
+    # actions from modals in order to refresh the table rows and also display
+    # an alert/notification bar.
+    #[On('alertNotification')]
+    public function alertNotification($type = null, $message, $color)
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        # These will help refreshing the table rows in order after executing an action.
+        # ------------------
+        # The 'modify' ones are slightly different because they have to retain its data
+        # because the user are 'viewing' them as supposed that they shouldn't `disappear`.
+        if ($type === 'implementation') {
+            $this->resetImplementation();
+            $this->resetBatch();
+            $this->resetBeneficiary();
+        } elseif ($type === 'batch') {
+            $this->resetBatch();
+            $this->resetBeneficiary();
+        } elseif ($type === 'beneficiary') {
+            $this->resetBeneficiary();
+        } elseif ($type === 'implementation-modify') {
+            $this->resetBatch();
+            $this->resetBeneficiary();
+        } elseif ($type === 'batch-modify') {
+            $this->resetBeneficiary();
+        } elseif ($type === 'beneficiary-modify') {
+            # Nothing to reset...
+        }
+
+        $this->alerts[] = [
+            'message' => $message,
+            'id' => uniqid(),
+            'color' => $color
+        ];
+
+        $this->dispatch('init-reload')->self();
+    }
+
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($prop)
     {
         if ($prop === 'defaultExportStart') {
@@ -494,15 +858,9 @@ class Implementations extends Component
             $this->implementations_on_page = 15;
             $this->beneficiaries_on_page = 15;
 
-            $this->passedProjectId = null;
-            $this->passedBatchId = null;
-            $this->passedBeneficiaryId = null;
-            $this->implementationId = null;
-            $this->batchId = null;
-
-            $this->selectedImplementationRow = -1;
-            $this->selectedBatchRow = -1;
-            $this->selectedBeneficiaryRow = -1;
+            $this->resetImplementation();
+            $this->resetBatch();
+            $this->resetBeneficiary();
 
             $this->dispatch('init-reload')->self();
             $this->dispatch('scroll-top-implementations')->self();
@@ -529,15 +887,9 @@ class Implementations extends Component
             $this->implementations_on_page = 15;
             $this->beneficiaries_on_page = 15;
 
-            $this->passedProjectId = null;
-            $this->passedBatchId = null;
-            $this->passedBeneficiaryId = null;
-            $this->implementationId = null;
-            $this->batchId = null;
-
-            $this->selectedImplementationRow = -1;
-            $this->selectedBatchRow = -1;
-            $this->selectedBeneficiaryRow = -1;
+            $this->resetImplementation();
+            $this->resetBatch();
+            $this->resetBeneficiary();
 
             $this->dispatch('init-reload')->self();
             $this->dispatch('scroll-top-implementations')->self();
@@ -546,277 +898,11 @@ class Implementations extends Component
         }
     }
 
-    #[On('create-project')]
-    public function saveProject()
+    public function removeAlert($id)
     {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->implementationId = null;
-        $this->batchId = null;
-
-        $this->selectedImplementationRow = -1;
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Project implementation successfully created!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('edit-project')]
-    public function editProject()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        unset($this->implementation);
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Saved changes!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('delete-project')]
-    public function deleteProject()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->passedProjectId = null;
-        $this->implementationId = null;
-        $this->batchId = null;
-
-        $this->selectedImplementationRow = -1;
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Successfully deleted the project!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('assign-batches')]
-    public function saveBatches()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->batchId = null;
-
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Batches successfully assigned!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('edit-batch')]
-    public function editBatch()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Batch successfully updated!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('delete-batch')]
-    public function deleteBatch()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->passedBatchId = null;
-        $this->batchId = null;
-
-        $this->selectedBatchRow = -1;
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Successfully removed the batch!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-
-        $this->viewBatchModal = false;
-    }
-
-    #[On('add-beneficiaries')]
-    public function saveBeneficiaries()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Beneficiary added successfully!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
-
-    // #[On('import-success-beneficiaries')]
-    // public function importSuccessBeneficiaries($count)
-    // {
-    //     $dateTimeFromEnd = $this->end;
-    //     $value = substr($dateTimeFromEnd, 0, 10);
-
-    //     $choosenDate = date('Y-m-d', strtotime($value));
-    //     $currentTime = date('H:i:s', strtotime(now()));
-    //     $this->end = $choosenDate . ' ' . $currentTime;
-
-    //     $this->selectedBeneficiaryRow = -1;
-
-    //     $this->showAlert = true;
-    //     $this->alertMessage = 'Imported ' . $count . ' beneficiaries to the database.';
-    //     $this->dispatch('show-alert');
-    //     $this->dispatch('init-reload')->self();
-    // }
-
-    #[On('edit-beneficiary')]
-    public function editBeneficiary()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Beneficiary successfully updated!';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('delete-beneficiary')]
-    public function deleteBeneficiary()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->passedBeneficiaryId = null;
-
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Beneficiary record has been deleted.';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-
-        $this->viewBeneficiaryModal = false;
-    }
-
-    #[On('archive-beneficiary')]
-    public function archiveBeneficiary()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->passedBeneficiaryId = null;
-
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = 'Moved record to Archives.';
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-
-        $this->viewBeneficiaryModal = false;
-    }
-
-    #[On('optimistic-lock')]
-    public function optimisticLockBeneficiary($message)
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->passedBeneficiaryId = null;
-
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->showAlert = true;
-        $this->alertMessage = $message;
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-        $this->viewBeneficiaryModal = false;
-    }
-
-    #[On('finished-importing')]
-    public function finishedImporting()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        if (!$this->importFileModal) {
-            $this->showAlert = true;
-            $this->alertMessage = 'Finished processing your import. Head to the Import tab.';
-            $this->dispatch('show-alert');
-        }
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('refreshAfterOpening')]
-    public function refreshAfterOpening($message)
-    {
-        unset($this->batches);
-        unset($this->accessCode);
-
-        $this->showAlert = true;
-        $this->alertMessage = $message;
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
+        $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {
+            return $alert['id'] !== $id;
+        });
     }
 
     #[Computed]
@@ -826,32 +912,22 @@ class Implementations extends Component
             ->pluck('value', 'key');
     }
 
-    #[On('alertNotification')]
-    public function alertNotification($type, $message, $color)
+    public function resetImplementation()
     {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
-
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        $this->selectedBeneficiaryRow = -1;
-
-        $this->alerts[] = [
-            'message' => $message,
-            'id' => uniqid(),
-            'color' => $color
-        ];
-
-        $this->dispatch('init-reload')->self();
+        $this->reset('selectedImplementationRow', 'implementationId');
+        unset($this->implementations);
     }
 
-    public function removeAlert($id)
+    public function resetBatch()
     {
-        $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {
-            return $alert['id'] !== $id;
-        });
+        $this->reset('selectedBatchRow', 'batchId');
+        unset($this->batches);
+    }
+
+    public function resetBeneficiary()
+    {
+        $this->reset('selectedBeneficiaryRow', 'beneficiaryId', 'beneficiaryIds', 'anchorBeneficiaryKey');
+        unset($this->beneficiaries);
     }
 
     public function mount()

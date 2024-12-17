@@ -384,6 +384,8 @@ class Settings extends Component
         $this->dispatch('def-archive-save');
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($prop)
     {
         if ($prop === 'minimum_wage') {

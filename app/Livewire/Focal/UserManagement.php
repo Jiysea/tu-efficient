@@ -4,7 +4,6 @@ namespace App\Livewire\Focal;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -18,9 +17,8 @@ class UserManagement extends Component
 {
     #[Locked]
     public $coordinatorId;
-    public $showAlert = false;
-    public $alertMessage = '';
     public $searchUsers;
+    public $alerts = [];
     public $addCoordinatorsModal = false;
     public $viewCoordinatorModal = false;
 
@@ -148,6 +146,31 @@ class UserManagement extends Component
         $this->alertMessage = 'A coordinator has been deleted';
         $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
+    }
+
+    #[On('alertNotification')]
+    public function alertNotification($type = null, $message, $color)
+    {
+        if ($type === 'delete') {
+            $this->coordinatorId = null;
+        }
+
+        $this->alerts[] = [
+            'message' => $message,
+            'id' => uniqid(),
+            'color' => $color
+        ];
+
+        unset($this->users);
+
+        $this->dispatch('init-reload')->self();
+    }
+
+    public function removeAlert($id)
+    {
+        $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {
+            return $alert['id'] !== $id;
+        });
     }
 
     public function mount()

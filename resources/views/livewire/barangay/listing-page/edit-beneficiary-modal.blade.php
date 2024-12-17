@@ -853,10 +853,11 @@
                                 <span class="block mb-1 font-medium"
                                     :class="{
                                         'text-gray-500': {{ json_encode(!isset($district) || empty($district)) }},
-                                        'text-green-1100': {{ json_encode(!$errors->has('barangay_name') && $district) }},
+                                        'text-green-1100': {{ json_encode($district) }},
                                     }">
                                     <span class="relative">Barangay
-                                        <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                        <span
+                                            class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
                                         </span>
                                     </span>
                                 </span>

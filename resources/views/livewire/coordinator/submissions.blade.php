@@ -9,6 +9,7 @@
     addBeneficiariesModal: $wire.entangle('addBeneficiariesModal'),
     editBeneficiaryModal: $wire.entangle('editBeneficiaryModal'),
     deleteBeneficiaryModal: $wire.entangle('deleteBeneficiaryModal'),
+    promptMultiDeleteModal: $wire.entangle('promptMultiDeleteModal'),
     viewCredentialsModal: $wire.entangle('viewCredentialsModal'),
     approveSubmissionModal: $wire.entangle('approveSubmissionModal'),
     importFileModal: $wire.entangle('importFileModal'),
@@ -22,15 +23,12 @@ window.addEventListener('resize', () => {
     $wire.$dispatchSelf('init-reload');
 });">
 
-    {{-- <livewire:coordinator.submissions.import-file-modal :$batchId />
-    <livewire:coordinator.submissions.download-options-alert /> --}}
-
     <div :class="{
         'md:ml-20': !open,
         'md:ml-20 xl:ml-64': open,
     }"
         class="md:ml-20 xl:ml-64 duration-500 ease-in-out">
-        <div x-data="{}" class="p-2 min-h-screen select-none">
+        <div class="p-2 min-h-screen select-none">
 
             {{-- Submissions Header --}}
             <div class="relative flex flex-col lg:flex-row items-center lg:justify-between my-2 gap-2">
@@ -106,7 +104,7 @@ window.addEventListener('resize', () => {
                     {{-- Loading State --}}
                     <template x-if="!isMobile">
                         <svg class="text-blue-900 size-6 animate-spin" wire:loading
-                            wire:target="calendarStart, calendarEnd, showExport, selectBatchRow, selectBeneficiaryRow, applyFilter, deleteBeneficiary, loadMoreBeneficiaries, approveSubmission"
+                            wire:target="calendarStart, calendarEnd, showExport, selectBatchRow, selectBeneficiaryRow, selectShiftBeneficiary, applyFilter, deleteBeneficiary, removeBeneficiaries, loadMoreBeneficiaries, approveSubmission"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                 stroke-width="4">
@@ -123,7 +121,7 @@ window.addEventListener('resize', () => {
 
                             {{-- MD:Loading State --}}
                             <svg class="text-blue-900 size-6 animate-spin" wire:loading
-                                wire:target="calendarStart, calendarEnd, showExport, selectBatchRow, selectBeneficiaryRow, applyFilter, deleteBeneficiary, loadMoreBeneficiaries, approveSubmission"
+                                wire:target="calendarStart, calendarEnd, showExport, selectBatchRow, selectBeneficiaryRow, selectShiftBeneficiary, applyFilter, deleteBeneficiary, removeBeneficiaries, loadMoreBeneficiaries, approveSubmission"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                     stroke-width="4">
@@ -222,59 +220,107 @@ window.addEventListener('resize', () => {
                 <div class="flex items-center justify-end gap-2 w-full lg:w-auto">
 
                     {{-- Import Button --}}
-                    <button type="button"
-                        @if (
-                            $batchId &&
-                                $this->beneficiarySlots['num_of_beneficiaries'] < $this->beneficiarySlots['slots_allocated'] &&
-                                $this->batch->approval_status !== 'approved') @click="importFileModal = !importFileModal;" @else disabled @endif
-                        class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900">
-                        IMPORT
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                            viewBox="0, 0, 400,400">
-                            <g>
-                                <path
-                                    d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M206.688 139.873 C 212.751 143.620,212.500 140.621,212.500 209.231 C 212.500 242.826,212.767 270.313,213.093 270.313 C 213.420 270.313,220.714 263.272,229.304 254.667 C 248.566 235.371,251.875 233.906,259.339 241.370 C 267.556 249.587,267.098 250.354,234.514 283.031 C 204.767 312.862,204.216 313.301,197.927 312.154 C 194.787 311.582,142.095 260.408,139.398 255.312 C 136.012 248.916,140.354 240.015,147.563 238.573 C 153.629 237.360,154.856 238.189,171.509 254.750 C 180.116 263.309,187.411 270.313,187.720 270.313 C 188.029 270.313,188.281 242.680,188.281 208.907 C 188.281 140.478,188.004 144.025,193.652 140.187 C 197.275 137.725,202.990 137.588,206.688 139.873 "
-                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                            </g>
-                        </svg>
-                    </button>
+                    <span class="relative" x-data="{ tooltip: false }">
+                        <button type="button" @mouseleave="tooltip = false;" @mouseenter="tooltip = true;"
+                            @if (
+                                $batchId &&
+                                    $this->beneficiarySlots['num_of_beneficiaries'] < $this->beneficiarySlots['slots_allocated'] &&
+                                    $this->batch->approval_status !== 'approved') @click="importFileModal = !importFileModal;" @else disabled @endif
+                            class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-xs font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 focus:ring-2 focus:ring-blue-500">
+                            IMPORT
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M206.688 139.873 C 212.751 143.620,212.500 140.621,212.500 209.231 C 212.500 242.826,212.767 270.313,213.093 270.313 C 213.420 270.313,220.714 263.272,229.304 254.667 C 248.566 235.371,251.875 233.906,259.339 241.370 C 267.556 249.587,267.098 250.354,234.514 283.031 C 204.767 312.862,204.216 313.301,197.927 312.154 C 194.787 311.582,142.095 260.408,139.398 255.312 C 136.012 248.916,140.354 240.015,147.563 238.573 C 153.629 237.360,154.856 238.189,171.509 254.750 C 180.116 263.309,187.411 270.313,187.720 270.313 C 188.029 270.313,188.281 242.680,188.281 208.907 C 188.281 140.478,188.004 144.025,193.652 140.187 C 197.275 137.725,202.990 137.588,206.688 139.873 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
+                            </svg>
+                        </button>
+
+                        {{-- Tooltip Content --}}
+                        <div x-cloak x-show="tooltip" x-transition.opacity
+                            class="text-right absolute z-50 top-full mt-2 left-0 sm:left-auto sm:right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                            @if (
+                                $batchId &&
+                                    $this->beneficiarySlots['num_of_beneficiaries'] < $this->beneficiarySlots['slots_allocated'] &&
+                                    $this->batch->approval_status !== 'approved')
+                                Import Beneficiaries from STIF File
+                            @else
+                                You may able to <span class="text-blue-400">import</span> beneficiaries when the <br>
+                                submission status is <span class="text-green-400">not approved</span> or not full
+                                slotted
+                            @endif
+                        </div>
+                    </span>
 
                     {{-- Export Button --}}
-                    <button type="button"
-                        @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0) wire:click="showExport" @else disabled @endif
-                        class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900">
-                        EXPORT
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                            viewBox="0, 0, 400,400">
-                            <g>
-                                <path
-                                    d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M205.223 139.115 C 208.456 140.341,259.848 191.840,261.742 195.752 C 266.646 205.882,255.514 216.701,245.595 211.446 C 244.365 210.794,236.504 203.379,228.125 194.967 L 212.891 179.672 212.500 242.123 C 212.115 303.671,212.086 304.605,210.499 306.731 C 204.772 314.399,195.433 314.184,190.039 306.258 L 188.281 303.675 188.281 241.528 L 188.281 179.380 172.461 195.051 C 160.663 206.736,155.883 210.967,153.660 211.688 C 144.244 214.742,135.529 205.084,139.108 195.559 C 139.978 193.241,188.052 144.418,193.281 140.540 C 196.591 138.086,201.092 137.549,205.223 139.115 "
-                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                            </g>
-                        </svg>
-                    </button>
+                    <span class="relative" x-data="{ tooltip: false }">
+
+                        <button type="button" @mouseleave="tooltip = false;" @mouseenter="tooltip = true;"
+                            @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0) wire:click="showExport" @else disabled @endif
+                            class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-xs font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-blue-50 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 focus:ring-2 focus:ring-blue-500">
+                            EXPORT
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M88.662 38.905 C 77.836 42.649,67.355 52.603,65.200 61.185 L 64.674 63.281 200.306 63.281 C 299.168 63.281,335.938 63.046,335.937 62.414 C 335.937 55.417,322.420 42.307,311.832 39.034 C 304.555 36.786,95.142 36.664,88.662 38.905 M38.263 89.278 C 24.107 94.105,14.410 105.801,12.526 120.321 C 11.517 128.096,11.508 322.580,12.516 330.469 C 14.429 345.442,25.707 358.293,40.262 362.084 C 47.253 363.905,353.543 363.901,360.535 362.080 C 373.149 358.794,383.672 348.107,387.146 335.054 C 388.888 328.512,388.825 121.947,387.080 115.246 C 383.906 103.062,374.023 92.802,361.832 89.034 C 356.966 87.531,353.736 87.500,200.113 87.520 L 43.359 87.540 38.263 89.278 M205.223 139.115 C 208.456 140.341,259.848 191.840,261.742 195.752 C 266.646 205.882,255.514 216.701,245.595 211.446 C 244.365 210.794,236.504 203.379,228.125 194.967 L 212.891 179.672 212.500 242.123 C 212.115 303.671,212.086 304.605,210.499 306.731 C 204.772 314.399,195.433 314.184,190.039 306.258 L 188.281 303.675 188.281 241.528 L 188.281 179.380 172.461 195.051 C 160.663 206.736,155.883 210.967,153.660 211.688 C 144.244 214.742,135.529 205.084,139.108 195.559 C 139.978 193.241,188.052 144.418,193.281 140.540 C 196.591 138.086,201.092 137.549,205.223 139.115 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
+                            </svg>
+                        </button>
+
+                        {{-- Tooltip Content --}}
+                        <div x-cloak x-show="tooltip" x-transition.opacity
+                            class="text-right absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                            @if ($batchId && $this->beneficiarySlots['num_of_beneficiaries'] > 0)
+                                Export Beneficiaries to Annex File
+                            @else
+                                You may able to <span class="text-blue-400">export</span> an Annex when <br>
+                                there are beneficiaries on the batch
+                            @endif
+                        </div>
+                    </span>
 
                     {{-- Approve Button --}}
-                    <button type="button"
-                        @if (
-                            $batchId &&
-                                $this->beneficiarySlots['num_of_beneficiaries'] > 0 &&
-                                $this->batch->approval_status !== 'approved' &&
-                                ($this->batch->submission_status === 'submitted' || $this->batch->submission_status === 'unopened')) @click="approveSubmissionModal = !approveSubmissionModal;" @else disabled @endif
-                        class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-green-50 bg-green-700 hover:bg-green-800 active:bg-green-900">
-                        MARK AS APPROVED
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 sm:size-5"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                            viewBox="0, 0, 400,400">
-                            <g>
-                                <path
-                                    d="M137.109 10.047 C 133.498 12.278,133.085 12.900,118.359 38.281 C 110.756 51.387,103.954 62.773,103.244 63.584 C 101.102 66.032,98.377 66.763,69.208 72.721 C 29.037 80.927,32.121 76.705,36.747 117.164 L 40.117 146.643 38.613 149.447 C 37.786 150.989,29.551 160.945,20.313 171.570 C -1.134 196.237,-0.001 194.653,0.005 199.956 C 0.012 205.405,-0.940 204.053,20.313 228.783 C 42.665 254.792,40.780 248.504,36.717 283.517 L 33.373 312.333 35.069 315.836 C 37.636 321.138,39.974 321.941,71.094 328.205 C 88.604 331.729,99.746 334.339,101.318 335.286 C 103.236 336.441,107.128 342.475,118.286 361.594 C 139.465 397.882,134.865 396.377,172.120 379.207 C 193.699 369.262,199.044 367.084,201.052 367.419 C 202.407 367.645,215.005 373.135,229.047 379.618 C 256.453 392.272,257.984 392.729,263.175 389.807 C 266.571 387.896,265.949 388.829,282.403 360.938 C 296.460 337.110,296.990 336.322,300.037 334.747 C 301.133 334.179,314.318 331.194,329.336 328.113 C 360.255 321.769,362.419 321.025,364.904 315.891 L 366.621 312.345 363.242 283.130 C 359.179 248.009,356.970 255.116,380.425 227.846 C 400.999 203.926,400.000 205.356,400.000 199.835 C 400.000 194.669,401.311 196.493,379.259 170.984 C 367.961 157.915,360.854 149.053,360.546 147.652 C 360.273 146.409,361.508 132.837,363.291 117.492 C 368.012 76.864,370.898 80.847,330.828 72.704 C 295.882 65.602,299.043 67.302,288.874 50.133 C 263.273 6.909,265.096 9.395,258.555 8.767 C 255.095 8.434,253.072 9.228,228.374 20.611 C 213.813 27.322,201.045 32.812,200.000 32.812 C 198.955 32.812,186.276 27.363,171.825 20.703 C 143.808 7.790,141.774 7.166,137.109 10.047 M263.898 134.317 C 267.899 136.394,280.140 148.972,281.609 152.514 C 284.818 160.258,286.345 158.412,230.198 214.699 C 177.047 267.983,177.929 267.188,172.031 267.188 C 166.758 267.188,165.803 266.391,140.499 240.906 C 112.554 212.760,112.472 212.537,125.282 199.322 C 140.564 183.557,142.852 183.723,160.931 201.903 L 172.253 213.288 211.322 174.301 C 256.275 129.442,255.558 129.987,263.898 134.317 "
-                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                            </g>
-                        </svg>
-                    </button>
+                    <span class="relative" x-data="{ tooltip: false }">
+                        <button type="button" @mouseleave="tooltip = false;" @mouseenter="tooltip = true;"
+                            @if (
+                                $batchId &&
+                                    $this->beneficiarySlots['num_of_beneficiaries'] > 0 &&
+                                    $this->batch->approval_status !== 'approved' &&
+                                    ($this->batch->submission_status === 'submitted' || $this->batch->submission_status === 'unopened')) @click="approveSubmissionModal = !approveSubmissionModal;" @else disabled @endif
+                            class="duration-200 ease-in-out flex items-center gap-2 justify-center px-3 py-1.5 rounded-md text-xs font-bold outline-none disabled:bg-gray-300 disabled:text-gray-500 text-green-50 bg-green-700 hover:bg-green-800 active:bg-green-900 focus:ring-2 focus:ring-green-500">
+                            MARK AS APPROVED
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                viewBox="0, 0, 400,400">
+                                <g>
+                                    <path
+                                        d="M137.109 10.047 C 133.498 12.278,133.085 12.900,118.359 38.281 C 110.756 51.387,103.954 62.773,103.244 63.584 C 101.102 66.032,98.377 66.763,69.208 72.721 C 29.037 80.927,32.121 76.705,36.747 117.164 L 40.117 146.643 38.613 149.447 C 37.786 150.989,29.551 160.945,20.313 171.570 C -1.134 196.237,-0.001 194.653,0.005 199.956 C 0.012 205.405,-0.940 204.053,20.313 228.783 C 42.665 254.792,40.780 248.504,36.717 283.517 L 33.373 312.333 35.069 315.836 C 37.636 321.138,39.974 321.941,71.094 328.205 C 88.604 331.729,99.746 334.339,101.318 335.286 C 103.236 336.441,107.128 342.475,118.286 361.594 C 139.465 397.882,134.865 396.377,172.120 379.207 C 193.699 369.262,199.044 367.084,201.052 367.419 C 202.407 367.645,215.005 373.135,229.047 379.618 C 256.453 392.272,257.984 392.729,263.175 389.807 C 266.571 387.896,265.949 388.829,282.403 360.938 C 296.460 337.110,296.990 336.322,300.037 334.747 C 301.133 334.179,314.318 331.194,329.336 328.113 C 360.255 321.769,362.419 321.025,364.904 315.891 L 366.621 312.345 363.242 283.130 C 359.179 248.009,356.970 255.116,380.425 227.846 C 400.999 203.926,400.000 205.356,400.000 199.835 C 400.000 194.669,401.311 196.493,379.259 170.984 C 367.961 157.915,360.854 149.053,360.546 147.652 C 360.273 146.409,361.508 132.837,363.291 117.492 C 368.012 76.864,370.898 80.847,330.828 72.704 C 295.882 65.602,299.043 67.302,288.874 50.133 C 263.273 6.909,265.096 9.395,258.555 8.767 C 255.095 8.434,253.072 9.228,228.374 20.611 C 213.813 27.322,201.045 32.812,200.000 32.812 C 198.955 32.812,186.276 27.363,171.825 20.703 C 143.808 7.790,141.774 7.166,137.109 10.047 M263.898 134.317 C 267.899 136.394,280.140 148.972,281.609 152.514 C 284.818 160.258,286.345 158.412,230.198 214.699 C 177.047 267.983,177.929 267.188,172.031 267.188 C 166.758 267.188,165.803 266.391,140.499 240.906 C 112.554 212.760,112.472 212.537,125.282 199.322 C 140.564 183.557,142.852 183.723,160.931 201.903 L 172.253 213.288 211.322 174.301 C 256.275 129.442,255.558 129.987,263.898 134.317 "
+                                        stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                </g>
+                            </svg>
+                        </button>
+                        {{-- Tooltip Content --}}
+                        <div x-cloak x-show="tooltip" x-transition.opacity
+                            class="text-right absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                            @if (
+                                $batchId &&
+                                    $this->beneficiarySlots['num_of_beneficiaries'] > 0 &&
+                                    $this->batch->approval_status !== 'approved' &&
+                                    ($this->batch->submission_status === 'submitted' || $this->batch->submission_status === 'unopened'))
+                                Mark this Batch Submission as Approved
+                            @else
+                                You may able to <span class="text-green-400">mark this batch as approved</span> when
+                                there <br>
+                                are beneficiaries and on <span class="text-green-300">submitted</span>/<span
+                                    class="text-amber-300">unopened</span> status
+                            @endif
+                        </div>
                 </div>
             </div>
 
@@ -305,7 +351,7 @@ window.addEventListener('resize', () => {
                                     Beneficiaries</h1>
 
                                 {{-- Beneficiary Count --}}
-                                @if ($this->batches->isNotEmpty())
+                                @if ($this->batchesNothing->isNotEmpty())
                                     <span class="rounded px-2 py-1 text-xs font-medium"
                                         :class="{
                                             'bg-green-200 text-green-900': {{ json_encode($this->beneficiarySlots['num_of_beneficiaries'] === $this->beneficiarySlots['slots_allocated']) }},
@@ -320,10 +366,23 @@ window.addEventListener('resize', () => {
                                 <div x-data="{ open: false }" class="relative flex items-center gap-2 text-blue-900">
 
                                     {{-- Button --}}
-                                    <button type="button" @click="open = !open;"
-                                        class="{{ $this->batches->isNotEmpty() ? 'bg-blue-50 border-blue-700 hover:border-transparent hover:bg-blue-800 active:bg-blue-900 text-blue-700 hover:text-blue-50 active:text-blue-50' : 'border-gray-300 text-gray-500 hover:bg-gray-500 active:bg-gray-600 hover:text-gray-50 active:text-gray-50' }} flex items-center gap-2 py-1 px-2 text-sm outline-none font-semibold rounded border duration-200 ease-in-out">
-                                        {{ $this->currentBatch }}
-                                        @if ($this->batches->isNotEmpty())
+                                    <button type="button"
+                                        @click="if(open) {$wire.resetFilter(); $wire.set('searchBatches', null);} open = !open;"
+                                        class="flex items-center gap-2 py-1 px-2 text-sm outline-none font-semibold rounded border duration-200 ease-in-out {{ $this->batchesNothing->isNotEmpty() ? 'bg-blue-50 border-blue-700 hover:border-transparent hover:bg-blue-800 active:bg-blue-900 text-blue-700 hover:text-blue-50 active:text-blue-50' : 'border-gray-300 text-gray-500 hover:bg-gray-500 active:bg-gray-600 hover:text-gray-50 active:text-gray-50' }}">
+                                        <span class="flex items-center justify-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M194.141 24.141 C 160.582 38.874,10.347 106.178,8.003 107.530 C -1.767 113.162,-2.813 128.836,6.116 135.795 C 7.694 137.024,50.784 160.307,101.873 187.535 L 194.761 237.040 200.000 237.040 L 205.239 237.040 298.127 187.535 C 349.216 160.307,392.306 137.024,393.884 135.795 C 402.408 129.152,401.802 113.508,392.805 107.955 C 391.391 107.082,348.750 87.835,298.047 65.183 C 199.201 21.023,200.275 21.448,194.141 24.141 M11.124 178.387 C -0.899 182.747,-4.139 200.673,5.744 208.154 C 7.820 209.726,167.977 295.513,188.465 306.029 C 198.003 310.924,201.997 310.924,211.535 306.029 C 232.023 295.513,392.180 209.726,394.256 208.154 C 404.333 200.526,400.656 181.925,388.342 178.235 C 380.168 175.787,387.662 172.265,289.164 224.847 C 242.057 249.995,202.608 270.919,201.499 271.344 C 199.688 272.039,190.667 267.411,113.316 226.098 C 11.912 171.940,19.339 175.407,11.124 178.387 M9.766 245.797 C -1.277 251.753,-3.565 266.074,5.202 274.365 C 7.173 276.229,186.770 372.587,193.564 375.426 C 197.047 376.881,202.953 376.881,206.436 375.426 C 213.230 372.587,392.827 276.229,394.798 274.365 C 406.493 263.306,398.206 243.873,382.133 244.666 L 376.941 244.922 288.448 292.077 L 199.954 339.231 111.520 292.077 L 23.085 244.922 17.597 244.727 C 13.721 244.590,11.421 244.904,9.766 245.797 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                            {{ $this->currentBatch }}
+                                        </span>
+                                        @if ($this->batchesNothing->isNotEmpty())
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                                 viewBox="0 0 20 20" fill="currentColor">
                                                 <path fill-rule="evenodd"
@@ -351,7 +410,7 @@ window.addEventListener('resize', () => {
                                             'block': open === true,
                                             'hidden': open === false,
                                         }"
-                                        class="absolute top-full right-0 mt-2 z-50 p-2 w-[20.5rem] bg-white border rounded shadow">
+                                        class="absolute top-full right-0 mt-2 z-50 p-2 w-auto bg-white border rounded shadow">
 
                                         {{-- Header / Search Batches / Counter / Filter --}}
                                         <div class="mb-2 flex w-full items-center justify-center gap-2">
@@ -595,23 +654,26 @@ window.addEventListener('resize', () => {
                                         </div>
 
                                         {{-- List of Batches --}}
-                                        <ul class="px-2 text-sm text-blue-1100 overflow-y-auto h-48 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700"
+                                        <div class="px-2 text-sm text-blue-1100 overflow-y-auto h-48 scrollbar-thin scrollbar-track-blue-50 scrollbar-thumb-blue-700"
                                             aria-labelledby="batchButton">
                                             @if ($this->batches->isNotEmpty())
                                                 @foreach ($this->batches as $key => $batch)
-                                                    <li wire:key="batch-{{ $key }}">
+                                                    <div wire:key="batch-{{ $key }}">
                                                         <button type="button"
                                                             @click="open = !open; $wire.dispatchSelf('scroll-top-beneficiaries');"
                                                             wire:loading.class="pointer-events-none"
                                                             wire:click="selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}')"
-                                                            class="flex items-center gap-2 w-full px-1 py-2 text-xs hover:text-blue-900 hover:bg-blue-100 duration-200 ease-in-out cursor-pointer">
+                                                            class="flex items-center gap-2 w-full p-2 text-xs hover:text-blue-900 hover:bg-gray-100 duration-200 ease-in-out cursor-pointer">
                                                             <span
                                                                 class="font-medium rounded px-1.5 py-0.5 uppercase {{ $batch->is_sectoral ? 'bg-rose-200 text-rose-800' : 'bg-emerald-200 text-emerald-800' }}">
                                                                 {{ $batch->is_sectoral ? 'ST' : 'NS' }}
                                                             </span>
 
-                                                            <span class="text-left">{{ $batch->batch_num }} /
-                                                                {{ $batch->barangay_name ?? $batch->sector_title }}
+                                                            <span class="text-left">
+                                                                <p class="font-medium">{{ $batch->batch_num }}</p>
+                                                                <p class="text-gray-500">
+                                                                    {{ $batch->barangay_name ?? $batch->sector_title }}
+                                                                </p>
                                                             </span>
 
                                                             {{-- Approval Status --}}
@@ -639,11 +701,11 @@ window.addEventListener('resize', () => {
                                                             @endif
 
                                                         </button>
-                                                    </li>
+                                                    </div>
                                                 @endforeach
                                             @else
-                                                <li
-                                                    class="flex flex-col items-center justify-center h-full w-full font-medium border rounded bg-gray-50 border-gray-300 text-gray-500">
+                                                <div
+                                                    class="text-center text-xs flex flex-col items-center justify-center size-full font-medium border rounded bg-gray-50 border-gray-300 text-gray-500">
                                                     @if (isset($searchBatches) && !empty($searchBatches))
                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                             class="size-12 mb-4 text-blue-900 opacity-65"
@@ -657,8 +719,8 @@ window.addEventListener('resize', () => {
                                                             </g>
                                                         </svg>
                                                         <p>No batches found.</p>
-                                                        <p>Maybe try a different <span class=" text-blue-900">search
-                                                                term</span>?
+                                                        <p>Try a different <span class=" text-blue-900">search
+                                                                term</span>.
                                                         </p>
                                                     @elseif (in_array(false,
                                                             array_values(array_unique(array_merge($this->filter['approval_status'], $this->filter['submission_status']),
@@ -711,9 +773,9 @@ window.addEventListener('resize', () => {
                                                                 a batch</span> for you.
                                                         </p>
                                                     @endif
-                                                </li>
+                                                </div>
                                             @endif
-                                        </ul>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -727,40 +789,86 @@ window.addEventListener('resize', () => {
                                 {{-- Barangay or Sector --}}
                                 <div class="flex items-center gap-1">
 
+                                    {{-- Label --}}
                                     <span class="text-blue-1100">
                                         {{ $this->batch?->is_sectoral ? 'Sector:' : 'Barangay:' }}
                                     </span>
 
+                                    {{-- Sector Title / Barangay --}}
                                     <span
                                         class="font-medium rounded px-2 py-1 {{ $this->batch?->is_sectoral ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">
                                         {{ $this->batch?->is_sectoral ? $this->batch?->sector_title : $this->batch?->barangay_name }}
                                     </span>
 
-                                    <span
-                                        class="font-medium rounded p-1 uppercase {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-emerald-200 text-emerald-900' }}">
-                                        {{ $this->batch?->is_sectoral ? 'ST' : 'NS' }}
+                                    {{-- Sectoral / Non-Sectoral --}}
+                                    <span class="relative" x-data="{ tooltip: false }">
+                                        <span @mouseleave="tooltip = false;" @mouseenter="tooltip = true;"
+                                            class="font-medium rounded p-1 uppercase {{ $this->batch?->is_sectoral ? 'bg-rose-200 text-rose-900' : 'bg-emerald-200 text-emerald-900' }}">
+                                            {{ $this->batch?->is_sectoral ? 'ST' : 'NS' }}
+                                        </span>
+                                        {{-- Tooltip Content --}}
+                                        <div x-cloak x-show="tooltip" x-transition.opacity
+                                            class="text-right absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                            {{ $this->batch?->is_sectoral ? 'Sectoral' : 'Non-Sectoral' }}
+                                        </div>
                                     </span>
 
                                 </div>
 
                                 {{-- Approval && Submission Statuses  --}}
                                 <div class="flex items-center gap-1">
-                                    <span class="font-semibold rounded px-2 py-1 uppercase"
-                                        :class="{
-                                            'bg-green-300 text-green-1000': {{ json_encode($this->batch?->approval_status === 'approved') }},
-                                            'bg-amber-300 text-amber-950': {{ json_encode($this->batch?->approval_status === 'pending') }},
-                                        }">
-                                        {{ $this->batch?->approval_status }}
+                                    <span class="relative" x-data="{ tooltip: false }">
+                                        <span class="font-semibold rounded px-2 py-1 uppercase"
+                                            @mouseleave="tooltip = false;" @mouseenter="tooltip = true;"
+                                            :class="{
+                                                'bg-green-300 text-green-1000': {{ json_encode($this->batch?->approval_status === 'approved') }},
+                                                'bg-amber-300 text-amber-950': {{ json_encode($this->batch?->approval_status === 'pending') }},
+                                            }">
+                                            {{ $this->batch?->approval_status }}
+                                        </span>
+                                        {{-- Tooltip Content --}}
+                                        <div x-cloak x-show="tooltip" x-transition.opacity
+                                            class="text-left absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                            <p class="font-semibold mb-2">Approval Status of the Batch Assignment</p>
+
+                                            <div>• <span class="text-green-400 font-semibold">APPROVED</span>:
+                                                Indicates if the batch is approved <br> for contract signing.
+                                            </div>
+                                            <div>• <span class="text-amber-400 font-semibold">PENDING</span>:
+                                                Indicates if the batch is currently <br> working in progress.
+                                            </div>
+                                        </div>
                                     </span>
 
-                                    <span class="font-semibold rounded px-2 py-1 uppercase"
-                                        :class="{
-                                            'bg-green-200 text-green-1000': {{ json_encode($this->batch?->submission_status === 'submitted') }},
-                                            'bg-amber-200 text-amber-950': {{ json_encode($this->batch?->submission_status === 'unopened') }},
-                                            'bg-blue-200 text-blue-950': {{ json_encode($this->batch?->submission_status === 'encoding') }},
-                                            'bg-red-200 text-red-950': {{ json_encode($this->batch?->submission_status === 'revalidate') }},
-                                        }">
-                                        {{ $this->batch?->submission_status }}
+                                    <span class="relative" x-data="{ tooltip: false }">
+                                        <span class="font-semibold rounded px-2 py-1 uppercase"
+                                            @mouseleave="tooltip = false;" @mouseenter="tooltip = true;"
+                                            :class="{
+                                                'bg-green-200 text-green-1000': {{ json_encode($this->batch?->submission_status === 'submitted') }},
+                                                'bg-amber-200 text-amber-950': {{ json_encode($this->batch?->submission_status === 'unopened') }},
+                                                'bg-blue-200 text-blue-950': {{ json_encode($this->batch?->submission_status === 'encoding') }},
+                                                'bg-red-200 text-red-950': {{ json_encode($this->batch?->submission_status === 'revalidate') }},
+                                            }">
+                                            {{ $this->batch?->submission_status }}
+                                        </span>
+                                        {{-- Tooltip Content --}}
+                                        <div x-cloak x-show="tooltip" x-transition.opacity
+                                            class="text-left absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                            <p class="font-semibold mb-2">Submission Status of the Batch Assignment</p>
+
+                                            <div>• <span class="text-amber-400 font-semibold">UNOPENED</span>:
+                                                A status when a batch is newly <br> assigned and has not been opened.
+                                            </div>
+                                            <div>• <span class="text-green-400 font-semibold">SUBMITTED</span>:
+                                                A status when a batch has been submitted.
+                                            </div>
+                                            <div>• <span class="text-blue-400 font-semibold">ENCODING</span>:
+                                                A status when a batch is open <br> for listing.
+                                            </div>
+                                            <div>• <span class="text-red-400 font-semibold">REVALIDATE</span>:
+                                                A status when a batch is reopened <br> for revalidation.
+                                            </div>
+                                        </div>
                                     </span>
                                 </div>
                             @else
@@ -775,7 +883,7 @@ window.addEventListener('resize', () => {
                         <div class="flex flex-1 w-full items-center">
 
                             {{-- Special Cases Count | Search | Add --}}
-                            <div class="flex flex-1 w-full items-center gap-2">
+                            <div class="flex flex-1 w-full items-center justify-between gap-2">
 
                                 {{-- Special Cases --}}
                                 <div class="relative flex items-center gap-1 text-xs font-medium">
@@ -785,59 +893,64 @@ window.addEventListener('resize', () => {
                                         class="py-1 px-2 rounded {{ $this->specialCases > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' }} ">{{ $this->specialCases }}</span>
                                 </div>
 
-                                {{-- Search Box --}}
-                                <label for="searchBeneficiaries"
-                                    class="relative flex flex-1 items-center justify-center duration-200 ease-in-out rounded border box-border focus:ring-0 outline-none
-                                                {{ $this->checkBeneficiaryCount <= 0 ? 'text-gray-500 border-gray-300' : 'border-blue-300 hover:border-blue-500 focus-within:border-blue-500 text-blue-500 hover:text-blue-700 focus-within:text-blue-700 hover:bg-blue-50 focus-within:bg-blue-50' }}">
+                                <div class="flex items-center justify-end gap-2">
+                                    {{-- General Search Box --}}
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->checkBeneficiaryCount > 0 || $searchBeneficiaries ? 'text-blue-800' : 'text-zinc-400' }}">
 
-                                    <div class="absolute start-2 flex items-center justify-center pointer-events-none">
-                                        {{-- Loading Icon --}}
-                                        <svg class="size-4 animate-spin" wire:loading
-                                            wire:target="searchBeneficiaries" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4">
-                                            </circle>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                            </path>
-                                        </svg>
+                                            {{-- Loading Icon --}}
+                                            <svg class="size-3.5 animate-spin" wire:loading
+                                                wire:target="searchBeneficiaries" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4">
+                                                </circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
 
-                                        {{-- Search Icon --}}
-                                        <svg class="size-4" wire:loading.remove wire:target="searchBeneficiaries"
-                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                            {{-- Search Icon --}}
+                                            <svg class="size-3.5" wire:loading.remove
+                                                wire:target="searchBeneficiaries" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 20 20">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                            </svg>
+                                        </div>
+
+                                        {{-- Search Input Bar --}}
+                                        <input type="text" id="searchBeneficiaries" maxlength="100"
+                                            autocomplete="off" @if ($this->checkBeneficiaryCount <= 0 && !$searchBeneficiaries) disabled @endif
+                                            wire:model.live.debounce.300ms="searchBeneficiaries"
+                                            class="{{ $this->checkBeneficiaryCount > 0 || $searchBeneficiaries
+                                                ? 'selection:bg-blue-700 selection:text-blue-50 text-blue-1100 placeholder-blue-500 border-blue-300 bg-blue-50 focus:ring-blue-500 focus:border-blue-500'
+                                                : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1.5 text-xs border rounded w-full"
+                                            placeholder="Search for beneficiaries">
                                     </div>
 
-                                    <input id="searchBeneficiaries" autocomplete="off"
-                                        wire:model.live.debounce.300ms="searchBeneficiaries" type="text"
-                                        class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full py-1.5 ps-8 text-xs disabled:placeholder-gray-300 selection:text-blue-100 selection:bg-blue-700 text-blue-1100 placeholder-blue-500 hover:placeholder-blue-700 focus:placeholder-blue-700"
-                                        placeholder="Search for beneficiaries"
-                                        @if ($this->checkBeneficiaryCount <= 0) disabled @endif>
-                                </label>
-
-                                {{-- Add Button --}}
-                                <button
-                                    @if (
-                                        $batchId &&
-                                            $this->beneficiarySlots['slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'] &&
-                                            $this->batch->approval_status !== 'approved') @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
-                                    class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-4 py-1 text-sm font-bold duration-200 ease-in-out">
-                                    ADD
-                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                        viewBox="0, 0, 400,400">
-                                        <g>
-                                            <path
-                                                d="M181.716 13.755 C 102.990 27.972,72.357 125.909,128.773 183.020 C 181.183 236.074,272.696 214.609,295.333 143.952 C 318.606 71.310,256.583 0.235,181.716 13.755 M99.463 202.398 C 60.552 222.138,32.625 260.960,26.197 304.247 C 24.209 317.636,24.493 355.569,26.629 361.939 C 30.506 373.502,39.024 382.022,50.561 385.877 C 55.355 387.479,56.490 387.500,136.304 387.500 L 217.188 387.500 209.475 379.883 C 171.918 342.791,164.644 284.345,192.232 241.338 C 195.148 236.792,195.136 236.719,191.484 236.719 C 169.055 236.719,137.545 223.179,116.259 204.396 L 108.691 197.717 99.463 202.398 M269.531 213.993 C 176.853 234.489,177.153 366.574,269.922 386.007 C 337.328 400.126,393.434 333.977,369.538 268.559 C 355.185 229.265,310.563 204.918,269.531 213.993 M293.788 265.042 C 298.143 267.977,299.417 271.062,299.832 279.675 L 300.199 287.301 307.825 287.668 C 319.184 288.215,324.219 292.002,324.219 300.000 C 324.219 307.998,319.184 311.785,307.825 312.332 L 300.199 312.699 299.832 320.325 C 299.285 331.684,295.498 336.719,287.500 336.719 C 279.502 336.719,275.715 331.684,275.168 320.325 L 274.801 312.699 267.175 312.332 C 255.816 311.785,250.781 307.998,250.781 300.000 C 250.781 292.002,255.816 288.215,267.175 287.668 L 274.801 287.301 275.168 279.675 C 275.715 268.316,279.502 263.281,287.500 263.281 C 290.019 263.281,291.997 263.835,293.788 265.042 "
-                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
-                                        </g>
-                                    </svg>
-                                </button>
+                                    {{-- Add Button --}}
+                                    <button
+                                        @if (
+                                            $batchId &&
+                                                $this->beneficiarySlots['slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'] &&
+                                                $this->batch->approval_status !== 'approved') @click="addBeneficiariesModal = !addBeneficiariesModal;" @else disabled @endif
+                                        class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:ring-blue-500 focus:border-blue-500 focus:outline-blue-500 rounded px-4 py-1 text-sm font-bold duration-200 ease-in-out">
+                                        ADD
+                                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M181.716 13.755 C 102.990 27.972,72.357 125.909,128.773 183.020 C 181.183 236.074,272.696 214.609,295.333 143.952 C 318.606 71.310,256.583 0.235,181.716 13.755 M99.463 202.398 C 60.552 222.138,32.625 260.960,26.197 304.247 C 24.209 317.636,24.493 355.569,26.629 361.939 C 30.506 373.502,39.024 382.022,50.561 385.877 C 55.355 387.479,56.490 387.500,136.304 387.500 L 217.188 387.500 209.475 379.883 C 171.918 342.791,164.644 284.345,192.232 241.338 C 195.148 236.792,195.136 236.719,191.484 236.719 C 169.055 236.719,137.545 223.179,116.259 204.396 L 108.691 197.717 99.463 202.398 M269.531 213.993 C 176.853 234.489,177.153 366.574,269.922 386.007 C 337.328 400.126,393.434 333.977,369.538 268.559 C 355.185 229.265,310.563 204.918,269.531 213.993 M293.788 265.042 C 298.143 267.977,299.417 271.062,299.832 279.675 L 300.199 287.301 307.825 287.668 C 319.184 288.215,324.219 292.002,324.219 300.000 C 324.219 307.998,319.184 311.785,307.825 312.332 L 300.199 312.699 299.832 320.325 C 299.285 331.684,295.498 336.719,287.500 336.719 C 279.502 336.719,275.715 331.684,275.168 320.325 L 274.801 312.699 267.175 312.332 C 255.816 311.785,250.781 307.998,250.781 300.000 C 250.781 292.002,255.816 288.215,267.175 287.668 L 274.801 287.301 275.168 279.675 C 275.715 268.316,279.502 263.281,287.500 263.281 C 290.019 263.281,291.997 263.835,293.788 265.042 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -847,14 +960,39 @@ window.addEventListener('resize', () => {
                         <div id="beneficiaries-table"
                             class="relative h-[72.9vh] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-white scrollbar-thumb-blue-700">
                             <table class="relative w-full text-sm text-left text-blue-1100 whitespace-nowrap">
-                                <thead class="text-xs z-20 text-blue-50 uppercase bg-blue-600 sticky top-0">
+                                <thead class="sticky top-0 text-xs z-20 text-blue-50 uppercase bg-blue-600">
                                     <tr>
                                         <th scope="col" class="absolute h-full w-1 left-0">
                                             {{-- Selected Row Indicator --}}
                                         </th>
-                                        <th scope="col" class="ps-4 pe-2 py-2">
-                                            #
-                                        </th>
+                                        @if (count($selectedBeneficiaryRow) > 0)
+                                            <th scope="col" class="px-2 py-1 text-center">
+                                                {{-- Trash Bin/Delete Icon --}}
+                                                <span class="flex flex-1 w-full items-center justify-center">
+                                                    <button type="button"
+                                                        @if (count($selectedBeneficiaryRow) > 0) @click="promptMultiDeleteModal = true;"
+                                                    @else
+                                                    disabled @endif
+                                                        class="duration-200 ease-in-out flex items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 hover:bg-red-800 active:bg-red-900 text-blue-50 hover:text-red-50 active:text-red-50">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M171.190 38.733 C 151.766 43.957,137.500 62.184,137.500 81.778 L 137.500 87.447 107.365 87.669 L 77.230 87.891 74.213 91.126 C 66.104 99.821,71.637 112.500,83.541 112.500 L 87.473 112.500 87.682 220.117 L 87.891 327.734 90.158 333.203 C 94.925 344.699,101.988 352.414,112.661 357.784 C 122.411 362.689,119.829 362.558,202.364 362.324 L 277.734 362.109 283.203 359.842 C 294.295 355.242,302.136 348.236,307.397 338.226 C 312.807 327.930,312.500 335.158,312.500 218.195 L 312.500 112.500 316.681 112.500 C 329.718 112.500,334.326 96.663,323.445 89.258 C 320.881 87.512,320.657 87.500,291.681 87.500 L 262.500 87.500 262.500 81.805 C 262.500 61.952,248.143 43.817,228.343 38.660 C 222.032 37.016,177.361 37.073,171.190 38.733 M224.219 64.537 C 231.796 68.033,236.098 74.202,237.101 83.008 L 237.612 87.500 200.000 87.500 L 162.388 87.500 162.929 83.008 C 164.214 72.340,170.262 65.279,179.802 63.305 C 187.026 61.811,220.311 62.734,224.219 64.537 M171.905 172.852 C 174.451 174.136,175.864 175.549,177.148 178.095 L 178.906 181.581 178.906 225.000 L 178.906 268.419 177.148 271.905 C 172.702 280.723,160.426 280.705,155.859 271.873 C 154.164 268.596,154.095 181.529,155.785 178.282 C 159.204 171.710,165.462 169.602,171.905 172.852 M239.776 173.257 C 240.888 174.080,242.596 175.927,243.573 177.363 L 245.349 179.972 245.135 225.476 C 244.898 276.021,245.255 272.640,239.728 276.767 C 234.458 280.702,226.069 278.285,222.852 271.905 L 221.094 268.419 221.094 225.000 L 221.094 181.581 222.852 178.095 C 226.079 171.694,234.438 169.304,239.776 173.257 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd">
+                                                                </path>
+                                                            </g>
+                                                        </svg>
+                                                    </button>
+                                                </span>
+                                            </th>
+                                        @else
+                                            <th scope="col" class="px-4 py-2 text-center">
+                                                #
+                                            </th>
+                                        @endif
                                         <th scope="col" class="ps-2">
                                             full name
                                         </th>
@@ -866,30 +1004,61 @@ window.addEventListener('resize', () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="relative text-xs">
+                                <tbody x-data="{ count: 0 }" class="relative text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        <tr wire:key="batch-{{ $key }}"
-                                            wire:loading.class="pointer-events-none"
-                                            wire:click.prevent='selectBeneficiaryRow({{ $key }}, "{{ encrypt($beneficiary->id) }}")'
+                                        <tr wire:key="batch-{{ $key }}" @click="count++"
+                                            @click.ctrl="if($event.ctrlKey) {$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
+                                            @click.debounce.350ms="if(!$event.ctrlKey && !$event.shiftKey && count === 1) {$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0;}"
+                                            @click.shift="if($event.shiftKey) {$wire.selectShiftBeneficiary({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer"
                                             :class="{
-                                                'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
-                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
                                             }">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
-                                                    'bg-blue-700': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type !== 'special case' && $selectedBeneficiaryRow !== $key) }},
-                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow === $key) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && $selectedBeneficiaryRow !== $key) }},
+                                                    'bg-blue-700': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
-                                            <th scope="row" class="ps-4 pe-2 py-2 font-medium">
-                                                {{ $key + 1 }}
-                                            </th>
+                                            @if (count($selectedBeneficiaryRow) > 0)
+                                                <th scope="row" class="px-2 py-1 text-center">
+                                                    <label tabindex="0" @click.stop
+                                                        class="relative flex items-center justify-center shrink gap-1 rounded p-1 outline-none border-2 cursor-pointer"
+                                                        :class="{
+                                                            'bg-blue-700 border-blue-700 text-blue-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                            'bg-red-700 border-red-700 text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
+                                                            'border-zinc-300 text-transparent': {{ json_encode(!in_array($key, $selectedBeneficiaryRow)) }},
+                                                        }"
+                                                        for="check-beneficiary-{{ $key }}">
+
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-2.5"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd"></path>
+                                                            </g>
+                                                        </svg>
+
+                                                        <input id="check-beneficiary-{{ $key }}"
+                                                            type="checkbox" tabindex="-1" value={{ $key }}
+                                                            wire:click.prevent="selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}', 'checkbox')"
+                                                            class="absolute hidden inset-0">
+                                                    </label>
+                                                </th>
+                                            @else
+                                                <th scope="row" class="px-4 py-2 font-medium text-center">
+                                                    {{ $key + 1 }}
+                                                </th>
+                                            @endif
                                             <td class="p-2">
                                                 {{ $this->full_last_first($beneficiary) }}
 
@@ -914,7 +1083,7 @@ window.addEventListener('resize', () => {
                         <div
                             class="relative h-[72.9vh] bg-white px-4 pb-4 pt-2 min-w-full flex items-center justify-center">
                             <div
-                                class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
+                                class="relative flex flex-col items-center justify-center border rounded size-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
                                 @if (isset($searchBeneficiaries) && !empty($searchBeneficiaries))
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-20 mb-4 text-blue-900 opacity-65"
@@ -973,7 +1142,7 @@ window.addEventListener('resize', () => {
                     <div
                         class="flex-1 text-xs overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-blue-50">
 
-                        @if ($beneficiaryId)
+                        @if (count($selectedBeneficiaryRow) === 1)
                             {{-- Whole Thing --}}
                             <div class="grid grid-cols-11 gap-2 p-4">
 
@@ -1738,10 +1907,63 @@ window.addEventListener('resize', () => {
                                     </div>
                                 </div>
                             </div>
-                        @else
-                            <div class="rounded relative bg-white p-4 h-full w-full flex items-center justify-center">
+                        @elseif(count($selectedBeneficiaryRow) > 1)
+                            <div class="rounded relative bg-white p-4 size-full flex items-center justify-center">
                                 <div
-                                    class="relative flex flex-col items-center justify-center border rounded h-full w-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
+                                    class="relative flex flex-col items-center justify-center border rounded size-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
+
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-20 mb-4 text-blue-900 opacity-65"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                        viewBox="0, 0, 400,400">
+                                        <g>
+                                            <path
+                                                d="M53.906 1.231 C 29.110 7.744,16.422 26.637,16.435 57.031 C 16.443 77.019,20.646 83.594,33.415 83.594 C 45.313 83.594,49.458 77.677,50.059 59.833 C 50.822 37.193,54.397 33.607,76.214 33.598 C 86.393 33.594,87.483 33.449,91.165 31.615 C 102.679 25.877,103.354 9.257,92.357 2.283 L 88.757 0.000 73.480 0.051 C 62.814 0.087,56.906 0.443,53.906 1.231 M142.578 1.283 C 130.791 7.535,129.689 23.225,140.503 30.827 L 143.883 33.203 181.512 33.441 C 222.350 33.700,223.121 33.633,227.870 29.464 C 235.973 22.349,235.232 8.744,226.409 2.627 L 223.182 0.391 184.052 0.215 C 149.551 0.060,144.645 0.187,142.578 1.283 M276.172 1.100 C 265.962 5.625,263.166 20.206,270.940 28.390 C 275.054 32.721,276.678 33.141,291.016 33.579 C 312.931 34.248,315.752 37.069,316.421 58.984 C 316.859 73.322,317.279 74.946,321.610 79.060 C 328.883 85.969,341.654 84.655,347.373 76.411 L 349.609 73.186 349.849 57.777 C 350.272 30.673,342.669 15.462,323.828 5.713 C 313.098 0.160,284.531 -2.605,276.172 1.100 M26.165 117.863 C 16.525 122.243,16.275 123.561,16.559 168.488 L 16.797 206.117 19.173 209.497 C 26.652 220.136,42.644 219.170,48.481 207.727 C 49.989 204.771,50.035 203.340,49.826 165.743 L 49.609 126.818 47.373 123.591 C 42.950 117.211,33.324 114.611,26.165 117.863 M326.172 117.887 C 317.334 121.979,316.406 125.029,316.406 150.000 C 316.406 172.152,316.682 173.878,320.940 178.419 C 328.009 185.957,341.464 184.934,347.373 176.408 L 349.609 173.180 349.609 150.000 L 349.609 126.820 347.373 123.592 C 342.943 117.199,333.276 114.598,326.172 117.887 M225.561 151.388 C 219.916 154.886,220.313 145.557,220.313 275.000 C 220.313 388.901,220.339 390.968,221.858 394.106 C 224.711 400.000,232.835 402.061,238.155 398.242 C 239.502 397.275,255.043 381.469,272.690 363.117 L 304.775 329.749 348.712 329.523 C 397.534 329.272,395.079 329.545,398.472 323.981 C 400.354 320.894,400.480 315.137,398.724 312.479 C 396.633 309.314,239.638 152.342,237.343 151.122 C 234.465 149.591,228.234 149.732,225.561 151.388 M26.145 251.094 C 17.890 254.690,16.141 259.808,16.595 279.043 C 17.079 299.588,19.999 307.507,31.242 318.766 C 42.551 330.091,52.605 333.594,73.800 333.594 C 93.633 333.594,99.241 330.129,99.880 317.481 C 100.532 304.563,95.156 300.577,76.233 299.946 C 53.756 299.196,50.756 296.234,50.180 274.219 C 49.787 259.179,48.781 256.357,42.357 252.283 C 38.282 249.699,30.635 249.138,26.145 251.094 M142.578 301.294 C 130.798 307.485,129.692 323.225,140.502 330.827 L 143.881 333.203 165.414 333.434 L 186.947 333.666 191.029 331.668 C 202.670 325.973,203.423 309.301,192.357 302.283 L 188.757 300.000 166.839 300.031 C 148.439 300.058,144.546 300.260,142.578 301.294 "
+                                                stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                        </g>
+                                    </svg>
+                                    <p>Currently Multi-Selecting</p>
+                                    <p>What do you want to do with these records?</p>
+
+                                    {{-- Buttons: Multi-Delete || Contract Sign --}}
+                                    <span class="flex items-center justify-center gap-2 mt-2">
+                                        <button type="button" @click="promptMultiDeleteModal = true;"
+                                            class="outline-none flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-bold rounded-md duration-200 ease-in-out bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:ring-2 focus:ring-red-500">
+                                            DELETE
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M171.190 38.733 C 151.766 43.957,137.500 62.184,137.500 81.778 L 137.500 87.447 107.365 87.669 L 77.230 87.891 74.213 91.126 C 66.104 99.821,71.637 112.500,83.541 112.500 L 87.473 112.500 87.682 220.117 L 87.891 327.734 90.158 333.203 C 94.925 344.699,101.988 352.414,112.661 357.784 C 122.411 362.689,119.829 362.558,202.364 362.324 L 277.734 362.109 283.203 359.842 C 294.295 355.242,302.136 348.236,307.397 338.226 C 312.807 327.930,312.500 335.158,312.500 218.195 L 312.500 112.500 316.681 112.500 C 329.718 112.500,334.326 96.663,323.445 89.258 C 320.881 87.512,320.657 87.500,291.681 87.500 L 262.500 87.500 262.500 81.805 C 262.500 61.952,248.143 43.817,228.343 38.660 C 222.032 37.016,177.361 37.073,171.190 38.733 M224.219 64.537 C 231.796 68.033,236.098 74.202,237.101 83.008 L 237.612 87.500 200.000 87.500 L 162.388 87.500 162.929 83.008 C 164.214 72.340,170.262 65.279,179.802 63.305 C 187.026 61.811,220.311 62.734,224.219 64.537 M171.905 172.852 C 174.451 174.136,175.864 175.549,177.148 178.095 L 178.906 181.581 178.906 225.000 L 178.906 268.419 177.148 271.905 C 172.702 280.723,160.426 280.705,155.859 271.873 C 154.164 268.596,154.095 181.529,155.785 178.282 C 159.204 171.710,165.462 169.602,171.905 172.852 M239.776 173.257 C 240.888 174.080,242.596 175.927,243.573 177.363 L 245.349 179.972 245.135 225.476 C 244.898 276.021,245.255 272.640,239.728 276.767 C 234.458 280.702,226.069 278.285,222.852 271.905 L 221.094 268.419 221.094 225.000 L 221.094 181.581 222.852 178.095 C 226.079 171.694,234.438 169.304,239.776 173.257 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                        </button>
+
+                                        {{-- <button type="button"
+                                            class="outline-none flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-bold rounded-md duration-200 ease-in-out bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:ring-2 focus:ring-blue-500">
+                                            CONTRACT
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" class="size-5"
+                                                width="400" height="400" viewBox="0, 0, 400,400">
+                                                <g>
+                                                    <path
+                                                        d="M250.781 12.301 C 240.022 13.877,233.797 23.869,236.844 34.675 C 237.910 38.454,358.177 159.820,363.235 162.220 C 378.281 169.360,393.577 153.347,385.729 138.672 C 384.012 135.461,263.473 15.276,260.547 13.857 C 257.866 12.557,253.635 11.883,250.781 12.301 M223.973 83.607 C 221.124 84.462,221.477 84.188,183.984 114.751 C 143.878 147.445,150.608 144.464,121.875 142.265 C 85.283 139.465,48.990 152.401,47.814 168.663 C 47.164 177.646,41.671 171.574,134.654 264.657 C 227.881 357.984,222.213 352.846,231.227 352.194 C 247.501 351.017,260.697 314.534,257.779 278.785 C 255.398 249.599,252.483 256.219,285.584 215.625 C 317.616 176.342,316.364 178.066,316.946 172.428 C 317.860 163.569,318.687 164.598,277.439 123.277 C 234.832 80.595,234.595 80.419,223.973 83.607 M95.220 283.873 C 90.028 285.297,89.126 286.125,49.904 325.525 C 11.418 364.183,12.133 363.308,12.297 371.589 C 12.533 383.560,24.864 391.137,36.362 386.376 C 42.657 383.770,114.455 310.687,115.997 305.315 C 119.817 292.004,108.428 280.250,95.220 283.873 "
+                                                        stroke="none" fill="currentColor" fill-rule="evenodd">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                        </button> --}}
+                                    </span>
+                                </div>
+                            </div>
+                        @else
+                            <div class="rounded relative bg-white p-4 size-full flex items-center justify-center">
+                                <div
+                                    class="relative flex flex-col items-center justify-center border rounded size-full font-medium text-sm text-gray-500 bg-gray-50 border-gray-300">
+
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="size-20 mb-4 text-blue-900 opacity-65"
                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
@@ -1753,8 +1975,8 @@ window.addEventListener('resize', () => {
                                         </g>
                                     </svg>
                                     <p>No preview.</p>
-                                    <p>Try <span class="underline underline-offset-2">clicking</span> one of the <span
-                                            class="text-blue-900">beneficiaries</span> row.
+                                    <p>Try <span class="underline underline-offset-2">clicking</span> one of the
+                                        <span class="text-blue-900">beneficiaries</span> row.
                                     </p>
                                 </div>
                             </div>
@@ -1844,6 +2066,9 @@ window.addEventListener('resize', () => {
             {{-- Import File Modal --}}
             <livewire:coordinator.submissions.import-file-modal :$batchId />
 
+            {{-- Prompt Multi Delete Modal --}}
+            <livewire:coordinator.submissions.prompt-multi-delete-modal :$beneficiaryIds />
+
             {{-- Approve Submission Modal --}}
             <div x-cloak @keydown.escape.window="approveSubmissionModal">
                 <!-- Modal Backdrop -->
@@ -1868,8 +2093,8 @@ window.addEventListener('resize', () => {
                                     {{-- Loading State for Changes --}}
                                     <div class="z-50 text-blue-900" wire:loading
                                         wire:target="password, approveSubmission">
-                                        <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24">
+                                        <svg class="size-6 mr-3 -ml-1 animate-spin"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
                                                 stroke="currentColor" stroke-width="4">
                                             </circle>
@@ -1954,8 +2179,8 @@ window.addEventListener('resize', () => {
                                 <div class="flex items-center justify-end gap-2">
 
                                     {{-- Loading State --}}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-blue-900 animate-spin"
-                                        wire:loading
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="size-6 text-blue-900 animate-spin" wire:loading
                                         wire:target="exportType, exportTypeCsv, exportAnnex, showExport, exportFormat, defaultExportStart, defaultExportEnd, selectExportBatchRow"
                                         fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -2001,8 +2226,8 @@ window.addEventListener('resize', () => {
                                                     'bg-gray-200 text-gray-500': !e1_x,
                                                 }">
                                                 Annex E-1 (COS)
-                                                <input type="checkbox" class="hidden absolute inset-0" id="annex_e1"
-                                                    wire:model.live="exportType.annex_e1">
+                                                <input type="checkbox" class="hidden absolute inset-0"
+                                                    id="annex_e1" wire:model.live="exportType.annex_e1">
                                             </label>
                                             {{-- Annex E-2 (COS - Co-Partner) --}}
                                             <label for="annex_e2"
@@ -2012,8 +2237,8 @@ window.addEventListener('resize', () => {
                                                     'bg-gray-200 text-gray-500': !e2_x,
                                                 }">
                                                 Annex E-2 (COS - Co-Partner)
-                                                <input type="checkbox" class="hidden absolute inset-0" id="annex_e2"
-                                                    wire:model.live="exportType.annex_e2">
+                                                <input type="checkbox" class="hidden absolute inset-0"
+                                                    id="annex_e2" wire:model.live="exportType.annex_e2">
                                             </label>
                                             {{-- Annex J-2 (Attendance Sheet) --}}
                                             <label for="annex_j2"
@@ -2023,8 +2248,8 @@ window.addEventListener('resize', () => {
                                                     'bg-gray-200 text-gray-500': !j2_x,
                                                 }">
                                                 Annex J-2 (Attendance Sheet)
-                                                <input type="checkbox" class="hidden absolute inset-0" id="annex_j2"
-                                                    wire:model.live="exportType.annex_j2">
+                                                <input type="checkbox" class="hidden absolute inset-0"
+                                                    id="annex_j2" wire:model.live="exportType.annex_j2">
                                             </label>
                                         </span>
                                         <span class="flex items-center flex-wrap gap-2">
@@ -2036,8 +2261,8 @@ window.addEventListener('resize', () => {
                                                     'bg-gray-200 text-gray-500': !l_x,
                                                 }">
                                                 Annex L (Payroll)
-                                                <input type="checkbox" class="hidden absolute inset-0" id="annex_l"
-                                                    wire:model.live="exportType.annex_l">
+                                                <input type="checkbox" class="hidden absolute inset-0"
+                                                    id="annex_l" wire:model.live="exportType.annex_l">
                                             </label>
                                             {{-- Annex L (Payroll w/ Sign) --}}
                                             <label for="annex_l_sign"

@@ -237,11 +237,11 @@
                                         <span class="block mb-1 font-medium"
                                             :class="{
                                                 'text-gray-500': {{ json_encode(!isset($district) || empty($district)) }},
-                                                'text-indigo-1100': {{ json_encode(!$errors->has('barangay_name') && $district) }},
+                                                'text-indigo-1100': {{ json_encode($district) }},
                                             }">
                                             <span class="relative">Barangay
                                                 <span
-                                                    class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                                    class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
                                                 </span>
                                             </span>
                                         </span>
@@ -320,7 +320,8 @@
                                             </label>
 
                                             {{-- List of Barangays --}}
-                                            <div class="mt-2 text-xs overflow-y-auto h-44">
+                                            <div
+                                                class="mt-2 text-xs overflow-y-auto h-44 scrollbar-thin scrollbar-track-indigo-50 scrollbar-thumb-indigo-700">
                                                 @forelse ($this->barangays as $key => $barangay)
                                                     <span wire:key={{ $key }}>
                                                         <button type="button"
@@ -359,7 +360,7 @@
                                         <input type="number" min="0" id="slots_allocated" autocomplete="off"
                                             wire:model.live.debounce.300ms="slots_allocated"
                                             class="text-xs {{ $errors->has('slots_allocated') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} outline-none border rounded block w-full py-2.5 duration-200 ease-in-out"
-                                            placeholder="Type slots">
+                                            placeholder="0">
                                     </div>
                                     @error('slots_allocated')
                                         <p class="mt-1 text-red-500 absolute left-2 top-full text-xs">

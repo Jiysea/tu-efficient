@@ -16,6 +16,8 @@ use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;
 use DB;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Js;
 use Livewire\Attributes\Locked;
@@ -416,105 +418,130 @@ class AddBeneficiariesModal extends Component
     public function saveBeneficiary()
     {
         $this->validate();
-        $this->js('$parent.authorizeBeforeExecuting();');
 
         # And then use DB::Transaction to ensure that only 1 record can be saved
         DB::transaction(function () {
-            $batch = Batch::lockForUpdate()->find($this->batchId ? decrypt($this->batchId) : null);
-            $implementation = Implementation::find($batch->implementations_id);
-            $beneficiariesCount = Beneficiary::where('batches_id', $batch->id)
-                ->count();
+            try {
+                $batch = Batch::lockForUpdate()->findOrFail($this->batchId ? decrypt($this->batchId) : null);
+                $this->js('$parent.authorizeBeforeExecuting();');
+                $implementation = Implementation::findOrFail($batch->implementations_id);
+                $user = User::find($implementation->users_id);
+                $beneficiariesCount = Beneficiary::where('batches_id', $batch->id)
+                    ->count();
 
-            if ($batch?->slots_allocated <= $beneficiariesCount) {
-                $this->dispatch('cannot-add-beneficiary');
-                return;
-            }
-
-            $this->normalizeStrings();
-
-            # Re-Check for Duplicates
-            $this->nameCheck();
-
-            if ($this->isPerfectDuplicate) {
-                DB::rollBack();
-                $this->dispatch('alertNotification', type: 'duplicate', message: 'This beneficiary has a perfect duplicate.', color: 'red');
-                return;
-            }
-
-            $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
-            $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
-            $this->contact_num = '+63' . substr($this->contact_num, 1);
-
-            if (!$this->is_sectoral) {
-                $this->district = $batch->district;
-                $this->barangay_name = $batch->barangay_name;
-            }
-
-            $beneficiary = Beneficiary::create([
-                'batches_id' => $batch->id,
-                'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
-                'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
-                'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
-                'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
-                'birthdate' => $this->birthdate,
-                'barangay_name' => $this->barangay_name,
-                'contact_num' => $this->contact_num,
-                'occupation' => $this->occupation ?? null,
-                'avg_monthly_income' => $this->avg_monthly_income ?? null,
-                'city_municipality' => $implementation->city_municipality,
-                'province' => $implementation->province,
-                'district' => $this->district,
-                'type_of_id' => $this->type_of_id,
-                'id_number' => $this->id_number,
-                'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
-                'beneficiary_type' => strtolower($this->beneficiary_type),
-                'sex' => strtolower($this->sex),
-                'civil_status' => strtolower($this->civil_status),
-                'age' => $this->beneficiaryAge($this->birthdate),
-                'dependent' => strtoupper($this->dependent),
-                'self_employment' => strtolower($this->self_employment),
-                'skills_training' => $this->skills_training ?? null,
-                'is_pwd' => strtolower($this->is_pwd),
-                'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
-                'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
-                'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
-                'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
-            ]);
-
-            $file = null;
-
-            if ($this->image_file_path) {
-                $file = $this->image_file_path->store('credentials');
-            }
-
-            Credential::create([
-                'beneficiaries_id' => $beneficiary->id,
-                'image_description' => null,
-                'image_file_path' => $file,
-                'for_duplicates' => 'no',
-            ]);
-
-            $file = null;
-
-            if ($this->isPerfectDuplicate) {
-                if (isset($this->reason_image_file_path) && !empty($this->reason_image_file_path)) {
-                    $file = $this->reason_image_file_path->store('credentials');
+                if ($batch?->slots_allocated <= $beneficiariesCount) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Slots have reached the max limit.', color: 'red');
+                    return;
                 }
+
+                $this->normalizeStrings();
+
+                # Re-Check for Duplicates
+                $this->nameCheck();
+
+                if ($this->isPerfectDuplicate) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'This beneficiary has a perfect duplicate.', color: 'red');
+                    return;
+                }
+
+                $this->avg_monthly_income = $this->avg_monthly_income ? MoneyFormat::unmask($this->avg_monthly_income) : null;
+                $this->birthdate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
+                $this->contact_num = '+63' . substr($this->contact_num, 1);
+
+                if (!$this->is_sectoral) {
+                    $this->district = $batch->district;
+                    $this->barangay_name = $batch->barangay_name;
+                }
+
+                $beneficiary = Beneficiary::create([
+                    'batches_id' => $batch->id,
+                    'first_name' => mb_strtoupper($this->first_name, "UTF-8"),
+                    'middle_name' => $this->middle_name ? mb_strtoupper($this->middle_name, "UTF-8") : null,
+                    'last_name' => mb_strtoupper($this->last_name, "UTF-8"),
+                    'extension_name' => $this->extension_name ? mb_strtoupper($this->extension_name, "UTF-8") : null,
+                    'birthdate' => $this->birthdate,
+                    'barangay_name' => $this->barangay_name,
+                    'contact_num' => $this->contact_num,
+                    'occupation' => $this->occupation ?? null,
+                    'avg_monthly_income' => $this->avg_monthly_income ?? null,
+                    'city_municipality' => $implementation->city_municipality,
+                    'province' => $implementation->province,
+                    'district' => $this->district,
+                    'type_of_id' => $this->type_of_id,
+                    'id_number' => $this->id_number,
+                    'e_payment_acc_num' => $this->e_payment_acc_num ?? null,
+                    'beneficiary_type' => strtolower($this->beneficiary_type),
+                    'sex' => strtolower($this->sex),
+                    'civil_status' => strtolower($this->civil_status),
+                    'age' => $this->beneficiaryAge($this->birthdate),
+                    'dependent' => strtoupper($this->dependent),
+                    'self_employment' => strtolower($this->self_employment),
+                    'skills_training' => $this->skills_training ?? null,
+                    'is_pwd' => strtolower($this->is_pwd),
+                    'is_senior_citizen' => intval($this->beneficiaryAge($this->birthdate)) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+                    'spouse_first_name' => $this->spouse_first_name ? mb_strtoupper($this->spouse_first_name, "UTF-8") : null,
+                    'spouse_middle_name' => $this->spouse_middle_name ? mb_strtoupper($this->spouse_middle_name, "UTF-8") : null,
+                    'spouse_last_name' => $this->spouse_last_name ? mb_strtoupper($this->spouse_last_name, "UTF-8") : null,
+                    'spouse_extension_name' => $this->spouse_extension_name ? mb_strtoupper($this->spouse_extension_name, "UTF-8") : null,
+                ]);
+
+                $file = null;
+
+                if ($this->image_file_path) {
+                    $file = $this->image_file_path->store('credentials');
+                }
+
                 Credential::create([
                     'beneficiaries_id' => $beneficiary->id,
-                    'image_description' => $this->image_description,
+                    'image_description' => null,
                     'image_file_path' => $file,
-                    'for_duplicates' => 'yes',
+                    'for_duplicates' => 'no',
                 ]);
-                LogIt::set_barangay_added_special_case($implementation, $batch, $beneficiary, $this->accessCode);
-            } else {
-                LogIt::set_barangay_add_beneficiary($implementation, $batch, $beneficiary, $this->accessCode);
-            }
 
-        });
-        $this->dispatch('add-beneficiaries');
-        $this->resetBeneficiaries();
+                $file = null;
+
+                if ($this->isPerfectDuplicate) {
+                    if (isset($this->reason_image_file_path) && !empty($this->reason_image_file_path)) {
+                        $file = $this->reason_image_file_path->store('credentials');
+                    }
+                    Credential::create([
+                        'beneficiaries_id' => $beneficiary->id,
+                        'image_description' => $this->image_description,
+                        'image_file_path' => $file,
+                        'for_duplicates' => 'yes',
+                    ]);
+                    LogIt::set_barangay_added_special_case($implementation, $batch, $beneficiary, $this->accessCode);
+                } else {
+                    LogIt::set_barangay_add_beneficiary($implementation, $batch, $beneficiary, $this->accessCode);
+                }
+
+                $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully added a beneficiary', color: 'green');
+
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_barangay_exception('An error has occured during execution. Error ' . $e->getCode(), $this->accessCode, $e->getTrace(), ['regional_office' => $user->regional_office, 'field_office' => $user->field_office]);
+                $this->dispatch('alertNotification', type: 'beneficiary', message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    // LogIt::set_log_barangay_exception('Deadlock has occured while deleting a beneficiary', auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_barangay_exception('An error has occured during execution. Error ' . $e->getCode(), $this->accessCode, $e->getTrace(), ['regional_office' => $user->regional_office, 'field_office' => $user->field_office]);
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_barangay_exception('An error has occured during execution. Error ' . $e->getCode(), $this->accessCode, $e->getTrace(), ['regional_office' => $user->regional_office, 'field_office' => $user->field_office]);
+                $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetBeneficiaries();
+            }
+        }, 5);
     }
 
     public function nameCheck()
@@ -710,6 +737,8 @@ class AddBeneficiariesModal extends Component
         return $barangays ?? [];
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($property)
     {
 

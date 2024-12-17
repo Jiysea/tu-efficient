@@ -236,12 +236,11 @@ window.addEventListener('resize', () => {
                         </div>
                         {{-- Search and Add Button | and Slots (for lower lg) --}}
                         <div class="mx-2 flex items-center justify-end">
-                            {{-- Loading State --}}
 
+                            {{-- General Search Box --}}
                             <div class="relative me-2">
                                 <div
-                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none
-                                {{ ($this->archivesCount <= 0 || $this->archives->isEmpty()) && empty($searchArchives) ? 'text-gray-500' : 'text-indigo-500' }}">
+                                    class="absolute inset-y-0 start-0 flex items-center ps-2 pointer-events-none {{ $this->archivesCount > 0 || $this->archives->isNotEmpty() || $searchArchives ? 'text-indigo-800' : 'text-zinc-400' }}">
 
                                     {{-- Loading Icon --}}
                                     <svg class="size-3 animate-spin" wire:loading wire:target="searchArchives"
@@ -262,15 +261,15 @@ window.addEventListener('resize', () => {
                                             stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="archives-search" maxlength="100"
+
+                                {{-- Search Input Bar --}}
+                                <input type="text" id="searchArchives" maxlength="100" autocomplete="off"
+                                    @if (($this->archivesCount <= 0 || $this->archives->isEmpty()) && !$searchArchives) disabled @endif
                                     wire:model.live.debounce.300ms="searchArchives"
-                                    class="ps-7 py-1 text-xs rounded w-full text-indigo-1100 border focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="Search for records"
-                                    :class="{
-                                        'border-gray-300 placeholder-gray-500 bg-gray-50': {{ json_encode(($this->archivesCount <= 0 || $this->archives->isEmpty()) && empty($searchArchives)) }},
-                                        'border-indigo-300 placeholder-indigo-500 bg-indigo-50': {{ json_encode($this->archivesCount > 0 && $this->archives->isNotEmpty() && empty($searchArchives)) }},
-                                    }"
-                                    @if ($this->archivesCount <= 0 && $this->archives->isEmpty()) disabled @endif>
+                                    class="{{ $this->archivesCount > 0 || $this->archives->isNotEmpty() || $searchArchives
+                                        ? 'selection:bg-indigo-700 selection:text-indigo-50 text-indigo-1100 placeholder-indigo-500 border-indigo-300 bg-indigo-50 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : 'text-zinc-400 placeholder-zinc-400 border-zinc-300 bg-zinc-50' }} outline-none duration-200 ease-in-out ps-7 py-1 text-xs border rounded w-full"
+                                    placeholder="Search for records">
                             </div>
                         </div>
                     </div>

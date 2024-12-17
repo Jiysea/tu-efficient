@@ -2,14 +2,25 @@
 
 namespace App\Livewire\Sidebar;
 
+use Livewire\Attributes\Js;
 use Livewire\Component;
 
 class CoordinatorBar extends Component
 {
-    public function setCurrentPage($pageName)
+    #[Js]
+    public function logout()
     {
-        $this->dispatch('set-current-page', pageName: $pageName);
+        return <<<JS
+            const logoutBtn = document.getElementById('logout-btn');
+            if(logoutBtn.disabled === true) {
+                logoutBtn.disabled = false;
+            } else {
+                logoutBtn.disabled = true;
+            }
+            document.getElementById('logout-form').submit();
+        JS;
     }
+
     public function render()
     {
         return view('livewire.sidebar.coordinator-bar');

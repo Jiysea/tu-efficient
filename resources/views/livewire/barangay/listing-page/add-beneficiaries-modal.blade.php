@@ -1,4 +1,4 @@
-<<div x-cloak x-data="{ addReasonModal: $wire.entangle('addReasonModal') }" x-show="addBeneficiariesModal"
+<div x-cloak x-data="{ addReasonModal: $wire.entangle('addReasonModal') }" x-show="addBeneficiariesModal"
     class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
     @keydown.window.escape="if(!addReasonModal) {$wire.resetBeneficiaries(); $wire.clearAvgIncome(); addBeneficiariesModal = false;}">
 
@@ -856,10 +856,11 @@
                                 <span class="block mb-1 font-medium"
                                     :class="{
                                         'text-gray-500': {{ json_encode(!isset($district) || empty($district)) }},
-                                        'text-green-1100': {{ json_encode(!$errors->has('barangay_name') && $district) }},
+                                        'text-green-1100': {{ json_encode($district) }},
                                     }">
                                     <span class="relative">Barangay
-                                        <span class="absolute left-full ms-1 -top-2 text-red-700 font-medium text-lg">*
+                                        <span
+                                            class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
                                         </span>
                                     </span>
                                 </span>
@@ -1347,101 +1348,101 @@
             </div>
         </div>
     </div>
-    </div>
-    @script
-        <script>
-            $wire.on('init-reload', () => {
-                setTimeout(() => {
-                    initFlowbite();
-                }, 1);
-            });
+</div>
+@script
+    <script>
+        $wire.on('init-reload', () => {
+            setTimeout(() => {
+                initFlowbite();
+            }, 1);
+        });
 
-            const image_file_path = document.getElementById('image_file_path');
-            const id_dropzone = document.getElementById('id_dropzone');
-            let initialError = null; // Check if error styles exist
-            const errorStyles = ['text-red-500'];
-            const defaultStyles = ['text-gray-500'];
-            const errorDragStyles = ['text-orange-500'];
-            const defaultDragStyles = ['text-green-500'];
+        const image_file_path = document.getElementById('image_file_path');
+        const id_dropzone = document.getElementById('id_dropzone');
+        let initialError = null; // Check if error styles exist
+        const errorStyles = ['text-red-500'];
+        const defaultStyles = ['text-gray-500'];
+        const errorDragStyles = ['text-orange-500'];
+        const defaultDragStyles = ['text-green-500'];
 
-            id_dropzone.addEventListener('dragover', function(e) {
+        id_dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            initialError = id_dropzone.classList.contains('text-red-500');
+            initialError ? id_dropzone.classList.remove(...errorStyles) : id_dropzone.classList.remove(...
+                defaultStyles);
+            initialError ? id_dropzone.classList.add(...errorDragStyles) : id_dropzone.classList.add(...
+                defaultDragStyles);
+        });
+
+        id_dropzone.addEventListener('dragleave', () => {
+            initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
+                'text-orange-500');
+            initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
+            initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
+                defaultDragStyles);
+        });
+
+        id_dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
+                'text-orange-500');
+            initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
+            initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
+                defaultDragStyles);
+
+            files = e.dataTransfer.files;
+            if (files.length) {
+                image_file_path.files = files;
+                image_file_path.dispatchEvent(new Event('change'));
+            }
+        });
+
+        $wire.on('load-reason', () => {
+            const reason_image_file_path = document.getElementById('reason_image_file_path');
+            const reason_dropzone = document.getElementById('reason_dropzone');
+            reason_dropzone.addEventListener('dragover', function(e) {
                 e.preventDefault();
-                initialError = id_dropzone.classList.contains('text-red-500');
-                initialError ? id_dropzone.classList.remove(...errorStyles) : id_dropzone.classList.remove(...
-                    defaultStyles);
-                initialError ? id_dropzone.classList.add(...errorDragStyles) : id_dropzone.classList.add(...
-                    defaultDragStyles);
+                initialError = reason_dropzone.classList.contains('text-red-500');
+                initialError ? reason_dropzone.classList.remove(...errorStyles) : reason_dropzone.classList
+                    .remove(...
+                        defaultStyles);
+                initialError ? reason_dropzone.classList.add(...errorDragStyles) : reason_dropzone.classList
+                    .add(...
+                        defaultDragStyles);
             });
 
-            id_dropzone.addEventListener('dragleave', () => {
-                initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
-                    'text-orange-500');
-                initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
-                initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
-                    defaultDragStyles);
+            reason_dropzone.addEventListener('dragleave', () => {
+                initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
+                    .classList.contains(
+                        'text-orange-500');
+                initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
+                    .add(...
+                        defaultStyles);
+                initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
+                    .classList.remove(
+                        ...
+                        defaultDragStyles);
             });
 
-            id_dropzone.addEventListener('drop', function(e) {
+            reason_dropzone.addEventListener('drop', function(e) {
                 e.preventDefault();
-                initialError = id_dropzone.classList.contains('text-red-500') || id_dropzone.classList.contains(
-                    'text-orange-500');
-                initialError ? id_dropzone.classList.add(...errorStyles) : id_dropzone.classList.add(...defaultStyles);
-                initialError ? id_dropzone.classList.remove(...errorDragStyles) : id_dropzone.classList.remove(...
-                    defaultDragStyles);
+                initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
+                    .classList.contains(
+                        'text-orange-500');
+                initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
+                    .add(...
+                        defaultStyles);
+                initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
+                    .classList.remove(
+                        ...
+                        defaultDragStyles);
 
                 files = e.dataTransfer.files;
                 if (files.length) {
-                    image_file_path.files = files;
-                    image_file_path.dispatchEvent(new Event('change'));
+                    reason_image_file_path.files = files;
+                    reason_image_file_path.dispatchEvent(new Event('change'));
                 }
             });
-
-            $wire.on('load-reason', () => {
-                const reason_image_file_path = document.getElementById('reason_image_file_path');
-                const reason_dropzone = document.getElementById('reason_dropzone');
-                reason_dropzone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    initialError = reason_dropzone.classList.contains('text-red-500');
-                    initialError ? reason_dropzone.classList.remove(...errorStyles) : reason_dropzone.classList
-                        .remove(...
-                            defaultStyles);
-                    initialError ? reason_dropzone.classList.add(...errorDragStyles) : reason_dropzone.classList
-                        .add(...
-                            defaultDragStyles);
-                });
-
-                reason_dropzone.addEventListener('dragleave', () => {
-                    initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
-                        .classList.contains(
-                            'text-orange-500');
-                    initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
-                        .add(...
-                            defaultStyles);
-                    initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
-                        .classList.remove(
-                            ...
-                            defaultDragStyles);
-                });
-
-                reason_dropzone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    initialError = reason_dropzone.classList.contains('text-red-500') || reason_dropzone
-                        .classList.contains(
-                            'text-orange-500');
-                    initialError ? reason_dropzone.classList.add(...errorStyles) : reason_dropzone.classList
-                        .add(...
-                            defaultStyles);
-                    initialError ? reason_dropzone.classList.remove(...errorDragStyles) : reason_dropzone
-                        .classList.remove(
-                            ...
-                            defaultDragStyles);
-
-                    files = e.dataTransfer.files;
-                    if (files.length) {
-                        reason_image_file_path.files = files;
-                        reason_image_file_path.dispatchEvent(new Event('change'));
-                    }
-                });
-            });
-        </script>
-    @endscript
+        });
+    </script>
+@endscript

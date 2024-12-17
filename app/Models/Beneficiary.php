@@ -46,16 +46,18 @@ class Beneficiary extends Model
         'spouse_middle_name',
         'spouse_last_name',
         'spouse_extension_name',
+        'is_signed',
+        'is_paid',
     ];
 
     public function batch()
     {
-        $this->belongsTo(Batch::class, 'batches_id');
+        return $this->belongsTo(Batch::class, 'batches_id');
     }
 
     public function credential()
     {
-        $this->hasMany(Credential::class, 'beneficiaries_id');
+        return $this->hasMany(Credential::class, 'beneficiaries_id');
     }
 
     protected function casts(): array

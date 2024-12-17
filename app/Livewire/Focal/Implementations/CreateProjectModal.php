@@ -5,7 +5,6 @@ namespace App\Livewire\Focal\Implementations;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\CitiesMunicipalities;
-use App\Services\Districts;
 use App\Services\LogIt;
 use App\Services\MoneyFormat;
 use App\Services\Provinces;
@@ -168,28 +167,38 @@ class CreateProjectModal extends Component
     {
         $this->validate();
 
-        $this->project_num = $this->projectNumPrefix . now()->format('Y-') . $this->project_num;
-        $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
-        $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
+        DB::transaction(function () {
+            try {
+                $this->project_num = $this->projectNumPrefix . now()->format('Y-') . $this->project_num;
+                $this->budget_amount = MoneyFormat::unmask($this->budget_amount);
+                $this->minimum_wage = MoneyFormat::unmask($this->minimum_wage);
 
-        $implementation = Implementation::create([
-            'users_id' => Auth()->id(),
-            'project_num' => $this->project_num,
-            'project_title' => $this->project_title,
-            'purpose' => $this->purpose,
-            'province' => $this->province,
-            'city_municipality' => $this->city_municipality,
-            'budget_amount' => $this->budget_amount,
-            'minimum_wage' => $this->minimum_wage,
-            'total_slots' => $this->total_slots,
-            'days_of_work' => $this->days_of_work,
-            'status' => 'pending',
-        ]);
+                $implementation = Implementation::create([
+                    'users_id' => Auth()->id(),
+                    'project_num' => $this->project_num,
+                    'project_title' => $this->project_title,
+                    'purpose' => $this->purpose,
+                    'province' => $this->province,
+                    'city_municipality' => $this->city_municipality,
+                    'budget_amount' => $this->budget_amount,
+                    'minimum_wage' => $this->minimum_wage,
+                    'total_slots' => $this->total_slots,
+                    'days_of_work' => $this->days_of_work,
+                    'status' => 'pending',
+                ]);
 
-        LogIt::set_create_project($implementation, auth()->user());
-        $this->resetProject();
-        $this->js('createProjectModal = false;');
-        $this->dispatch('create-project');
+                LogIt::set_create_project($implementation, auth()->user());
+                $this->dispatch('alertNotification', type: 'implementation', message: 'Successfully created a project', color: 'indigo');
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'implementation', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetProject();
+                $this->js('createProjectModal = false;');
+            }
+        }, 5);
     }
 
     # a livewire action for toggling the auto computation for total slots

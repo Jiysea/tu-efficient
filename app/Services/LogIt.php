@@ -72,7 +72,7 @@ class LogIt
     public static function set_delete_user(User|Collection $modifiedUser, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $modifiedUser->toArray(),
+            'users' => $modifiedUser->toArray(),
         ];
 
         SystemsLog::create([
@@ -344,8 +344,9 @@ class LogIt
     public static function set_remove_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $beneficiary->toArray(),
-            $batch->toArray(),
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'beneficiaries' => $beneficiary->toArray(),
         ];
 
         SystemsLog::create([
@@ -374,8 +375,10 @@ class LogIt
     public static function set_remove_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $beneficiary->toArray(),
-            $credential->toArray(),
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'beneficiaries' => $beneficiary->toArray(),
+            'credentials' => $credential->toArray(),
         ];
 
         SystemsLog::create([
@@ -392,7 +395,7 @@ class LogIt
     public static function set_delete_project(Implementation|Collection $implementation, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $implementation->toArray(),
+            'implementations' => $implementation->toArray(),
         ];
 
         SystemsLog::create([
@@ -409,8 +412,8 @@ class LogIt
     public static function set_delete_batches(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $implementation->toArray(),
-            $batch->toArray(),
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
         ];
 
         SystemsLog::create([
@@ -427,8 +430,8 @@ class LogIt
     public static function set_remove_coordinator_assignment(Assignment|Collection $assignment, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $assignment->toArray(),
-            $batch->toArray(),
+            'assignments' => $assignment->toArray(),
+            'batches' => $batch->toArray(),
         ];
 
         SystemsLog::create([
@@ -445,9 +448,9 @@ class LogIt
     public static function set_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $implementation->toArray(),
-            $batch->toArray(),
-            $beneficiary->toArray(),
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'beneficiaries' => $beneficiary->toArray(),
         ];
 
         SystemsLog::create([
@@ -464,10 +467,10 @@ class LogIt
     public static function set_delete_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
-            $implementation->toArray(),
-            $batch->toArray(),
-            $beneficiary->toArray(),
-            $credential->toArray(),
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'beneficiaries' => $beneficiary->toArray(),
+            'credentials' => $credential->toArray(),
         ];
 
         SystemsLog::create([
@@ -652,11 +655,9 @@ class LogIt
     public static function set_barangay_remove_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, string $access_code, mixed $timestamp = null)
     {
         $stackedData = [
-            $beneficiary->toArray(),
-            $credential->toArray(),
-            [
-                'access_code' => $access_code
-            ]
+            'beneficiaries' => $beneficiary->toArray(),
+            'credentials' => $credential->toArray(),
+            'codes' => ['access_code' => $access_code],
         ];
 
         $user = self::get_user_based_on_beneficiary($beneficiary);
@@ -707,12 +708,10 @@ class LogIt
     public static function set_barangay_archive_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
     {
         $stackedData = [
-            $implementation->toArray(),
-            $batch->toArray(),
-            $beneficiary->toArray(),
-            [
-                'access_code' => $access_code
-            ]
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'beneficiaries' => $beneficiary->toArray(),
+            'codes' => ['access_code' => $access_code],
         ];
 
         $user = self::get_user_based_on_beneficiary($beneficiary);
@@ -729,30 +728,28 @@ class LogIt
         ]);
     }
 
-    public static function set_barangay_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
-    {
-        $stackedData = [
-            $implementation->toArray(),
-            $batch->toArray(),
-            $beneficiary->toArray(),
-            [
-                'access_code' => $access_code
-            ]
-        ];
+    // public static function set_barangay_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
+    // {
+    //     $stackedData = [
+    //         'implementations' => $implementation->toArray(),
+    //         'batches' => $batch->toArray(),
+    //         'beneficiaries' => $beneficiary->toArray(),
+    //         'codes' => ['access_code' => $access_code],
+    //     ];
 
-        $user = self::get_user_based_on_beneficiary($beneficiary);
+    //     $user = self::get_user_based_on_beneficiary($beneficiary);
 
-        SystemsLog::create([
-            'users_id' => null,
-            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
-            'description' => 'Deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> project ' . $implementation->project_num . '.',
-            'old_data' => json_encode($stackedData),
-            'regional_office' => $user->regional_office,
-            'field_office' => $user->field_office,
-            'log_type' => 'delete',
-            'log_timestamp' => $timestamp ?? now(),
-        ]);
-    }
+    //     SystemsLog::create([
+    //         'users_id' => null,
+    //         'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+    //         'description' => 'Deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> project ' . $implementation->project_num . '.',
+    //         'old_data' => json_encode($stackedData),
+    //         'regional_office' => $user->regional_office,
+    //         'field_office' => $user->field_office,
+    //         'log_type' => 'delete',
+    //         'log_timestamp' => $timestamp ?? now(),
+    //     ]);
+    // }
 
     # ----------------------------------------------------------------------------------------------------------------------
     # Barangays (END) ----------------------------------------------------------------------------------------------------------------------
@@ -760,15 +757,33 @@ class LogIt
 
     # Miscellaneous ----------------------------------------------------------------------------------------------------
 
-    public static function set_log_exception(string $message, User|Authenticatable $user, array $trace, mixed $timestamp = null)
+    public static function set_log_exception(string $message, User|Authenticatable|int $user, array $trace, mixed $timestamp = null)
     {
+        if (is_integer($user)) {
+            $user = User::find($user);
+        }
+
         SystemsLog::create([
-            'users_id' => null,
-            'alternative_sender' => 'System',
+            'users_id' => $user->id,
+            'alternative_sender' => self::full_name($user) ?? request()->ip(),
             'description' => $message,
             'old_data' => json_encode($trace),
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
+            'log_type' => 'error',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_log_barangay_exception(string $message, string|null $access_code, array $trace, array $location, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => null,
+            'alternative_sender' => $access_code ? 'Code (' . decrypt($access_code) . ') User' : request()->ip(),
+            'description' => $message,
+            'old_data' => json_encode($trace),
+            'regional_office' => $location['regional_office'],
+            'field_office' => $location['field_office'],
             'log_type' => 'error',
             'log_timestamp' => $timestamp ?? now(),
         ]);

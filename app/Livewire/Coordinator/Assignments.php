@@ -63,9 +63,14 @@ class Assignments extends Component
 
     # --------------------------------------------------------------------------
 
-    public function viewAssignment($encryptedId)
+    public function viewAssignment($key, $encryptedId)
     {
-        $this->passedBatchId = $encryptedId;
+        $this->selectedBatchRow = $key;
+        $this->batchId = $encryptedId;
+
+        $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
+
+        $this->dispatch('init-reload')->self();
         $this->viewBatchModal = true;
     }
 
@@ -85,10 +90,11 @@ class Assignments extends Component
             $this->batchId = null;
         } else {
             $this->selectedBatchRow = $key;
-            $this->batchId = decrypt($encryptedId);
+            $this->batchId = $encryptedId;
             $this->beneficiaries_on_page = $this->defaultBeneficiaries_on_page;
         }
 
+        $this->dispatch('scroll-top-beneficiaries')->self();
         $this->dispatch('init-reload')->self();
     }
 
@@ -188,7 +194,7 @@ class Assignments extends Component
     public function beneficiaries()
     {
         $beneficiaries = Batch::join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
-            ->where('batches.id', $this->batchId)
+            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
             ->select([
                 'beneficiaries.id',
                 'beneficiaries.first_name',
@@ -209,51 +215,41 @@ class Assignments extends Component
     #[Computed]
     public function location()
     {
-        if ($this->batchId) {
+        $location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
+            ->select([
+                'implementations.city_municipality',
+                'implementations.province',
+                'batches.is_sectoral',
+                'batches.sector_title',
+                'batches.barangay_name',
+                'batches.district',
+            ])
+            ->first();
 
-            $location = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-                ->where('batches.id', $this->batchId)
-                ->select([
-                    'implementations.city_municipality',
-                    'implementations.province',
-                    'batches.is_sectoral',
-                    'batches.sector_title',
-                    'batches.barangay_name',
-                    'batches.district',
-                ])
-                ->first();
-
-            return $location;
-
-        } else {
-            return null;
-        }
+        return $location;
     }
 
     #[Computed]
     public function accessCode()
     {
-        if ($this->batchId) {
-            $accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
-                ->where('batches.id', $this->batchId)
-                ->where('codes.is_accessible', 'yes')
-                ->select(['codes.access_code'])
-                ->groupBy([
-                    'codes.access_code',
-                ])
-                ->first();
+        $accessCode = Batch::join('codes', 'batches.id', '=', 'codes.batches_id')
+            ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
+            ->where('codes.is_accessible', 'yes')
+            ->select(['codes.access_code'])
+            ->groupBy([
+                'codes.access_code',
+            ])
+            ->first();
 
-            return $accessCode;
+        return $accessCode;
 
-        } else {
-            $this->accessCode = null;
-        }
     }
 
     #[Computed]
     public function submissions()
     {
-        $submissions = Code::where('batches_id', $this->batchId)
+        $submissions = Code::where('batches_id', $this->batchId ? decrypt($this->batchId) : null)
             ->where('is_accessible', 'no')
             ->count();
 
@@ -292,15 +288,13 @@ class Assignments extends Component
 
     public function viewList()
     {
-        if ($this->batchId) {
-            $this->redirectRoute(
-                'coordinator.submissions',
-                [
-                    'batchId' => encrypt($this->batchId),
-                    'coordinatorId' => encrypt(Auth::user()->id)
-                ]
-            );
-        }
+        $this->redirectRoute(
+            'coordinator.submissions',
+            [
+                'batchId' => $this->batchId,
+                'coordinatorId' => encrypt(Auth::user()->id)
+            ]
+        );
     }
 
     #[On('view-batch')]
@@ -326,6 +320,8 @@ class Assignments extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($prop)
     {
         if ($prop === 'calendarStart') {

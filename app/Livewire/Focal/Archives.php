@@ -58,165 +58,202 @@ class Archives extends Component
     public function restoreRow()
     {
         # Before anything else, authorize the action
-        $archive = Archive::find($this->actionId ? decrypt($this->actionId) : null);
-        $data = $archive->data;
-        $this->authorize('restore-beneficiary-focal', [$archive]);
+        DB::transaction(function () {
+            try {
+                $archive = Archive::find($this->actionId ? decrypt($this->actionId) : null);
+                $data = $archive->data;
+                $this->authorize('archives-focal', [$archive]);
 
-        # First, initialize the values for checking if the origin (batch) 
-        # is not full or on `approved` status
-        $batchId = $archive->data['batches_id'];
-        $batch = Batch::find($batchId);
-        $implementation = Implementation::find($batch->implementations_id);
+                # First, initialize the values for checking if the origin (batch) 
+                # is not full or on `approved` status
+                $batchId = $archive->data['batches_id'];
+                $batch = Batch::with([
+                    'implementation' => function ($q) {
+                        $q->lockForUpdate();
+                    }
+                ])->lockForUpdate()->find($batchId);
+                $implementation = $batch->implementation;
 
-        # parse the birthdate first
-        $data['birthdate'] = Carbon::parse($data['birthdate'])->format('Y-m-d');
-        $archive->data = $data;
-        $archive->save();
+                # parse the birthdate first
+                $data['birthdate'] = Carbon::parse($data['birthdate'])->format('Y-m-d');
+                $archive->data = $data;
+                $archive->save();
 
-        # Then do a name check for similarities and other stuffs
-        $this->nameCheck($archive->data['first_name'], $archive->data['middle_name'], $archive->data['last_name'], $archive->data['extension_name'], $archive->data['birthdate']);
+                # Then do a name check for similarities and other stuffs
+                $this->nameCheck($archive->data['first_name'], $archive->data['middle_name'], $archive->data['last_name'], $archive->data['extension_name'], $archive->data['birthdate']);
 
-        # If yes then prompt or show something to not allow the restoration
-        if (!$batch) {
-            $this->alerts[] = [
-                'message' => 'Restoration unsuccessful. Make sure the batch is existing.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-        } elseif ($batch?->approval_status === 'approved') {
-            $this->alerts[] = [
-                'message' => 'Restoration unsuccessful. Make sure the batch is still pending.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-        } elseif ($batch?->slots_allocated <= $this->beneficiaryCount($batchId)) {
-            $this->alerts[] = [
-                'message' => 'Restoration unsuccessful. Make sure the batch is not full-slotted.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-        } elseif ($this->isPerfectDuplicate) {
-            $this->alerts[] = [
-                'message' => 'Restoration unsuccessful. This record has a perfect duplicate.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-        } elseif ($this->isSameImplementation) {
-            $this->alerts[] = [
-                'message' => 'Restoration unsuccessful. This record is already on the same implementation.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-        } elseif ($this->isSamePending) {
-            $this->alerts[] = [
-                'message' => 'Restoration unsuccessful. This record is already on a pending batch.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-        } elseif ($this->isIneligible) {
-            $this->alerts[] = [
-                'message' => 'Restoration unsuccessful. This record is ineligible to apply.',
-                'id' => uniqid(),
-                'color' => 'red'
-            ];
-        } else {
+                # If yes then prompt or show something to not allow the restoration
+                if (!$batch) {
+                    $this->alerts[] = [
+                        'message' => 'Restoration unsuccessful. Make sure the batch is existing.',
+                        'id' => uniqid(),
+                        'color' => 'red'
+                    ];
+                } elseif ($batch?->approval_status === 'approved') {
+                    $this->alerts[] = [
+                        'message' => 'Restoration unsuccessful. Make sure the batch is still pending.',
+                        'id' => uniqid(),
+                        'color' => 'red'
+                    ];
+                } elseif ($batch?->slots_allocated <= $this->beneficiaryCount($batchId)) {
+                    $this->alerts[] = [
+                        'message' => 'Restoration unsuccessful. Make sure the batch is not full-slotted.',
+                        'id' => uniqid(),
+                        'color' => 'red'
+                    ];
+                } elseif ($this->isPerfectDuplicate) {
+                    $this->alerts[] = [
+                        'message' => 'Restoration unsuccessful. This record has a perfect duplicate.',
+                        'id' => uniqid(),
+                        'color' => 'red'
+                    ];
+                } elseif ($this->isSameImplementation) {
+                    $this->alerts[] = [
+                        'message' => 'Restoration unsuccessful. This record is already on the same implementation.',
+                        'id' => uniqid(),
+                        'color' => 'red'
+                    ];
+                } elseif ($this->isSamePending) {
+                    $this->alerts[] = [
+                        'message' => 'Restoration unsuccessful. This record is already on a pending batch.',
+                        'id' => uniqid(),
+                        'color' => 'red'
+                    ];
+                } elseif ($this->isIneligible) {
+                    $this->alerts[] = [
+                        'message' => 'Restoration unsuccessful. This record is ineligible to apply.',
+                        'id' => uniqid(),
+                        'color' => 'red'
+                    ];
+                } else {
 
-            # If not, next is to get the credentials information (if any)
-            $credentials = Archive::where('source_table', 'credentials')
-                ->where('data->beneficiaries_id', $archive->data['id'])
-                ->get();
+                    # If not, next is to get the credentials information (if any)
+                    $credentials = Archive::where('source_table', 'credentials')
+                        ->where('data->beneficiaries_id', $archive->data['id'])
+                        ->get();
 
-            # then parse the datetime formats
-            $data['created_at'] = Carbon::parse($data['created_at'])->format('Y-m-d h:i:s');
-            $data['updated_at'] = Carbon::parse($data['updated_at'])->format('Y-m-d h:i:s');
-            $archive->data = $data;
-            $archive->save();
-
-            # then insert them back to their original tables
-            DB::table($archive->source_table)->insert($archive->data);
-            $archive->delete();
-
-            # same with the credentials
-            if ($credentials->isNotEmpty()) {
-                foreach ($credentials as $credential) {
-                    $data = $credential->data;
+                    # then parse the datetime formats
                     $data['created_at'] = Carbon::parse($data['created_at'])->format('Y-m-d h:i:s');
                     $data['updated_at'] = Carbon::parse($data['updated_at'])->format('Y-m-d h:i:s');
-                    $credential->data = $data;
-                    $credential->save();
+                    $archive->data = $data;
+                    $archive->save();
 
-                    DB::table($credential->source_table)->insert($credential->data);
+                    # then insert them back to their original tables
+                    DB::table($archive->source_table)->insert($archive->data);
+                    $archive->deleteOrFail();
 
-                    $credential->delete();
+                    # same with the credentials
+                    if ($credentials->isNotEmpty()) {
+                        foreach ($credentials as $credential) {
+                            $data = $credential->data;
+                            $data['created_at'] = Carbon::parse($data['created_at'])->format('Y-m-d h:i:s');
+                            $data['updated_at'] = Carbon::parse($data['updated_at'])->format('Y-m-d h:i:s');
+                            $credential->data = $data;
+                            $credential->save();
+
+                            DB::table($credential->source_table)->insert($credential->data);
+
+                            $credential->deleteOrFail();
+                        }
+                    }
+
+                    # Log this
+                    LogIt::set_restore_archive($implementation, $batch, $archive, auth()->user());
+
+                    # bust the archives cache
+                    unset($this->archives);
+
+                    # end the code block with a modal closure and sweet alert
+                    $this->alerts[] = [
+                        'message' => 'Record successfully restored!',
+                        'id' => uniqid(),
+                        'color' => 'indigo'
+                    ];
                 }
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+
+                $this->alerts[] = [
+                    'message' => 'An error has occured during execution. Error ' . $e->getCode(),
+                    'id' => uniqid(),
+                    'color' => 'red'
+                ];
+            } finally {
+                # end the code block with a modal closure and sweet alert
+                $this->js('promptRestoreModal = false;');
+                $this->actionId = null;
+                $this->archiveId = null;
+                $this->selectedRowKey = -1;
             }
-
-            # Log this
-            LogIt::set_restore_archive($implementation, $batch, $archive, auth()->user());
-
-            # bust the archives cache
-            unset($this->archives);
-
-            # end the code block with a modal closure and sweet alert
-            $this->alerts[] = [
-                'message' => 'Record successfully restored!',
-                'id' => uniqid(),
-                'color' => 'indigo'
-            ];
-        }
-
-        $this->js('promptRestoreModal = false;');
-        $this->actionId = null;
-        $this->archiveId = null;
-        $this->selectedRowKey = -1;
+        }, 5);
     }
 
     public function permanentlyDelete()
     {
-        # Before anything else, authorize the action
-        $archive = Archive::find($this->actionId ? decrypt($this->actionId) : null);
-        $this->authorize('permdelete-beneficiary-focal', [$archive]);
+        DB::transaction(function () {
+            try {
+                # Before anything else, authorize the action
+                $archive = Archive::find($this->actionId ? decrypt($this->actionId) : null);
+                $this->authorize('archives-focal', [$archive]);
 
-        # initialize some values for logging
-        $batchId = $archive->data['batches_id'];
-        $batch = Batch::find($batchId);
-        $implementation = Implementation::find($batch->implementations_id);
+                # initialize some values for logging
+                $batchId = $archive->data['batches_id'];
+                $batch = Batch::with([
+                    'implementation' => function ($q) {
+                        $q->lockForUpdate();
+                    }
+                ])->lockForUpdate()->find($batchId);
+                $implementation = $batch->implementation;
 
-        # find its credentials (if any)
-        $credentials = Archive::where('source_table', 'credentials')
-            ->where('data->beneficiaries_id', $archive->data['id'])
-            ->get();
+                # find its credentials (if any)
+                $credentials = Archive::where('source_table', 'credentials')
+                    ->where('data->beneficiaries_id', $archive->data['id'])
+                    ->get();
 
-        # then delete the records
-        if ($credentials->isNotEmpty()) {
-            foreach ($credentials as $credential) {
-                if (isset($credential->data['image_file_path']) && Storage::exists($credential->data['image_file_path'])) {
-                    Storage::delete($credential->data['image_file_path']);
+                # then delete the records
+                if ($credentials->isNotEmpty()) {
+                    foreach ($credentials as $credential) {
+                        if (isset($credential->data['image_file_path']) && Storage::exists($credential->data['image_file_path'])) {
+                            Storage::delete($credential->data['image_file_path']);
+                        }
+                        $credential->deleteOrFail();
+                    }
                 }
-                $credential->delete();
+
+                $archive->deleteOrFail();
+
+                # Log this
+                LogIt::set_permanently_delete_archive($implementation, $batch, $archive, auth()->user());
+
+                # bust the archives cache
+                unset($this->archives);
+
+                # end the code block with a modal closure and sweet alert
+                $this->alerts[] = [
+                    'message' => 'Record has been permanently deleted!',
+                    'id' => uniqid(),
+                    'color' => 'indigo'
+                ];
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+
+                $this->alerts[] = [
+                    'message' => 'An error has occured during execution. Error ' . $e->getCode(),
+                    'id' => uniqid(),
+                    'color' => 'red'
+                ];
+            } finally {
+                # end the code block with a modal closure and sweet alert
+                $this->js('promptDeleteModal = false;');
+                $this->actionId = null;
+                $this->archiveId = null;
+                $this->selectedRowKey = -1;
             }
-        }
-
-        $archive->delete();
-
-        # Log this
-        LogIt::set_permanently_delete_archive($implementation, $batch, $archive, auth()->user());
-
-        # bust the archives cache
-        unset($this->archives);
-
-        # end the code block with a modal closure and sweet alert
-        $this->alerts[] = [
-            'message' => 'Record has been permanently deleted!',
-            'id' => uniqid(),
-            'color' => 'indigo'
-        ];
-
-        # end the code block with a modal closure and sweet alert
-        $this->js('promptDeleteModal = false;');
-        $this->actionId = null;
-        $this->archiveId = null;
-        $this->selectedRowKey = -1;
+        }, 5);
     }
 
     public function selectRestore($encryptedId)
@@ -388,6 +425,8 @@ class Archives extends Component
         }
     }
 
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
     public function updated($prop)
     {
         if ($prop === 'calendarStart') {

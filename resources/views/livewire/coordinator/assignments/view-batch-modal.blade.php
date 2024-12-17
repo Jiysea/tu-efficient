@@ -22,8 +22,7 @@
 
                     <div class="flex items-center justify-center">
                         {{-- Loading State for Changes --}}
-                        <div class="z-50 text-blue-900" wire:loading
-                            wire:target="generateCode, forceSubmitOrResolve, revalidateSubmission">
+                        <div class="z-50 text-blue-900" wire:loading wire:target="confirmModalOpen">
                             <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -60,7 +59,7 @@
                                 Batch Number
                             </p>
                             <span
-                                class="flex flex-1 text-sm rounded p-2.5 bg-blue-50 text-blue-900 font-medium">{{ $this->batch?->batch_num }}</span>
+                                class="flex flex-1 text-sm rounded p-2.5 bg-blue-50 text-blue-700 font-medium">{{ $this->batch?->batch_num }}</span>
                         </div>
 
                         @if ($this->batch?->is_sectoral)
@@ -186,41 +185,40 @@
 
                         {{-- Buttons --}}
                         @if ($this->batch?->approval_status === 'pending')
-                            <div
-                                class="flex items-center justify-end gap-2 sm:gap-4 col-span-full relative text-base font-bold">
+                            <div class="flex items-center justify-end gap-2 col-span-full relative text-base font-bold">
                                 @if ($this->batch?->submission_status === 'submitted')
                                     <button type="button" wire:click="confirmModalOpen('{{ encrypt('revalidate') }}')"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
                                         REVALIDATE
                                     </button>
                                     <button type="button"
                                         @if ($this->currentSlots !== $this->batch?->slots_allocated) disabled @else wire:click="confirmModalOpen('{{ encrypt('approve') }}')" @endif
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded disabled:bg-green-300 bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">
+                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
                                         APPROVE
                                     </button>
                                 @elseif ($this->batch?->submission_status === 'unopened')
                                     <button type="button" @click="accessCodeModal = !accessCodeModal;"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
                                         OPEN ACCESS
                                     </button>
                                 @elseif ($this->batch?->submission_status === 'encoding')
+                                    <button type="button" @click="accessCodeModal = !accessCodeModal;"
+                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
+                                        REGENERATE CODE
+                                    </button>
                                     <button type="button"
                                         wire:click="confirmModalOpen('{{ encrypt('force_submit') }}')"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50">
+                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
                                         FORCE SUBMIT
                                     </button>
-                                    <button type="button" @click="accessCodeModal = !accessCodeModal;"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
-                                        REGENERATE CODE
-                                    </button>
                                 @elseif ($this->batch?->submission_status === 'revalidate')
-                                    <button type="button" wire:click="confirmModalOpen('{{ encrypt('resolve') }}')"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">
-                                        RESOLVE
-                                    </button>
                                     <button type="button" @click="accessCodeModal = !accessCodeModal;"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
                                         REGENERATE CODE
+                                    </button>
+                                    <button type="button" wire:click="confirmModalOpen('{{ encrypt('resolve') }}')"
+                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                        RESOLVE
                                     </button>
                                 @endif
                             </div>
@@ -231,7 +229,7 @@
         </div>
 
         {{-- OPEN ACCESS / GENERATE CODE MODAL --}}
-        <div x-cloak @keydown.window.escape="accessCodeModal">
+        <div x-cloak @keydown.window.escape="accessCodeModal = false;">
             <!-- Modal Backdrop -->
             <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="accessCodeModal">
             </div>
@@ -251,7 +249,8 @@
 
                             <div class="flex items-center justify-center">
                                 {{-- Loading State for Changes --}}
-                                <div class="z-50 text-blue-900" wire:loading wire:target="generateCode">
+                                <div class="z-50 {{ $this->batch?->submission_status === 'revalidate' ? 'text-red-900' : 'text-blue-900' }}"
+                                    wire:loading wire:target="generateCode">
                                     <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -265,7 +264,8 @@
 
                                 {{-- Close Modal --}}
                                 <button type="button" @click="accessCodeModal = false;"
-                                    class="outline-none text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900 rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                                    class="outline-none rounded size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out
+                                    {{ $this->batch?->submission_status === 'revalidate' ? 'text-red-400 focus:bg-red-200 focus:text-red-900 hover:bg-red-200 hover:text-red-900' : 'text-blue-400 focus:bg-blue-200 focus:text-blue-900 hover:bg-blue-200 hover:text-blue-900' }}">
                                     <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 14 14">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -281,31 +281,63 @@
                         {{-- Modal body --}}
                         <div class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-16 text-blue-1100 text-xs">
                             <p class="mb-2 text-sm">Do not share this access code to just anyone!</p>
-                            <div x-data="{ code: $wire.entangle('code'), copied: false, tooltip: false }" class="relative flex items-center justify-center w-full">
+                            <div x-data="{ code: $wire.entangle('code'), copied: false, tooltip: false, tooltip2: false }" class="relative flex items-center justify-center w-full">
                                 <div class="relative me-2">
-                                    @if ($this->batch?->submission_status === 'unopened')
-                                        <button wire:loading.attr="disabled"
-                                            class="flex items-center justify-center disabled:bg-blue-300 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 p-2 rounded text-base font-bold duration-200 ease-in-out"
+                                    @if ($this->batch?->submission_status === 'unopened' || $this->batch?->submission_status === 'submitted')
+                                        <button wire:loading.attr="disabled" @mouseover="tooltip2 = true;"
+                                            @mouseleave="tooltip2 = false;"
+                                            class="flex items-center justify-center border border-transparent disabled:opacity-75 p-2 rounded text-base font-bold duration-200 ease-in-out bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50"
                                             @click="if(copied == false) { $wire.generateCode(); }">
-                                            GENERATE / OPEN
+                                            OPEN
                                         </button>
+
+                                        <span x-show="tooltip2" x-transition.opacity
+                                            class="absolute bottom-full mb-2 left-0 border border-zinc-300 bg-zinc-900 text-zinc-50 rounded p-2 whitespace-nowrap">
+                                            This will open the batch for submission<br>
+                                            and generates an <span class="text-blue-500">access code</span>.
+                                        </span>
                                     @elseif ($this->batch?->submission_status === 'encoding' || $this->batch?->submission_status === 'revalidate')
-                                        <button wire:loading.attr="disabled"
-                                            class="flex items-center justify-center disabled:bg-blue-300 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 p-2 rounded text-sm font-bold duration-200 ease-in-out"
-                                            @click="if(copied == false) { $wire.generateCode(); }">
-                                            REGENERATE
+                                        <button wire:loading.attr="disabled" @mouseover="tooltip2 = true;"
+                                            @mouseleave="tooltip2 = false;"
+                                            class="flex items-center justify-center border border-transparent disabled:opacity-75 p-2 rounded text-base font-bold duration-200 ease-in-out"
+                                            @click="if(copied == false) { $wire.generateCode(); }"
+                                            :class="{
+                                                'bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50': {{ json_encode($this->batch?->submission_status === 'revalidate') }},
+                                                'bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50': {{ json_encode($this->batch?->submission_status === 'encoding') }},
+                                            }">
+                                            GENERATE
                                         </button>
+
+                                        <span x-show="tooltip2" x-transition.opacity
+                                            class="absolute bottom-full mb-2 left-0 border border-zinc-300 bg-zinc-900 text-zinc-50 rounded p-2 whitespace-nowrap">
+                                            This will generate another unique <span
+                                                class="{{ $this->batch?->submission_status === 'revalidate' ? 'text-red-500' : 'text-blue-500' }}">access
+                                                code</span>.
+                                        </span>
                                     @endif
                                 </div>
 
-                                <input type="text" id="code" x-model="code" readonly
-                                    class="flex flex-1 border-blue-300 bg-blue-50 text-blue-1100 rounded outline-none border py-2.5 text-sm select-all duration-200 ease-in-out"
-                                    placeholder="Generate the access code">
+                                <input type="text" id="code" x-model="code"
+                                    @if ($this->batch?->submission_status === 'unopened' || $this->batch?->submission_status === 'submitted') disabled
+                                    @else readonly @endif
+                                    class="flex flex-1 rounded outline-none focus:outline-none border py-2.5 text-sm select-all duration-200 ease-in-out
+                                        disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300"
+                                    placeholder="Generate the access code"
+                                    :class="{
+                                        'border-red-300 bg-red-50 text-red-950 focus:ring-1 focus:ring-red-500 focus:border-red-300 selection:bg-red-700 selection:text-red-50': {{ json_encode($this->batch?->submission_status === 'revalidate') }},
+                                        'border-blue-300 bg-blue-50 text-blue-1100 focus:ring-1 focus:ring-blue-500 focus:border-blue-300 selection:bg-blue-700 selection:text-blue-50': {{ json_encode($this->batch?->submission_status === 'encoding') }},
+                                    }">
 
                                 <div class="relative ms-2">
                                     <button @mouseover="tooltip = true;" @mouseleave="tooltip = false;"
-                                        class="flex flex-1 items-center justify-center border border-gray-300 active:border-gray-500 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-500 p-3 rounded text-sm duration-200 ease-in-out"
-                                        @click="if(copied == false) {navigator.clipboard.writeText(code).then(() => copied = true); setTimeout(() => copied = false, 3000);}">
+                                        class="flex flex-1 items-center justify-center border p-3 rounded text-sm duration-200 ease-in-out
+                                            disabled:border-gray-300 disabled:bg-gray-300 disabled:text-gray-500"
+                                        :class="{
+                                            'border-red-300 active:border-red-500 bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-700 hover:text-red-800 active:text-red-900': {{ json_encode($this->batch?->submission_status === 'revalidate') }},
+                                            'border-blue-300 active:border-blue-500 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 hover:text-blue-800 active:text-blue-900': {{ json_encode($this->batch?->submission_status === 'encoding') }},
+                                        }"
+                                        @if ($this->batch?->submission_status !== 'unopened') @click="if(copied == false) {navigator.clipboard.writeText(code).then(() => copied = true); setTimeout(() => copied = false, 3000);}"
+                                        @else disabled @endif>
                                         <span id="default-icon" x-show="!copied">
                                             <svg class="size-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                                 fill="currentColor" viewBox="0 0 18 20">
@@ -323,10 +355,16 @@
                                         </span>
                                     </button>
 
+
                                     <span x-show="tooltip" x-transition.opacity
-                                        class="absolute -top-full right-0 bg-gray-700 text-blue-50 rounded p-2 whitespace-nowrap">
-                                        <p x-show="!copied">Copy Code</p>
-                                        <p x-show="copied">Copied to Clipboard!</p>
+                                        class="absolute bottom-full mb-2 right-0 border border-zinc-300 bg-zinc-900 text-zinc-50 rounded p-2 whitespace-nowrap">
+                                        @if ($this->batch?->submission_status !== 'unopened')
+                                            <p x-show="!copied">Copy Code</p>
+                                            <p x-show="copied">Copied to Clipboard!</p>
+                                        @else
+                                            <p>You will be able to copy if <br>
+                                                there is an <span class="text-blue-500">access code</span>.</p>
+                                        @endif
                                     </span>
                                 </div>
                             </div>
@@ -337,11 +375,11 @@
         </div>
 
         {{-- CONFIRMATION MODAL --}}
-        <div x-cloak @keydown.window.escape="confirmModal"
+        <div x-cloak @keydown.window.escape="$wire.resetConfirm(); confirmModal = false"
             class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="confirmModal">
 
             <!-- Modal -->
-            <div x-show="confirmModal" x-trap.noscroll.noautofocus="confirmModal"
+            <div x-show="confirmModal" x-trap.noscroll="confirmModal"
                 class="relative h-full p-4 flex justify-center items-center overflow-y-auto z-50 select-none">
 
                 {{-- The Modal --}}
@@ -352,11 +390,11 @@
                         <div class="relative flex items-center justify-between py-2 px-4 rounded-t-md">
                             <h1 class="text-sm sm:text-base font-semibold text-blue-1100">
                                 @if ($this->confirmType === 'revalidate')
-                                    Force Submit this Batch
+                                    Revalidate this Batch
                                 @elseif($this->confirmType === 'resolve')
                                     Resolve this Batch
                                 @elseif($this->confirmType === 'force_submit')
-                                    Revalidate this Batch
+                                    Force Submit this Batch
                                 @elseif($this->confirmType === 'approve')
                                     Approve this Batch
                                 @endif
@@ -414,7 +452,7 @@
                             <div class="relative flex items-center justify-center w-full">
                                 <div class="flex items-center justify-center">
                                     <div class="relative me-2">
-                                        <input type="password" id="password_confirm" autocomplete="off" autofocus
+                                        <input type="password" id="password_confirm" autofocus autocomplete="off"
                                             wire:model.blur="password_confirm"
                                             class="flex flex-1 {{ $errors->has('password_confirm') ? 'border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 selection:bg-red-700 selection:text-red-50' : 'border-blue-300 bg-blue-50 selection:bg-blue-700 selection:text-blue-50' }} focus:ring-0 rounded outline-none border py-2.5 text-sm duration-200 ease-in-out"
                                             placeholder="Enter your password">
@@ -426,7 +464,7 @@
                                     </div>
                                     <button type="submit"
                                         wire:target="forceSubmitOrResolve, revalidateSubmission, approveSubmission"
-                                        class="flex items-center justify-center bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 p-2 rounded text-base font-bold duration-200 ease-in-out">
+                                        class="flex items-center justify-center border border-transparent disabled:opacity-75 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 p-2 rounded text-base font-bold duration-200 ease-in-out">
                                         CONFIRM
                                     </button>
                                 </div>

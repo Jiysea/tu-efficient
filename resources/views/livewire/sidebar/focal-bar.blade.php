@@ -344,7 +344,7 @@
                                 'hidden': (open && isAboveBreakpoint),
                                 'inline-block': (!open && isAboveBreakpoint),
                             }"
-                            class="absolute hidden left-full top-0 z-40 text-sm text-indigo-100 bg-gray-900 border-gray-300 border rounded shadow-lg">
+                            class="absolute hidden left-full top-0 z-40 text-sm border text-zinc-50 bg-zinc-900 border-zinc-300 rounded shadow-lg">
                             <div class="px-3 py-2 font-semibold">
                                 <p>Dashboard</p>
                             </div>
@@ -378,7 +378,7 @@
                                 'hidden': (open && isAboveBreakpoint),
                                 'inline-block': (!open && isAboveBreakpoint),
                             }"
-                            class="absolute hidden left-full top-0 z-40 text-sm text-indigo-100 bg-gray-900 border-gray-300 border rounded shadow-lg">
+                            class="absolute hidden left-full top-0 z-40 text-sm border text-zinc-50 bg-zinc-900 border-zinc-300 rounded shadow-lg">
                             <div class="px-3 py-2 font-semibold">
                                 <p>Implementations</p>
                             </div>
@@ -414,7 +414,7 @@
                                 'hidden': (open && isAboveBreakpoint),
                                 'inline-block': (!open && isAboveBreakpoint),
                             }"
-                            class="absolute hidden left-full top-0 z-40 text-sm text-indigo-100 bg-gray-900 border-gray-300 border rounded shadow-lg">
+                            class="absolute hidden left-full top-0 z-40 text-sm border text-zinc-50 bg-zinc-900 border-zinc-300 rounded shadow-lg">
                             <div class="px-3 py-2 whitespace-nowrap font-semibold">
                                 <p>User Management</p>
                             </div>
@@ -449,7 +449,7 @@
                                 'hidden': (open && isAboveBreakpoint),
                                 'inline-block': (!open && isAboveBreakpoint),
                             }"
-                            class="absolute hidden left-full top-0 z-40 text-sm text-indigo-100 bg-gray-900 border-gray-300 border rounded shadow-lg">
+                            class="absolute hidden left-full top-0 z-40 text-sm border text-zinc-50 bg-zinc-900 border-zinc-300 rounded shadow-lg">
                             <div class="px-3 py-2 whitespace-nowrap font-semibold">
                                 <p>Archives</p>
                             </div>
@@ -484,7 +484,7 @@
                                 'hidden': (open && isAboveBreakpoint),
                                 'inline-block': (!open && isAboveBreakpoint),
                             }"
-                            class="absolute hidden left-full top-0 z-40 text-sm text-indigo-100 bg-gray-900 border-gray-300 border rounded shadow-lg">
+                            class="absolute hidden left-full top-0 z-40 text-sm border text-zinc-50 bg-zinc-900 border-zinc-300 rounded shadow-lg">
                             <div class="px-3 py-2 whitespace-nowrap font-semibold">
                                 <p>Activity Logs</p>
                             </div>
@@ -546,10 +546,11 @@
 
                                 {{-- Logout --}}
                                 <li>
-                                    <form method="POST" action="{{ route('logout') }}">
+                                    <form id="logout-form" method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" aria-label="{{ __('Logout') }}"
-                                            class="flex items-center w-full text-indigo-1100 px-4 justify-start py-2 hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
+                                        <button type="button" id="logout-btn" @click="$wire.logout();"
+                                            aria-label="{{ __('Logout') }}"
+                                            class="flex items-center w-full text-indigo-1100 px-4 justify-start py-2 disabled:cursor-not-allowed hover:bg-indigo-200 hover:text-indigo-900 duration-300 ease-in-out cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5 me-2"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">

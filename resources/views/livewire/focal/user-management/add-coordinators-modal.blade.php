@@ -1,5 +1,5 @@
 <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-    x-show="addCoordinatorsModal" @keydown.escape.window="addCoordinatorsModal">
+    x-show="addCoordinatorsModal" @keydown.escape.window="addCoordinatorsModal = false">
 
     <div x-show="addCoordinatorsModal" x-trap.noscroll.noautofocus="addCoordinatorsModal"
         class="min-h-screen p-4 flex items-center justify-center z-50 select-none">

@@ -7,6 +7,7 @@ use App\Models\Implementation;
 use App\Models\User;
 use App\Services\Essential;
 use App\Services\LogIt;
+use DB;
 use Illuminate\Auth\Events\Registered;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -173,7 +174,7 @@ class AddCoordinatorsModal extends Component
         LogIt::set_register_user($user, auth()->id());
 
         $this->resetCoordinators();
-        $this->dispatch('add-new-coordinator');
+        $this->dispatch('alertNotification', type: null, message: 'Successfully created a coordinator', color: 'indigo');
     }
 
     public function resetCoordinators()

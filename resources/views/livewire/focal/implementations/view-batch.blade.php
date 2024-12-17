@@ -51,7 +51,7 @@
                 <hr class="">
 
                 {{-- Modal body --}}
-                @if ($passedBatchId)
+                @if ($batchId)
                     <form wire:submit.prevent="editBatch" class="pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
 
@@ -98,7 +98,7 @@
                                 @else
                                     {{-- District --}}
                                     <div x-data="{ show: false, district: $wire.entangle('district') }" class="relative flex flex-col">
-                                        @if ($isEmpty)
+                                        @if ($this->isEmpty)
                                             <p class="block mb-1 font-medium text-indigo-1100 ">
                                                 <span class="relative">District
                                                     <span
@@ -160,7 +160,7 @@
 
                                     {{-- Barangay --}}
                                     <div x-data="{ show: false, barangay_name: $wire.entangle('barangay_name') }" class="relative flex flex-col">
-                                        @if ($isEmpty)
+                                        @if ($this->isEmpty)
                                             <p class="block mb-1 font-medium text-indigo-1100 ">
                                                 <span class="relative"
                                                     :class="{
@@ -284,7 +284,7 @@
 
                                 {{-- Slots --}}
                                 <div class="flex flex-1 flex-col relative">
-                                    @if ($isEmpty)
+                                    @if ($this->isEmpty)
                                         <label for="slots_allocated"
                                             class="flex items-center justify-between mb-1 font-medium text-indigo-1100 ">
                                             <p>
@@ -451,7 +451,7 @@
 
                                 {{-- Type of Batch --}}
                                 <div class="relative flex flex-col sm:justify-end sm:col-span-full">
-                                    @if ($isEmpty)
+                                    @if ($this->isEmpty)
                                         <span class="block mb-1 font-medium text-indigo-1100">Type of Batch</span>
 
                                         <span class="flex items-center justify-center gap-2">
@@ -539,8 +539,8 @@
 
                                 {{-- Save & Cancel Buttons --}}
                                 <div
-                                    class="flex items-center {{ $isEmpty ? 'justify-end' : 'justify-between' }} col-span-full gap-2 sm:gap-4">
-                                    @if (!$isEmpty)
+                                    class="flex items-center {{ $this->isEmpty ? 'justify-end' : 'justify-between' }} col-span-full gap-2 sm:gap-4">
+                                    @if (!$this->isEmpty)
                                         <span
                                             class="flex flex-1 items-center justify-start font-medium border bg-red-100 border-red-300 text-red-950 rounded text-xs p-3 outline-none">
                                             <svg class="size-3.5 me-2" aria-hidden="true"
@@ -690,9 +690,9 @@
                                     <span x-data="{ pop: false }" class="relative">
                                         {{-- Delete/Trash Button --}}
                                         <button type="button" wire:loading.attr="disabled"
-                                            @if ($isEmpty) @click="deleteBatchModal = !deleteBatchModal;" @else @mouseleave="pop = false;" @mouseenter="pop = true;" disabled @endif
+                                            @if ($this->isEmpty) @click="deleteBatchModal = !deleteBatchModal;" @else @mouseleave="pop = false;" @mouseenter="pop = true;" disabled @endif
                                             class="disabled:cursor-not-allowed duration-200 ease-in-out flex shrink items-center justify-center ms-2 p-2 rounded outline-none font-bold text-sm
-                                            {{ !$isEmpty ? 'bg-gray-300 text-gray-500' : 'bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50' }}">
+                                            {{ !$this->isEmpty ? 'bg-gray-300 text-gray-500' : 'bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50' }}">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
@@ -705,7 +705,7 @@
                                             </svg>
                                         </button>
 
-                                        @if (!$isEmpty)
+                                        @if (!$this->isEmpty)
                                             {{-- Tooltip Content --}}
                                             <div x-cloak x-show="pop" x-transition.opacity
                                                 class="absolute z-50 top-full mt-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
@@ -913,15 +913,15 @@
                                     @if ($this->batch?->approval_status === 'pending')
                                         <span x-data="{ pop: false }" class="relative flex">
                                             <button type="button" wire:loading.attr="disabled"
-                                                @if (!$isEmpty) @click="forceApproveModal = !forceApproveModal;"
+                                                @if (!$this->isEmpty) @click="forceApproveModal = !forceApproveModal;"
                                             @else
                                                 @mouseleave="pop = false;" @mouseenter="pop = true;" disabled @endif
                                                 class="disabled:cursor-not-allowed text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md 
-                                                    {{ $isEmpty ? 'bg-gray-300 text-gray-500' : 'bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50' }}">
+                                                    {{ $this->isEmpty ? 'bg-gray-300 text-gray-500' : 'bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50' }}">
                                                 FORCE APPROVE
                                             </button>
 
-                                            @if ($isEmpty)
+                                            @if ($this->isEmpty)
                                                 {{-- Tooltip Content --}}
                                                 <div x-cloak x-show="pop" x-transition.opacity
                                                     class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">

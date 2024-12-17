@@ -1,12 +1,13 @@
-<div x-cloak x-show="viewCoordinatorModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-    @keydown.escape.window="viewCoordinatorModal">
+<div x-cloak x-data="{ deleteCoordinatorModal: $wire.entangle('deleteCoordinatorModal') }" x-show="viewCoordinatorModal"
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+    @keydown.escape.window="if(!deleteCoordinatorModal) {viewCoordinatorModal = false}">
 
     <!-- Modal -->
     <div x-show="viewCoordinatorModal" x-trap.noautofocus.noscroll="viewCoordinatorModal"
         class="relative h-full overflow-y-auto p-4 flex items-start sm:items-center justify-center select-none">
 
         <!-- Modal content -->
-        <div x-data="{ deleteCoordinatorModal: $wire.entangle('deleteCoordinatorModal') }" class="w-full sm:w-auto">
+        <div class="w-full sm:w-auto">
             <div class="relative bg-white rounded-md shadow">
 
                 <!-- Modal header -->
@@ -469,12 +470,13 @@
                                 <div x-cloak>
                                     <!-- Modal Backdrop -->
                                     <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-                                        x-show="deleteCoordinatorModal">
+                                        x-show="deleteCoordinatorModal"
+                                        @keydown.escape.window="deleteCoordinatorModal = false">
                                     </div>
 
                                     <!-- Modal -->
-                                    <div x-trap.inert="deleteCoordinatorModal" x-show="deleteCoordinatorModal"
-                                        x-trap.noscroll="deleteCoordinatorModal"
+                                    <div x-show="deleteCoordinatorModal"
+                                        x-trap.noautofocus.noscroll="deleteCoordinatorModal"
                                         class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
 
                                         {{-- The Modal --}}
@@ -508,18 +510,18 @@
                                                     <p class="font-medium text-sm mb-1">
                                                         Are you sure about deleting this coordinator?
                                                     </p>
-                                                    <p class="text-gray-500 text-sm mb-4">
-                                                        (This is action is irreversible)
+                                                    <p class="text-gray-500 text-xs font-normal mb-4">
+                                                        This is action is irreversible
                                                     </p>
-                                                    <div class="flex items-center justify-center w-full gap-4">
+                                                    <div class="flex items-center justify-center w-full gap-2">
                                                         <button type="button"
                                                             @click="deleteCoordinatorModal = false;"
-                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-indigo-700 hover:border-transparent active:border-transparent hover:bg-indigo-800 active:bg-indigo-900 text-indigo-700 hover:text-indigo-50 active:text-indigo-50">
                                                             CANCEL
                                                         </button>
                                                         <button type="button"
                                                             @click="$wire.deleteCoordinator(); deleteCoordinatorModal = false;"
-                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm border border-transparent bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
                                                             CONFIRM
                                                         </button>
                                                     </div>
