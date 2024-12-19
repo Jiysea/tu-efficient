@@ -951,7 +951,6 @@ class EditBeneficiaryModal extends Component
                 $this->birthdate = null;
             }
 
-            $this->js('$wire.closeBirthdate();');
             $this->dispatch('init-reload')->self();
         }
 
@@ -1074,6 +1073,16 @@ class EditBeneficiaryModal extends Component
         ]);
         $this->isSpecialCase = false;
         $this->isResolved = false;
+    }
+
+    #[Computed]
+    public function seniorCitizenCheck()
+    {
+        if ($this->birthdate && !is_null(Essential::extract_date($this->birthdate)) && Essential::extract_date($this->birthdate, false) === 'm-d-Y') {
+            $this->validateOnly('birthdate');
+            return strtotime(Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d')) <
+                strtotime(Carbon::now()->subYears(60));
+        }
     }
 
     public function resetBeneficiaries()

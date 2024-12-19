@@ -978,10 +978,7 @@
                                         </button>
                                     @endif
 
-                                    @if (
-                                        $birthdate &&
-                                            strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) <
-                                                strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if ($this->seniorCitizenCheck)
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-green-1100 hover:text-green-900 focus:text-green-900 active:text-green-1000 hover:bg-green-100 focus:bg-green-100 active:bg-green-200">

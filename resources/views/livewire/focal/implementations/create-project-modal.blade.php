@@ -1,9 +1,9 @@
 <div x-cloak @keydown.window.escape="$wire.resetProject(); createProjectModal = false"
-    class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50" x-show="createProjectModal">
+    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="createProjectModal">
 
     <!-- Modal -->
     <div x-show="createProjectModal" x-trap.noscroll.noautofocus="createProjectModal"
-        class="relative h-full p-4 flex items-start justify-center z-50 select-none">
+        class="relative h-full p-4 flex items-start justify-center overflow-y-auto z-50 select-none">
 
         {{-- The Modal --}}
         <div class="w-full max-w-6xl">
@@ -265,7 +265,7 @@
                                     </span>
                                 </span>
                             </label>
-                            <select id="purpose" autocomplete="off" wire:model.blur="purpose"
+                            <select id="purpose" autocomplete="off" wire:model.live="purpose"
                                 class="text-xs duration-200 cursor-pointer {{ $errors->has('purpose') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-500 focus:border-indigo-500' }} border rounded block w-full p-2.5">
                                 <option value="">Select a purpose...</option>
                                 <option>DUE TO DISPLACEMENT/DISADVANTAGE</option>

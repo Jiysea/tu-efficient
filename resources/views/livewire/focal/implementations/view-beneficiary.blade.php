@@ -1074,7 +1074,8 @@
                                         'text-indigo-1100': {{ json_encode($district) }},
                                     }">
                                     <span class="relative">Barangay
-                                        <span class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
+                                        <span
+                                            class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
                                         </span>
                                     </span>
                                 </span>
@@ -1195,10 +1196,7 @@
                                         </button>
                                     @endif
 
-                                    @if (
-                                        $birthdate &&
-                                            strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) <
-                                                strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if ($this->seniorCitizenCheck)
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-indigo-1100 hover:text-indigo-900 focus:text-indigo-900 active:text-indigo-1000 hover:bg-indigo-100 focus:bg-indigo-100 active:bg-indigo-200">

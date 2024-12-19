@@ -688,58 +688,6 @@ class AddBeneficiariesModal extends Component
         return $ids;
     }
 
-    # It's a Livewire `Hook` for properties so the system can take action
-    # when a specific property has updated its state. 
-    public function updated($property)
-    {
-        if ($property === 'birthdate') {
-            if ($this->birthdate) {
-                $this->validateOnly('birthdate');
-                $choosenDate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
-
-                if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
-                    $this->type_of_id = 'Barangay ID';
-                }
-
-            } else {
-                $this->birthdate = null;
-            }
-
-            $this->js('$wire.closeBirthdate();');
-            $this->dispatch('init-reload')->self();
-        }
-
-        if ($property === 'civil_status') {
-            if ($this->civil_status === 'Single') {
-                $this->spouse_first_name = null;
-                $this->spouse_middle_name = null;
-                $this->spouse_last_name = null;
-                $this->spouse_extension_name = null;
-                $this->resetValidation('spouse_first_name');
-                $this->resetValidation('spouse_last_name');
-            }
-        }
-
-        if ($property === 'beneficiary_type') {
-            if ($this->beneficiary_type === 'Underemployed') {
-                $this->reset('reason_image_file_path', 'image_description');
-                $this->isResolved = false;
-            }
-        }
-
-        if ($property === 'contact_num') {
-            if ($this->contact_num === '') {
-                $this->contact_num = null;
-                $this->resetValidation('contact_num');
-            }
-        }
-        if ($property === 'is_pwd') {
-            if ($this->is_pwd === 'No' && $this->type_of_id === "Person's With Disability (PWD) ID") {
-                $this->type_of_id = 'Barangay ID';
-            }
-        }
-    }
-
     # Gets all the districts (unless it's a lone district) according to the choosen city/municipality by the user
     #[Computed]
     public function districts()
@@ -774,6 +722,67 @@ class AddBeneficiariesModal extends Component
     public function implementation()
     {
         return Implementation::find($this->batch?->implementations_id);
+    }
+
+    # It's a Livewire `Hook` for properties so the system can take action
+    # when a specific property has updated its state. 
+    public function updated($property)
+    {
+        if ($property === 'birthdate') {
+            if ($this->birthdate) {
+                $this->validateOnly('birthdate');
+                $choosenDate = Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d');
+
+                if ($this->type_of_id === 'Senior Citizen ID' && strtotime($choosenDate) > strtotime(Carbon::now()->subYears(60))) {
+                    $this->type_of_id = 'Barangay ID';
+                }
+
+            } else {
+                $this->birthdate = null;
+            }
+
+            $this->dispatch('init-reload')->self();
+        }
+
+        if ($property === 'civil_status') {
+            if ($this->civil_status === 'Single') {
+                $this->spouse_first_name = null;
+                $this->spouse_middle_name = null;
+                $this->spouse_last_name = null;
+                $this->spouse_extension_name = null;
+                $this->resetValidation('spouse_first_name');
+                $this->resetValidation('spouse_last_name');
+            }
+        }
+
+        if ($property === 'beneficiary_type') {
+            if ($this->beneficiary_type === 'Underemployed') {
+                $this->reset('reason_image_file_path', 'image_description');
+                $this->isResolved = false;
+            }
+        }
+
+        if ($property === 'contact_num') {
+            if ($this->contact_num === '') {
+                $this->contact_num = null;
+                $this->resetValidation('contact_num');
+            }
+        }
+        if ($property === 'is_pwd') {
+            if ($this->is_pwd === 'No' && $this->type_of_id === "Person's With Disability (PWD) ID") {
+                $this->type_of_id = 'Barangay ID';
+            }
+        }
+    }
+
+    #[Computed]
+    public function seniorCitizenCheck()
+    {
+        if ($this->birthdate && !is_null(Essential::extract_date($this->birthdate)) && Essential::extract_date($this->birthdate, false) === 'm-d-Y') {
+            $this->validateOnly('birthdate');
+            return strtotime(Carbon::createFromFormat('m-d-Y', $this->birthdate)->format('Y-m-d')) <
+                strtotime(Carbon::now()->subYears(60));
+        }
     }
 
     public function resetBarangays()

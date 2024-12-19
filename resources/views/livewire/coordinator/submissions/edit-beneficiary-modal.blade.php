@@ -670,7 +670,7 @@
                             </div>
                             <input type="text" datepicker datepicker-autohide datepicker-format="mm-dd-yyyy"
                                 datepicker-min-date='{{ $minDate }}' datepicker-max-date='{{ $maxDate }}'
-                                id="edit_birthdate" autocomplete="off" wire:model.blur="birthdate"
+                                id="edit_birthdate" autocomplete="off" wire:model="birthdate"
                                 @change-date.camel="$wire.$set('birthdate', $el.value);"
                                 class="text-xs border outline-none rounded block w-full py-2 ps-9 duration-200 ease-in-out {{ $errors->has('birthdate') ? 'border-red-500 bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-blue-50 border-blue-300 text-blue-1100 focus:ring-blue-600 focus:border-blue-600' }}"
                                 placeholder="Select date">
@@ -1040,10 +1040,11 @@
                                 <span class="block mb-1 font-medium"
                                     :class="{
                                         'text-gray-500': {{ json_encode(!isset($district) || empty($district)) }},
-                                        'text-blue-1100': {{ json_encode( $district) }},
+                                        'text-blue-1100': {{ json_encode($district) }},
                                     }">
                                     <span class="relative">Barangay
-                                        <span class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
+                                        <span
+                                            class="absolute left-full ms-1 -top-2 {{ $district ? 'text-red-700' : 'text-gray-500' }} font-medium text-lg">*
                                         </span>
                                     </span>
                                 </span>
@@ -1165,10 +1166,7 @@
                                         </button>
                                     @endif
 
-                                    @if (
-                                        $birthdate &&
-                                            strtotime(\Carbon\Carbon::createFromFormat('m-d-Y', $birthdate)->format('Y-m-d')) <
-                                                strtotime(\Carbon\Carbon::now()->subYears(60)))
+                                    @if ($this->seniorCitizenCheck)
                                         <button type="button"
                                             @click="type_of_id = 'Senior Citizen ID'; open = false;"
                                             class="flex items-center w-full outline-none first-of-type:rounded-t last-of-type:rounded-b p-2 text-left text-xs text-blue-1100 hover:text-blue-900 focus:text-blue-900 active:text-blue-1000 hover:bg-blue-100 focus:bg-blue-100 active:bg-blue-200">
@@ -1537,9 +1535,8 @@
 
                 {{-- Confirm Beneficiary Type Change Modal --}}
                 <div x-cloak class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto backdrop-blur-sm z-50"
-                    x-show="confirmTypeChangeModal" 
-                    @if ($confirmChangeType === 'beneficiary_type')
-                    @keydown.window.escape="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
+                    x-show="confirmTypeChangeModal"
+                    @if ($confirmChangeType === 'beneficiary_type') @keydown.window.escape="$wire.set('beneficiary_type', 'Special Case'); confirmTypeChangeModal = false;"
                 @elseif($confirmChangeType === 'first_name')
                     @keydown.window.escape="$wire.set('first_name', '{{ $this->beneficiary?->first_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
                 @elseif($confirmChangeType === 'middle_name')
@@ -1547,8 +1544,7 @@
                 @elseif($confirmChangeType === 'last_name')
                     @keydown.window.escape="$wire.set('last_name', '{{ $this->beneficiary?->last_name }}'); $wire.nameCheck(); confirmTypeChangeModal = false;"
                 @elseif($confirmChangeType === 'extension_name') 
-                    @keydown.window.escape="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" 
-                @endif>
+                    @keydown.window.escape="$wire.setFieldName('extension_name'); $wire.nameCheck(); confirmTypeChangeModal = false;" @endif>
 
                     <!-- Modal -->
                     <div x-show="confirmTypeChangeModal" x-trap.noreturn.noautofocus="confirmTypeChangeModal"
