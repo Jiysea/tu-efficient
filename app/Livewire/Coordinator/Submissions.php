@@ -953,54 +953,64 @@ class Submissions extends Component
     public function approveSubmission()
     {
         $this->validateOnly(field: 'password_approve');
-        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
-        $this->authorize('approve-submission-coordinator', $batch);
 
-        $checkSlots = Batch::whereHas('beneficiary')
-            ->where('batches.id', $batch->id)
-            ->exists();
+        DB::transaction(function () {
+            try {
+                $batch = Batch::lockForUpdate()->findOrFail($this->batchId ? decrypt($this->batchId) : null);
+                $this->authorize('check-coordinator', $batch);
 
-        if (
-            $batch->approval_status !== 'approved' && ($batch->submission_status === 'submitted' ||
-                $batch->submission_status === 'unopened') && $checkSlots
-        ) {
+                $checkSlots = Batch::whereHas('beneficiary')
+                    ->where('batches.id', $batch->id)
+                    ->exists();
 
-            $batch->approval_status = 'approved';
-            $batch->submission_status = 'submitted';
-            $batch->save();
+                if ($checkSlots) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'This batch should have at least one beneficiary', color: 'red');
+                    return;
+                }
 
-            $this->showAlert = true;
-            $this->alertMessage = 'Successfully approved the batch assignment!';
-            $this->dispatch('show-alert');
+                if ($batch->approval_status !== 'approved') {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'This batch is already approved', color: 'red');
+                    return;
+                }
 
-            LogIt::set_approve_batch($batch, auth()->user());
-        } else {
-            $this->showAlert = true;
-            $this->alertMessage = 'Cannot approve batch assignment when it is not submitted';
-            $this->dispatch('show-alert');
-        }
+                if ($batch->submission_status === 'revalidate' || $batch->submission_status === 'encoding') {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'This batch should be submitted first', color: 'red');
+                    return;
+                }
 
-        $this->dispatch('init-reload')->self();
-        $this->approveSubmissionModal = false;
-        unset($this->batches);
-    }
+                $batch->approval_status = 'approved';
+                $batch->submission_status = 'submitted';
+                $batch->save();
+                LogIt::set_approve_batch($batch, auth()->user());
+                $this->dispatch('alertNotification', type: null, message: 'Successfully approved the batch submission', color: 'blue');
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
 
-    #[On('finished-importing')]
-    public function finishedImporting()
-    {
-        $dateTimeFromEnd = $this->end;
-        $value = substr($dateTimeFromEnd, 0, 10);
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: null, message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetPassword();
+                $this->approveSubmissionModal = false;
+                unset($this->batches);
+            }
+        }, 5);
 
-        $choosenDate = date('Y-m-d', strtotime($value));
-        $currentTime = date('H:i:s', strtotime(now()));
-        $this->end = $choosenDate . ' ' . $currentTime;
-
-        if (!$this->importFileModal) {
-            $this->showAlert = true;
-            $this->alertMessage = 'Finished processing your import. Head to the Import tab.';
-            $this->dispatch('show-alert');
-        }
-        $this->dispatch('init-reload')->self();
     }
 
     #[Computed]
@@ -1122,6 +1132,26 @@ class Submissions extends Component
             $this->dispatch('init-reload')->self();
             $this->dispatch('scroll-top-beneficiaries')->self();
         }
+    }
+
+    #[On('finished-importing')]
+    public function finishedImporting()
+    {
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
+
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
+
+        if (!$this->importFileModal) {
+            $this->alerts[] = [
+                'message' => 'Finished processing your import. Head to the Import tab.',
+                'id' => uniqid(),
+                'color' => 'blue'
+            ];
+        }
+        $this->dispatch('init-reload')->self();
     }
 
     #[On('alertNotification')]

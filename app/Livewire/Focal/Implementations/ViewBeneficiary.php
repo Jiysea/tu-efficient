@@ -525,7 +525,7 @@ class ViewBeneficiary extends Component
                 # Re-Check for Duplicates
                 $this->nameCheck();
 
-                if ($this->isPerfectDuplicate) {
+                if ($this->isPerfectDuplicate && !$this->isResolved) {
                     DB::rollBack();
                     $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'This beneficiary has a perfect duplicate.', color: 'red');
                     return;

@@ -836,10 +836,10 @@ window.addEventListener('resize', () => {
                                             <th scope="col" class="ps-1 py-2 pe-2 text-center">
                                                 {{-- Trash Bin/Delete Icon --}}
                                                 <button type="button"
-                                                    @if (count($selectedBeneficiaryRow) > 0) @click="promptMultiDeleteModal = true;"
+                                                    @if ($this->batch?->approval_status !== 'approved') @click="promptMultiDeleteModal = true;"
                                                     @else
                                                     disabled @endif
-                                                    class="duration-200 ease-in-out flex shrink items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 bg-white hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
+                                                    class="duration-200 ease-in-out flex shrink items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 bg-white hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-6"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                         height="400" viewBox="0, 0, 400,400">

@@ -442,7 +442,7 @@ class Implementations extends Component
                         ])->lockForUpdate()->findOrFail($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
                         $batch = $beneficiary->batch;
                         $implementation = Implementation::findOrFail($batch->implementations_id);
-                        $this->authorize('delete-beneficiary-focal', $beneficiary);
+                        $this->authorize('beneficiary-focal', $beneficiary);
 
                         $credentials = Credential::where('beneficiaries_id', $id ? decrypt($id) : null)
                             ->lockForUpdate()
@@ -477,7 +477,7 @@ class Implementations extends Component
                         ])->lockForUpdate()->findOrFail($id ? decrypt($id) : null);
                         $batch = $beneficiary->batch;
                         $implementation = Implementation::findOrFail($batch->implementations_id);
-                        $this->authorize('delete-beneficiary-focal', $beneficiary);
+                        $this->authorize('beneficiary-focal', $beneficiary);
 
                         $credentials = Credential::where('beneficiaries_id', $id ? decrypt($id) : null)
                             ->lockForUpdate()
@@ -563,6 +563,12 @@ class Implementations extends Component
     {
         $implementation = Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
         return $implementation;
+    }
+
+    #[Computed]
+    public function batch()
+    {
+        return Batch::find($this->batchId ? decrypt($this->batchId) : null);
     }
 
     #[Computed]
@@ -738,22 +744,12 @@ class Implementations extends Component
         $this->end = $choosenDate . ' ' . $currentTime;
 
         if (!$this->importFileModal) {
-            $this->showAlert = true;
-            $this->alertMessage = 'Finished processing your import. Head to the Import tab.';
-            $this->dispatch('show-alert');
+            $this->alerts[] = [
+                'message' => 'Finished processing your import. Head to the Import tab.',
+                'id' => uniqid(),
+                'color' => 'indigo'
+            ];
         }
-        $this->dispatch('init-reload')->self();
-    }
-
-    #[On('refreshAfterOpening')]
-    public function refreshAfterOpening($message)
-    {
-        unset($this->batches);
-        unset($this->accessCode);
-
-        $this->showAlert = true;
-        $this->alertMessage = $message;
-        $this->dispatch('show-alert');
         $this->dispatch('init-reload')->self();
     }
 

@@ -10,6 +10,8 @@ use App\Services\LogIt;
 use Carbon\Carbon;
 use DB;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Computed;
@@ -102,13 +104,13 @@ class ViewBatchModal extends Component
             } elseif ($type === 'resolve') {
                 $this->confirmType = 'resolve';
             } else {
-                $this->dispatch('error-handling', message: 'Invalid confirm type.');
+                $this->dispatch('alertNotification', type: null, message: 'Invalid confirm type', color: 'red');
                 $this->js('$wire.$refresh();');
                 return;
             }
 
         } catch (Exception $e) {
-            $this->dispatch('error-handling', message: 'Invalid confirm type.');
+            $this->dispatch('alertNotification', type: null, message: 'Invalid confirm type', color: 'red');
             $this->js('$wire.$refresh();');
             return;
         }
@@ -119,121 +121,217 @@ class ViewBatchModal extends Component
     public function generateCode()
     {
         DB::transaction(function () {
+            try {
+                $batch = Batch::lockForUpdate()->findOrFail($this->batchId ? decrypt($this->batchId) : null);
 
-            $batch = Batch::lockForUpdate()->find($this->batchId ? decrypt($this->batchId) : null);
+                $code = '';
+                for ($a = 0; $a < 8; $a++) {
+                    $code .= fake()->randomElement(['#', '?']);
+                }
+                $this->code = fake()->bothify($code);
 
-            $code = '';
-            for ($a = 0; $a < 8; $a++) {
-                $code .= fake()->randomElement(['#', '?']);
+                $code = Code::lockForUpdate()->updateOrCreate(
+                    [
+                        'batches_id' => decrypt($this->batchId),
+                        'is_accessible' => 'yes',
+                    ],
+                    [
+                        'batches_id' => decrypt($this->batchId),
+                        'access_code' => $this->code,
+                        'is_accessible' => 'yes',
+                    ]
+                );
+
+                if ($batch->submission_status === 'unopened') {
+                    $batch->submission_status = 'encoding';
+                    $batch->save();
+
+                    LogIt::set_open_access($batch, $code, auth()->user());
+                    $this->dispatch('alertNotification', type: null, message: 'A batch has been opened for encoding', color: 'blue');
+                }
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: null, message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             }
-            $this->code = fake()->bothify($code);
-
-            $code = Code::lockForUpdate()->updateOrCreate(
-                [
-                    'batches_id' => decrypt($this->batchId),
-                    'is_accessible' => 'yes',
-                ],
-                [
-                    'batches_id' => decrypt($this->batchId),
-                    'access_code' => $this->code,
-                    'is_accessible' => 'yes',
-                ]
-            );
-
-            if ($batch->submission_status === 'unopened') {
-                $batch->submission_status = 'encoding';
-                $batch->save();
-
-                LogIt::set_open_access($batch, $code, auth()->user());
-                $this->dispatch('view-batch', message: 'Batch opened for encoding!');
-            }
-        });
+        }, 5);
     }
 
     public function approveSubmission()
     {
         $this->validateOnly(field: 'password_confirm');
 
-        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
-        $this->authorize('check-coordinator', $batch);
+        DB::transaction(function () {
+            try {
+                $batch = Batch::lockForUpdate()->findOrFail($this->batchId ? decrypt($this->batchId) : null);
+                $this->authorize('check-coordinator', $batch);
 
-        $checkSlots = Batch::whereHas('beneficiary')
-            ->where('batches.id', $batch->id)
-            ->exists();
+                $checkSlots = Batch::whereHas('beneficiary')
+                    ->where('batches.id', $batch->id)
+                    ->exists();
 
-        if (
-            $batch->approval_status !== 'approved' && ($batch->submission_status === 'submitted' ||
-                $batch->submission_status === 'unopened') && $checkSlots
-        ) {
-            $batch->approval_status = 'approved';
-            $batch->submission_status = 'submitted';
-            $batch->save();
-            LogIt::set_approve_batch($batch, auth()->user());
+                if ($checkSlots) {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'This batch should have at least one beneficiary', color: 'red');
+                    return;
+                }
 
-            $this->dispatch('view-batch', message: 'Successfully approved the batch assignment!');
+                if ($batch->approval_status !== 'approved') {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'This batch is already approved', color: 'red');
+                    return;
+                }
 
-        } else {
-            $this->dispatch('view-batch', message: 'Cannot approve batch assignment when it is not submitted');
-        }
+                if ($batch->submission_status === 'revalidate' || $batch->submission_status === 'encoding') {
+                    DB::rollBack();
+                    $this->dispatch('alertNotification', type: null, message: 'This batch should be submitted first', color: 'red');
+                    return;
+                }
 
-        $this->resetConfirm();
-        $this->js('confirmModal = false');
+                $batch->approval_status = 'approved';
+                $batch->submission_status = 'submitted';
+                $batch->save();
+                LogIt::set_approve_batch($batch, auth()->user());
+                $this->dispatch('alertNotification', type: null, message: 'Successfully approved the batch submission', color: 'blue');
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: null, message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetConfirm();
+                $this->js('confirmModal = false');
+            }
+        }, 5);
     }
 
     public function forceSubmitOrResolve()
     {
         $this->validateOnly('password_confirm');
 
-        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
-        $this->authorize('check-coordinator', $batch);
+        DB::transaction(function () {
+            try {
+                $batch = Batch::lockForUpdate()->findOrFail($this->batchId ? decrypt($this->batchId) : null);
+                $this->authorize('check-coordinator', $batch);
 
-        Code::find($this->accessCode?->id)->update([
-            'is_accessible' => 'no'
-        ]);
+                Code::find($this->accessCode?->id)->update([
+                    'is_accessible' => 'no'
+                ]);
 
-        $batch->submission_status = 'submitted';
-        $batch->save();
+                $batch->submission_status = 'submitted';
+                $batch->save();
 
-        LogIt::set_force_submit_batch($batch, auth()->user());
-        $this->dispatch('view-batch', message: 'Batch has been submitted forcibly!');
-        $this->resetConfirm();
-        $this->js('confirmModal = false');
+                LogIt::set_force_submit_batch($batch, auth()->user());
+                $this->dispatch('alertNotification', type: null, message: 'Successfully submitted the batch submission', color: 'blue');
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: null, message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->resetConfirm();
+                $this->js('confirmModal = false');
+            }
+        }, 5);
     }
 
     public function revalidateSubmission()
     {
         $this->validateOnly('password_confirm');
 
-        $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
-        $this->authorize('check-coordinator', $batch);
+        DB::transaction(function () {
+            try {
+                $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
+                $this->authorize('check-coordinator', $batch);
 
-        $code = '';
-        for ($a = 0; $a < 8; $a++) {
-            $code .= fake()->randomElement(['#', '?']);
-        }
-        $this->code = fake()->bothify($code);
+                $code = '';
+                for ($a = 0; $a < 8; $a++) {
+                    $code .= fake()->randomElement(['#', '?']);
+                }
+                $this->code = fake()->bothify($code);
 
-        Code::updateOrCreate(
-            [
-                'batches_id' => decrypt($this->batchId),
-                'is_accessible' => 'yes',
-            ],
-            [
-                'batches_id' => decrypt($this->batchId),
-                'access_code' => $this->code,
-                'is_accessible' => 'yes',
-            ]
-        );
+                Code::lockForUpdate()->updateOrCreate(
+                    [
+                        'batches_id' => decrypt($this->batchId),
+                        'is_accessible' => 'yes',
+                    ],
+                    [
+                        'batches_id' => decrypt($this->batchId),
+                        'access_code' => $this->code,
+                        'is_accessible' => 'yes',
+                    ]
+                );
 
-        $batch->submission_status = 'revalidate';
-        $batch->save();
+                $batch->submission_status = 'revalidate';
+                $batch->save();
 
-        LogIt::set_revalidate_batch($batch, auth()->user());
-        $this->dispatch('view-batch', 'Batch reopened for revalidation!');
+                LogIt::set_revalidate_batch($batch, auth()->user());
+                $this->dispatch('alertNotification', type: null, message: 'Successfully reopened batch for revalidation', color: 'blue');
+                $this->accessCodeModal = true;
 
-        $this->js('confirmModal = false');
-        $this->resetConfirm();
-        $this->accessCodeModal = true;
+            } catch (AuthorizationException $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An unauthorized action has been made while adding a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: $e->getMessage(), color: 'red');
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: null, message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: null, message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+            } finally {
+                $this->js('confirmModal = false');
+                $this->resetConfirm();
+            }
+        }, 5);
     }
 
     #[Computed]

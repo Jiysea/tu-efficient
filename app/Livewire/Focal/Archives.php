@@ -101,7 +101,7 @@ class Archives extends Component
                         'id' => uniqid(),
                         'color' => 'red'
                     ];
-                } elseif ($this->isPerfectDuplicate) {
+                } elseif ($this->isPerfectDuplicate && !$this->isResolved) {
                     $this->alerts[] = [
                         'message' => 'Restoration unsuccessful. This record has a perfect duplicate.',
                         'id' => uniqid(),
@@ -404,6 +404,24 @@ class Archives extends Component
                 if ($result['is_perfect'] === true) {
                     $this->isPerfectDuplicate = true;
                     $perfectCounter++;
+
+                    # The beneficiary `archived` record
+                    $archive = Archive::find($this->actionId ? decrypt($this->actionId) : null);
+
+                    # The special case credential (if any)
+                    $credential = Archive::where('source_table', 'credentials')
+                        ->where('data->beneficiaries_id', $archive->data['id'])
+                        ->where('data->for_duplicates', 'yes')
+                        ->first();
+
+                    # If this archived record/beneficiary is a special case (by checking if $credential is not null)
+                    # then it is assumed as resolved
+                    if ($perfectCounter < 2 && $credential && $credential->data['image_description']) {
+                        $this->isResolved = true;
+                    } else {
+                        $this->isResolved = false;
+                    }
+
                 }
 
                 # checks if the result row is in the same project implementation as this editted beneficiary

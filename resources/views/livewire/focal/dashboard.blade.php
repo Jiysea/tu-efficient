@@ -287,8 +287,8 @@ window.addEventListener('resize', () => {
                 {{-- Project Counters --}}
                 <div class="flex flex-col lg:flex-row gap-2 w-full lg:h-[13vh] lg:col-span-full">
                     <a href="{{ route('focal.implementations') }}" wire:loading.attr="disabled"
-                        class="relative flex flex-1 items-center justify-start rounded shadow bg-white py-2 md:py-4 h-full">
-                        <span class="p-3 text-indigo-900">
+                        class="bg-white text-violet-700 relative flex flex-1 items-center justify-start rounded shadow py-2 md:py-4 h-full">
+                        <span class="p-3">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="size-6 sm:size-9" viewBox="0, 0, 400,400">
                                 <g>
@@ -299,17 +299,18 @@ window.addEventListener('resize', () => {
                             </svg>
                         </span>
                         <div class="flex flex-col items-start justify-center">
-                            <h1 class="text-lg sm:text-xl text-indigo-1100 font-bold leading-tight">
-                                {{ $this->implementations->count() ?? 0 }}
+                            <h1 class="text-lg sm:text-xl text-violet-950 font-bold leading-tight">
+                                {{ $this->countersByDate?->total_implementations ?? 0 }}
                             </h1>
-                            <p class="text-xs md:text-sm text-indigo-900 font-bold leading-tight">
-                                Total Implementations
+                            <p class="text-xs font-semibold leading-none">
+                                Total <br>
+                                Implementations
                             </p>
                         </div>
                     </a>
                     <a href="{{ route('focal.implementations') }}" wire:loading.attr="disabled"
-                        class="relative flex flex-1 items-center justify-start rounded shadow bg-white py-2 md:py-4 h-full">
-                        <span class="p-3 text-green-900">
+                        class="bg-white text-lime-700 relative flex flex-1 items-center justify-start rounded shadow py-2 md:py-4 h-full">
+                        <span class="p-3">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 width="400" class="w-5 sm:w-8 h-5 sm:h-8" height="400" viewBox="0, 0, 400,400">
                                 <g>
@@ -320,17 +321,18 @@ window.addEventListener('resize', () => {
                             </svg>
                         </span>
                         <div class="flex flex-col items-start justify-center">
-                            <h1 class="text-lg sm:text-xl text-green-1100 font-bold leading-tight">
-                                {{ $this->batchCounters->total_approved_assignments ?? 0 }}
+                            <h1 class="text-lg sm:text-xl text-lime-950 font-bold leading-tight">
+                                {{ $this->countersByDate?->total_approved_batches ?? 0 }}
                             </h1>
-                            <p class="text-xs md:text-sm text-green-900 font-bold leading-tight">
-                                Approved Assignments
+                            <p class="text-xs font-semibold leading-none">
+                                Approved <br>
+                                Batches
                             </p>
                         </div>
                     </a>
                     <a href="{{ route('focal.implementations') }}" wire:loading.attr="disabled"
-                        class="relative flex flex-1 items-center justify-start rounded shadow bg-white py-2 md:py-4 h-full">
-                        <span class="p-3 text-blue-900">
+                        class="bg-white text-sky-700 relative flex flex-1 items-center justify-start rounded shadow py-2 md:py-4 h-full">
+                        <span class="p-3">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 class="w-5 sm:w-8 h-5 sm:h-8" width="400" height="400" viewBox="0, 0, 400,400">
                                 <g>
@@ -341,11 +343,12 @@ window.addEventListener('resize', () => {
                             </svg>
                         </span>
                         <div class="flex flex-col items-start justify-center">
-                            <h1 class="text-lg sm:text-xl text-blue-1100 font-bold leading-tight">
-                                {{ $this->batchCounters->total_pending_assignments ?? 0 }}
+                            <h1 class="text-lg sm:text-xl text-sky-950 font-bold leading-tight">
+                                {{ $this->countersByDate?->total_pending_batches ?? 0 }}
                             </h1>
-                            <p class="text-xs md:text-sm text-blue-900 font-bold leading-tight">
-                                Pending Assignments
+                            <p class="text-xs font-semibold leading-none">
+                                Pending <br>
+                                Batches
                             </p>
                         </div>
                     </a>
@@ -371,9 +374,9 @@ window.addEventListener('resize', () => {
 
                                 {{-- Button --}}
                                 <button type="button"
-                                    @if ($this->implementations->count() > 0) @click="show = !show;"
+                                    @if ($this->implementations->isEmpty() && !$searchProjects) disabled
                                 @else
-                                disabled @endif
+                                @click="show = !show;" @endif
                                     class="flex items-center justify-between gap-2 whitespace-nowrap w-full border-2 outline-none text-xs sm:text-sm font-bold px-3 py-2 rounded
                                     disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-300 
                                     bg-indigo-100 hover:bg-indigo-800 active:bg-indigo-900 
@@ -390,7 +393,7 @@ window.addEventListener('resize', () => {
                                 </button>
 
                                 {{-- Content --}}
-                                <div x-show="show" @click.away="show = !show; $wire.set('searchProject', null);"
+                                <div x-show="show" @click.away="show = !show; $wire.set('searchProjects', null);"
                                     :class="{
                                         'block': show,
                                         'hidden': !show,
@@ -398,13 +401,13 @@ window.addEventListener('resize', () => {
                                     class="hidden end-0 absolute rounded p-3 mt-2 shadow-lg border border-indigo-100 text-indigo-1100 bg-white">
 
                                     {{-- Search Bar --}}
-                                    <label for="searchProject"
+                                    <label for="searchProjects"
                                         class="relative flex items-center justify-center duration-200 ease-in-out rounded border outline-none focus:ring-0
-                                                {{ $this->implementations->isEmpty() && !$searchProject ? 'text-gray-500 border-gray-300' : 'text-gray-500 hover:text-indigo-700 focus-within:text-indigo-700 hover:bg-indigo-50 focus-within:bg-indigo-50 border-gray-300 hover:border-indigo-700 focus-within:border-indigo-700' }}">
+                                                {{ $this->implementations->isEmpty() && !$searchProjects ? 'text-gray-500 border-gray-300' : 'text-gray-500 hover:text-indigo-700 focus-within:text-indigo-700 hover:bg-indigo-50 focus-within:bg-indigo-50 border-gray-300 hover:border-indigo-700 focus-within:border-indigo-700' }}">
                                         <div
                                             class="absolute start-2 flex items-center justify-center pointer-events-none">
                                             {{-- Loading Icon --}}
-                                            <svg class="size-4 animate-spin" wire:loading wire:target="searchProject"
+                                            <svg class="size-4 animate-spin" wire:loading wire:target="searchProjects"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -416,7 +419,7 @@ window.addEventListener('resize', () => {
                                             </svg>
 
                                             {{-- Search Icon --}}
-                                            <svg class="size-4" wire:loading.remove wire:target="searchProject"
+                                            <svg class="size-4" wire:loading.remove wire:target="searchProjects"
                                                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                 fill="currentColor">
                                                 <path fill-rule="evenodd"
@@ -425,9 +428,9 @@ window.addEventListener('resize', () => {
                                             </svg>
                                         </div>
 
-                                        <input id="searchProject" autofocus autocomplete="off"
-                                            wire:model.live.debounce.300ms="searchProject" type="text"
-                                            class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full ps-8 text-xs {{ $this->implementations->isEmpty() && !$searchProject ? 'placeholder-gray-500' : 'text-indigo-1100 placeholder-gray-500 hover:placeholder-indigo-700 focus:placeholder-indigo-700' }}"
+                                        <input id="searchProjects" autofocus autocomplete="off"
+                                            wire:model.live.debounce.300ms="searchProjects" type="text"
+                                            class="peer bg-transparent outline-none border-none focus:ring-0 rounded w-full ps-8 text-xs {{ $this->implementations->isEmpty() && !$searchProjects ? 'placeholder-gray-500' : 'text-indigo-1100 placeholder-gray-500 hover:placeholder-indigo-700 focus:placeholder-indigo-700' }}"
                                             placeholder="Search for projects">
                                     </label>
 
@@ -437,7 +440,7 @@ window.addEventListener('resize', () => {
                                             @foreach ($this->implementations as $key => $implementation)
                                                 <span wire:key={{ $key }}>
                                                     <button type="button"
-                                                        wire:click="selectImplementation({{ $key }})"
+                                                        wire:click="selectImplementation('{{ encrypt($implementation->id) }}')"
                                                         @click="show= !show;" wire:loading.attr="disabled"
                                                         aria-label="{{ __('Implementation') }}"
                                                         class="text-left font-medium w-full flex items-center justify-start gap-2 px-3 py-1.5 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 duration-200 ease-in-out">
@@ -472,7 +475,7 @@ window.addEventListener('resize', () => {
                                         @else
                                             <div
                                                 class="flex flex-col font-medium flex-1 items-center justify-center text-center size-full border border-gray-300 bg-gray-100 text-gray-500 rounded p-2">
-                                                @if (isset($searchProject) && !empty($searchProject))
+                                                @if ($searchProjects)
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                         class="size-12 sm:size-20 mb-4 text-indigo-900 opacity-65"
                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
@@ -630,7 +633,7 @@ window.addEventListener('resize', () => {
                                     <span class="relative" x-data="{ pop: false }">
                                         {{-- Export Button --}}
                                         <button type="button" @mouseleave="pop = false;" @mouseenter="pop = true;"
-                                            @if ($this->justCount > 0) wire:click="showExport"
+                                            @if ($this->beneficiaryTotalByImplementation > 0) wire:click="showExport"
                                         @else
                                         disabled @endif
                                             class="inline-flex items-center justify-center p-1.5 duration-200 ease-in-out outline-none rounded-md disabled:bg-white disabled:text-gray-500 text-amber-500 hover:text-amber-50 focus:text-amber-50 active:text-amber-50 hover:bg-amber-800 focus:bg-amber-800 active:bg-amber-900 focus:ring-2 focus:ring-amber-300">
@@ -651,7 +654,7 @@ window.addEventListener('resize', () => {
                                         {{-- Popover --}}
                                         <div x-cloak x-show="pop"
                                             class="absolute z-50 top-full mt-1 whitespace-nowrap mx-auto right-0 lg:right-auto lg:left-1/2 lg:transform lg:-translate-x-1/2 rounded p-2 shadow text-xs lg:text-sm font-normal text-center border bg-zinc-900 border-zinc-300 text-indigo-50">
-                                            @if ($this->justCount > 0)
+                                            @if ($this->beneficiaryTotalByImplementation > 0)
                                                 Export Options
                                             @else
                                                 You may able to <span class="text-amber-400">export</span> the summary
@@ -667,8 +670,7 @@ window.addEventListener('resize', () => {
                             <div class="relative grid grid-cols-3 grow place-items-center place-content-center h-full">
 
                                 {{-- If all series are null... --}}
-
-                                @if ($this->implementationsNoDate->isEmpty())
+                                @if ($this->implementationTotalByYear === 0)
                                     <div
                                         class="bg-white absolute text-gray-400 col-span-full z-20 size-full flex flex-col items-center justify-center">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -707,9 +709,7 @@ window.addEventListener('resize', () => {
                                             page.
                                         </h2>
                                     </div>
-                                @elseif (
-                                    \Carbon\Carbon::parse($start)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultStart)->format('Y-m-d') ||
-                                        \Carbon\Carbon::parse($end)->format('Y-m-d') !== \Carbon\Carbon::parse($defaultEnd)->format('Y-m-d'))
+                                @elseif ($this->implementations->isEmpty() && !$searchProjects && $this->isDateRangeChanged)
                                     <div
                                         class="bg-white absolute text-gray-400 col-span-full z-20 size-full flex flex-col items-center justify-center">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -843,7 +843,7 @@ window.addEventListener('resize', () => {
                                     <p class="font-bold">Total Beneficiaries</p>
                                 </div>
                                 <div class="flex text-indigo-1100">
-                                    <p>{{ $this->beneficiaryCounters->total_beneficiaries ?? 0 }}</p>
+                                    <p>{{ $this->totalCounters->total_beneficiaries ?? 0 }}</p>
                                 </div>
                             </div>
                             <div class="flex flex-1 items-center justify-between bg-indigo-50 rounded px-2">
@@ -861,7 +861,7 @@ window.addEventListener('resize', () => {
                                     <p class="font-bold">Total Senior Citizens</p>
                                 </div>
                                 <div class="flex text-indigo-1100">
-                                    <p>{{ $this->beneficiaryCounters->total_senior_citizen_beneficiaries ?? 0 }}
+                                    <p>{{ $this->totalCounters->total_senior_citizen_beneficiaries ?? 0 }}
                                     </p>
                                 </div>
                             </div>
@@ -879,7 +879,7 @@ window.addEventListener('resize', () => {
                                     <p class="font-bold">Total PWDs</p>
                                 </div>
                                 <div class="flex text-indigo-1100">
-                                    <p>{{ $this->beneficiaryCounters->total_pwd_beneficiaries ?? 0 }}</p>
+                                    <p>{{ $this->totalCounters->total_pwd_beneficiaries ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>
@@ -986,7 +986,7 @@ window.addEventListener('resize', () => {
                                 @endforeach
                             @else
                                 <div class="z-10 flex flex-1 rounded flex-col items-center justify-center">
-                                    @if ($this->implementationsNoDate->isEmpty())
+                                    @if ($this->implementationTotalByYear === 0)
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-20 mb-4 text-zinc-300"
                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
                                             viewBox="0, 0, 400,400">
@@ -1265,7 +1265,7 @@ window.addEventListener('resize', () => {
                                             </h2>
 
                                             {{-- Projects Dropdown --}}
-                                            <div x-data="{ show: false, currentImplementation: $wire.entangle('currentExportImplementation') }" class="relative z-30">
+                                            <div x-data="{ show: false, currentExportImplementation: $wire.entangle('currentExportImplementation') }" class="relative z-30">
 
                                                 {{-- Button --}}
                                                 <button type="button" @click="show = !show;"
@@ -1275,7 +1275,7 @@ window.addEventListener('resize', () => {
                                                     text-indigo-700 hover:text-indigo-50 active:text-indigo-50
                                                     border-indigo-700 hover:border-transparent active:border-transparent duration-200 ease-in-out">
 
-                                                    <span x-text="currentImplementation"></span>
+                                                    <span x-text="currentExportImplementation"></span>
 
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor" class="size-3">
@@ -1336,7 +1336,7 @@ window.addEventListener('resize', () => {
                                                                 <span wire:key={{ $key }}>
                                                                     <button type="button"
                                                                         wire:click="selectExportImplementationRow('{{ encrypt($implementation->id) }}')"
-                                                                        @click="show= !show; currentImplementation = '{{ $implementation->project_title ? $implementation->project_title . ' / ' . $implementation->project_num : $implementation->project_num }}'"
+                                                                        @click="show= !show; currentExportImplementation = '{{ $implementation->project_title ? $implementation->project_title . ' / ' . $implementation->project_num : $implementation->project_num }}'"
                                                                         wire:loading.attr="disabled"
                                                                         aria-label="{{ __('Implementation') }}"
                                                                         class="outline-none text-left w-full flex items-center px-4 py-2 text-indigo-1100 hover:text-indigo-900 hover:bg-indigo-100 focus:text-indigo-900 focus:bg-indigo-100 duration-200 ease-in-out">

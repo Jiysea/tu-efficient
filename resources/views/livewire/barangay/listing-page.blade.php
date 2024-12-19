@@ -275,10 +275,10 @@
                                         {{-- Trash Bin/Delete Icon --}}
                                         <span class="flex flex-1 w-full items-center justify-center">
                                             <button type="button"
-                                                @if (count($selectedBeneficiaryRow) > 0) @click="promptMultiArchiveModal = true;"
+                                                @if ($this->batch?->approval_status !== 'approved') @click="promptMultiArchiveModal = true;"
                                             @else
                                             disabled @endif
-                                                class="duration-200 ease-in-out flex items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 hover:bg-red-800 active:bg-red-900 text-green-50 hover:text-red-50 active:text-red-50">
+                                                class="duration-200 ease-in-out flex items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 hover:bg-red-800 active:bg-red-900 text-green-50 hover:text-red-50 active:text-red-50">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                     height="400" viewBox="0, 0, 400,400">

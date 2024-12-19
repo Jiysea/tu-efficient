@@ -970,10 +970,10 @@ window.addEventListener('resize', () => {
                                                 {{-- Trash Bin/Delete Icon --}}
                                                 <span class="flex flex-1 w-full items-center justify-center">
                                                     <button type="button"
-                                                        @if (count($selectedBeneficiaryRow) > 0) @click="promptMultiDeleteModal = true;"
+                                                        @if ($this->batch?->approval_status !== 'approved') @click="promptMultiDeleteModal = true;"
                                                     @else
                                                     disabled @endif
-                                                        class="duration-200 ease-in-out flex items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:bg-gray-300 disabled:text-gray-500 hover:bg-red-800 active:bg-red-900 text-blue-50 hover:text-red-50 active:text-red-50">
+                                                        class="duration-200 ease-in-out flex items-center justify-center p-0.5 rounded outline-none font-bold text-sm disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 hover:bg-red-800 active:bg-red-900 text-blue-50 hover:text-red-50 active:text-red-50">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                                             xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                             height="400" viewBox="0, 0, 400,400">
@@ -2070,7 +2070,7 @@ window.addEventListener('resize', () => {
             <livewire:coordinator.submissions.prompt-multi-delete-modal :$beneficiaryIds />
 
             {{-- Approve Submission Modal --}}
-            <div x-cloak @keydown.escape.window="approveSubmissionModal">
+            <div x-cloak @keydown.escape.window="approveSubmissionModal = false">
                 <!-- Modal Backdrop -->
                 <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
                     x-show="approveSubmissionModal">
@@ -2158,7 +2158,7 @@ window.addEventListener('resize', () => {
             </div>
 
             {{-- Export Summary Modal --}}
-            <div x-cloak @keydown.escape.window="showExportModal">
+            <div x-cloak @keydown.escape.window="showExportModal = false">
                 <!-- Modal Backdrop -->
                 <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="showExportModal">
                 </div>
@@ -2667,30 +2667,6 @@ window.addEventListener('resize', () => {
                 </div>
             </div>
         </div>
-    </div>
-
-    {{-- Alert Bar --}}
-    <div x-data="{
-        successShow: $wire.entangle('showAlert'),
-        successMessage: $wire.entangle('alertMessage'),
-        init() {
-            window.addEventListener('show-alert', () => {
-                setTimeout(() => { $wire.showAlert = false; }, 3000);
-            });
-        },
-    }" x-cloak x-show="successShow"
-        x-transition:enter="transition ease-in-out duration-300 origin-left"
-        x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="origin-left transition ease-in-out duration-500"
-        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90"
-        class="fixed left-6 bottom-6 z-50 flex items-center border bg-blue-200 text-blue-1000 border-blue-300 rounded-lg text-sm sm:text-md font-bold px-4 py-3 select-none"
-        role="alert">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current w-4 h-4 mr-2">
-            <path fill-rule="evenodd"
-                d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z"
-                clip-rule="evenodd" />
-        </svg>
-        <p x-text="successMessage"></p>
     </div>
 
     {{-- Alert Notifications --}}

@@ -421,7 +421,7 @@ class AddBeneficiariesModal extends Component
                 # Re-Check for Duplicates for Simultaneous checks
                 $this->nameCheck();
 
-                if ($this->isPerfectDuplicate) {
+                if ($this->isPerfectDuplicate && !$this->isResolved) {
                     DB::rollBack();
                     $this->dispatch('alertNotification', type: 'beneficiary', message: 'This beneficiary has a perfect duplicate.', color: 'red');
                     return;
@@ -510,7 +510,6 @@ class AddBeneficiariesModal extends Component
 
                 # Deadlock & LockWaitTimeoutException
                 if ($e->getCode() === '1213' || $e->getCode() === '1205') {
-                    // LogIt::set_log_exception('Deadlock has occured while deleting a beneficiary', auth()->user(), $e->getTrace());
                     $this->dispatch('alertNotification', type: 'beneficiary', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
                 } else {
                     LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());

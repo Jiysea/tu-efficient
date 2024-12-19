@@ -297,26 +297,24 @@ class Assignments extends Component
         );
     }
 
-    #[On('view-batch')]
-    public function viewBatchEvents($message)
+    #[On('alertNotification')]
+    public function alertNotification($type = null, $message, $color)
     {
-        unset($this->batches);
-        unset($this->accessCode);
+        $dateTimeFromEnd = $this->end;
+        $value = substr($dateTimeFromEnd, 0, 10);
 
-        $this->showAlert = true;
-        $this->alertMessage = $message;
-        $this->dispatch('show-alert');
-        $this->dispatch('init-reload')->self();
-    }
+        $choosenDate = date('Y-m-d', strtotime($value));
+        $currentTime = date('H:i:s', strtotime(now()));
+        $this->end = $choosenDate . ' ' . $currentTime;
 
-    #[On('error-handling')]
-    public function errorHandling($message)
-    {
         unset($this->batches, $this->accessCode);
 
-        $this->showAlert = true;
-        $this->alertMessage = $message;
-        $this->dispatch('show-alert');
+        $this->alerts[] = [
+            'message' => $message,
+            'id' => uniqid(),
+            'color' => $color
+        ];
+
         $this->dispatch('init-reload')->self();
     }
 

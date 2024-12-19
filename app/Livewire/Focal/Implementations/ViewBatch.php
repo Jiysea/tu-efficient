@@ -222,7 +222,7 @@ class ViewBatch extends Component
                 $batch->save();
 
                 LogIt::set_force_approve($this->batch, auth()->user());
-                $this->dispatch('refreshAfterOpening', message: 'Batch has been approved forcibly!');
+                $this->dispatch('alertNotification', type: 'batch-modify', message: 'Successfully approved the batch submission', color: 'indigo');
 
             } catch (AuthorizationException $e) {
                 DB::rollBack();
@@ -253,7 +253,7 @@ class ViewBatch extends Component
                 $batch->save();
 
                 LogIt::set_pend_batch($this->batch, auth()->user());
-                $this->dispatch('refreshAfterOpening', message: 'Batch has been changed to pending!');
+                $this->dispatch('alertNotification', type: 'batch-modify', message: 'Successfully reverted batch status to pending', color: 'indigo');
 
             } catch (AuthorizationException $e) {
                 DB::rollBack();
