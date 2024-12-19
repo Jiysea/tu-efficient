@@ -127,8 +127,8 @@ class ProcessImportSimilarity implements ShouldQueue
                     $value = $row->getRowIndex();
                 }
 
-                # For Names
-                elseif (in_array($keyCell, ['B', 'D', 'C', 'E', 'U'])) {
+                # first_name, middle_name, last_name, extension_name, and dependent 
+                elseif (in_array($keyCell, ['B', 'C', 'D', 'E', 'U'])) {
                     if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = null;
                     } else {
@@ -136,13 +136,13 @@ class ProcessImportSimilarity implements ShouldQueue
                     }
                 }
 
-                # For birthdate
+                # birthdate
                 elseif ($keyCell === 'F') {
                     $value = self::extract_dateTime($value);
                 }
 
                 # Values that are empty, null, or `-` will be assigned as `null` to uniform the data
-                elseif (in_array($keyCell, ['N', 'U', 'W', 'X', 'Y', 'Z', 'AA'])) {
+                elseif (in_array($keyCell, ['N', 'W', 'X', 'Y', 'Z', 'AA'])) {
                     if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
                         $value = null;
                     }
@@ -209,13 +209,13 @@ class ProcessImportSimilarity implements ShouldQueue
 
                 # Project Location Values assigned based on the selected batch in `Implementations` page
                 elseif ($keyCell === 'G') {
-                    $value = self::resolveBarangay($cell->getValue());
+                    $value = self::resolveBarangay($cell->getValue(), $batch);
                 } elseif ($keyCell === 'H') {
                     $value = $implementation->city_municipality;
                 } elseif ($keyCell === 'I') {
                     $value = $implementation->province;
                 } elseif ($keyCell === 'J') {
-                    $value = self::resolveDistrict($cell->getValue());
+                    $value = self::resolveDistrict($cell->getValue(), $batch);
                 }
 
                 $beneficiary[$columnNames[$keyCell]] = $value;
@@ -241,7 +241,8 @@ class ProcessImportSimilarity implements ShouldQueue
         }
 
         if ($successCounter > 0 && in_array($list, ['success' => true])) {
-            LogIt::set_import_success($batch, User::find($this->users_id), $successCounter);
+            $user = User::find($this->users_id);
+            LogIt::set_import_success($batch, $user, $successCounter);
         }
 
         # End Game
@@ -448,64 +449,65 @@ class ProcessImportSimilarity implements ShouldQueue
 
     protected static function insertUniqueRows(array $beneficiary, $batches_id)
     {
-        $list = $beneficiary;
-        $batch = Batches::find($batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
-        $beneficiaryCount = self::checkBeneficiaryCount($batch);
+        DB::transaction(function () use ($beneficiary, $batches_id) {
+            try {
+                $list = $beneficiary;
+                $batch = Batches::find($batches_id);
+                $implementation = Implementation::find($batch->implementations_id);
+                $beneficiaryCount = self::checkBeneficiaryCount($batch);
 
-        if ((!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) && $batch->slots_allocated > $beneficiaryCount) {
+                if ((!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) && $batch->slots_allocated > $beneficiaryCount) {
 
-            DB::transaction(function () use ($implementation, $batch, $beneficiary, $batches_id) {
+                    $beneficiaryModel = Beneficiary::create([
+                        'batches_id' => $batches_id,
+                        'first_name' => mb_strtoupper($beneficiary['first_name'], "UTF-8"),
+                        'middle_name' => $beneficiary['middle_name'] ? mb_strtoupper($beneficiary['middle_name'], "UTF-8") : null,
+                        'last_name' => mb_strtoupper($beneficiary['last_name'], "UTF-8"),
+                        'extension_name' => $beneficiary['extension_name'] ? mb_strtoupper($beneficiary['extension_name'], "UTF-8") : null,
+                        'birthdate' => $beneficiary['birthdate'],
+                        'barangay_name' => $batch->is_sectoral ? ucwords(mb_strtolower($beneficiary['barangay_name'], 'UTF-8')) : $batch->barangay_name,
+                        'contact_num' => $beneficiary['contact_num'],
+                        'occupation' => ucwords($beneficiary['occupation']),
+                        'avg_monthly_income' => $beneficiary['avg_monthly_income'],
+                        'city_municipality' => $implementation->city_municipality,
+                        'province' => $implementation->province,
+                        'district' => $batch->is_sectoral ? ucwords(mb_strtolower($beneficiary['district'], 'UTF-8')) : $batch->district,
+                        'type_of_id' => $beneficiary['type_of_id'],
+                        'id_number' => $beneficiary['id_number'],
+                        'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
+                        'beneficiary_type' => mb_strtolower($beneficiary['beneficiary_type'], 'UTF-8'),
+                        'sex' => mb_strtolower($beneficiary['sex'], 'UTF-8'),
+                        'civil_status' => $beneficiary['civil_status'],
+                        'age' => self::beneficiaryAge($beneficiary['birthdate']),
+                        'dependent' => mb_strtoupper($beneficiary['dependent'], "UTF-8"),
+                        'self_employment' => $beneficiary['self_employment'],
+                        'skills_training' => $beneficiary['skills_training'],
+                        'is_pwd' => $beneficiary['is_pwd'],
+                        'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
+                        'spouse_first_name' => $beneficiary['spouse_first_name'] ? mb_strtoupper($beneficiary['spouse_first_name'], "UTF-8") : null,
+                        'spouse_middle_name' => $beneficiary['spouse_middle_name'] ? mb_strtoupper($beneficiary['spouse_middle_name'], "UTF-8") : null,
+                        'spouse_last_name' => $beneficiary['spouse_last_name'] ? mb_strtoupper($beneficiary['spouse_last_name'], "UTF-8") : null,
+                        'spouse_extension_name' => $beneficiary['spouse_extension_name'] ? mb_strtoupper($beneficiary['spouse_extension_name'], "UTF-8") : null,
+                    ]);
 
-                $beneficiaryModel = Beneficiary::create([
-                    'batches_id' => $batches_id,
-                    'first_name' => mb_strtoupper($beneficiary['first_name'], "UTF-8"),
-                    'middle_name' => $beneficiary['middle_name'] ? mb_strtoupper($beneficiary['middle_name'], "UTF-8") : null,
-                    'last_name' => mb_strtoupper($beneficiary['last_name'], "UTF-8"),
-                    'extension_name' => $beneficiary['extension_name'] ? mb_strtoupper($beneficiary['extension_name'], "UTF-8") : null,
-                    'birthdate' => $beneficiary['birthdate'],
-                    'barangay_name' => ucwords(mb_strtolower($beneficiary['barangay_name'], 'UTF-8')) ?? $batch->barangay_name,
-                    'contact_num' => $beneficiary['contact_num'],
-                    'occupation' => ucwords($beneficiary['occupation']),
-                    'avg_monthly_income' => $beneficiary['avg_monthly_income'],
-                    'city_municipality' => $implementation->city_municipality,
-                    'province' => $implementation->province,
-                    'district' => ucwords(mb_strtolower($beneficiary['district'], 'UTF-8')) ?? $batch->district,
-                    'type_of_id' => $beneficiary['type_of_id'],
-                    'id_number' => $beneficiary['id_number'],
-                    'e_payment_acc_num' => $beneficiary['e_payment_acc_num'],
-                    'beneficiary_type' => mb_strtolower($beneficiary['beneficiary_type'], 'UTF-8'),
-                    'sex' => mb_strtolower($beneficiary['sex'], 'UTF-8'),
-                    'civil_status' => $beneficiary['civil_status'],
-                    'age' => self::beneficiaryAge($beneficiary['birthdate']),
-                    'dependent' => mb_strtoupper($beneficiary['dependent'], "UTF-8"),
-                    'self_employment' => $beneficiary['self_employment'],
-                    'skills_training' => $beneficiary['skills_training'],
-                    'is_pwd' => $beneficiary['is_pwd'],
-                    'is_senior_citizen' => intval(self::beneficiaryAge($beneficiary['birthdate'])) > intval(config('settings.senior_age_threshold') ?? 60) ? 'yes' : 'no',
-                    'spouse_first_name' => $beneficiary['spouse_first_name'] ? mb_strtoupper($beneficiary['spouse_first_name'], "UTF-8") : null,
-                    'spouse_middle_name' => $beneficiary['spouse_middle_name'] ? mb_strtoupper($beneficiary['spouse_middle_name'], "UTF-8") : null,
-                    'spouse_last_name' => $beneficiary['spouse_last_name'] ? mb_strtoupper($beneficiary['spouse_last_name'], "UTF-8") : null,
-                    'spouse_extension_name' => $beneficiary['spouse_extension_name'] ? mb_strtoupper($beneficiary['spouse_extension_name'], "UTF-8") : null,
-                ]);
+                    Credential::create([
+                        'beneficiaries_id' => $beneficiaryModel->id,
+                        'image_description' => null,
+                        'image_file_path' => null,
+                        'for_duplicates' => 'no',
+                    ]);
 
-                Credential::create([
-                    'beneficiaries_id' => $beneficiaryModel->id,
-                    'image_description' => null,
-                    'image_file_path' => null,
-                    'for_duplicates' => 'no',
-                ]);
 
-            });
+                    $list['success'] = true;
+                } else {
+                    $list['success'] = false;
+                }
+            }
 
-            $list['success'] = true;
-        } else {
-            $list['success'] = false;
-        }
+            return $list;
+        });
 
-        # TESTING
-        // $list['success'] = false;
-        return $list;
+        return [];
     }
 
     # Some validation rules ------------------------------------------------------------------------
@@ -519,7 +521,7 @@ class ProcessImportSimilarity implements ShouldQueue
         return 'Invalid ' . $field . ' value.';
     }
 
-    static function checkValidDistrict($district, Implementation $implementation)
+    static function checkValidDistrict($district, mixed $implementation)
     {
         foreach (Districts::getDistricts($implementation->city_municipality, $implementation->province) as $dist) {
             if ($dist === $district) {
@@ -530,7 +532,7 @@ class ProcessImportSimilarity implements ShouldQueue
         return 'Invalid district.';
     }
 
-    static function checkValidBarangay($barangay_name, $district, Implementation $implementation)
+    static function checkValidBarangay($barangay_name, $district, mixed $implementation)
     {
         if ($district) {
 
@@ -565,85 +567,92 @@ class ProcessImportSimilarity implements ShouldQueue
         }
     }
 
-    static function resolveDistrict($district)
+    static function resolveDistrict($district, $batch)
     {
-        if ($district) {
-            if (
-                mb_strtolower($district, "UTF-8") === '1st' ||
-                mb_strtolower($district, "UTF-8") === '1st district' ||
-                mb_strtolower($district, "UTF-8") === '1'
-            ) {
-                return '1st District';
-            } elseif (
-                mb_strtolower($district, "UTF-8") === '2nd' ||
-                mb_strtolower($district, "UTF-8") === '2nd district' ||
-                mb_strtolower($district, "UTF-8") === '2'
-            ) {
-                return '2nd District';
-            } elseif (
-                mb_strtolower($district, "UTF-8") === '3rd' ||
-                mb_strtolower($district, "UTF-8") === '3rd district' ||
-                mb_strtolower($district, "UTF-8") === '3'
-            ) {
-                return '3rd District';
+        if ($batch->is_sectoral) {
+            if ($district) {
+                if (
+                    mb_strtolower($district, "UTF-8") === '1st' ||
+                    mb_strtolower($district, "UTF-8") === '1st district' ||
+                    mb_strtolower($district, "UTF-8") === '1'
+                ) {
+                    return '1st District';
+                } elseif (
+                    mb_strtolower($district, "UTF-8") === '2nd' ||
+                    mb_strtolower($district, "UTF-8") === '2nd district' ||
+                    mb_strtolower($district, "UTF-8") === '2'
+                ) {
+                    return '2nd District';
+                } elseif (
+                    mb_strtolower($district, "UTF-8") === '3rd' ||
+                    mb_strtolower($district, "UTF-8") === '3rd district' ||
+                    mb_strtolower($district, "UTF-8") === '3'
+                ) {
+                    return '3rd District';
+                }
             }
+        } elseif (!$batch->is_sectoral) {
+            return $batch->district;
         }
-
         return null;
     }
 
-    static function resolveBarangay($barangay_name)
+    static function resolveBarangay($barangay_name, $batch)
     {
-        if ($barangay_name) {
-            $short = mb_strtolower($barangay_name, "UTF-8");
-            $barangay_name = ucwords($short);
-            if (
-                in_array(mb_strtoupper($barangay_name, 'UTF-8'), [
-                    '1-A',
-                    '2-A',
-                    '3-A',
-                    '4-A',
-                    '5-A',
-                    '6-A',
-                    '7-A',
-                    '8-A',
-                    '9-A',
-                    '10-A',
-                    '11-B',
-                    '12-B',
-                    '13-B',
-                    '14-B',
-                    '15-B',
-                    '16-B',
-                    '17-B',
-                    '18-B',
-                    '19-B',
-                    '20-B',
-                    '21-C',
-                    '22-C',
-                    '23-C',
-                    '24-C',
-                    '25-C',
-                    '26-C',
-                    '27-C',
-                    '28-C',
-                    '29-C',
-                    '30-C',
-                    '31-D',
-                    '32-D',
-                    '33-D',
-                    '34-D',
-                    '35-D',
-                    '36-D',
-                    '37-D',
-                    '38-D',
-                    '39-D',
-                    '40-D',
-                ])
-            ) {
-                return mb_strtoupper($barangay_name, 'UTF-8');
+        if ($batch->is_sectoral) {
+            if ($barangay_name) {
+                $short = mb_strtolower($barangay_name, "UTF-8");
+                $barangay_name = ucwords($short);
+                if (
+                    in_array(mb_strtoupper($barangay_name, 'UTF-8'), [
+                        '1-A',
+                        '2-A',
+                        '3-A',
+                        '4-A',
+                        '5-A',
+                        '6-A',
+                        '7-A',
+                        '8-A',
+                        '9-A',
+                        '10-A',
+                        '11-B',
+                        '12-B',
+                        '13-B',
+                        '14-B',
+                        '15-B',
+                        '16-B',
+                        '17-B',
+                        '18-B',
+                        '19-B',
+                        '20-B',
+                        '21-C',
+                        '22-C',
+                        '23-C',
+                        '24-C',
+                        '25-C',
+                        '26-C',
+                        '27-C',
+                        '28-C',
+                        '29-C',
+                        '30-C',
+                        '31-D',
+                        '32-D',
+                        '33-D',
+                        '34-D',
+                        '35-D',
+                        '36-D',
+                        '37-D',
+                        '38-D',
+                        '39-D',
+                        '40-D',
+                    ])
+                ) {
+                    return mb_strtoupper($barangay_name, 'UTF-8');
+                }
+                return $barangay_name;
             }
-            return $barangay_name;
+        } elseif (!$batch->is_sectoral) {
+            return $batch->barangay_name;
         }
 
         return null;
@@ -834,7 +843,7 @@ class ProcessImportSimilarity implements ShouldQueue
         return false;
     }
 
-    static function checkBeneficiaryCount(Batches $batch)
+    static function checkBeneficiaryCount(mixed $batch)
     {
         $count = Beneficiary::where('batches_id', $batch->id)->count();
         return $count;

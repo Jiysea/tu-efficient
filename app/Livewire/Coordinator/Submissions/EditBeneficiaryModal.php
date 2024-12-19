@@ -562,9 +562,9 @@ class EditBeneficiaryModal extends Component
                         $identity->save();
 
                         if ($file) {
-                            LogIt::set_edit_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
+                            LogIt::set_edit_beneficiary_identity($implementation, $batch, $beneficiary, $identity, auth()->user());
                         } else {
-                            LogIt::set_remove_beneficiary_identity($implementation, $batch, $beneficiary, auth()->user());
+                            LogIt::set_remove_beneficiary_identity($implementation, $batch, $beneficiary, $identity, auth()->user());
                         }
                         $isChanged = true;
                     }

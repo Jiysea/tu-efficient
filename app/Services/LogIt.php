@@ -79,6 +79,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Coordinator ' . self::full_name($modifiedUser) . ' from ' . $modifiedUser->field_office . ' field office has been deleted.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'users',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -269,7 +270,7 @@ class LogIt
         ]);
     }
 
-    public static function set_import_success(Batch|Collection $batch, User|Authenticatable $user, int $added_count)
+    public static function set_import_success(Batch|Collection $batch, User|Collection|Authenticatable $user, int $added_count)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -329,7 +330,7 @@ class LogIt
         ]);
     }
 
-    public static function set_edit_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_edit_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
             'users_id' => $user->id,
@@ -341,18 +342,20 @@ class LogIt
         ]);
     }
 
-    public static function set_remove_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_remove_beneficiary_identity(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             'implementations' => $implementation->toArray(),
             'batches' => $batch->toArray(),
             'beneficiaries' => $beneficiary->toArray(),
+            'credentials' => $credential->toArray(),
         ];
 
         SystemsLog::create([
             'users_id' => $user->id,
             'description' => 'Removed a beneficiary\'s (' . self::full_name($beneficiary) . ') proof of identity (ID Picture) from batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'credentials',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -385,6 +388,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Removed the special case (description: \'' . $credential->image_description . '\') from a beneficiary (' . self::full_name($beneficiary) . ') in batch \'' . $batch->batch_num . '\' -> implementation project \'' . $implementation->project_num . '\'.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'credentials',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -402,6 +406,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Deleted the implementation project \'' . $implementation->project_num . '\'.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'implementations',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -420,6 +425,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Deleted the batch \'' . $batch->batch_num . '\' -> in implementation project \'' . $implementation->project_num . '\'.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'batches',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -438,6 +444,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Removed ' . self::full_name($assignment->users_id) . ' from batch \'' . $batch->batch_num . '\' assignment.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'assignments',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -457,6 +464,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Deleted ' . self::full_name($beneficiary) . ' from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'beneficiaries',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -477,6 +485,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Deleted ' . self::full_name($beneficiary) . ', a special case (description: \'' . $credential->image_description . '\') from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'credentials',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -667,6 +676,7 @@ class LogIt
             'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
             'description' => 'Deleted a special case (description: \'' . $credential->image_description . '\') from a beneficiary (' . self::full_name($beneficiary) . ') due to modifying the beneficiary\'s information. Batch \'' . $batch->batch_num . '\' -> Project \'' . $implementation->project_num . '\'.',
             'old_data' => json_encode($stackedData),
+            'main_table' => 'credentials-barangay',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
