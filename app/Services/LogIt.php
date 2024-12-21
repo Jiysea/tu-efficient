@@ -270,11 +270,11 @@ class LogIt
         ]);
     }
 
-    public static function set_import_success(Batch|Collection $batch, User|Collection|Authenticatable $user, int $added_count)
+    public static function set_import_success(Implementation|Collection $implementation, Batch|Collection $batch, User|Collection|Authenticatable $user, int $added_count)
     {
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Successfully imported ' . $added_count . ' beneficiaries in batch \'' . $batch->batch_num . '\'.',
+            'description' => 'Imported ' . $added_count . ' beneficiaries. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . ' \'.',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'create',
@@ -358,7 +358,7 @@ class LogIt
             'main_table' => 'credentials',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
-            'log_type' => 'delete',
+            'log_type' => 'remove',
             'log_timestamp' => $timestamp ?? now(),
         ]);
     }
@@ -391,7 +391,7 @@ class LogIt
             'main_table' => 'credentials',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
-            'log_type' => 'delete',
+            'log_type' => 'remove',
             'log_timestamp' => $timestamp ?? now(),
         ]);
     }
@@ -447,7 +447,7 @@ class LogIt
             'main_table' => 'assignments',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
-            'log_type' => 'delete',
+            'log_type' => 'remove',
             'log_timestamp' => $timestamp ?? now(),
         ]);
     }
@@ -485,7 +485,7 @@ class LogIt
             'users_id' => $user->id,
             'description' => 'Deleted ' . self::full_name($beneficiary) . ', a special case (description: \'' . $credential->image_description . '\') from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
             'old_data' => json_encode($stackedData),
-            'main_table' => 'credentials',
+            'main_table' => 'beneficiaries',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'delete',
@@ -529,14 +529,43 @@ class LogIt
         ]);
     }
 
-    public static function set_permanently_delete_archive(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $archive, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_permanently_delete_archive_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
+        $stackedData = [
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'beneficiaries' => $beneficiary->data,
+        ];
+
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Permanently deleted ' . self::full_name($archive->data) . '. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
+            'description' => 'Permanently deleted ' . self::full_name($beneficiary->data) . '. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'main_table' => 'beneficiaries',
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
-            'log_type' => 'restore',
+            'log_type' => 'delete',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_permanently_delete_archive_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $beneficiary, Archive|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        $stackedData = [
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'credentials' => $credential->data,
+            'beneficiaries' => $beneficiary->data,
+        ];
+
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Permanently deleted ' . self::full_name($beneficiary->data) . ', a special case (description: ' . $credential->data['image_description'] . '). Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
+            'old_data' => json_encode($stackedData),
+            'main_table' => 'beneficiaries',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'delete',
             'log_timestamp' => $timestamp ?? now(),
         ]);
     }
@@ -714,7 +743,6 @@ class LogIt
         ]);
     }
 
-    # Not Yet Implemented
     public static function set_barangay_archive_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
     {
         $stackedData = [
@@ -738,28 +766,28 @@ class LogIt
         ]);
     }
 
-    // public static function set_barangay_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, string $access_code, mixed $timestamp = null)
-    // {
-    //     $stackedData = [
-    //         'implementations' => $implementation->toArray(),
-    //         'batches' => $batch->toArray(),
-    //         'beneficiaries' => $beneficiary->toArray(),
-    //         'codes' => ['access_code' => $access_code],
-    //     ];
+    public static function set_barangay_archive_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, string $access_code, mixed $timestamp = null)
+    {
+        $stackedData = [
+            'implementations' => $implementation->toArray(),
+            'batches' => $batch->toArray(),
+            'beneficiaries' => $beneficiary->toArray(),
+            'codes' => ['access_code' => $access_code],
+        ];
 
-    //     $user = self::get_user_based_on_beneficiary($beneficiary);
+        $user = self::get_user_based_on_beneficiary($beneficiary);
 
-    //     SystemsLog::create([
-    //         'users_id' => null,
-    //         'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
-    //         'description' => 'Deleted ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> project ' . $implementation->project_num . '.',
-    //         'old_data' => json_encode($stackedData),
-    //         'regional_office' => $user->regional_office,
-    //         'field_office' => $user->field_office,
-    //         'log_type' => 'delete',
-    //         'log_timestamp' => $timestamp ?? now(),
-    //     ]);
-    // }
+        SystemsLog::create([
+            'users_id' => null,
+            'alternative_sender' => "Code (" . decrypt($access_code) . ") User",
+            'description' => 'Archived ' . self::full_name($beneficiary) . ' from batch ' . $batch->batch_num . ' -> project ' . $implementation->project_num . '.',
+            'old_data' => json_encode($stackedData),
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'archive',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
 
     # ----------------------------------------------------------------------------------------------------------------------
     # Barangays (END) ----------------------------------------------------------------------------------------------------------------------

@@ -311,7 +311,7 @@
                                 for uploading files to avoid unnecessary errors.
                             </p>
 
-                            @if (!$this->implementation?->is_sectoral)
+                            @if (!$this->batch?->is_sectoral)
                                 <p class="text-center w-full text-gray-500 z-10 mt-4 text-sm">
                                     Note that since this batch is non-sectoral, it will
                                     <strong>completely ignore</strong>

@@ -4,16 +4,12 @@ namespace App\Livewire\Focal\Implementations;
 
 use App\Jobs\ProcessImportSimilarity;
 use App\Models\Batch as Batches;
-use App\Models\Beneficiary;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Annex;
-use App\Services\AnnexDGenerator;
-use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;

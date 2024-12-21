@@ -48,6 +48,7 @@ class Beneficiary extends Model
         'spouse_extension_name',
         'is_signed',
         'is_paid',
+        'is_safe'
     ];
 
     public function batch()

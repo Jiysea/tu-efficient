@@ -278,7 +278,7 @@ class ListingPage extends Component
                         ]);
                         $credential->deleteOrFail();
                         if ($credential->for_duplicates === 'yes') {
-                            LogIt::set_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                            LogIt::set_barangay_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
                         }
                     }
 
@@ -348,7 +348,7 @@ class ListingPage extends Component
                     ]);
                     $credential->deleteOrFail();
                     if ($credential->for_duplicates === 'yes') {
-                        LogIt::set_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                        LogIt::set_barangay_archive_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
                     }
                 }
 

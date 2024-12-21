@@ -236,6 +236,7 @@ class ViewBatch extends Component
                 $this->js('viewBatchModal = false;');
             } finally {
                 $this->forceApproveModal = false;
+                $this->resetPasswords();
             }
         }, 5);
     }
@@ -267,6 +268,7 @@ class ViewBatch extends Component
                 $this->js('viewBatchModal = false;');
             } finally {
                 $this->pendBatchModal = false;
+                $this->resetPasswords();
             }
         }, 5);
     }

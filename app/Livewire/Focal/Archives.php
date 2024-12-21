@@ -218,6 +218,10 @@ class Archives extends Component
                         if (isset($credential->data['image_file_path']) && Storage::exists($credential->data['image_file_path'])) {
                             Storage::delete($credential->data['image_file_path']);
                         }
+
+                        if ($credential->data['for_duplicates'] === 'yes') {
+                            LogIt::set_permanently_delete_archive_beneficiary_special_case($implementation, $batch, $archive, $credential, auth()->user());
+                        }
                         $credential->deleteOrFail();
                     }
                 }
@@ -225,7 +229,9 @@ class Archives extends Component
                 $archive->deleteOrFail();
 
                 # Log this
-                LogIt::set_permanently_delete_archive($implementation, $batch, $archive, auth()->user());
+                if (mb_strtolower($archive->data['beneficiary_type'], "UTF-8") === 'underemployed') {
+                    LogIt::set_permanently_delete_archive_beneficiary($implementation, $batch, $archive, auth()->user());
+                }
 
                 # bust the archives cache
                 unset($this->archives);
@@ -239,10 +245,10 @@ class Archives extends Component
 
             } catch (\Throwable $e) {
                 DB::rollBack();
-                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                // LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
 
                 $this->alerts[] = [
-                    'message' => 'An error has occured during execution. Error ' . $e->getCode(),
+                    'message' => $e->getMessage(),
                     'id' => uniqid(),
                     'color' => 'red'
                 ];

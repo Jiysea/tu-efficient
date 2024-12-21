@@ -774,7 +774,7 @@ class ViewBeneficiary extends Component
                         LogIt::set_archive_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                     }
 
-                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Successfully archived a beneficiary', color: 'indigo');
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully archived a beneficiary', color: 'indigo');
                 }
 
                 # otherwise, we could just delete it.
@@ -795,27 +795,27 @@ class ViewBeneficiary extends Component
                         LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                     }
 
-                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Successfully deleted a beneficiary', color: 'indigo');
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully deleted a beneficiary', color: 'indigo');
                 }
             } catch (AuthorizationException $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An unauthorized action has been made while removing a beneficiary. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'beneficiary-modify', message: $e->getMessage(), color: 'red');
+                $this->dispatch('alertNotification', type: 'beneficiary', message: $e->getMessage(), color: 'red');
             } catch (QueryException $e) {
                 DB::rollBack();
 
                 # Deadlock & LockWaitTimeoutException
                 if ($e->getCode() === '1213' || $e->getCode() === '1205') {
                     // LogIt::set_log_exception('Deadlock has occured while deleting a beneficiary', auth()->user(), $e->getTrace());
-                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
                 } else {
                     LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                    $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
                 }
             } catch (\Throwable $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'beneficiary-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             } finally {
                 $this->resetBeneficiaries();
                 $this->js('viewBeneficiaryModal = false;');

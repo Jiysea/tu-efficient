@@ -532,7 +532,20 @@ window.addEventListener('resize', () => {
                                                 {{-- Selected Row Indicator --}}
                                             </td>
                                             <th scope="row" class="ps-4 py-2 font-medium">
-                                                {{ $batch->is_sectoral ? $batch->sector_title : $batch->barangay_name }}
+                                                @if ($batch->approval_status === 'approved')
+                                                    <span class="flex items-center justify-start gap-1.5">
+                                                        <span
+                                                            class="flex items-center justify-center px-1.5 py-0.5 rounded font-semibold text-2xs 2xl:text-xs bg-green-300 text-green-1100">A</span>
+                                                        {{ $batch->is_sectoral ? $batch->sector_title : $batch->barangay_name }}
+                                                    </span>
+                                                @elseif($batch->approval_status === 'pending')
+                                                    <span class="flex items-center justify-start gap-1.5">
+                                                        <span
+                                                            class="flex items-center justify-center px-1.5 py-0.5 rounded font-semibold text-2xs 2xl:text-xs bg-amber-300 text-amber-950">P</span>
+                                                        {{ $batch->is_sectoral ? $batch->sector_title : $batch->barangay_name }}
+                                                    </span>
+                                                @endif
+
                                             </th>
                                             <td class="px-2 py-2 text-center">
                                                 {{ $batch->current_slots . ' / ' . $batch->slots_allocated }}

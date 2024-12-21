@@ -16,6 +16,9 @@ use App\Services\JaccardSimilarity;
 use App\Services\MoneyFormat;
 use DateTime;
 use DB;
+use ErrorException;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Cache;
 use Carbon\Carbon;
@@ -28,7 +31,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class ProcessImportSimilarity implements ShouldQueue
+class ProcessImportSimilarity implements ShouldQueueAfterCommit
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -55,211 +58,214 @@ class ProcessImportSimilarity implements ShouldQueue
      */
     public function handle(): void
     {
+        DB::transaction(function () {
+            try {
+                # Load the uploaded Excel file using PhpSpreadsheet
+                $testAgainstFormats = [
+                    IOFactory::READER_CSV,
+                    IOFactory::READER_XLSX,
+                ];
+                $spreadsheet = null;
 
-        # Load the uploaded Excel file using PhpSpreadsheet
-        $testAgainstFormats = [
-            IOFactory::READER_CSV,
-            IOFactory::READER_XLSX,
-        ];
-        $spreadsheet = null;
+                $spreadsheet = IOFactory::load(storage_path('app/' . $this->file_path), 0, $testAgainstFormats);
 
-        try {
-            $spreadsheet = IOFactory::load(storage_path('app/' . $this->file_path), 0, $testAgainstFormats);
-        } catch (Exception $e) {
-            $this->batch()->cancel();
-            \Log::error('File processing error: ' . $e->getMessage());
-            return;
-        }
 
-        $worksheet = $spreadsheet->getActiveSheet();
-        $minRow = 12;
-        $maxRow = $worksheet->getHighestDataRow();
+                $worksheet = $spreadsheet->getActiveSheet();
+                $minRow = 12;
+                $maxRow = $worksheet->getHighestDataRow();
 
-        $successCounter = 0;
-        $list = [];
-        $beneficiary = [];
-        $columnNames = [
-            'A' => 'row',
-            'B' => 'first_name',
-            'C' => 'middle_name',
-            'D' => 'last_name',
-            'E' => 'extension_name',
-            'F' => 'birthdate',
-            'G' => 'barangay_name',
-            'H' => 'city_municipality',
-            'I' => 'province',
-            'J' => 'district',
-            'K' => 'type_of_id',
-            'L' => 'id_number',
-            'M' => 'contact_num',
-            'N' => 'e_payment_acc_num',
-            'O' => 'beneficiary_type',
-            'P' => 'occupation',
-            'Q' => 'sex',
-            'R' => 'civil_status',
-            'S' => 'age',
-            'T' => 'avg_monthly_income',
-            'U' => 'dependent',
-            'V' => 'self_employment',
-            'W' => 'skills_training',
-            'X' => 'spouse_first_name',
-            'Y' => 'spouse_middle_name',
-            'Z' => 'spouse_last_name',
-            'AA' => 'spouse_extension_name',
-            'AB' => 'is_pwd'
-        ];
+                $successCounter = 0;
+                $list = [];
+                $beneficiary = [];
+                $columnNames = [
+                    'A' => 'row',
+                    'B' => 'first_name',
+                    'C' => 'middle_name',
+                    'D' => 'last_name',
+                    'E' => 'extension_name',
+                    'F' => 'birthdate',
+                    'G' => 'barangay_name',
+                    'H' => 'city_municipality',
+                    'I' => 'province',
+                    'J' => 'district',
+                    'K' => 'type_of_id',
+                    'L' => 'id_number',
+                    'M' => 'contact_num',
+                    'N' => 'e_payment_acc_num',
+                    'O' => 'beneficiary_type',
+                    'P' => 'occupation',
+                    'Q' => 'sex',
+                    'R' => 'civil_status',
+                    'S' => 'age',
+                    'T' => 'avg_monthly_income',
+                    'U' => 'dependent',
+                    'V' => 'self_employment',
+                    'W' => 'skills_training',
+                    'X' => 'spouse_first_name',
+                    'Y' => 'spouse_middle_name',
+                    'Z' => 'spouse_last_name',
+                    'AA' => 'spouse_extension_name',
+                    'AB' => 'is_pwd'
+                ];
 
-        $batch = Batches::find($this->batches_id);
-        $implementation = Implementation::find($batch->implementations_id);
+                $batch = Batches::find($this->batches_id);
+                $implementation = Implementation::find($batch->implementations_id);
 
-        foreach ($worksheet->getRowIterator($minRow, $maxRow) as $row) {
-            if ($row->isEmpty(3, 'A', 'AB')) {
-                continue;
+                foreach ($worksheet->getRowIterator($minRow, $maxRow) as $row) {
+                    if ($row->isEmpty(3, 'A', 'AB')) {
+                        continue;
+                    }
+
+                    foreach ($row->getCellIterator('A', 'AB') as $keyCell => $cell) {
+
+                        # Trims the cell value and removes extra whitespaces, then add it to the array
+                        $value = Essential::trimmer($cell->getValue());
+
+                        # The Sheet Row from the file assigned as a unique identifier for these temporary beneficiaries
+                        if ($keyCell === 'A') {
+                            $value = $row->getRowIndex();
+                        }
+
+                        # first_name, middle_name, last_name, extension_name, and dependent 
+                        elseif (in_array($keyCell, ['B', 'C', 'D', 'E', 'U'])) {
+                            if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                                $value = null;
+                            } else {
+                                $value = mb_strtoupper($value, "UTF-8");
+                            }
+                        }
+
+                        # birthdate
+                        elseif ($keyCell === 'F') {
+                            $value = self::extract_dateTime($value);
+                        }
+
+                        # Values that are empty, null, or `-` will be assigned as `null` to uniform the data
+                        elseif (in_array($keyCell, ['N', 'W', 'X', 'Y', 'Z', 'AA'])) {
+                            if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                                $value = null;
+                            }
+                        }
+
+                        # Interested in Self Employment && Person with Disability values that are empty or null will be assigned with `no` as default
+                        elseif (in_array($keyCell, ['V', 'AB'])) {
+                            if (in_array(strtolower($value), ['no', 'yes'])) {
+                                $value = strtolower($value);
+                            } else {
+                                $value = 'no';
+                            }
+                        }
+
+                        # Uniforming the Sex values
+                        elseif ($keyCell === 'Q') {
+                            if (in_array(strtolower($value), ['male', 'female'])) {
+                                $value = strtolower($value);
+                            } elseif (strtolower($value) === 'm') {
+                                $value = 'male';
+                            } elseif (strtolower($value) === 'f') {
+                                $value = 'female';
+                            } else {
+                                $value = null;
+                            }
+                        }
+
+                        # Uniforming the Civil Status values
+                        elseif ($keyCell === 'R') {
+                            if (in_array(strtolower($value), ['single', 'married', 'divorced', 'separated', 'widowed'])) {
+                                $value = strtolower($value);
+                            } elseif (strtolower($value) === 's') {
+                                $value = 'single';
+                            } elseif (strtolower($value) === 'm') {
+                                $value = 'married';
+                            } elseif (strtolower($value) === 'd') {
+                                $value = 'divorced';
+                            } elseif (strtolower($value) === 'sp') {
+                                $value = 'separated';
+                            } elseif (strtolower($value) === 'w') {
+                                $value = 'widowed';
+                            } else {
+                                $value = null;
+                            }
+                        }
+
+                        # The age value (will not be used)
+                        elseif ($keyCell === 'S') {
+                            if ($cell->isFormula()) {
+                                $value = $cell->getCalculatedValue();
+                            } elseif (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                                $value = null;
+                            }
+                        }
+
+                        # Type of Beneficiary value will be defaulted as `underemployed`
+                        elseif ($keyCell === 'O') {
+                            if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                                $value = 'underemployed';
+                            } else {
+                                $value = mb_strtolower($cell->getValue(), "UTF-8");
+                            }
+                        }
+
+                        # Project Location Values assigned based on the selected batch in `Implementations` page
+                        elseif ($keyCell === 'G') {
+                            $value = self::resolveBarangay($cell->getValue(), $batch);
+                        } elseif ($keyCell === 'H') {
+                            $value = $implementation->city_municipality;
+                        } elseif ($keyCell === 'I') {
+                            $value = $implementation->province;
+                        } elseif ($keyCell === 'J') {
+                            $value = self::resolveDistrict($cell->getValue(), $batch);
+                        }
+
+                        $beneficiary[$columnNames[$keyCell]] = $value;
+
+                    }
+
+                    # Add the batches_id first to prevent the user from opening other batches while it is still fresh
+                    $list['batches_id'] = encrypt($this->batches_id);
+
+                    # Also validate each row and flag a row that has some validation errors
+                    $beneficiary = self::validateAndReturn($beneficiary, $this->maximumIncome, $this->batches_id);
+
+                    # Then we start the similarity checker
+                    $beneficiary = self::checkSimilaritiesAndReturn($beneficiary, $this->duplicationThreshold);
+
+                    # Check the rows that were unique and insert to the database without errors && similarities
+                    $beneficiary = self::insertUniqueRows($beneficiary, $this->batches_id);
+
+                    if ($beneficiary['success'])
+                        $successCounter++;
+                    # Compile them all to the list
+                    $list['beneficiaries'][] = $beneficiary;
+
+                }
+
+                if ($successCounter > 0 && in_array($list, ['success' => true])) {
+                    $user = User::find($this->users_id);
+                    LogIt::set_import_success($implementation, $batch, $user, $successCounter);
+                }
+
+                # End Game
+                $time = now()->addMinutes(10)->addSecond();
+                cache(
+                    [
+                        "importing_" . $this->users_id => $list,
+                    ],
+                    $time
+                );
+
+                cache(
+                    [
+                        "importing_expiration_" . $this->users_id => ($time->format('Y-m-d H:i:s'))
+                    ],
+                    $time
+                );
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured while processing a job queue. Error ' . $e->getCode(), $this->users_id, $e->getTrace());
+                throw new Exception($e->getMessage(), $e->getCode());
             }
-
-            foreach ($row->getCellIterator('A', 'AB') as $keyCell => $cell) {
-
-                # Trims the cell value and removes extra whitespaces, then add it to the array
-                $value = Essential::trimmer($cell->getValue());
-
-                # The Sheet Row from the file assigned as a unique identifier for these temporary beneficiaries
-                if ($keyCell === 'A') {
-                    $value = $row->getRowIndex();
-                }
-
-                # first_name, middle_name, last_name, extension_name, and dependent 
-                elseif (in_array($keyCell, ['B', 'C', 'D', 'E', 'U'])) {
-                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
-                        $value = null;
-                    } else {
-                        $value = mb_strtoupper($value, "UTF-8");
-                    }
-                }
-
-                # birthdate
-                elseif ($keyCell === 'F') {
-                    $value = self::extract_dateTime($value);
-                }
-
-                # Values that are empty, null, or `-` will be assigned as `null` to uniform the data
-                elseif (in_array($keyCell, ['N', 'W', 'X', 'Y', 'Z', 'AA'])) {
-                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
-                        $value = null;
-                    }
-                }
-
-                # Interested in Self Employment && Person with Disability values that are empty or null will be assigned with `no` as default
-                elseif (in_array($keyCell, ['V', 'AB'])) {
-                    if (in_array(strtolower($value), ['no', 'yes'])) {
-                        $value = strtolower($value);
-                    } else {
-                        $value = 'no';
-                    }
-                }
-
-                # Uniforming the Sex values
-                elseif ($keyCell === 'Q') {
-                    if (in_array(strtolower($value), ['male', 'female'])) {
-                        $value = strtolower($value);
-                    } elseif (strtolower($value) === 'm') {
-                        $value = 'male';
-                    } elseif (strtolower($value) === 'f') {
-                        $value = 'female';
-                    } else {
-                        $value = null;
-                    }
-                }
-
-                # Uniforming the Civil Status values
-                elseif ($keyCell === 'R') {
-                    if (in_array(strtolower($value), ['single', 'married', 'divorced', 'separated', 'widowed'])) {
-                        $value = strtolower($value);
-                    } elseif (strtolower($value) === 's') {
-                        $value = 'single';
-                    } elseif (strtolower($value) === 'm') {
-                        $value = 'married';
-                    } elseif (strtolower($value) === 'd') {
-                        $value = 'divorced';
-                    } elseif (strtolower($value) === 'sp') {
-                        $value = 'separated';
-                    } elseif (strtolower($value) === 'w') {
-                        $value = 'widowed';
-                    } else {
-                        $value = null;
-                    }
-                }
-
-                # The age value (will not be used)
-                elseif ($keyCell === 'S') {
-                    if ($cell->isFormula()) {
-                        $value = $cell->getCalculatedValue();
-                    } elseif (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
-                        $value = null;
-                    }
-                }
-
-                # Type of Beneficiary value will be defaulted as `underemployed`
-                elseif ($keyCell === 'O') {
-                    if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
-                        $value = 'underemployed';
-                    } else {
-                        $value = mb_strtolower($cell->getValue(), "UTF-8");
-                    }
-                }
-
-                # Project Location Values assigned based on the selected batch in `Implementations` page
-                elseif ($keyCell === 'G') {
-                    $value = self::resolveBarangay($cell->getValue(), $batch);
-                } elseif ($keyCell === 'H') {
-                    $value = $implementation->city_municipality;
-                } elseif ($keyCell === 'I') {
-                    $value = $implementation->province;
-                } elseif ($keyCell === 'J') {
-                    $value = self::resolveDistrict($cell->getValue(), $batch);
-                }
-
-                $beneficiary[$columnNames[$keyCell]] = $value;
-
-            }
-
-            # Add the batches_id first to prevent the user from opening other batches while it is still fresh
-            $list['batches_id'] = encrypt($this->batches_id);
-
-            # Also validate each row and flag a row that has some validation errors
-            $beneficiary = self::validateAndReturn($beneficiary, $this->maximumIncome, $this->batches_id);
-
-            # Then we start the similarity checker
-            $beneficiary = self::checkSimilaritiesAndReturn($beneficiary, $this->duplicationThreshold);
-
-            # Check the rows that were unique and insert to the database without errors && similarities
-            $beneficiary = self::insertUniqueRows($beneficiary, $this->batches_id);
-
-            if ($beneficiary['success'])
-                $successCounter++;
-            # Compile them all to the list
-            $list['beneficiaries'][] = $beneficiary;
-        }
-
-        if ($successCounter > 0 && in_array($list, ['success' => true])) {
-            $user = User::find($this->users_id);
-            LogIt::set_import_success($batch, $user, $successCounter);
-        }
-
-        # End Game
-        $time = now()->addMinutes(10)->addSecond();
-        cache(
-            [
-                "importing_" . $this->users_id => $list,
-            ],
-            $time
-        );
-
-        cache(
-            [
-                "importing_expiration_" . $this->users_id => ($time->format('Y-m-d H:i:s'))
-            ],
-            $time
-        );
+        }, 5);
     }
 
     protected static function validateAndReturn(array $beneficiary, string $maximumIncome, int $batches_id)
@@ -449,11 +455,11 @@ class ProcessImportSimilarity implements ShouldQueue
 
     protected static function insertUniqueRows(array $beneficiary, $batches_id)
     {
-        DB::transaction(function () use ($beneficiary, $batches_id) {
+        return DB::transaction(function () use ($beneficiary, $batches_id) {
             try {
                 $list = $beneficiary;
-                $batch = Batches::find($batches_id);
-                $implementation = Implementation::find($batch->implementations_id);
+                $batch = Batches::lockForUpdate()->findOrFail($batches_id);
+                $implementation = Implementation::findOrFail($batch->implementations_id);
                 $beneficiaryCount = self::checkBeneficiaryCount($batch);
 
                 if ((!self::checkIfErrors($beneficiary['errors']) && $beneficiary['similarities'] === null) && $batch->slots_allocated > $beneficiaryCount) {
@@ -497,17 +503,30 @@ class ProcessImportSimilarity implements ShouldQueue
                         'for_duplicates' => 'no',
                     ]);
 
-
                     $list['success'] = true;
+
                 } else {
                     $list['success'] = false;
                 }
+
+                return $list;
+
+            } catch (QueryException $e) {
+                DB::rollBack();
+
+                # Deadlock & LockWaitTimeoutException
+                if ($e->getCode() === '1213' || $e->getCode() === '1205') {
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                } else {
+                    LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
+                $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             }
-
-            return $list;
-        });
-
-        return [];
+        }, 5);
     }
 
     # Some validation rules ------------------------------------------------------------------------

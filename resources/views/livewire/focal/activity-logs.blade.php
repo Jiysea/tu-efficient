@@ -2,14 +2,14 @@
     <x-f-favicons />
 </x-slot>
 
-<div x-data="{ open: true, isAboveBreakpoint: true, isMobile: window.innerWidth < 768, }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
+<div x-data="{ open: true, isAboveBreakpoint: true, isMobile: window.innerWidth < 768, viewLogModal: $wire.entangle('viewLogModal') }" x-init="isAboveBreakpoint = window.matchMedia('(min-width: 1280px)').matches;
 window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     isAboveBreakpoint = event.matches;
 });
 window.addEventListener('resize', () => {
     isMobile = window.innerWidth < 768;
     $wire.$dispatchSelf('init-reload');
-});"">
+});">
 
     <div :class="{
         'md:ml-20': !open,
@@ -99,7 +99,7 @@ window.addEventListener('resize', () => {
 
                             {{-- MD:Loading State --}}
                             <svg class="text-indigo-900 size-6 animate-spin" wire:loading
-                                wire:target="calendarStart, calendarEnd, loadMoreLogs, sortTable, resultsFrequency, choose, clear"
+                                wire:target="calendarStart, calendarEnd, loadMoreLogs, sortTable, resultsFrequency, choose, clear, viewLog"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                     stroke-width="4">
@@ -199,7 +199,7 @@ window.addEventListener('resize', () => {
                     {{-- Loading State --}}
                     <template x-if="!isMobile">
                         <svg class="size-6 text-indigo-900 animate-spin" wire:loading
-                            wire:target="calendarStart, calendarEnd, loadMoreLogs, sortTable, resultsFrequency, choose, clear"
+                            wire:target="calendarStart, calendarEnd, loadMoreLogs, sortTable, resultsFrequency, choose, clear, viewLog"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                 stroke-width="4">
@@ -440,6 +440,9 @@ window.addEventListener('resize', () => {
                                         <th scope="col" class="px-2 py-2 text-center">
                                             sender
                                         </th>
+                                        <th scope="col">
+
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="relative text-2xs sm:text-xs">
@@ -451,12 +454,14 @@ window.addEventListener('resize', () => {
                                                 } else {
                                                     row = {{ $key }};
                                                 }"
+                                            @if ($log->log_type === 'delete') @dblclick="$wire.viewLog({{ $key }}, '{{ encrypt($log->id) }}')" @endif
                                             class="relative border-b duration-100 h-12 ease-in-out whitespace-nowrap cursor-pointer"
                                             :class="{
                                                 'bg-gray-100 text-indigo-900': row === {{ $key }},
                                             }">
                                             <th scope="row" class="pe-2 ps-4 py-2 font-medium uppercase">
-                                                <span class="text-center py-1 px-2 rounded-full font-semibold"
+                                                <span
+                                                    class="flex items-center justify-center gap-2 py-1 px-2 rounded-full font-semibold"
                                                     :class="{
                                                         'bg-lime-200 text-lime-800': {{ json_encode($log->log_type === 'create') }},
                                                         'bg-amber-200 text-amber-800': {{ json_encode($log->log_type === 'update') }},
@@ -472,12 +477,31 @@ window.addEventListener('resize', () => {
                                             <td class="px-2 py-2 select-text cursor-text">
                                                 {{ \Carbon\Carbon::parse($log->log_timestamp)->format('M d, Y @ h:i:s a') }}
                                             </td>
-                                            <td @click.stop
+                                            <td
                                                 class="px-2 py-2 max-w-[400px] md:max-w-[300px] lg:max-w-[500px] overflow-x-auto whitespace-nowrap scrollbar-none select-text cursor-text">
                                                 {{ $log->description }}
                                             </td>
                                             <td class="px-2 py-2 text-center select-text cursor-text">
                                                 {{ $log->users_id ? $this->getFullName($log->users_id) : $log->alternative_sender }}
+                                            </td>
+                                            <td class="text-center size-6 pe-2">
+                                                @if ($log->log_type === 'delete')
+                                                    <button type="button"
+                                                        wire:click="viewLog({{ $key }}, '{{ encrypt($log->id) }}')"
+                                                        class="outline-none flex items-center justify-center p-1 rounded duration-200 ease-in-out hover:bg-indigo-800 active:bg-indigo-900 focus:bg-indigo-900 text-indigo-1100 hover:text-indigo-50 active:text-indigo-50 focus:text-indigo-50">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                            height="400" viewBox="0, 0, 400,400">
+                                                            <g>
+                                                                <path
+                                                                    d="M181.641 87.979 C 130.328 95.222,89.731 118.794,59.712 158.775 C 35.189 191.436,35.188 208.551,59.709 241.225 C 108.153 305.776,191.030 329.697,264.335 300.287 C 312.216 281.078,358.187 231.954,358.187 200.000 C 358.187 163.027,301.790 109.157,246.875 93.676 C 229.295 88.720,196.611 85.866,181.641 87.979 M214.728 139.914 C 251.924 148.468,272.352 190.837,256.127 225.780 C 234.108 273.202,167.333 273.905,144.541 226.953 C 121.658 179.813,163.358 128.100,214.728 139.914 M188.095 164.017 C 162.140 172.314,153.687 205.838,172.483 225.933 C 192.114 246.920,228.245 238.455,236.261 210.991 C 244.785 181.789,217.066 154.756,188.095 164.017 "
+                                                                    stroke="none" fill="currentColor"
+                                                                    fill-rule="evenodd">
+                                                                </path>
+                                                            </g>
+                                                        </svg>
+                                                    </button>
+                                                @endif
                                             </td>
                                         </tr>
                                         @if ($this->logs->count() > 99 && $loop->last)
@@ -569,6 +593,8 @@ window.addEventListener('resize', () => {
             </div>
         </div>
     </div>
+
+    <livewire:focal.activity-logs.view-log-modal :$logId />
 </div>
 
 @script

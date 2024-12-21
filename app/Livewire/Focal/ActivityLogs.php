@@ -20,6 +20,8 @@ use Livewire\Component;
 class ActivityLogs extends Component
 {
     #[Locked]
+    public $logId;
+    #[Locked]
     public $users_id;
     public $start;
     public $end;
@@ -34,8 +36,16 @@ class ActivityLogs extends Component
     public $sortTable = false;
     public $currentUser = 'Choose a user...';
     public $searchUser;
+    public $viewLogModal = false;
 
     # --------------------------------------------------------------------------
+
+    public function viewLog($key, $encryptedId)
+    {
+        $this->selectedRow = $key;
+        $this->logId = $encryptedId;
+        $this->viewLogModal = true;
+    }
 
     #[Computed]
     public function logs()
