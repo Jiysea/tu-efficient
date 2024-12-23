@@ -33,6 +33,10 @@ use Storage;
 class Implementations extends Component
 {
     #[Locked]
+    public $defaultImplementationPage = 15;
+    #[Locked]
+    public $defaultBeneficiaryPage = 15;
+    #[Locked]
     public $implementationId;
     #[Locked]
     public $batchId;
@@ -453,13 +457,13 @@ class Implementations extends Component
                                 $credential->deleteOrFail();
                             }
                             if ($credential->for_duplicates === 'yes') {
-                                LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                                LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credentials, $credential->image_description, auth()->user());
                             }
                         }
 
                         $beneficiary->deleteOrFail();
                         if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                            LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                            LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, $credentials, auth()->user());
                         }
                     }
 
@@ -670,7 +674,7 @@ class Implementations extends Component
     #[Computed]
     public function remainingBatchSlots()
     {
-        $remainingBatchSlots = $this->implementationId ? $this->implementation->total_slots : null;
+        $remainingBatchSlots = $this->implementation?->total_slots ?? 0;
 
         $batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
             ->where('implementations.users_id', Auth::id())
@@ -932,6 +936,9 @@ class Implementations extends Component
         if ($user->user_type !== 'focal') {
             $this->redirectIntended();
         }
+
+        $this->implementations_on_page = $this->defaultImplementationPage;
+        $this->beneficiaries_on_page = $this->defaultBeneficiaryPage;
 
         # Setting default dates in the datepicker
         $this->start = now()->startOfYear()->format('Y-m-d H:i:s');

@@ -14,20 +14,18 @@
                     <h1 class="text-lg font-semibold text-indigo-1100">
                         Assign and Create New Batches
                     </h1>
-                    <div class="flex items-center justify-center">
+                    <div class="flex items-center justify-center gap-3">
                         {{-- Loading State for Changes --}}
-                        <div class="z-50 text-indigo-900" wire:loading
-                            wire:target="is_sectoral, addBatchRow, editBatchRow, removeBatchRow, addToastCoordinator, removeToastCoordinatorFromBatchList, removeToastCoordinator, getAllCoordinatorsForBatchList, updateCurrentCoordinator, slots_allocated, district, barangay_name">
-                            <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4">
-                                </circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </div>
+                        <svg class="size-6 text-indigo-900 animate-spin" wire:loading
+                            wire:target="is_sectoral, addBatchRow, editBatchRow, removeBatchRow, addToastCoordinator, removeToastCoordinatorFromBatchList, removeToastCoordinator, getAllCoordinatorsForBatchList, updateCurrentCoordinator, slots_allocated, district, barangay_name"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
 
                         {{-- Close Modal --}}
                         <button type="button" @click="$wire.resetBatches(); assignBatchesModal = false;"
@@ -53,14 +51,14 @@
                             <div class="flex flex-col gap-2 sm:flex-row justify-center items-center">
                                 <p class="">Project Number
                                 <p class="text-indigo-1000 bg-indigo-200 rounded-md py-1 px-2">
-                                    {{ $this->implementation->project_num }}
+                                    {{ $this->implementation?->project_num }}
                                 </p>
                                 </p>
                             </div>
                             <div class="flex flex-col gap-2 sm:flex-row justify-center items-center">
                                 <p class="">City/Municipality
                                 <p class="text-indigo-1000 bg-indigo-200 rounded-md py-1 px-2">
-                                    {{ $this->implementation->city_municipality }}</p>
+                                    {{ $this->implementation?->city_municipality }}</p>
                                 </p>
                             </div>
                             <div class="flex flex-col gap-2 w-full sm:w-auto sm:flex-row justify-center items-center">

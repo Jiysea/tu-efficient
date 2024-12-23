@@ -47,8 +47,8 @@ window.addEventListener('resize', () => {
                                         </svg>
                                     </div>
                                     <input type="text" readonly id="start-date" wire:model.change="calendarStart"
-                                        @change-date.camel="$wire.$set('calendarStart', $el.value); " name="start"
-                                        value="{{ $calendarStart }}"
+                                        @change-date.camel="$wire.$set('calendarStart', $el.value); $wire.dispatchSelf('scroll-top-implementations'); $wire.dispatchSelf('scroll-top-batches'); $wire.dispatchSelf('scroll-top-beneficiaries');"
+                                        name="start" value="{{ $calendarStart }}"
                                         class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
                                         placeholder="Select date start">
                                 </div>
@@ -70,8 +70,8 @@ window.addEventListener('resize', () => {
                                         </svg>
                                     </div>
                                     <input type="text" readonly id="end-date" wire:model.change="calendarEnd"
-                                        @change-date.camel="$wire.$set('calendarEnd', $el.value); " name="end"
-                                        value="{{ $calendarEnd }}"
+                                        @change-date.camel="$wire.$set('calendarEnd', $el.value); $wire.dispatchSelf('scroll-top-implementations'); $wire.dispatchSelf('scroll-top-batches'); $wire.dispatchSelf('scroll-top-beneficiaries');"
+                                        name="end" value="{{ $calendarEnd }}"
                                         class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 block w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
                                         placeholder="Select date end">
                                 </div>
@@ -166,7 +166,7 @@ window.addEventListener('resize', () => {
                                         </svg>
                                     </div>
                                     <input type="text" readonly id="start-date"
-                                        @change-date.camel="$wire.$set('calendarStart', $el.value);  show = false;"
+                                        @change-date.camel="$wire.$set('calendarStart', $el.value); $wire.dispatchSelf('scroll-top-implementations'); $wire.dispatchSelf('scroll-top-batches'); $wire.dispatchSelf('scroll-top-beneficiaries'); show = false;"
                                         wire:model.change="calendarStart" name="start" value="{{ $calendarStart }}"
                                         class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
                                         placeholder="Select date start">
@@ -189,7 +189,7 @@ window.addEventListener('resize', () => {
                                         </svg>
                                     </div>
                                     <input type="text" readonly id="end-date" wire:model.change="calendarEnd"
-                                        @change-date.camel="$wire.$set('calendarEnd', $el.value);  show = false;"
+                                        @change-date.camel="$wire.$set('calendarEnd', $el.value); $wire.dispatchSelf('scroll-top-implementations'); $wire.dispatchSelf('scroll-top-batches'); $wire.dispatchSelf('scroll-top-beneficiaries');  show = false;"
                                         name="end" value="{{ $calendarEnd }}"
                                         class="cursor-pointer selection:bg-white bg-white border border-indigo-300 text-xs text-indigo-1100 rounded focus:ring-indigo-500 focus:border-indigo-500 w-28 sm:w-32 py-1.5 ps-7 sm:ps-8"
                                         placeholder="Select date end">
@@ -314,12 +314,13 @@ window.addEventListener('resize', () => {
                                 <tbody x-data="{ count: 0 }" class="relative text-xs">
                                     @foreach ($this->implementations as $key => $implementation)
                                         <tr wire:key="implementation-{{ $key }}"
+                                            @if (count($this->implementations) > $defaultImplementationPage - 1 && $loop->last) x-intersect.once="$wire.loadMoreImplementations();" @endif
                                             wire:loading.class="pointer-events-none"
                                             wire:target="selectImplementationRow, viewImplementation"
                                             @click="count++;"
-                                            @click.debounce.350ms="if(!$event.ctrlKey && count === 1) {$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}'); count = 0;}"
-                                            @click.ctrl="if($event.ctrlKey) {$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}'); count = 0;}"
-                                            @dblclick="if(!$event.ctrlKey) {$wire.viewImplementation({{ $key }}, '{{ encrypt($implementation->id) }}'); count = 0}"
+                                            @click.debounce.350ms="if(!$event.ctrlKey && count === 1) {$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}'); $wire.dispatchSelf('scroll-top-beneficiaries'); $wire.dispatchSelf('scroll-top-batches'); count = 0;}"
+                                            @click.ctrl="if($event.ctrlKey) {$wire.selectImplementationRow({{ $key }}, '{{ encrypt($implementation->id) }}'); $wire.dispatchSelf('scroll-top-beneficiaries'); $wire.dispatchSelf('scroll-top-batches'); count = 0;}"
+                                            @dblclick="if(!$event.ctrlKey) {$wire.viewImplementation({{ $key }}, '{{ encrypt($implementation->id) }}'); $wire.dispatchSelf('scroll-top-beneficiaries'); $wire.dispatchSelf('scroll-top-batches'); count = 0}"
                                             class="relative border-b duration-200 ease-in-out {{ $selectedImplementationRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-50' : ' hover:bg-gray-50' }} whitespace-nowrap cursor-pointer">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
@@ -370,11 +371,6 @@ window.addEventListener('resize', () => {
                                                 </button>
                                             </td>
                                         </tr>
-                                        @if ($this->implementations->count() > 5 && $loop->last)
-                                            <tr x-data x-intersect.full.once="$wire.loadMoreImplementations();">
-
-                                            </tr>
-                                        @endif
                                     @endforeach
                                 </tbody>
                             </table>
@@ -521,9 +517,9 @@ window.addEventListener('resize', () => {
                                         <tr wire:key="batch-{{ $key }}"
                                             wire:loading.class="pointer-events-none"
                                             wire:target="selectBatchRow, viewBatch" @click="count++;"
-                                            @click.ctrl="if($event.ctrlKey) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0;}"
-                                            @click.debounce.350ms="if(!$event.ctrlKey && count === 1) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0;}"
-                                            @dblclick="if(!$event.ctrlKey) {$wire.viewBatch({{ $key }}, '{{ encrypt($batch->id) }}'); count = 0}"
+                                            @click.ctrl="if($event.ctrlKey) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); $wire.dispatchSelf('scroll-top-beneficiaries'); count = 0;}"
+                                            @click.debounce.350ms="if(!$event.ctrlKey && count === 1) {$wire.selectBatchRow({{ $key }}, '{{ encrypt($batch->id) }}'); $wire.dispatchSelf('scroll-top-beneficiaries'); count = 0;}"
+                                            @dblclick="if(!$event.ctrlKey) {$wire.viewBatch({{ $key }}, '{{ encrypt($batch->id) }}'); $wire.dispatchSelf('scroll-top-beneficiaries'); count = 0}"
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer {{ $selectedBatchRow === $key ? 'bg-gray-100 text-indigo-900 hover:bg-gray-50' : ' hover:bg-gray-50' }}">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
@@ -952,6 +948,7 @@ window.addEventListener('resize', () => {
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
                                         <tr wire:key="beneficiary-{{ $key }}" {{-- @if ($this->nameCheck($beneficiary)[$key]['coEfficient'] * 100 > $duplicationThreshold) data-popover-target="beneficiary-pop-{{ $key }}"
                                             data-popover-trigger="hover" @endif --}}
+                                            @if (count($this->beneficiaries) > $defaultBeneficiaryPage - 1 && $loop->last) x-intersect.once="$wire.loadMoreBeneficiaries()" @endif
                                             @click="count++"
                                             @click.ctrl="if($event.ctrlKey) {$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
                                             @click.debounce.350ms="if(!$event.ctrlKey && !$event.shiftKey && count === 1) {$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0;}"
@@ -1108,32 +1105,6 @@ window.addEventListener('resize', () => {
                                                 </button>
                                             </td>
                                         </tr>
-                                        @if (isset($this->beneficiaries) && count($this->beneficiaries) > 5 && $loop->last)
-                                            <tr x-data x-intersect.full.once="$wire.loadMoreBeneficiaries()">
-                                            </tr>
-                                        @endif
-
-                                        {{--
-                                        @if ($this->nameCheck($beneficiary)[$key]['coEfficient'] * 100 > $duplicationThreshold)
-                                            <div data-popover id="value" role="tooltip"
-                                                class="absolute z-30 invisible inline-block text-indigo-50 transition-opacity duration-300 bg-gray-900 border-gray-300 border rounded-lg shadow-sm opacity-0">
-                                                <div class="flex flex-col text-xs font-medium p-2 gap-1">
-                                                    <p>
-                                                    <div class="flex items-center gap-2"><span
-                                                            class="p-1.5 bg-red-500"></span>
-                                                        <span>Exactly the same as input</span>
-                                                    </div>
-                                                    <div class="flex items-center gap-2"><span
-                                                            class="p-1.5 bg-amber-500"></span>
-                                                        <span>Not the
-                                                            same as input</span>
-                                                    </div>
-                                                    </p>
-                                                </div>
-                                                <div data-popper-arrow></div>
-                                            </div>
-                                        @endif
-                                        --}}
                                     @endforeach
                                 </tbody>
                             </table>

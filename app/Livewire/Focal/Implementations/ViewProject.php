@@ -233,7 +233,7 @@ class ViewProject extends Component
 
                 if (!$this->isEmpty) {
                     DB::rollBack();
-                    $this->dispatch('alertNotification', type: 'implementation-modify', message: 'This project is not empty', color: 'red');
+                    $this->dispatch('alertNotification', type: 'implementation', message: 'This project is not empty', color: 'red');
                     return;
                 }
                 $this->authorize('implementation-focal', $project);
@@ -241,15 +241,15 @@ class ViewProject extends Component
                 $project->deleteOrFail();
 
                 LogIt::set_delete_project($project, auth()->user());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'Successfully deleted a project', color: 'indigo');
+                $this->dispatch('alertNotification', type: 'implementation', message: 'Successfully deleted a project', color: 'indigo');
             } catch (AuthorizationException $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An unauthorized action has been made while deleting this project. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: $e->getMessage(), color: 'red');
+                $this->dispatch('alertNotification', type: 'implementation', message: $e->getMessage(), color: 'red');
             } catch (\Throwable $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                $this->dispatch('alertNotification', type: 'implementation', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             } finally {
                 $this->resetViewProject();
                 $this->js('viewProjectModal = false;');

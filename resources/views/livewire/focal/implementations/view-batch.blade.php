@@ -23,7 +23,7 @@
                         </h1>
 
                     </span>
-                    <div class="flex items-center justify-center">
+                    <div class="flex items-center justify-center gap-3">
                         {{-- Loading State for Changes --}}
                         <svg class="size-6 text-indigo-900 animate-spin" wire:loading
                             wire:target="is_sectoral, liveUpdateRemainingSlots, addToastCoordinator, removeToastCoordinator, deleteBatch, slots_allocated, barangay_name, district"

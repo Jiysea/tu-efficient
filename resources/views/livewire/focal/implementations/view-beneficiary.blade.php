@@ -18,8 +18,7 @@
                         </h1>
 
                     </span>
-                    <div class="flex items-center justify-between gap-4">
-
+                    <div class="flex items-center justify-between gap-3">
                         {{-- Loading State for Changes --}}
                         <svg class="size-6 text-indigo-900 animate-spin" wire:loading
                             wire:target="nameCheck, beneficiary_type, civil_status, birthdate, is_pwd, district, barangay_name"

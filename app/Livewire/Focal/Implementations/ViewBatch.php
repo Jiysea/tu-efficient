@@ -625,7 +625,7 @@ class ViewBatch extends Component
                     # and will log the newly assigned coordinator.
                     if ($ass->wasRecentlyCreated) {
                         $assignmentsDirty = true;
-                        LogIt::set_assign_coordinator_to_batch($ass, auth()->user(), 'update');
+                        LogIt::set_assign_coordinator_to_batch($batch, $ass, auth()->user(), 'update');
                     }
                 }
 
@@ -691,7 +691,7 @@ class ViewBatch extends Component
                 $implementation = $batch->implementation;
                 if (!$this->isEmpty) {
                     DB::rollBack();
-                    $this->dispatch('alertNotification', type: 'batch-modify', message: 'This batch is not empty', color: 'red');
+                    $this->dispatch('alertNotification', type: 'batch', message: 'This batch is not empty', color: 'red');
                     return;
                 }
                 $this->authorize('batch-focal', $batch);
@@ -713,15 +713,15 @@ class ViewBatch extends Component
                 $batch->deleteOrFail();
 
                 LogIt::set_delete_batches($implementation, $batch, auth()->user());
-                $this->dispatch('alertNotification', type: 'implementation', message: 'Successfully deleted a batch', color: 'indigo');
+                $this->dispatch('alertNotification', type: 'batch', message: 'Successfully deleted a batch', color: 'indigo');
             } catch (AuthorizationException $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An unauthorized action has been made while deleting a batch. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'batch-modify', message: $e->getMessage(), color: 'red');
+                $this->dispatch('alertNotification', type: 'batch', message: $e->getMessage(), color: 'red');
             } catch (\Throwable $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'batch-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                $this->dispatch('alertNotification', type: 'batch', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             } finally {
                 $this->resetViewBatch();
                 $this->js('viewBatchModal = false;');
@@ -780,7 +780,7 @@ class ViewBatch extends Component
     public function implementation()
     {
         $batch = Batch::find($this->batchId ? decrypt($this->batchId) : null);
-        return Implementation::find($batch->implementations_id);
+        return Implementation::find($batch?->implementations_id);
     }
 
     #[Computed]

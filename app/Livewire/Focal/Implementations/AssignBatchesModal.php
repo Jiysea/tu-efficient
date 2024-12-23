@@ -102,7 +102,7 @@ class AssignBatchesModal extends Component
                 function ($attribute, $value, $fail) {
 
                     # Check for uniqueness of the prefixed value in the database
-                    $exists = Batch::where('implementations_id', $this->implementation->id)
+                    $exists = Batch::where('implementations_id', $this->implementation?->id)
                         ->where('barangay_name', $value)
                         ->exists();
 
@@ -241,7 +241,7 @@ class AssignBatchesModal extends Component
                     function ($attribute, $value, $fail) {
 
                         # Check for uniqueness of the prefixed value in the database
-                        $exists = Batch::where('implementations_id', $this->implementation->id)
+                        $exists = Batch::where('implementations_id', $this->implementation?->id)
                             ->where('barangay_name', $value)
                             ->exists();
 
@@ -397,7 +397,7 @@ class AssignBatchesModal extends Component
                             'batches_id' => $batch_id,
                             'users_id' => decrypt($coordinator['users_id']),
                         ]);
-                        LogIt::set_assign_coordinator_to_batch($assignment, auth()->user());
+                        LogIt::set_assign_coordinator_to_batch($batch, $assignment, auth()->user());
                     }
                 }
 
@@ -474,7 +474,7 @@ class AssignBatchesModal extends Component
         # slots left for the user to input.
         if (!$this->temporaryBatchesList) {
 
-            $this->totalSlots = $this->implementation->total_slots;
+            $this->totalSlots = $this->implementation?->total_slots;
 
             # retrieves all of the `slots_alloted` values from the batches table
             $this->batchesCount = Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')

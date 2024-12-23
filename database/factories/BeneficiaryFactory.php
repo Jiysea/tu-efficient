@@ -89,6 +89,11 @@ class BeneficiaryFactory extends Factory
             'spouse_middle_name' => $this->checkSpouse($civil_status, $sex, 'middle'),
             'spouse_last_name' => $this->checkSpouse($civil_status, $sex, 'last', $last_name),
             'spouse_extension_name' => $this->checkSpouse($civil_status, $sex, 'ext'),
+            'is_signed' => 0,
+            'is_paid' => 0,
+            'is_safe' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 

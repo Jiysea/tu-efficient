@@ -17,7 +17,7 @@
                         </h1>
 
                     </span>
-                    <div class="flex items-center justify-center">
+                    <div class="flex items-center justify-center gap-3">
                         {{-- Loading State for Changes --}}
                         <svg class="size-6 text-indigo-900 animate-spin" wire:loading
                             wire:target="autoCompute, deleteProject" xmlns="http://www.w3.org/2000/svg" fill="none"

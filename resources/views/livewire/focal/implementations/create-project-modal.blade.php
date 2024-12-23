@@ -15,20 +15,17 @@
                         Create New Project Implementation
                     </h1>
 
-                    <div class="flex items-center justify-center">
-
+                    <div class="flex items-center justify-center gap-3">
                         {{-- Loading State for Changes --}}
-                        <div class="z-50 text-indigo-900" wire:loading wire:target="autoCompute, is_sectoral, purpose">
-                            <svg class="size-6 mr-3 -ml-1 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4">
-                                </circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </div>
+                        <svg class="size-6 text-indigo-900 animate-spin" wire:loading wire:target="autoCompute"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
 
                         {{-- Close Button --}}
                         <button type="button" @click="$wire.resetProject(); createProjectModal = false;"
@@ -218,7 +215,8 @@
                                 </span>
                             </label>
                             <input type="number" min="0" max="15" id="days_of_work"
-                                wire:model.blur="days_of_work" @blur="$wire.autoCompute()"
+                                wire:model.live.debounce.500ms="days_of_work"
+                                @input.debounce.500ms="$wire.autoCompute()"
                                 class="text-xs duration-200 {{ $errors->has('days_of_work') ? 'border-red-500 border bg-red-200 focus:ring-red-500 focus:border-red-300 focus:ring-offset-red-100 text-red-900 placeholder-red-600' : 'bg-indigo-50 border-indigo-300 text-indigo-1100 focus:ring-indigo-600 focus:border-indigo-600' }} border rounded block w-full p-2.5"
                                 placeholder="Type days of work">
                             @error('days_of_work')

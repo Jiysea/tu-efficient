@@ -453,14 +453,14 @@ class Submissions extends Component
                         }
                         $credential->deleteOrFail();
                         if ($credential->for_duplicates === 'yes') {
-                            LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                            LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credentials, $credential->image_description, auth()->user());
                         }
                     }
 
                     $beneficiary->deleteOrFail();
 
                     if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                        LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                        LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, $credentials, auth()->user());
                     }
 
                     $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully deleted a beneficiary', color: 'blue');
@@ -521,13 +521,13 @@ class Submissions extends Component
                                 $credential->deleteOrFail();
                             }
                             if ($credential->for_duplicates === 'yes') {
-                                LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credential, auth()->user());
+                                LogIt::set_delete_beneficiary_special_case($implementation, $batch, $beneficiary, $credentials, $credential->image_description, auth()->user());
                             }
                         }
 
                         $beneficiary->deleteOrFail();
                         if (mb_strtolower($beneficiary->beneficiary_type, "UTF-8") === 'underemployed') {
-                            LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, auth()->user());
+                            LogIt::set_delete_beneficiary($implementation, $batch, $beneficiary, $credentials, auth()->user());
                         }
                     }
 
