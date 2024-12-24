@@ -13,8 +13,8 @@
 
             {{-- Left Side Logo --}}
             <div class="pt-6 px-6 pb-2 sm:py-6 sm:ps-6 sm:pe-1 flex items-center justify-center size-2/5 sm:size-full">
-                <img class="drop-shadow sm:drop-shadow-xl h-[85%]" src="{{ asset('assets/f_logo.png') }}"
-                    alt="TU-Efficient | Focal Logo">
+                <img class="drop-shadow sm:drop-shadow-xl w-full" src="{{ asset('assets/f_logo.png') }}"
+                    alt="TU-Efficient Focal Logo">
             </div>
 
             {{-- Contents --}}

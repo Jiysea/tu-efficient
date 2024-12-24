@@ -451,13 +451,12 @@ class LogIt
         ]);
     }
 
-    public static function set_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credentials, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_delete_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             'implementations' => $implementation->toArray(),
             'batches' => $batch->toArray(),
             'beneficiaries' => $beneficiary->toArray(),
-            'credentials' => $credentials->toArray(),
         ];
 
         SystemsLog::create([
@@ -472,18 +471,18 @@ class LogIt
         ]);
     }
 
-    public static function set_delete_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credentials, string $image_description, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_delete_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Beneficiary|Collection $beneficiary, Credential|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             'implementations' => $implementation->toArray(),
             'batches' => $batch->toArray(),
             'beneficiaries' => $beneficiary->toArray(),
-            'credentials' => $credentials->toArray(),
+            'credentials' => $credential->toArray(),
         ];
 
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Deleted ' . self::full_name($beneficiary) . ', a special case (description: \'' . $image_description . '\') from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
+            'description' => 'Deleted ' . self::full_name($beneficiary) . ', a special case (description: \'' . $credential->image_description . '\') from Project \'' . $implementation->project_num . '\' -> Batch \'' . $batch->batch_num . '\'.',
             'old_data' => json_encode($stackedData),
             'main_table' => 'beneficiaries',
             'regional_office' => $user->regional_office,
@@ -529,13 +528,12 @@ class LogIt
         ]);
     }
 
-    public static function set_permanently_delete_archive_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $beneficiary, Archive|Collection $credentials, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_permanently_delete_archive_beneficiary(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $beneficiary, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             'implementations' => $implementation->toArray(),
             'batches' => $batch->toArray(),
             'beneficiaries' => $beneficiary->data,
-            'credentials' => $credentials->toArray(),
         ];
 
         SystemsLog::create([
@@ -550,18 +548,18 @@ class LogIt
         ]);
     }
 
-    public static function set_permanently_delete_archive_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $beneficiary, Archive|Collection $credentials, string $image_description, User|Authenticatable $user, mixed $timestamp = null)
+    public static function set_permanently_delete_archive_beneficiary_special_case(Implementation|Collection $implementation, Batch|Collection $batch, Archive|Collection $beneficiary, Archive|Collection $credential, User|Authenticatable $user, mixed $timestamp = null)
     {
         $stackedData = [
             'implementations' => $implementation->toArray(),
             'batches' => $batch->toArray(),
             'beneficiaries' => $beneficiary->data,
-            'credentials' => $credentials->toArray(),
+            'credentials' => $credential->data,
         ];
 
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Permanently deleted ' . self::full_name($beneficiary->data) . ', a special case (description: ' . $image_description . '). Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
+            'description' => 'Permanently deleted ' . self::full_name($beneficiary->data) . ', a special case (description: ' . $credential->data['image_description'] . '). Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . '\'.',
             'old_data' => json_encode($stackedData),
             'main_table' => 'beneficiaries',
             'regional_office' => $user->regional_office,

@@ -4,6 +4,7 @@ namespace App\Livewire\Focal\ActivityLogs;
 
 use App\Models\SystemsLog;
 use App\Models\User;
+use App\Models\UserSetting;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Reactive;
@@ -22,9 +23,38 @@ class ViewLogModal extends Component
     }
 
     #[Computed]
+    public function user()
+    {
+        return $this->log ? json_decode($this->log?->old_data)?->users : null;
+    }
+
+    #[Computed]
+    public function implementation()
+    {
+        return $this->log ? json_decode($this->log?->old_data)?->implementations : null;
+    }
+
+    #[Computed]
+    public function batch()
+    {
+        return $this->log ? json_decode($this->log?->old_data)?->batches : null;
+    }
+
+    #[Computed]
     public function beneficiary()
     {
-        return $this->log ? json_decode($this->log?->old_data)->beneficiaries : null;
+        return $this->log ? json_decode($this->log?->old_data)?->beneficiaries : null;
+    }
+
+    #[Computed]
+    public function credential()
+    {
+        $decodedData = $this->log ? json_decode($this->log?->old_data) : null;
+        if (!$decodedData) {
+            return null;
+        }
+
+        return $decodedData?->credentials ?? null;
     }
 
     #[Computed]

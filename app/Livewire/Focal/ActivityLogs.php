@@ -199,6 +199,7 @@ class ActivityLogs extends Component
             $this->redirectIntended();
         }
 
+        $this->logPage = $this->resultsFrequency;
         $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
         $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
 

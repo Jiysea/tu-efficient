@@ -454,6 +454,7 @@ window.addEventListener('resize', () => {
                                                 } else {
                                                     row = {{ $key }};
                                                 }"
+                                            @if ($this->logs->count() > $resultsFrequency - 1 && $loop->last) x-intersect.once="$wire.loadMoreLogs();" @endif
                                             @if ($log->log_type === 'delete') @dblclick="$wire.viewLog({{ $key }}, '{{ encrypt($log->id) }}')" @endif
                                             class="relative border-b duration-100 h-12 ease-in-out whitespace-nowrap cursor-pointer"
                                             :class="{
@@ -504,11 +505,6 @@ window.addEventListener('resize', () => {
                                                 @endif
                                             </td>
                                         </tr>
-                                        @if ($this->logs->count() > 99 && $loop->last)
-                                            <tr x-data x-intersect.full.once="$wire.loadMoreLogs();">
-
-                                            </tr>
-                                        @endif
                                     @endforeach
                                 </tbody>
                             </table>

@@ -220,7 +220,7 @@ class Archives extends Component
                         }
 
                         if ($credential->data['for_duplicates'] === 'yes') {
-                            LogIt::set_permanently_delete_archive_beneficiary_special_case($implementation, $batch, $archive, $credentials, $credential->data['image_description'], auth()->user());
+                            LogIt::set_permanently_delete_archive_beneficiary_special_case($implementation, $batch, $archive, $credential, auth()->user());
                         }
                         $credential->deleteOrFail();
                     }
@@ -230,7 +230,7 @@ class Archives extends Component
 
                 # Log this
                 if (mb_strtolower($archive->data['beneficiary_type'], "UTF-8") === 'underemployed') {
-                    LogIt::set_permanently_delete_archive_beneficiary($implementation, $batch, $archive, $credentials, auth()->user());
+                    LogIt::set_permanently_delete_archive_beneficiary($implementation, $batch, $archive, auth()->user());
                 }
 
                 # bust the archives cache
