@@ -28,6 +28,8 @@ class ViewProject extends Component
     # ---------------------------------
     public $editMode = false;
     public $deleteProjectModal = false;
+    public $promptImplementingModal = false;
+    public $promptConcludeModal = false;
     public $isAutoComputeEnabled = false;
     public $projectNumPrefix;
     public $defaultMinimumWage;
@@ -145,38 +147,6 @@ class ViewProject extends Component
             'days_of_work.integer' => 'Days should be a number.',
             'days_of_work.min' => 'Days should be > 0.',
         ];
-    }
-
-    #[Computed]
-    public function implementation()
-    {
-        $implementation = Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
-        return $implementation;
-
-    }
-
-    # Gets all the provinces according to the authenticated user's (focal) regional office
-    #[Computed]
-    public function provinces()
-    {
-        $p = new Provinces();
-        return $p->getProvinces(Auth::user()->regional_office);
-    }
-
-    # Gets all the cities/municipalities according to the choosen province by the user
-    #[Computed]
-    public function cities_municipalities()
-    {
-        $c = new CitiesMunicipalities();
-        return $c->getCitiesMunicipalities($this->province);
-    }
-
-    # The `updated` hook by Livewire for `reactively` changing the elements according to the choosen province
-    public function updatedProvince()
-    {
-        if ($this->editMode) {
-            $this->city_municipality = $this->cities_municipalities[0];
-        }
     }
 
     # It updates the project / saves the changes after the editing
@@ -302,10 +272,52 @@ class ViewProject extends Component
         }
     }
 
-    public function resetViewProject()
+    #[Computed]
+    public function doesBatchesHaveNoPending()
     {
-        $this->resetExcept('implementationId', 'projectNumPrefix', 'defaultMinimumWage', );
-        $this->resetValidation();
+        return Batch::where('implementations_id', $this->implementationId ? decrypt($this->implementationId) : null)
+            ->where('approval_status', 'pending')
+            ->doesntExist();
+    }
+
+    #[Computed]
+    public function doesBatchesHavePayroll()
+    {
+        return Batch::where('implementations_id', $this->implementationId ? decrypt($this->implementationId) : null)
+            ->whereDoesntHave('beneficiary', function ($q) {
+                $q->where('is_paid', 1);
+            })
+            ->doesntExist();
+    }
+
+    #[Computed]
+    public function implementation()
+    {
+        return Implementation::find($this->implementationId ? decrypt($this->implementationId) : null);
+    }
+
+    # Gets all the provinces according to the authenticated user's (focal) regional office
+    #[Computed]
+    public function provinces()
+    {
+        $p = new Provinces();
+        return $p->getProvinces(Auth::user()->regional_office);
+    }
+
+    # Gets all the cities/municipalities according to the choosen province by the user
+    #[Computed]
+    public function cities_municipalities()
+    {
+        $c = new CitiesMunicipalities();
+        return $c->getCitiesMunicipalities($this->province);
+    }
+
+    # The `updated` hook by Livewire for `reactively` changing the elements according to the choosen province
+    public function updatedProvince()
+    {
+        if ($this->editMode) {
+            $this->city_municipality = $this->cities_municipalities[0];
+        }
     }
 
     #[Computed]
@@ -344,6 +356,12 @@ class ViewProject extends Component
     {
         return UserSetting::where('users_id', Auth::id())
             ->pluck('value', 'key');
+    }
+
+    public function resetViewProject()
+    {
+        $this->resetExcept('implementationId', 'projectNumPrefix', 'defaultMinimumWage', );
+        $this->resetValidation();
     }
 
     public function mount()

@@ -184,44 +184,71 @@
                         </div>
 
                         {{-- Buttons --}}
-                        @if ($this->batch?->approval_status === 'pending')
-                            <div class="flex items-center justify-end gap-2 col-span-full relative text-base font-bold">
-                                @if ($this->batch?->submission_status === 'submitted')
-                                    <button type="button" wire:click="confirmModalOpen('{{ encrypt('revalidate') }}')"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
-                                        REVALIDATE
-                                    </button>
-                                    <button type="button"
-                                        @if ($this->currentSlots !== $this->batch?->slots_allocated) disabled @else wire:click="confirmModalOpen('{{ encrypt('approve') }}')" @endif
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
-                                        APPROVE
-                                    </button>
-                                @elseif ($this->batch?->submission_status === 'unopened')
-                                    <button type="button" @click="accessCodeModal = !accessCodeModal;"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
-                                        OPEN ACCESS
-                                    </button>
-                                @elseif ($this->batch?->submission_status === 'encoding')
-                                    <button type="button" @click="accessCodeModal = !accessCodeModal;"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
-                                        REGENERATE CODE
-                                    </button>
-                                    <button type="button"
-                                        wire:click="confirmModalOpen('{{ encrypt('force_submit') }}')"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
-                                        FORCE SUBMIT
-                                    </button>
-                                @elseif ($this->batch?->submission_status === 'revalidate')
-                                    <button type="button" @click="accessCodeModal = !accessCodeModal;"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
-                                        REGENERATE CODE
-                                    </button>
-                                    <button type="button" wire:click="confirmModalOpen('{{ encrypt('resolve') }}')"
-                                        class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
-                                        RESOLVE
-                                    </button>
-                                @endif
-                            </div>
+                        @if ($this->implementation?->status === 'pending')
+                            @if ($this->batch?->approval_status === 'pending')
+                                <div
+                                    class="flex items-center justify-end gap-2 col-span-full relative text-base font-bold">
+                                    @if ($this->batch?->submission_status === 'submitted')
+                                        <button type="button"
+                                            wire:click="confirmModalOpen('{{ encrypt('revalidate') }}')"
+                                            class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
+                                            REVALIDATE
+                                        </button>
+                                        <button type="button"
+                                            @if ($this->currentSlots !== $this->batch?->slots_allocated) disabled @else wire:click="confirmModalOpen('{{ encrypt('approve') }}')" @endif
+                                            class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                            APPROVE
+                                        </button>
+                                    @elseif ($this->batch?->submission_status === 'unopened')
+                                        <button type="button" @click="accessCodeModal = !accessCodeModal;"
+                                            class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                            OPEN ACCESS
+                                        </button>
+                                    @elseif ($this->batch?->submission_status === 'encoding')
+                                        <button type="button" @click="accessCodeModal = !accessCodeModal;"
+                                            class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
+                                            REGENERATE CODE
+                                        </button>
+                                        <button type="button"
+                                            wire:click="confirmModalOpen('{{ encrypt('force_submit') }}')"
+                                            class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                            FORCE SUBMIT
+                                        </button>
+                                    @elseif ($this->batch?->submission_status === 'revalidate')
+                                        <button type="button" @click="accessCodeModal = !accessCodeModal;"
+                                            class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-red-700 hover:border-transparent active:border-transparent hover:bg-red-800 active:bg-red-900 text-red-700 hover:text-red-50 active:text-red-50">
+                                            REGENERATE CODE
+                                        </button>
+                                        <button type="button"
+                                            wire:click="confirmModalOpen('{{ encrypt('resolve') }}')"
+                                            class="text-center px-2 py-1 duration-200 ease-in-out outline-none rounded border border-transparent bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50">
+                                            RESOLVE
+                                        </button>
+                                    @endif
+                                </div>
+                            @endif
+                        @elseif($this->implementation?->status === 'implementing')
+                            <span
+                                class="col-span-full w-full text-center rounded p-2 flex justify-center items-center gap-2 bg-lime-100 text-lime-700 text-base font-bold">
+                                <span>This batch is currently in the process of implementation</span>
+
+                                <span class="relative" x-data="{ tooltip: false }">
+                                    <svg @mouseleave="tooltip = false;" @mouseenter="tooltip = true;" tabindex="-1"
+                                        class="size-3.5 text-lime-700 outline-none duration-300 ease-in-out cursor-pointer"
+                                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
+                                    </svg>
+
+                                    <div x-cloak x-show="tooltip" x-transition.opacity
+                                        class="text-left absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">
+                                        It means that this <span class="text-blue-400">batch</span> is ready for
+                                        implementation <br>
+                                        or currently being implemented so you cannot <br>
+                                        add more beneficiaries.
+                                    </div>
+                                </span>
+                            </span>
                         @endif
                     </div>
                 </form>

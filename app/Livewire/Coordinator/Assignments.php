@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Code;
+use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Essential;
 use Arr;
@@ -34,8 +35,7 @@ class Assignments extends Component
     public $beneficiaries_on_page = 30;
     public $selectedBatchRow = -1;
     public $searchBatches;
-    public $showAlert = false;
-    public $alertMessage = '';
+    public $alerts = [];
 
     # --------------------------------------------------------------------------
 
@@ -133,6 +133,7 @@ class Assignments extends Component
                     'batches.slots_allocated',
                     'batches.approval_status',
                     'batches.submission_status',
+                    'implementations.status as implementation_status'
                 ]
             )
             ->take($this->batches_on_page)

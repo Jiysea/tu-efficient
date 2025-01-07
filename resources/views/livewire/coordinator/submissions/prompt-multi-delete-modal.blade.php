@@ -35,7 +35,8 @@
                 <hr class="">
 
                 {{-- Modal body --}}
-                <div class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-blue-1100 text-xs">
+                <div
+                    class="flex flex-col items-center justify-center w-full pt-5 pb-6 px-3 md:px-12 text-blue-1100 text-xs">
                     @if ($this->count > 1)
                         @if ($defaultArchive)
                             <p class="font-medium text-sm mb-2">

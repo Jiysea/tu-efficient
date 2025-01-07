@@ -20,7 +20,7 @@ class Implementation extends Model
         'minimum_wage',
         'total_slots',
         'days_of_work',
-        'status', // pending, signing, concluded
+        'status', // pending, implementing, concluded
     ];
 
     public function focal()

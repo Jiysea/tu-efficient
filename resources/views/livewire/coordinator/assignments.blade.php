@@ -450,10 +450,10 @@ window.addEventListener('resize', () => {
                                         <th scope="col" class="pr-2 py-2 text-center">
                                             slots
                                         </th>
-                                        <th scope="col" class="pr-2 py-2 text-center">
+                                        <th scope="col" class="ps-2 pr-1 py-2 text-center">
                                             approval
                                         </th>
-                                        <th scope="col" class="pr-2 py-2 text-center">
+                                        <th scope="col" class="pr-2 ps-1 py-2 text-center">
                                             submission
                                         </th>
                                         <th scope="col" class="px-2 py-2 text-center">
@@ -489,31 +489,42 @@ window.addEventListener('resize', () => {
                                                 /
                                                 {{ $batch->slots_allocated }}
                                             </td>
-                                            <td class="pr-2 py-2 text-center">
-                                                @if ($batch->approval_status === 'approved')
+                                            @if ($batch->implementation_status === 'pending')
+                                                <td class="ps-2 pr-1 py-2 text-center">
+                                                    @if ($batch->approval_status === 'approved')
+                                                        <span
+                                                            class="flex items-center justify-center bg-green-300 text-green-1000 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
+                                                    @elseif($batch->approval_status === 'pending')
+                                                        <span
+                                                            class="flex items-center justify-center bg-amber-300 text-amber-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
+                                                    @endif
+                                                </td>
+                                                <td class="pr-2 ps-1 py-2 text-center">
+                                                    @if ($batch->submission_status === 'unopened')
+                                                        <span
+                                                            class="flex items-center justify-center bg-amber-200 text-amber-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                    @elseif($batch->submission_status === 'encoding')
+                                                        <span
+                                                            class="flex items-center justify-center bg-sky-200 text-sky-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                    @elseif($batch->submission_status === 'submitted')
+                                                        <span
+                                                            class="flex items-center justify-center bg-green-200 text-green-1000 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                    @elseif($batch->submission_status === 'revalidate')
+                                                        <span
+                                                            class="flex items-center justify-center bg-red-200 text-red-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
+                                                    @endif
+                                                </td>
+                                            @elseif($batch->implementation_status === 'implementing')
+                                                <td colspan="2" class="p-2 text-center">
                                                     <span
-                                                        class="bg-green-300 text-green-1000 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
-                                                @elseif($batch->approval_status === 'pending')
+                                                        class="flex items-center justify-center bg-lime-200 text-lime-800 rounded-full w-full text-xs py-1 px-2 uppercase font-semibold">implementing</span>
+                                                </td>
+                                            @elseif($batch->implementation_status === 'concluded')
+                                                <td colspan="2" class="p-2 text-center">
                                                     <span
-                                                        class="bg-amber-300 text-amber-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->approval_status }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="pr-2 py-2 text-center">
-                                                @if ($batch->submission_status === 'unopened')
-                                                    <span
-                                                        class="bg-amber-200 text-amber-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
-                                                @elseif($batch->submission_status === 'encoding')
-                                                    <span
-                                                        class="bg-sky-200 text-sky-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
-                                                @elseif($batch->submission_status === 'submitted')
-                                                    <span
-                                                        class="bg-green-200 text-green-1000 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
-                                                @elseif($batch->submission_status === 'revalidate')
-                                                    <span
-                                                        class="bg-red-200 text-red-900 rounded-full text-xs py-1 px-2 uppercase font-semibold">{{ $batch->submission_status }}</span>
-                                                @endif
-                                            </td>
-
+                                                        class="flex items-center justify-center bg-sky-200 text-sky-800 rounded-full w-full text-xs py-1 px-2 uppercase font-semibold">concluded</span>
+                                                </td>
+                                            @endif
                                             {{-- Batch View --}}
                                             <td class="py-1">
                                                 <button type="button" wire:loading.attr="disabled"

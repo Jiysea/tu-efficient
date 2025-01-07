@@ -19,7 +19,7 @@ use Str;
 
 class DatabaseSeeder extends Seeder
 {
-    protected $implementationAmount = 5;
+    protected $implementationAmount = 71;
     // protected $coordinatorsAmount = 10;
     protected $assignmentAmountMin = 2;
     protected $assignmentAmountMax = 5;
@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $startDate = Carbon::createFromDate(2023, 1, 1);
+        $startDate = Carbon::createFromDate(2024, 1, 1);
         $email_verified_at = $startDate->addMinutes(11)->addSeconds(mt_rand(1, 59));
         $mobile_verified_at = $email_verified_at->addMinutes(mt_rand(20, 59))->addSeconds(mt_rand(0, 59));
 
@@ -102,7 +102,7 @@ class DatabaseSeeder extends Seeder
             LogIt::set_create_project($implementation, $focalUser, $implementation->created_at);
 
             $allottedSlots = $this->generateRandomArray($implementation->total_slots);
-
+            $currentDate = null;
             # Batches
             foreach ($allottedSlots as $slots) {
                 $currentDate = Carbon::parse($implementation->created_at)->addMinutes(mt_rand(3, 10))->addSeconds(mt_rand(0, 59));
@@ -172,6 +172,8 @@ class DatabaseSeeder extends Seeder
                 ]);
 
                 $specialCases = 0;
+
+                # Beneficiaries
                 foreach ($beneficiaries as $beneficiary) {
                     if ($beneficiary->district === '.') {
                         $individual_district = fake()->randomElement(['1st District', '2nd District', '3rd District',]);
@@ -262,10 +264,10 @@ class DatabaseSeeder extends Seeder
                     ]);
                 }
 
-                LogIt::set_import_success($implementation, $batch, $randomCoordinator, $batch->slots_allocated - $specialCases, $currentDate);
-
                 if ($specialCases > 0) {
-                    LogIt::set_import_with_special_cases($batch, $randomCoordinator, $specialCases, $currentDate);
+                    LogIt::set_import_with_special_cases($implementation, $batch, $randomCoordinator, $batch->slots_allocated, $specialCases, $currentDate);
+                } else {
+                    LogIt::set_import_success($implementation, $batch, $randomCoordinator, $batch->slots_allocated, $currentDate);
                 }
 
                 # Then force submit the batch
@@ -280,6 +282,55 @@ class DatabaseSeeder extends Seeder
                 $currentDate = $currentDate->addMinutes(mt_rand(1, 30))->addSeconds(mt_rand(0, 59));
                 LogIt::set_approve_batch($batch, $randomCoordinator, $currentDate);
             }
+
+            # Change status to `implementing`
+            $currentDate = $currentDate->addMinutes(mt_rand(1, 30))->addSeconds(mt_rand(0, 59));
+            Implementation::withoutTimestamps(function () use ($implementation, $currentDate) {
+                $implementation->status = 'implementing';
+                $implementation->save();
+            });
+
+            LogIt::set_mark_project_for_implementation($implementation, $focalUser, $currentDate);
+
+            # Mark some beneficiaries for COS and Payroll
+            $batches = Batch::with('beneficiary')
+                ->where('implementations_id', $implementation->id)->get();
+
+            Batch::withoutTimestamps(function () use ($implementation, $batches, $focalUser, $currentDate) {
+                foreach ($batches as $batch) {
+                    $currentDate = $currentDate->addMinutes(mt_rand(1, 30))->addSeconds(mt_rand(0, 59));
+                    $beneficiaries = Beneficiary::where('batches_id', $batch->id)->get();
+                    Beneficiary::withoutTimestamps(function () use ($implementation, $batch, $beneficiaries, $focalUser, $currentDate) {
+                        $marked_cos = 0;
+                        $marked_payroll = 0;
+                        foreach ($beneficiaries as $beneficiary) {
+                            if (mt_rand(0, 100) < 95) {
+                                $beneficiary->is_signed = 1;
+                                $marked_cos++;
+                            }
+
+                            if ($beneficiary->is_signed && mt_rand(0, 100) < 95) {
+                                $beneficiary->is_paid = 1;
+                                $marked_payroll++;
+                            }
+
+                            $beneficiary->save();
+                        }
+                        $batch->save();
+                        LogIt::set_check_beneficiaries_for_cos($implementation, $batch, $focalUser, $marked_cos, $currentDate);
+                        LogIt::set_check_beneficiaries_for_payroll($implementation, $batch, $focalUser, $marked_payroll, $currentDate);
+                    });
+                }
+            });
+
+            # Then `conclude` the project
+            $currentDate = $currentDate->addMinutes(mt_rand(1, 30))->addSeconds(mt_rand(0, 59));
+            Implementation::withoutTimestamps(function () use ($implementation, $currentDate) {
+                $implementation->status = 'concluded';
+                $implementation->save();
+            });
+
+            LogIt::set_mark_project_as_concluded($implementation, $focalUser, $currentDate);
         }
     }
 

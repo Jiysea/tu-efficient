@@ -1,5 +1,9 @@
-<div x-cloak x-data="{ deleteProjectModal: $wire.entangle('deleteProjectModal') }"
-    @keydown.window.escape="if (!deleteProjectModal) {$wire.resetViewProject(); viewProjectModal = false}"
+<div x-cloak x-data="{
+    deleteProjectModal: $wire.entangle('deleteProjectModal'),
+    promptImplementingModal: $wire.entangle('promptImplementingModal'),
+    promptConcludeModal: $wire.entangle('promptConcludeModal'),
+}"
+    @keydown.window.escape="if (!deleteProjectModal && !promptImplementingModal && !promptConcludeModal) {$wire.resetViewProject(); viewProjectModal = false}"
     class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="viewProjectModal">
 
     <!-- Modal -->
@@ -408,68 +412,6 @@
                                         </g>
                                     </svg>
                                 </button>
-
-                                {{-- Delete Project Modal --}}
-                                <div x-cloak @keydown.window.escape="deleteProjectModal = false">
-                                    <!-- Modal Backdrop -->
-                                    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-                                        x-show="deleteProjectModal">
-                                    </div>
-
-                                    <!-- Modal -->
-                                    <div x-trap.noscroll.noautofocus="deleteProjectModal" x-show="deleteProjectModal"
-                                        class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
-
-                                        {{-- The Modal --}}
-                                        <div class="relative w-full max-w-xl max-h-full">
-                                            <div class="relative bg-white rounded-md shadow">
-                                                <!-- Modal Header -->
-                                                <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
-                                                    <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
-                                                        Delete the Project
-                                                    </h1>
-
-                                                    {{-- Close Button --}}
-                                                    <button type="button" @click="deleteProjectModal = false;"
-                                                        class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
-                                                        <svg class="size-3" aria-hidden="true"
-                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                            viewBox="0 0 14 14">
-                                                            <path stroke="currentColor" stroke-linecap="round"
-                                                                stroke-linejoin="round" stroke-width="2"
-                                                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                                        </svg>
-                                                        <span class="sr-only">Close Modal</span>
-                                                    </button>
-                                                </div>
-
-                                                <hr class="">
-
-                                                {{-- Modal body --}}
-                                                <div
-                                                    class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
-                                                    <p class="font-medium text-sm mb-1">
-                                                        Are you sure about deleting this project?
-                                                    </p>
-                                                    <p class="text-gray-500 text-sm mb-4">
-                                                        (This is action is irreversible)
-                                                    </p>
-                                                    <div class="flex items-center justify-center w-full gap-2">
-                                                        <button type="button" @click="deleteProjectModal = false;"
-                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
-                                                            CANCEL
-                                                        </button>
-                                                        <button type="button"
-                                                            @click="$wire.deleteProject(); deleteProjectModal = false;"
-                                                            class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
-                                                            CONFIRM
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
 
                             {{-- Budget OFF --}}
@@ -550,7 +492,7 @@
                                     <span class="rounded-lg px-3 py-0.5 uppercase"
                                         :class="{
                                             'bg-amber-200 text-amber-800': {{ json_encode($this->implementation?->status === 'pending') }},
-                                            'bg-lime-200 text-lime-800': {{ json_encode($this->implementation?->status === 'signing') }},
+                                            'bg-lime-200 text-lime-800': {{ json_encode($this->implementation?->status === 'implementing') }},
                                             'bg-indigo-200 text-indigo-800': {{ json_encode($this->implementation?->status === 'concluded') }},
                                         }">
                                         {{ $this->implementation?->status }}
@@ -579,9 +521,146 @@
                                         {{ $this->implementation ? date('M d, Y @ h:i:s a', strtotime($this->implementation->updated_at)) : null }}</span>
                                 </div>
                             </div>
+
+                            <div
+                                class="flex items-center justify-end gap-2 sm:gap-4 col-span-full relative text-sm font-bold">
+
+                                @if ($this->implementation?->status === 'pending')
+                                    {{-- Mark For Implementation --}}
+                                    <span x-data="{ pop: false }" class="relative flex">
+                                        <button type="button" wire:loading.attr="disabled"
+                                            @if ($this->doesBatchesHaveNoPending) @click="promptImplementingModal = !promptImplementingModal;"
+                                    @else @mouseleave="pop = false;" @mouseenter="pop = true;" disabled @endif
+                                            class="disabled:cursor-not-allowed text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md 
+                                    {{ !$this->doesBatchesHaveNoPending ? 'bg-gray-300 text-gray-500' : 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' }}">
+                                            MARK FOR IMPLEMENTATION
+                                        </button>
+
+                                        @if (!$this->doesBatchesHaveNoPending)
+                                            {{-- Tooltip Content --}}
+                                            <div x-cloak x-show="pop" x-transition.opacity
+                                                class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">
+                                                You are unable to mark this for implementation <br>
+                                                when all batches are not yet <span
+                                                    class="text-green-500">approved</span>.
+                                            </div>
+                                        @endif
+                                    </span>
+                                @elseif($this->implementation?->status === 'implementing')
+                                    {{-- Mark As Pending --}}
+                                    <span x-data="{ pop: false }" class="relative flex">
+                                        <button type="button" wire:loading.attr="disabled"
+                                            @click="promptImplementingModal = !promptImplementingModal;"
+                                            @mouseleave="pop = false;" @mouseenter="pop = true;"
+                                            class="disabled:cursor-not-allowed text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-amber-50">
+                                            MARK AS PENDING
+                                        </button>
+
+                                        {{-- Tooltip Content --}}
+                                        <div x-cloak x-show="pop" x-transition.opacity
+                                            class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">
+                                            Marking this as <span class="text-amber-500">pending</span> again means<br>
+                                            you
+                                            can change approval and submission<br> status,
+                                            add more beneficiaries, and open<br> access for batches.
+                                        </div>
+                                    </span>
+
+                                    {{-- Mark As Concluded --}}
+                                    <span x-data="{ pop: false }" class="relative flex">
+                                        <button type="button" wire:loading.attr="disabled"
+                                            @if ($this->doesBatchesHavePayroll) @click="promptConcludeModal = !promptConcludeModal;"
+                                            @else
+                                            disabled @endif
+                                            @mouseleave="pop = false;" @mouseenter="pop = true;"
+                                            class="disabled:cursor-not-allowed text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md {{ !$this->doesBatchesHavePayroll ? 'bg-gray-300 text-gray-500' : 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' }}">
+                                            MARK AS CONCLUDED
+                                        </button>
+
+                                        {{-- Tooltip Content --}}
+                                        <div x-cloak x-show="pop" x-transition.opacity
+                                            class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">
+                                            @if ($this->doesBatchesHavePayroll)
+                                                Marking this as <span class="text-sky-500">concluded</span> again
+                                                means<br>
+                                                you cannot modify or delete this project<br>
+                                                and its batches and will remain as read-only.
+                                            @else
+                                                You are unable to mark this project as<br>
+                                                concluded until all batches have marked <span
+                                                    class="text-green-500">payrolls</span>.
+                                            @endif
+                                        </div>
+                                    </span>
+                                @endif
+                            </div>
+
                         @endif
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Prompt Implementing Modal --}}
+    <livewire:focal.implementations.prompt-implementing-modal :$implementationId />
+
+    {{-- Prompt Conclude Modal --}}
+    <livewire:focal.implementations.prompt-conclude-modal :$implementationId />
+
+    {{-- Delete Project Modal --}}
+    <div x-cloak @keydown.window.escape="deleteProjectModal = false">
+        <!-- Modal Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" x-show="deleteProjectModal">
+        </div>
+
+        <!-- Modal -->
+        <div x-trap.noscroll.noautofocus="deleteProjectModal" x-show="deleteProjectModal"
+            class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none max-h-full">
+
+            {{-- The Modal --}}
+            <div class="relative w-full max-w-xl max-h-full">
+                <div class="relative bg-white rounded-md shadow">
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
+                        <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
+                            Delete the Project
+                        </h1>
+
+                        {{-- Close Button --}}
+                        <button type="button" @click="deleteProjectModal = false;"
+                            class="outline-none text-indigo-400 focus:bg-indigo-200 focus:text-indigo-900 hover:bg-indigo-200 hover:text-indigo-900 rounded  size-8 ms-auto inline-flex justify-center items-center duration-300 ease-in-out">
+                            <svg class="size-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                            </svg>
+                            <span class="sr-only">Close Modal</span>
+                        </button>
+                    </div>
+
+                    <hr class="">
+
+                    {{-- Modal body --}}
+                    <div class="grid w-full place-items-center pt-5 pb-6 px-3 md:px-12 text-indigo-1100 text-xs">
+                        <p class="font-medium text-sm mb-1">
+                            Are you sure about deleting this project?
+                        </p>
+                        <p class="text-gray-500 text-xs font-normal mb-4">
+                            (This is action is irreversible)
+                        </p>
+                        <div class="flex items-center justify-center w-full gap-2">
+                            <button type="button" @click="deleteProjectModal = false;"
+                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
+                                CANCEL
+                            </button>
+                            <button type="button" @click="$wire.deleteProject(); deleteProjectModal = false;"
+                                class="duration-200 ease-in-out flex items-center justify-center px-2 py-2.5 rounded outline-none font-bold text-sm bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                CONFIRM
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

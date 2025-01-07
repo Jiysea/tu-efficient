@@ -49,13 +49,12 @@ class Submissions extends Component
     #[Locked]
     public $defaultArchive;
     public $alerts = [];
-    public $showAlert = false;
-    public $alertMessage = '';
     public $addBeneficiariesModal = false;
     public $editBeneficiaryModal = false;
     public $deleteBeneficiaryModal = false;
     public $promptMultiDeleteModal = false;
     public $viewCredentialsModal = false;
+    public $signingBeneficiariesModal = false;
     public $approveSubmissionModal = false;
     public $importFileModal = false;
     public $showExportModal = false;
@@ -216,6 +215,7 @@ class Submissions extends Component
             ->whereHas('assignment', function ($q) {
                 $q->where('users_id', Auth::id());
             })
+            ->join('implementations', 'batches.implementations_id', '=', 'implementations.id')
             ->join('assignments', 'batches.id', '=', 'assignments.batches_id')
             ->where('assignments.users_id', Auth::id())
             ->when(isset($this->searchExportBatch) && !empty($this->searchExportBatch), function ($q) {
@@ -229,6 +229,7 @@ class Submissions extends Component
             ->latest('batches.updated_at')
             ->select([
                 'batches.*',
+                'implementations.status as implementation_status'
             ])
             ->distinct()
             ->get();
@@ -253,6 +254,10 @@ class Submissions extends Component
 
     # ------------------------------------------------------------------------------------------------------------------
 
+    public function viewSignBeneficiary()
+    {
+        $this->signingBeneficiariesModal = true;
+    }
 
     public function selectBatchRow($key, $encryptedId)
     {
@@ -700,6 +705,18 @@ class Submissions extends Component
     }
 
     #[Computed]
+    public function implementation()
+    {
+        return Implementation::find($this->batch?->implementations_id);
+    }
+
+    #[Computed]
+    public function batch()
+    {
+        return Batch::find($this->batchId ? decrypt($this->batchId) : null);
+    }
+
+    #[Computed]
     public function batches()
     {
         $approvalStatuses = array_keys(array_filter($this->filter['approval_status']));
@@ -730,7 +747,8 @@ class Submissions extends Component
                     'batches.sector_title',
                     'batches.barangay_name',
                     'batches.approval_status',
-                    'batches.submission_status'
+                    'batches.submission_status',
+                    'implementations.status as implementation_status'
                 ]
             )
             ->groupBy([
@@ -740,7 +758,8 @@ class Submissions extends Component
                 'batches.sector_title',
                 'batches.barangay_name',
                 'batches.approval_status',
-                'batches.submission_status'
+                'batches.submission_status',
+                'implementation_status'
             ])
             ->latest('batches.updated_at')
             ->orderBy('batches.id', 'desc')
@@ -757,6 +776,12 @@ class Submissions extends Component
             ->where('assignments.users_id', auth()->id())
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->get();
+    }
+
+    #[Computed]
+    public function beneficiary()
+    {
+        return Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
     }
 
     #[Computed]
@@ -795,18 +820,6 @@ class Submissions extends Component
             ->get();
 
         return $beneficiaries;
-    }
-
-    #[Computed]
-    public function batch()
-    {
-        return Batch::find($this->batchId ? decrypt($this->batchId) : null);
-    }
-
-    #[Computed]
-    public function beneficiary()
-    {
-        return Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
     }
 
     #[Computed]

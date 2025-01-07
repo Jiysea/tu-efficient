@@ -197,6 +197,42 @@ class LogIt
         ]);
     }
 
+    public static function set_mark_project_for_implementation(Implementation|Collection $implementation, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Marked project (' . $implementation->project_num . ') status for implementation.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_mark_project_as_pending(Implementation|Collection $implementation, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Marked project (' . $implementation->project_num . ') status as pending.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_mark_project_as_concluded(Implementation|Collection $implementation, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => 'Marked project (' . $implementation->project_num . ') status as concluded.',
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
     public static function set_create_batches(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
     {
         SystemsLog::create([
@@ -281,14 +317,77 @@ class LogIt
         ]);
     }
 
-    public static function set_import_with_special_cases(Batch|Collection $batch, User|Authenticatable $user, int $special_count, mixed $timestamp = null)
+    public static function set_import_with_special_cases(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, int $added_count, int $special_count, mixed $timestamp = null)
     {
+        $description = '';
+        if ($added_count > 1) {
+            if ($special_count > 1) {
+                $description = 'Imported ' . $added_count . ' beneficiaries with ' . $special_count . ' as special cases. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . ' \'.';
+            } else {
+                $description = 'Imported ' . $added_count . ' beneficiaries with ' . $special_count . ' as special case. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . ' \'.';
+            }
+        } else {
+            if ($special_count > 1) {
+                $description = 'Imported ' . $added_count . ' beneficiary with ' . $special_count . ' as special cases. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . ' \'.';
+            } else {
+                $description = 'Imported ' . $added_count . ' beneficiary with ' . $special_count . ' as special case. Project: \'' . $implementation->project_num . '\' -> Batch: \'' . $batch->batch_num . ' \'.';
+            }
+        }
+
         SystemsLog::create([
             'users_id' => $user->id,
-            'description' => 'Imported ' . $special_count . ' special cases in batch \'' . $batch->batch_num . '\'.',
+            'description' => $description,
             'regional_office' => $user->regional_office,
             'field_office' => $user->field_office,
             'log_type' => 'create',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_check_beneficiaries_for_cos(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, int $marked_count, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => "Marked $marked_count beneficiaries that have signed their contract of service (COS). Project: $implementation->project_num -> Batch: $batch->batch_num.",
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_uncheck_beneficiaries_for_cos(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => "Unchecked all beneficiaries from their contract of service (COS) signing. Project: $implementation->project_num -> Batch: $batch->batch_num.",
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_check_beneficiaries_for_payroll(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, int $marked_count, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => "Marked $marked_count beneficiaries that have signed and claimed their payroll. Project: $implementation->project_num -> Batch: $batch->batch_num.",
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
+            'log_timestamp' => $timestamp ?? now(),
+        ]);
+    }
+
+    public static function set_uncheck_beneficiaries_for_payroll(Implementation|Collection $implementation, Batch|Collection $batch, User|Authenticatable $user, mixed $timestamp = null)
+    {
+        SystemsLog::create([
+            'users_id' => $user->id,
+            'description' => "Unchecked all beneficiaries from signing and claiming their payroll. Project: $implementation->project_num -> Batch: $batch->batch_num.",
+            'regional_office' => $user->regional_office,
+            'field_office' => $user->field_office,
+            'log_type' => 'update',
             'log_timestamp' => $timestamp ?? now(),
         ]);
     }

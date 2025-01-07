@@ -54,6 +54,7 @@ class Implementations extends Component
 
     public $createProjectModal = false;
     public $viewProjectModal = false;
+    public $signingBeneficiariesModal = false;
     public $assignBatchesModal = false;
     public $viewBatchModal = false;
     public $addBeneficiariesModal = false;
@@ -222,6 +223,11 @@ class Implementations extends Component
     }
 
     # ------------------------------------------------------------------------------------------------------------------
+
+    public function viewSignBeneficiary()
+    {
+        $this->signingBeneficiariesModal = true;
+    }
 
     public function selectImplementationRow($key, $encryptedId)
     {

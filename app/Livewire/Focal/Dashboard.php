@@ -348,20 +348,37 @@ class Dashboard extends Component
 
     # The `Total Implementations`, `Approved Batches` and `Pending Batches` counter
     #[Computed]
-    public function countersByDate()
+    public function implementationCounters()
     {
-        return Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
-            ->where('implementations.users_id', auth()->id())
-            ->whereBetween('batches.created_at', [$this->start, $this->end])
+        return Implementation::where('implementations.users_id', auth()->id())
+            ->whereBetween('created_at', [$this->start, $this->end])
             ->select([
                 DB::raw('(
                 SELECT COUNT(*)
                 FROM implementations
                 WHERE users_id = ' . auth()->id() . '
                 AND created_at BETWEEN "' . $this->start . '" AND "' . $this->end . '"
-            ) AS total_implementations'),
-                DB::raw('SUM(CASE WHEN batches.approval_status = "approved" THEN 1 ELSE 0 END) AS total_approved_batches'),
-                DB::raw('SUM(CASE WHEN batches.approval_status = "pending" THEN 1 ELSE 0 END) AS total_pending_batches'),
+            ) AS total_projects'),
+                DB::raw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) AS total_pending'),
+                DB::raw('SUM(CASE WHEN status = "implementing" THEN 1 ELSE 0 END) AS total_implementing'),
+                DB::raw('SUM(CASE WHEN status = "concluded" THEN 1 ELSE 0 END) AS total_concluded'),
+            ])->first();
+
+    }
+
+    #[Computed]
+    public function batchCounters()
+    {
+        return Batch::join('implementations', 'implementations.id', '=', 'batches.implementations_id')
+            ->where('implementations.users_id', auth()->id())
+            ->whereBetween('batches.created_at', [$this->start, $this->end])
+            ->select([
+                DB::raw('SUM(CASE WHEN batches.approval_status = "approved" THEN 1 ELSE 0 END) AS total_approved'),
+                DB::raw('SUM(CASE WHEN batches.approval_status = "pending" THEN 1 ELSE 0 END) AS total_pending'),
+                DB::raw('SUM(CASE WHEN batches.submission_status = "unopened" THEN 1 ELSE 0 END) AS total_unopened'),
+                DB::raw('SUM(CASE WHEN batches.submission_status = "encoding" THEN 1 ELSE 0 END) AS total_encoding'),
+                DB::raw('SUM(CASE WHEN batches.submission_status = "revalidate" THEN 1 ELSE 0 END) AS total_revalidate'),
+                DB::raw('SUM(CASE WHEN batches.submission_status = "submitted" THEN 1 ELSE 0 END) AS total_submitted'),
             ])->first();
     }
 
@@ -376,6 +393,8 @@ class Dashboard extends Component
                 DB::raw('COUNT(DISTINCT beneficiaries.id) AS total_beneficiaries'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" THEN 1 ELSE 0 END) AS total_pwd_beneficiaries'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" THEN 1 ELSE 0 END) AS total_senior_citizen_beneficiaries'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed THEN 1 ELSE 0 END) AS total_contract_beneficiaries'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid THEN 1 ELSE 0 END) AS total_payroll_beneficiaries'),
             ])
             ->first();
 
@@ -422,8 +441,13 @@ class Dashboard extends Component
     #[Computed]
     public function batches()
     {
-        $batches = Batch::join('implementations', 'batches.implementations_id', '=', 'implementations.id')
-            ->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
+        $batches = Batch::whereHas(
+            'implementation',
+            function ($q) {
+                $q->where('implementations.users_id', auth()->id())
+                    ->where('implementations.id', $this->implementationId ? decrypt($this->implementationId) : null);
+            }
+        )->join('beneficiaries', 'beneficiaries.batches_id', '=', 'batches.id')
             ->select([
                 'batches.id',
                 'batches.is_sectoral',
@@ -434,13 +458,15 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_contract_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_contract_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_payroll_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_payroll_female'),
             ])
-            ->where('implementations.users_id', auth()->id())
-            ->where('implementations.id', $this->implementationId ? decrypt($this->implementationId) : null)
             ->whereBetween('batches.created_at', [$this->start, $this->end])
             ->groupBy(['batches.id', 'batches.is_sectoral', 'batches.sector_title', 'batches.barangay_name'])
-            ->paginate(3);
+            ->paginate(2);
 
         return $batches;
     }
@@ -456,7 +482,11 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_contract_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_contract_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_payroll_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_payroll_female'),
             ])
             ->where('implementations.users_id', auth()->id())
             ->where('implementations.id', $this->implementationId ? decrypt($this->implementationId) : null)
@@ -514,13 +544,47 @@ class Dashboard extends Component
         }
     }
 
+    #[Computed]
+    public function total_contract()
+    {
+        if (is_null($this->summaryCount->total_contract_male) && is_null($this->summaryCount->total_contract_female)) {
+            return null;
+        } elseif (intval($this->summaryCount->total_contract_male) === 0 && intval($this->summaryCount->total_contract_female) === 0) {
+            return 0;
+        } else {
+            $total = [
+                'male' => $this->summaryCount->total_contract_male,
+                'female' => $this->summaryCount->total_contract_female,
+            ];
+            return $total;
+        }
+    }
+
+    #[Computed]
+    public function total_payroll()
+    {
+        if (is_null($this->summaryCount->total_payroll_male) && is_null($this->summaryCount->total_payroll_female)) {
+            return null;
+        } elseif (intval($this->summaryCount->total_payroll_male) === 0 && intval($this->summaryCount->total_payroll_female) === 0) {
+            return 0;
+        } else {
+            $total = [
+                'male' => $this->summaryCount->total_payroll_male,
+                'female' => $this->summaryCount->total_payroll_female,
+            ];
+            return $total;
+        }
+    }
+
     public function setCharts()
     {
         $overallValues = $this->total_beneficiaries;
         $pwdValues = $this->total_pwds;
         $seniorValues = $this->total_seniors;
+        $contractValues = $this->total_contract;
+        $payrollValues = $this->total_payroll;
 
-        $this->dispatch('series-change', overallValues: $overallValues, pwdValues: $pwdValues, seniorValues: $seniorValues)->self();
+        $this->dispatch('series-change', overallValues: $overallValues, pwdValues: $pwdValues, seniorValues: $seniorValues, contractValues: $contractValues, payrollValues: $payrollValues)->self();
     }
 
     # It's a Livewire `Hook` for properties so the system can take action

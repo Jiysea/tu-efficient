@@ -907,36 +907,64 @@
                                     </div>
                                 </div>
 
-                                {{-- Buttons --}}
+                                {{-- Buttons || Implementation Status --}}
                                 <div
                                     class="flex items-center justify-end gap-2 sm:gap-4 col-span-full relative text-sm font-bold">
-                                    @if ($this->batch?->approval_status === 'pending')
-                                        <span x-data="{ pop: false }" class="relative flex">
-                                            <button type="button" wire:loading.attr="disabled"
-                                                @if (!$this->isEmpty) @click="forceApproveModal = !forceApproveModal;"
+                                    @if ($this->implementation?->status === 'pending')
+
+                                        @if ($this->batch?->approval_status === 'pending')
+                                            <span x-data="{ pop: false }" class="relative flex">
+                                                <button type="button" wire:loading.attr="disabled"
+                                                    @if (!$this->isEmpty) @click="forceApproveModal = !forceApproveModal;"
                                             @else
                                                 @mouseleave="pop = false;" @mouseenter="pop = true;" disabled @endif
-                                                class="disabled:cursor-not-allowed text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md 
+                                                    class="disabled:cursor-not-allowed text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md 
                                                     {{ $this->isEmpty ? 'bg-gray-300 text-gray-500' : 'bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50' }}">
-                                                FORCE APPROVE
-                                            </button>
+                                                    FORCE APPROVE
+                                                </button>
 
-                                            @if ($this->isEmpty)
-                                                {{-- Tooltip Content --}}
-                                                <div x-cloak x-show="pop" x-transition.opacity
-                                                    class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
-                                                    You are unable to force approve this batch <br>
-                                                    when there are <span class="text-green-500">no occupied
-                                                        slots</span>.
+                                                @if ($this->isEmpty)
+                                                    {{-- Tooltip Content --}}
+                                                    <div x-cloak x-show="pop" x-transition.opacity
+                                                        class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
+                                                        You are unable to force approve this batch <br>
+                                                        when there are <span class="text-green-500">no occupied
+                                                            slots</span>.
+                                                    </div>
+                                                @endif
+                                            </span>
+                                        @elseif ($this->batch?->approval_status === 'approved')
+                                            <button type="button" wire:loading.attr="disabled"
+                                                @click="pendBatchModal = !pendBatchModal;"
+                                                class="text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
+                                                PEND BATCH
+                                            </button>
+                                        @endif
+                                    @elseif($this->implementation?->status === 'implementing')
+                                        <span
+                                            class="w-full text-center rounded p-2 flex justify-center items-center gap-2 bg-lime-100 text-lime-700 text-base font-semibold">
+                                            <span>This batch is currently in the process of implementation</span>
+
+                                            <span class="relative" x-data="{ tooltip: false }">
+                                                <svg @mouseleave="tooltip = false;" @mouseenter="tooltip = true;"
+                                                    tabindex="-1"
+                                                    class="size-3.5 text-lime-700 outline-none duration-300 ease-in-out cursor-pointer"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                                    viewBox="0 0 20 20">
+                                                    <path
+                                                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
+                                                </svg>
+
+                                                <div x-cloak x-show="tooltip" x-transition.opacity
+                                                    class="text-left absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">
+                                                    It means that all the batches from the <span
+                                                        class="text-indigo-400">project</span> <br>
+                                                    are ready for implementation or currently being <br>
+                                                    implemented so you cannot change its statuses <br>
+                                                    or add more beneficiaries.
                                                 </div>
-                                            @endif
+                                            </span>
                                         </span>
-                                    @elseif ($this->batch?->approval_status === 'approved')
-                                        <button type="button" wire:loading.attr="disabled"
-                                            @click="pendBatchModal = !pendBatchModal;"
-                                            class="text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50">
-                                            PEND BATCH
-                                        </button>
                                     @endif
                                 </div>
                             @endif

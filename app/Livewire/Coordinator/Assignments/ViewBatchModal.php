@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
 use App\Models\Code;
+use App\Models\Implementation;
 use App\Services\LogIt;
 use Carbon\Carbon;
 use DB;
@@ -57,6 +58,12 @@ class ViewBatchModal extends Component
         return [
             'password_confirm.required' => 'This field is required.',
         ];
+    }
+
+    #[Computed]
+    public function implementation()
+    {
+        return Implementation::find($this->batch?->implementations_id);
     }
 
     #[Computed]

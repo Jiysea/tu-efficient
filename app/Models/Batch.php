@@ -24,8 +24,8 @@ class Batch extends Model
         'district',
         'barangay_name',
         'slots_allocated',
-        'approval_status',
-        'submission_status',
+        'approval_status', // pending, approved, contract, payroll
+        'submission_status', // unopened, encoding, submitted, revalidate
     ];
 
     public function implementation()
