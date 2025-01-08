@@ -19,7 +19,7 @@ use Str;
 
 class DatabaseSeeder extends Seeder
 {
-    protected $implementationAmount = 71;
+    protected $implementationAmount = 72;
     // protected $coordinatorsAmount = 10;
     protected $assignmentAmountMin = 2;
     protected $assignmentAmountMax = 5;

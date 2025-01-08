@@ -92,7 +92,11 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_contract_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_contract_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_payroll_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_payroll_female'),
             ])
             ->where('implementations.id', isset($this->implementationId) ? decrypt($this->implementationId) : null)
             ->groupBy(['batches.is_sectoral', 'batches.barangay_name', 'batches.sector_title'])
@@ -106,7 +110,11 @@ class Dashboard extends Component
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
                 DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
+                DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_contract_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_contract_female'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_payroll_male'),
+                DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_payroll_female'),
             ])
             ->where('implementations.id', isset($this->implementationId) ? decrypt($this->implementationId) : null)
             ->first();
@@ -123,6 +131,14 @@ class Dashboard extends Component
         $pwds = [
             'male' => $summaryCount->total_pwd_male,
             'female' => $summaryCount->total_pwd_female,
+        ];
+        $contract = [
+            'male' => $summaryCount->total_contract_male,
+            'female' => $summaryCount->total_contract_female,
+        ];
+        $payroll = [
+            'male' => $summaryCount->total_payroll_male,
+            'female' => $summaryCount->total_payroll_female,
         ];
 
         # Implementation Information
@@ -155,6 +171,10 @@ class Dashboard extends Component
                 'total_pwd_female' => $batch->total_pwd_female,
                 'total_senior_male' => $batch->total_senior_male,
                 'total_senior_female' => $batch->total_senior_female,
+                'total_contract_male' => $batch->total_contract_male,
+                'total_contract_female' => $batch->total_contract_female,
+                'total_payroll_male' => $batch->total_payroll_male,
+                'total_payroll_female' => $batch->total_payroll_female,
             ];
         }
 
@@ -164,6 +184,8 @@ class Dashboard extends Component
                 'overall' => $overall,
                 'seniors' => $seniors,
                 'pwds' => $pwds,
+                'contract' => $contract,
+                'payroll' => $payroll,
                 'implementation' => $implementation,
                 'batches' => $batches
             ]

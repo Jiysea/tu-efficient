@@ -13,10 +13,11 @@
                 content: counter(page);
             }
         }
+
     </style>
 
     {{-- Layouts Guide --}}
-    {{-- 
+    {{--
 
         # The session key-value
         'print-summary-information' => [
@@ -104,11 +105,11 @@
                 </h2>
                 <div class="flex items-center gap-x-4">
                     @if ($overall !== 0)
-                        <p>Male: {{ $overall['male'] }}</p>
-                        <p>Female: {{ $overall['female'] }}</p>
+                    <p>Male: {{ $overall['male'] }}</p>
+                    <p>Female: {{ $overall['female'] }}</p>
                     @else
-                        <p>Male: 0</p>
-                        <p>Female: 0</p>
+                    <p>Male: 0</p>
+                    <p>Female: 0</p>
                     @endif
                 </div>
             </div>
@@ -120,11 +121,11 @@
                 </h2>
                 <div class="flex items-center gap-x-4">
                     @if ($pwds !== 0)
-                        <p>Male: {{ $pwds['male'] }}</p>
-                        <p>Female: {{ $pwds['female'] }}</p>
+                    <p>Male: {{ $pwds['male'] }}</p>
+                    <p>Female: {{ $pwds['female'] }}</p>
                     @else
-                        <p>Male: 0</p>
-                        <p>Female: 0</p>
+                    <p>Male: 0</p>
+                    <p>Female: 0</p>
                     @endif
                 </div>
             </div>
@@ -136,11 +137,43 @@
                 </h2>
                 <div class="flex items-center gap-x-4">
                     @if ($pwds !== 0)
-                        <p>Male: {{ $seniors['male'] }}</p>
-                        <p>Female: {{ $seniors['female'] }}</p>
+                    <p>Male: {{ $seniors['male'] }}</p>
+                    <p>Female: {{ $seniors['female'] }}</p>
                     @else
-                        <p>Male: 0</p>
-                        <p>Female: 0</p>
+                    <p>Male: 0</p>
+                    <p>Female: 0</p>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Contract --}}
+            <div class="flex flex-col mb-2">
+                <h2 class="flex items-center gap-2 font-medium">Contract of Service Signed
+                    <span>({{ $contract['male'] + $contract['female'] }})</span>
+                </h2>
+                <div class="flex items-center gap-x-4">
+                    @if ($pwds !== 0)
+                    <p>Male: {{ $contract['male'] }}</p>
+                    <p>Female: {{ $contract['female'] }}</p>
+                    @else
+                    <p>Male: 0</p>
+                    <p>Female: 0</p>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Payroll --}}
+            <div class="flex flex-col mb-2">
+                <h2 class="flex items-center gap-2 font-medium">Payroll Claimed
+                    <span>({{ $payroll['male'] + $payroll['female'] }})</span>
+                </h2>
+                <div class="flex items-center gap-x-4">
+                    @if ($pwds !== 0)
+                    <p>Male: {{ $payroll['male'] }}</p>
+                    <p>Female: {{ $payroll['female'] }}</p>
+                    @else
+                    <p>Male: 0</p>
+                    <p>Female: 0</p>
                     @endif
                 </div>
             </div>
@@ -149,38 +182,54 @@
         {{-- By Batch --}}
         <div class="text-lg font-bold mb-2">• Total By Batch</div>
         @foreach ($batches as $key => $batch)
-            <div class="grid grid-cols-2 w-full mb-4">
-                <h1 class="col-span-full text-base font-medium mb-3 underline underline-offset-8 decoration-gray-300">
-                    {{ '#' . intval($key + 1) . ' [' . ($batch['is_sectoral'] === 1 ? 'SECTORAL' : 'NON-SECTORAL') . '] ' . ($batch['barangay_name'] ? 'Brgy. ' : '') }}
-                    {{ $batch['barangay_name'] ?? $batch['sector_title'] }}
-                    ({{ $batch['total_male'] + $batch['total_female'] }})
-                </h1>
+        <div class="grid grid-cols-2 w-full mb-4">
+            <h1 class="col-span-full text-base font-medium mb-3 underline underline-offset-8 decoration-gray-300">
+                {{ '#' . intval($key + 1) . ' [' . ($batch['is_sectoral'] === 1 ? 'SECTORAL' : 'NON-SECTORAL') . '] ' . ($batch['barangay_name'] ? 'Brgy. ' : '') }}
+                {{ $batch['barangay_name'] ?? $batch['sector_title'] }}
+                ({{ $batch['total_male'] + $batch['total_female'] }})
+            </h1>
 
-                <p class="flex items-center gap-2">
-                    <span class="font-medium">Total Male:</span>
-                    {{ $batch['total_male'] }}
-                </p>
-                <p class="flex items-center gap-2">
-                    <span class="font-medium">Total Female:</span>
-                    {{ $batch['total_female'] }}
-                </p>
-                <p class="flex items-center gap-2">
-                    <span class="font-medium">PWD Male:</span>
-                    {{ $batch['total_pwd_male'] }}
-                </p>
-                <p class="flex items-center gap-2">
-                    <span class="font-medium">PWD Female:</span>
-                    {{ $batch['total_pwd_female'] }}
-                </p>
-                <p class="flex items-center gap-2">
-                    <span class="font-medium">Senior Male:</span>
-                    {{ $batch['total_senior_male'] }}
-                </p>
-                <p class="flex items-center gap-2">
-                    <span class="font-medium">Senior Female:</span>
-                    {{ $batch['total_senior_female'] }}
-                </p>
-            </div>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">Total Male:</span>
+                {{ $batch['total_male'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">Total Female:</span>
+                {{ $batch['total_female'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">PWD Male:</span>
+                {{ $batch['total_pwd_male'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">PWD Female:</span>
+                {{ $batch['total_pwd_female'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">Senior Male:</span>
+                {{ $batch['total_senior_male'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">Senior Female:</span>
+                {{ $batch['total_senior_female'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">COS Male:</span>
+                {{ $batch['total_contract_male'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">COS Female:</span>
+                {{ $batch['total_contract_female'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">Payroll Male:</span>
+                {{ $batch['total_payroll_male'] }}
+            </p>
+            <p class="flex items-center gap-2">
+                <span class="font-medium">Payroll Female:</span>
+                {{ $batch['total_payroll_female'] }}
+            </p>
+        </div>
         @endforeach
 
         <hr class="text-gray-500 my-5">

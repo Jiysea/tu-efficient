@@ -73,12 +73,16 @@ class Summary
             'Overall',
             'People with Disability',
             'Senior Citizens',
+            'Contract of Service Signed',
+            'Payroll Claimed',
         ];
 
         $summary_nested = [
             'overall',
             'pwds',
             'seniors',
+            'contract',
+            'payroll'
         ];
 
         # Summary of Beneficiaries (A1:L1 && A2:L2)
@@ -191,6 +195,7 @@ class Summary
 
             # Loop the summary headers in a 3-column merged cells
             $sheet->getRowDimension($curRow)->setRowHeight(20);
+            $hitContract = 0;
             for ($c = 0; $c < count($summary); $c++) {
                 $sheet->getStyle([($c * 4) + 1, $curRow, ($c * 4) + 4, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
@@ -212,6 +217,10 @@ class Summary
                 $sheet->getStyle([($c * 4) + 3, $curRow + 1])->getFont()->setName('Arial');
                 $sheet->getStyle([($c * 4) + 3, $curRow + 1])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([($c * 4) + 3, $curRow + 1, ($c * 4) + 4, $curRow + 1]);
+                if ($c === 1 && !$hitContract) {
+                    $c = 0;
+                    $hitContract++;
+                }
             }
 
             $curRow += 3;
@@ -329,6 +338,60 @@ class Summary
                 $sheet->getStyle([8, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
                 $sheet->mergeCells([8, $curRow, 12, $curRow]);
                 $curRow++;
+
+                # Contract of Service (Male)
+                # A
+                $sheet->getStyle([1, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([1, $curRow], 'COS Male');
+                $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+
+                # B:F
+                $sheet->getStyle([2, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([2, $curRow], $batch['total_contract_male']);
+                $sheet->getStyle([2, $curRow])->getFont()->setName('Arial');
+                $sheet->getStyle([2, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->mergeCells([2, $curRow, 6, $curRow]);
+
+                # Contract of Service (Female)
+                # G
+                $sheet->getStyle([7, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([7, $curRow], 'COS Female');
+                $sheet->getStyle([7, $curRow])->getFont()->setName('Arial');
+
+                # H:L
+                $sheet->getStyle([8, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([8, $curRow], $batch['total_contract_female']);
+                $sheet->getStyle([8, $curRow])->getFont()->setName('Arial');
+                $sheet->getStyle([8, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->mergeCells([8, $curRow, 12, $curRow]);
+                $curRow++;
+
+                # Contract of Service (Male)
+                # A
+                $sheet->getStyle([1, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([1, $curRow], 'Payroll Male');
+                $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+
+                # B:F
+                $sheet->getStyle([2, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([2, $curRow], $batch['total_payroll_male']);
+                $sheet->getStyle([2, $curRow])->getFont()->setName('Arial');
+                $sheet->getStyle([2, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->mergeCells([2, $curRow, 6, $curRow]);
+
+                # Contract of Service (Female)
+                # G
+                $sheet->getStyle([7, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([7, $curRow], 'Payroll Female');
+                $sheet->getStyle([7, $curRow])->getFont()->setName('Arial');
+
+                # H:L
+                $sheet->getStyle([8, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([8, $curRow], $batch['total_payroll_female']);
+                $sheet->getStyle([8, $curRow])->getFont()->setName('Arial');
+                $sheet->getStyle([8, $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->mergeCells([8, $curRow, 12, $curRow]);
+                $curRow++;
                 $i++;
             }
 
@@ -368,6 +431,10 @@ class Summary
             'PWDs (Female)',
             'Senior Citizens (Male)',
             'Senior Citizens (Female)',
+            'Contract of Service Signed (Male)',
+            'Contract of Service Signed (Female)',
+            'Payroll Claimed (Male)',
+            'Payroll Claimed (Female)',
             'Barangay/Sector',
             'Type of Batch',
             'Barangay Overall (Male)',
@@ -376,6 +443,10 @@ class Summary
             'Barangay PWDs (Female)',
             'Barangay Senior Citizens (Male)',
             'Barangay Senior Citizens (Female)',
+            'Barangay Contract of Service Signed (Male)',
+            'Barangay Contract of Service Signed (Female)',
+            'Barangay Payroll Claimed (Male)',
+            'Barangay Payroll Claimed (Female)',
         ];
 
         $sheet->setCellValue('A1', implode(';', $columnHeaders));
@@ -407,6 +478,10 @@ class Summary
                 $combinedData[] = $batch['total_pwd_female'];
                 $combinedData[] = $batch['total_senior_male'];
                 $combinedData[] = $batch['total_senior_female'];
+                $combinedData[] = $batch['total_contract_male'];
+                $combinedData[] = $batch['total_contract_female'];
+                $combinedData[] = $batch['total_payroll_male'];
+                $combinedData[] = $batch['total_payroll_female'];
 
                 $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
                 $curRow++;
@@ -458,7 +533,11 @@ class Summary
                     DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
                     DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
                     DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                    DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_contract_male'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_contract_female'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_payroll_male'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_payroll_female'),
                 ])
                 ->first();
 
@@ -475,11 +554,21 @@ class Summary
                 'male' => $impCount->total_pwd_male,
                 'female' => $impCount->total_pwd_female,
             ];
+            $contract = [
+                'male' => $impCount->total_contract_male,
+                'female' => $impCount->total_contract_female,
+            ];
+            $payroll = [
+                'male' => $impCount->total_payroll_male,
+                'female' => $impCount->total_payroll_female,
+            ];
 
             $summaryCount = [
                 'overall' => $overall,
                 'pwds' => $pwds,
                 'seniors' => $seniors,
+                'contract' => $contract,
+                'payroll' => $payroll,
             ];
 
             # Get all the batches from the selected implementation/s
@@ -494,7 +583,11 @@ class Summary
                     DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_pwd_male'),
                     DB::raw('SUM(CASE WHEN beneficiaries.is_pwd = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_pwd_female'),
                     DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_senior_male'),
-                    DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female')
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_senior_citizen = "yes" AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_senior_female'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_contract_male'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_signed AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_contract_female'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "male" THEN 1 ELSE 0 END) AS total_payroll_male'),
+                    DB::raw('SUM(CASE WHEN beneficiaries.is_paid AND beneficiaries.sex = "female" THEN 1 ELSE 0 END) AS total_payroll_female'),
                 ])
                 ->where('implementations.id', $implementation->id)
                 ->groupBy(['batches.is_sectoral', 'batches.sector_title', 'batches.barangay_name'])
@@ -514,6 +607,10 @@ class Summary
                     'total_pwd_female' => $batch->total_pwd_female,
                     'total_senior_male' => $batch->total_senior_male,
                     'total_senior_female' => $batch->total_senior_female,
+                    'total_contract_male' => $batch->total_contract_male,
+                    'total_contract_female' => $batch->total_contract_female,
+                    'total_payroll_male' => $batch->total_payroll_male,
+                    'total_payroll_female' => $batch->total_payroll_female,
                 ];
             }
 
