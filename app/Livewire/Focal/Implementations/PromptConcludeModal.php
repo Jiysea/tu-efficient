@@ -81,6 +81,7 @@ class PromptConcludeModal extends Component
             } finally {
                 $this->resetModal();
                 $this->js('promptConcludeModal = false;');
+                $this->js('viewProjectModal = false;');
             }
         }, 5);
     }
