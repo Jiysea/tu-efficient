@@ -79,8 +79,8 @@ class PromptConcludeModal extends Component
                 LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
                 $this->dispatch('alertNotification', type: 'implementation', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             } finally {
-                $this->resetViewProject();
-                $this->js('viewProjectModal = false;');
+                $this->resetModal();
+                $this->js('promptConcludeModal = false;');
             }
         }, 5);
     }
