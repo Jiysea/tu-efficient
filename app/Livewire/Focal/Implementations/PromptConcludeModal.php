@@ -57,6 +57,7 @@ class PromptConcludeModal extends Component
                 ])->lockForUpdate()->find($this->implementationId ? decrypt($this->implementationId) : null);
 
                 $implementation->status = 'concluded';
+                $implementation->save();
                 LogIt::set_mark_project_as_concluded($implementation, auth()->user());
                 $this->dispatch('alertNotification', type: 'implementation', message: 'A project has been successfully concluded', color: 'indigo');
             } catch (AuthorizationException $e) {
