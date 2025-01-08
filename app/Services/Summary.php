@@ -196,30 +196,32 @@ class Summary
             # Loop the summary headers in a 3-column merged cells
             $sheet->getRowDimension($curRow)->setRowHeight(20);
             $hitContract = 0;
+            $dontLoopAgain = false;
             for ($c = 0; $c < count($summary); $c++) {
-                $sheet->getStyle([($c * 4) + 1, $curRow, ($c * 4) + 4, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getStyle([(($c - $hitContract) * 4) + 1, $curRow, ($c * 4) + 4, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
                 # Title
-                $sheet->getStyle([($c * 4) + 1, $curRow])->getFont()->setSize(10);
-                $sheet->setCellValue([($c * 4) + 1, $curRow], $summary[$c] . ' (' . $info['summaryCount'][$summary_nested[$c]]['male'] + $info['summaryCount'][$summary_nested[$c]]['female'] . ')');
-                $sheet->getStyle([($c * 4) + 1, $curRow])->getFont()->setName('Arial');
-                $sheet->mergeCells([($c * 4) + 1, $curRow, ($c * 4) + 4, $curRow]);
+                $sheet->getStyle([(($c - $hitContract) * 4) + 1, $curRow])->getFont()->setSize(10);
+                $sheet->setCellValue([(($c - $hitContract) * 4) + 1, $curRow], $summary[$c] . ' (' . $info['summaryCount'][$summary_nested[$c]]['male'] + $info['summaryCount'][$summary_nested[$c]]['female'] . ')');
+                $sheet->getStyle([(($c - $hitContract) * 4) + 1, $curRow])->getFont()->setName('Arial');
+                $sheet->mergeCells([(($c - $hitContract) * 4) + 1, $curRow, (($c - $hitContract) * 4) + 4, $curRow]);
 
                 # Male && Female
-                $sheet->getStyle([($c * 4) + 1, $curRow + 1])->getFont()->setSize(10);
-                $sheet->setCellValue([($c * 4) + 1, $curRow + 1], 'Male: ' . $info['summaryCount'][$summary_nested[$c]]['male']);
-                $sheet->getStyle([($c * 4) + 1, $curRow + 1])->getFont()->setName('Arial');
-                $sheet->getStyle([($c * 4) + 1, $curRow + 1])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
-                $sheet->mergeCells([($c * 4) + 1, $curRow + 1, ($c * 4) + 2, $curRow + 1]);
+                $sheet->getStyle([(($c - $hitContract) * 4) + 1, $curRow + 1])->getFont()->setSize(10);
+                $sheet->setCellValue([(($c - $hitContract) * 4) + 1, $curRow + 1], 'Male: ' . $info['summaryCount'][$summary_nested[$c]]['male']);
+                $sheet->getStyle([(($c - $hitContract) * 4) + 1, $curRow + 1])->getFont()->setName('Arial');
+                $sheet->getStyle([(($c - $hitContract) * 4) + 1, $curRow + 1])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->mergeCells([(($c - $hitContract) * 4) + 1, $curRow + 1, (($c - $hitContract) * 4) + 2, $curRow + 1]);
 
-                $sheet->getStyle([($c * 4) + 3, $curRow + 1])->getFont()->setSize(10);
-                $sheet->setCellValue([($c * 4) + 3, $curRow + 1], 'Female: ' . $info['summaryCount'][$summary_nested[$c]]['female']);
-                $sheet->getStyle([($c * 4) + 3, $curRow + 1])->getFont()->setName('Arial');
-                $sheet->getStyle([($c * 4) + 3, $curRow + 1])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
-                $sheet->mergeCells([($c * 4) + 3, $curRow + 1, ($c * 4) + 4, $curRow + 1]);
-                if ($c === 1 && !$hitContract) {
-                    $c = 0;
-                    $hitContract++;
+                $sheet->getStyle([(($c - $hitContract) * 4) + 3, $curRow + 1])->getFont()->setSize(10);
+                $sheet->setCellValue([(($c - $hitContract) * 4) + 3, $curRow + 1], 'Female: ' . $info['summaryCount'][$summary_nested[$c]]['female']);
+                $sheet->getStyle([(($c - $hitContract) * 4) + 3, $curRow + 1])->getFont()->setName('Arial');
+                $sheet->getStyle([(($c - $hitContract) * 4) + 3, $curRow + 1])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->mergeCells([(($c - $hitContract) * 4) + 3, $curRow + 1, (($c - $hitContract) * 4) + 4, $curRow + 1]);
+                if ($c === 2 && !$dontLoopAgain) {
+                    $curRow += 3;
+                    $hitContract += 3;
+                    $dontLoopAgain = true;
                 }
             }
 
