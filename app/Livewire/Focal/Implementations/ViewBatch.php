@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Focal\Implementations;
 
+use App\Models\Archive;
 use App\Models\Assignment;
 use App\Models\Batch;
 use App\Models\Beneficiary;
@@ -22,6 +23,7 @@ use Livewire\Attributes\Reactive;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Log;
+use Storage;
 
 class ViewBatch extends Component
 {
@@ -695,6 +697,28 @@ class ViewBatch extends Component
                     return;
                 }
                 $this->authorize('batch-focal', $batch);
+
+                # find its credentials (if any)
+                $beneficiaries = Archive::where('source_table', 'beneficiaries')
+                    ->where('data->batches_id', $batch->id)
+                    ->get();
+
+                foreach ($beneficiaries as $beneficiary) {
+                    $credentials = Archive::where('source_table', 'credentials')
+                        ->where('data->beneficiaries_id', $beneficiary->data['id'])
+                        ->get();
+
+                    # then delete the records
+                    if ($credentials->isNotEmpty()) {
+                        foreach ($credentials as $credential) {
+                            if (isset($credential->data['image_file_path']) && Storage::exists($credential->data['image_file_path'])) {
+                                Storage::delete($credential->data['image_file_path']);
+                            }
+                            $credential->deleteOrFail();
+                        }
+                    }
+                    $beneficiary->deleteOrFail();
+                }
 
                 $assignments = Assignment::where('batches_id', decrypt($this->batchId))
                     ->lockForUpdate()

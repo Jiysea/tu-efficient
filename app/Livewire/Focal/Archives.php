@@ -312,6 +312,7 @@ class Archives extends Component
                 ]);
             }
         }
+
         return $archivesList;
     }
 
