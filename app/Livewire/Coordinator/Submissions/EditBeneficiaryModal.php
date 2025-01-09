@@ -639,7 +639,7 @@ class EditBeneficiaryModal extends Component
                     $beneficiary->updated_at = now();
                     $beneficiary->save();
                     LogIt::set_edit_beneficiary($implementation, $beneficiary, $batch, auth()->user());
-                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully modified a beneficiary', color: 'indigo');
+                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully modified a beneficiary', color: 'blue');
                 }
 
             } catch (AuthorizationException $e) {

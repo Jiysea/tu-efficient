@@ -499,7 +499,7 @@ class AddBeneficiariesModal extends Component
                     LogIt::set_add_beneficiary($implementation, $batch, $beneficiary, auth()->user());
                 }
 
-                $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully added a beneficiary', color: 'indigo');
+                $this->dispatch('alertNotification', type: 'beneficiary', message: 'Successfully added a beneficiary', color: 'blue');
 
             } catch (AuthorizationException $e) {
                 DB::rollBack();
