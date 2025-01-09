@@ -838,7 +838,7 @@ window.addEventListener('resize', () => {
                                                 :class="{
                                                     'bg-amber-200 text-amber-800': {{ json_encode($this->implementation?->status === 'pending') }},
                                                     'bg-lime-200 text-lime-800': {{ json_encode($this->implementation?->status === 'implementing') }},
-                                                    'bg-indigo-200 text-indigo-800': {{ json_encode($this->implementation?->status === 'concluded') }},
+                                                    'bg-sky-200 text-sky-800': {{ json_encode($this->implementation?->status === 'concluded') }},
                                                 }">
                                                 {{ $this->implementation?->status }}
                                             </span>
@@ -855,17 +855,18 @@ window.addEventListener('resize', () => {
                                                 d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
                                         </svg>
 
-                                        {{-- Popover for `Per Implementation` --}}
+                                        {{-- Popover for `Per Project` --}}
                                         <div x-cloak x-show="tooltip" x-transition.opacity role="tooltip"
                                             class="text-left absolute z-50 top-full mt-2 -left-32 md:left-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">
                                             <div class="flex flex-col text-xs sm:text-sm gap-3">
                                                 <div>
-                                                    <h3 class="font-medium text-indigo-400">Per Implementation
+                                                    <h3 class="font-medium text-indigo-400">Per Project
                                                     </h3>
                                                     <p>These charts represent the total number <br>
-                                                        of Males and Females per implementation. <br>
-                                                        In each implementation, it is also divided <br>
-                                                        by people with disability and senior citizens.
+                                                        of Males and Females per project. <br>
+                                                        In each project, it is also divided <br>
+                                                        by people with disability, senior citizens <br>
+                                                        marked contract of service (COS) and payroll.
                                                     </p>
                                                 </div>
                                                 <div>
