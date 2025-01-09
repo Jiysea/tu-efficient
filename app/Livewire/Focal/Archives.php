@@ -534,7 +534,7 @@ class Archives extends Component
         }
         $this->defaultArchive = intval($this->settings->get('default_archive', config('settings.default_archive')));
 
-        $this->start = now()->startOfYear()->format('Y-m-d H:i:s');
+        $this->start = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
         $this->end = now()->endOfDay()->format('Y-m-d H:i:s');
 
         $this->calendarStart = Carbon::parse($this->start)->format('m/d/Y');
