@@ -319,6 +319,13 @@ class Assignments extends Component
         $this->dispatch('init-reload')->self();
     }
 
+    public function removeAlert($id)
+    {
+        $this->alerts = array_filter($this->alerts, function ($alert) use ($id) {
+            return $alert['id'] !== $id;
+        });
+    }
+
     # It's a Livewire `Hook` for properties so the system can take action
     # when a specific property has updated its state. 
     public function updated($prop)
