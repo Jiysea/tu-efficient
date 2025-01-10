@@ -976,13 +976,13 @@ class Submissions extends Component
                     ->where('batches.id', $batch->id)
                     ->exists();
 
-                if ($checkSlots) {
+                if (!$checkSlots) {
                     DB::rollBack();
                     $this->dispatch('alertNotification', type: null, message: 'This batch should have at least one beneficiary', color: 'red');
                     return;
                 }
 
-                if ($batch->approval_status !== 'approved') {
+                if ($batch->approval_status === 'approved') {
                     DB::rollBack();
                     $this->dispatch('alertNotification', type: null, message: 'This batch is already approved', color: 'red');
                     return;
