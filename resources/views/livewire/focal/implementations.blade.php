@@ -1365,6 +1365,17 @@ window.addEventListener('resize', () => {
                             {{-- For XLSX --}}
                             <div x-show="exportFormat === 'xlsx'" class="flex flex-col gap-2">
                                 <span class="flex items-center flex-wrap gap-2">
+                                    {{-- Annex D (Profile) --}}
+                                    <label for="annex_j2"
+                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                        :class="{
+                                            'bg-indigo-700 text-indigo-50': d_x,
+                                            'bg-gray-200 text-gray-500': !d_x,
+                                        }">
+                                        Annex D (Profile)
+                                        <input type="checkbox" class="hidden absolute inset-0" id="annex_j2"
+                                            wire:model.live="exportType.annex_j2">
+                                    </label>
                                     {{-- Annex E-1 (COS) --}}
                                     <label for="annex_e1"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
@@ -1387,6 +1398,8 @@ window.addEventListener('resize', () => {
                                         <input type="checkbox" class="hidden absolute inset-0" id="annex_e2"
                                             wire:model.live="exportType.annex_e2">
                                     </label>
+                                </span>
+                                <span class="flex items-center flex-wrap gap-2">
                                     {{-- Annex J-2 (Attendance Sheet) --}}
                                     <label for="annex_j2"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
@@ -1398,8 +1411,6 @@ window.addEventListener('resize', () => {
                                         <input type="checkbox" class="hidden absolute inset-0" id="annex_j2"
                                             wire:model.live="exportType.annex_j2">
                                     </label>
-                                </span>
-                                <span class="flex items-center flex-wrap gap-2">
                                     {{-- Annex L (Payroll) --}}
                                     <label for="annex_l"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
@@ -1428,6 +1439,17 @@ window.addEventListener('resize', () => {
                             {{-- For CSV --}}
                             <div x-show="exportFormat === 'csv'" class="flex flex-col gap-2">
                                 <span class="flex items-center flex-wrap gap-2">
+                                    {{-- Annex D (Profile) --}}
+                                    <label for="annex_j2_csv"
+                                        class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
+                                        :class="{
+                                            'bg-indigo-700 text-indigo-50': csv_type === 'annex_d',
+                                            'bg-gray-200 text-gray-500': csv_type !== 'annex_d',
+                                        }">
+                                        Annex D (Profile)
+                                        <input type="radio" class="hidden absolute inset-0" id="annex_j2_csv"
+                                            value="annex_d" wire:model.live="exportTypeCsv">
+                                    </label>
                                     {{-- Annex E-1 (COS) --}}
                                     <label for="annex_e1_csv"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
@@ -1450,6 +1472,8 @@ window.addEventListener('resize', () => {
                                         <input type="radio" class="hidden absolute inset-0" id="annex_e2_csv"
                                             value="annex_e2" wire:model.live="exportTypeCsv">
                                     </label>
+                                </span>
+                                <span class="flex items-center flex-wrap gap-2">
                                     {{-- Annex J-2 (Attendance Sheet) --}}
                                     <label for="annex_j2_csv"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
@@ -1461,8 +1485,6 @@ window.addEventListener('resize', () => {
                                         <input type="radio" class="hidden absolute inset-0" id="annex_j2_csv"
                                             value="annex_j2" wire:model.live="exportTypeCsv">
                                     </label>
-                                </span>
-                                <span class="flex items-center flex-wrap gap-2">
                                     {{-- Annex L (Payroll) --}}
                                     <label for="annex_l_csv"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
@@ -1895,6 +1917,7 @@ window.addEventListener('resize', () => {
         Alpine.data('exporting', () => ({
             exportFormat: $wire.entangle('exportFormat'),
             csv_type: $wire.entangle('exportTypeCsv'),
+            d_x: $wire.entangle('exportType.annex_d'),
             e1_x: $wire.entangle('exportType.annex_e1'),
             e2_x: $wire.entangle('exportType.annex_e2'),
             j2_x: $wire.entangle('exportType.annex_j2'),

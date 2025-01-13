@@ -62,26 +62,26 @@ class PromptImplementingModal extends Component
                 $implementation->save();
 
                 LogIt::set_mark_project_for_implementation($implementation, auth()->user());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'Successfully marked project for implementation', color: 'indigo');
+                $this->dispatch('alertNotification', type: 'implementation', message: 'Successfully marked project for implementation', color: 'indigo');
 
             } catch (AuthorizationException $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An unauthorized action has been made modifying this project. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: $e->getMessage(), color: 'red');
+                $this->dispatch('alertNotification', type: 'implementation', message: $e->getMessage(), color: 'red');
             } catch (QueryException $e) {
                 DB::rollBack();
 
                 # Deadlock & LockWaitTimeoutException
                 if ($e->getCode() === '1213' || $e->getCode() === '1205') {
-                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                    $this->dispatch('alertNotification', type: 'implementation', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
                 } else {
                     LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                    $this->dispatch('alertNotification', type: 'implementation', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
                 }
             } catch (\Throwable $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                $this->dispatch('alertNotification', type: 'implementation', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             } finally {
                 $this->js('promptImplementingModal = false; viewProjectModal = false;');
                 $this->resetModal();
@@ -101,26 +101,26 @@ class PromptImplementingModal extends Component
                 $implementation->save();
 
                 LogIt::set_mark_project_as_pending($implementation, auth()->user());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'Successfully marked project as pending', color: 'indigo');
+                $this->dispatch('alertNotification', type: 'implementation', message: 'Successfully marked project as pending', color: 'indigo');
 
             } catch (AuthorizationException $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An unauthorized action has been made modifying this project. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: $e->getMessage(), color: 'red');
+                $this->dispatch('alertNotification', type: 'implementation', message: $e->getMessage(), color: 'red');
             } catch (QueryException $e) {
                 DB::rollBack();
 
                 # Deadlock & LockWaitTimeoutException
                 if ($e->getCode() === '1213' || $e->getCode() === '1205') {
-                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
+                    $this->dispatch('alertNotification', type: 'implementation', message: 'Another user is modifying the record. Please try again. Error ' . $e->getCode(), color: 'red');
                 } else {
                     LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                    $this->dispatch('alertNotification', type: 'beneficiary', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                    $this->dispatch('alertNotification', type: 'implementation', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
                 }
             } catch (\Throwable $e) {
                 DB::rollBack();
                 LogIt::set_log_exception('An error has occured during execution. Error ' . $e->getCode(), auth()->user(), $e->getTrace());
-                $this->dispatch('alertNotification', type: 'implementation-modify', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
+                $this->dispatch('alertNotification', type: 'implementation', message: 'An error has occured during execution. Error ' . $e->getCode(), color: 'red');
             } finally {
                 $this->js('promptImplementingModal = false; viewProjectModal = false;');
                 $this->resetModal();

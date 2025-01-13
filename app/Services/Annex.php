@@ -387,6 +387,13 @@ class Annex
     public static function export(Spreadsheet $spreadsheet, mixed $batch, array|string $exportType, string $exportFormat): Spreadsheet
     {
         # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+        if ((is_array($exportType) && !empty($exportType['annex_d'])) || $exportType === 'annex_d') {
+            $sheet0 = new Worksheet($spreadsheet, 'ANNEX D - Profile');
+            $spreadsheet->addSheet($sheet0);
+            $sheet0->getTabColor()->setRGB('FEFD0D'); // Yellow tab color
+            $sheet0 = self::annex_d($sheet0, $batch, $exportFormat);
+        }
+
         if ((is_array($exportType) && !empty($exportType['annex_e1'])) || $exportType === 'annex_e1') {
             $sheet1 = new Worksheet($spreadsheet, 'ANNEX E-1 - COS');
             $spreadsheet->addSheet($sheet1);
@@ -595,369 +602,585 @@ class Annex
         return $sheet;
     }
 
-    // protected static function annex_d(Worksheet $sheet, mixed $batch, string $exportFormat)
-    // {
-    //     ## Retrieve the active sheet
-    //     $sheet = $spreadsheet->getActiveSheet();
-    //     $number_of_rows = $number_of_rows;
+    protected static function annex_d(Worksheet $sheet, mixed $batch, string $exportFormat)
+    {
+        ## Set Orientation to LANDSCAPE
+        ## Set Page Size to A4
+        ## Fit to Width
+        ## Not Fit to Height
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(0);
 
-    //     ## Set Orientation to LANDSCAPE
-    //     ## Set Page Size to A4
-    //     ## Fit to Width
-    //     ## Not Fit to Height
-    //     $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
-    //     $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
-    //     $sheet->getPageSetup()->setFitToWidth(1);
-    //     $sheet->getPageSetup()->setFitToHeight(0);
+        ## The table header attributes
+        $headers = [
+            'No.',
+            'First Name',
+            'Middle Name',
+            'Last Name',
+            'Extension Name',
+            'Birthdate (YYYY/MM/DD)',
+            'BRGY.',
+            'City/Municipality',
+            'Province',
+            'District',
+            'Type of ID',
+            'ID No.',
+            'Contact No.',
+            'E-payment/Account No.',
+            'Type of Beneficiaries',
+            'Occupation',
+            'Sex',
+            'Civil Status',
+            'Age',
+            'Average monthly income',
+            'Dependent',
+            'Interested in wage employment or self-employment? (Yes or No)',
+            'Skills Training Needed',
+            'First Name',
+            'Middle Name',
+            'Last Name',
+            'Extension Name'
+        ];
 
-    //     ## The table header attributes
-    //     $headers = [
-    //         [
-    //             'No.',
-    //             'First Name',
-    //             'Middle Name',
-    //             'Last Name',
-    //             'Extension Name',
-    //             'Birthdate (YYYY/MM/DD)',
-    //             'BRGY.',
-    //             'City/Municipality',
-    //             'Province',
-    //             'District',
-    //             'Type of ID',
-    //             'ID No.',
-    //             'Contact No.',
-    //             'E-payment/Account No.',
-    //             'Type of Beneficiaries',
-    //             'Occupation',
-    //             'Sex',
-    //             'Civil Status',
-    //             'Age',
-    //             'Average monthly income',
-    //             'Person with Disability',
-    //             'Dependent',
-    //             'Interested in wage employment or self-employment? (Yes or No)',
-    //             'Skills Training Needed',
-    //             'First Name',
-    //             'Middle Name',
-    //             'Last Name',
-    //             'Extension Name'
-    //         ],
-    //     ];
+        ## Size of the table columns depending on the amount of header attributes
+        $beneficiaries = self::fetchBeneficiaries($batch);
 
-    //     ## Size of the table columns depending on the amount of header attributes
-    //     $number_of_cols = sizeof($headers[0]);
+        if ($exportFormat === 'xlsx') {
 
-    //     ## It's basically a global row index that aggregates every row generated
-    //     ## Think of it as like an interpreter where it generates rows line by line. 
-    //     ## Pretty helpful if you want to move the whole sheet by 1 or more rows.
-    //     $i = 1;
+            ## It's basically a global row index that aggregates every row generated
+            ## Think of it as like an interpreter where it generates rows line by line. 
+            ## Pretty helpful if you want to move the whole sheet by 1 or more rows.
+            $curRow = 1;
+            $maxCol = sizeof($headers);
 
-    //     ## It's set for ignoring double row attributes on the header
-    //     $excludedColumns = [1, 2, 3, 4, 6, 7, 8, 9, 24, 25, 26, 27];
+            ## It's set for ignoring double row attributes on the header
+            $excludedColumns = [1, 2, 3, 4, 6, 7, 8, 9, 23, 24, 25, 26];
 
-    //     ## Set default Column widths
-    //     $sheet->getColumnDimension('A')->setWidth(4);
-    //     $sheet->getColumnDimension('B')->setWidth(18.43);
-    //     $sheet->getColumnDimension('C')->setWidth(18.43);
-    //     $sheet->getColumnDimension('D')->setWidth(18.43);
-    //     $sheet->getColumnDimension('E')->setWidth(8.86);
-    //     $sheet->getColumnDimension('F')->setWidth(14);
-    //     $sheet->getColumnDimension('G')->setWidth(10.57);
-    //     $sheet->getColumnDimension('H')->setWidth(8.71);
-    //     $sheet->getColumnDimension('I')->setWidth(8.71);
-    //     $sheet->getColumnDimension('J')->setWidth(6.86);
-    //     $sheet->getColumnDimension('K')->setWidth(13.14);
-    //     $sheet->getColumnDimension('L')->setWidth(17.29);
-    //     $sheet->getColumnDimension('M')->setWidth(13.43);
-    //     $sheet->getColumnDimension('N')->setWidth(8.86);
-    //     $sheet->getColumnDimension('O')->setWidth(10.57);
-    //     $sheet->getColumnDimension('P')->setWidth(10.57);
-    //     $sheet->getColumnDimension('Q')->setWidth(5.14);
-    //     $sheet->getColumnDimension('R')->setWidth(5.14);
-    //     $sheet->getColumnDimension('S')->setWidth(5.14);
-    //     $sheet->getColumnDimension('T')->setWidth(7.43);
-    //     $sheet->getColumnDimension('U')->setWidth(5.14);
-    //     $sheet->getColumnDimension('V')->setWidth(19.43);
-    //     $sheet->getColumnDimension('W')->setWidth(7.86);
-    //     $sheet->getColumnDimension('X')->setWidth(9.43);
-    //     $sheet->getColumnDimension('Y')->setWidth(18.43);
-    //     $sheet->getColumnDimension('Z')->setWidth(18.43);
-    //     $sheet->getColumnDimension('AA')->setWidth(18.43);
-    //     $sheet->getColumnDimension('AB')->setWidth(8.86);
+            ## Set default Column widths
+            $sheet->getColumnDimension('A')->setWidth(4);
+            $sheet->getColumnDimension('B')->setWidth(18.43);
+            $sheet->getColumnDimension('C')->setWidth(18.43);
+            $sheet->getColumnDimension('D')->setWidth(18.43);
+            $sheet->getColumnDimension('E')->setWidth(8.86);
+            $sheet->getColumnDimension('F')->setWidth(14);
+            $sheet->getColumnDimension('G')->setWidth(10.57);
+            $sheet->getColumnDimension('H')->setWidth(8.71);
+            $sheet->getColumnDimension('I')->setWidth(8.71);
+            $sheet->getColumnDimension('J')->setWidth(6.86);
+            $sheet->getColumnDimension('K')->setWidth(13.14);
+            $sheet->getColumnDimension('L')->setWidth(17.29);
+            $sheet->getColumnDimension('M')->setWidth(13.43);
+            $sheet->getColumnDimension('N')->setWidth(8.86);
+            $sheet->getColumnDimension('O')->setWidth(10.57);
+            $sheet->getColumnDimension('P')->setWidth(10.57);
+            $sheet->getColumnDimension('Q')->setWidth(5.14);
+            $sheet->getColumnDimension('R')->setWidth(5.14);
+            $sheet->getColumnDimension('S')->setWidth(5.14);
+            $sheet->getColumnDimension('T')->setWidth(7.43);
+            // $sheet->getColumnDimension('U')->setWidth(5.14);
+            $sheet->getColumnDimension('U')->setWidth(19.43);
+            $sheet->getColumnDimension('V')->setWidth(7.86);
+            $sheet->getColumnDimension('W')->setWidth(9.43);
+            $sheet->getColumnDimension('X')->setWidth(18.43);
+            $sheet->getColumnDimension('Y')->setWidth(18.43);
+            $sheet->getColumnDimension('Z')->setWidth(18.43);
+            $sheet->getColumnDimension('AA')->setWidth(8.86);
 
-    //     # Resize the Column (CANCELLED)
-    //     // $columnID = Coordinate::stringFromColumnIndex($colIndex + 1);
-    //     // $sheet->getColumnDimension($columnID)->setAutoSize(true);
+            # Resize the Column (CANCELLED)
+            // $columnID = Coordinate::stringFromColumnIndex($colIndex + 1);
+            // $sheet->getColumnDimension($columnID)->setAutoSize(true);
 
-    //     # A1
-    //     $sheet->getStyle([1, $i, 1, $i + 1])->getFont()->setSize(10); # A1:A2
-    //     $sheet->setCellValue([1, $i], 'Annex D');
-    //     $sheet->getStyle([1, $i])->getFont()->setBold(true);
-    //     $sheet->getStyle([1, $i])->getFont()->setName('Arial');
-    //     $sheet->mergeCells([1, $i, $number_of_cols, $i]);
-    //     $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //     $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            # A1
+            $sheet->getStyle([1, $curRow, 1, $curRow + 1])->getFont()->setSize(10); # A1:A2
+            $sheet->setCellValue([1, $curRow], 'Annex D');
+            $sheet->getStyle([1, $curRow])->getFont()->setBold(true);
+            $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-    //     $i++; #2
-    //     # A2
-    //     $sheet->setCellValue([1, $i, $number_of_cols, $i], 'Profile of TUPAD Beneficiaries');
-    //     $sheet->getStyle([1, $i])->getFont()->setBold(true);
-    //     $sheet->getStyle([1, $i])->getFont()->setName('Arial');
-    //     $sheet->mergeCells([1, $i, $number_of_cols, $i]);
-    //     $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //     $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $curRow++; #2
+            # A2
+            $sheet->setCellValue([1, $curRow, $maxCol, $curRow], 'Profile of TUPAD Beneficiaries');
+            $sheet->getStyle([1, $curRow])->getFont()->setBold(true);
+            $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-    //     $i++; #3
-    //     # A3
-    //     $sheet->setCellValue([1, $i, $number_of_cols, $i], '_____________________________________________________________________________________________________________________________________________________');
-    //     $sheet->mergeCells([1, $i, $number_of_cols, $i]);
-    //     $sheet->getStyle([1, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //     $sheet->getRowDimension($i)->setRowHeight(6.75);
+            $curRow++; #3
+            # A3
+            $sheet->setCellValue([1, $curRow, $maxCol, $curRow], '_____________________________________________________________________________________________________________________________________________________');
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getRowDimension($curRow)->setRowHeight(6.75);
 
-    //     $i++; #4
-    //     #A4
-    //     $sheet->getRowDimension($i)->setRowHeight(6);
+            $curRow++; #4
+            #A4
+            $sheet->getRowDimension($curRow)->setRowHeight(6);
 
-    //     $i++; #5
-    //     # A5:B9 | Set font size to 10
-    //     $sheet->getStyle([1, $i, 2, $i + 4])->getFont()->setSize(10); # A5:B9
+            $curRow++; #5
+            # A5:B9 | Set font size to 10
+            $sheet->getStyle([1, $curRow, 2, $curRow + 4])->getFont()->setSize(10); # A5:B9
 
-    //     # A5:B5 | C5:E5
-    //     $sheet->setCellValue([1, $i], 'Nature of Project:');
-    //     $sheet->getStyle([1, $i])->getFont()->setName('Arial');
-    //     $sheet->mergeCells([1, $i, 2, $i]);
-    //     $sheet->mergeCells([3, $i, 5, $i]);
-    //     $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+            # A5:B5 | C5:E5
+            $sheet->setCellValue([1, $curRow], 'Nature of Project:');
+            $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+            $sheet->mergeCells([1, $curRow, 2, $curRow]);
+            $sheet->mergeCells([3, $curRow, 5, $curRow]);
+            $sheet->getStyle([3, $curRow, 5, $curRow])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-    //     $i++; #6
-    //     # A6
-    //     $sheet->setCellValue([1, $i], 'DOLE Regional Office:');
-    //     $sheet->getStyle([1, $i])->getFont()->setName('Arial');
-    //     $sheet->mergeCells([1, $i, 2, $i]);
-    //     $sheet->mergeCells([3, $i, 5, $i]);
-    //     $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+            $curRow++; #6
+            # A6
+            $sheet->setCellValue([1, $curRow], 'DOLE Regional Office:');
+            $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+            $sheet->mergeCells([1, $curRow, 2, $curRow]);
+            $sheet->mergeCells([3, $curRow, 5, $curRow]);
+            $sheet->getStyle([3, $curRow, 5, $curRow])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-    //     $i++; #7
-    //     # A7
-    //     $sheet->setCellValue([1, $i], 'Province:');
-    //     $sheet->getStyle([1, $i])->getFont()->setName('Arial');
-    //     $sheet->mergeCells([1, $i, 2, $i]);
-    //     $sheet->mergeCells([3, $i, 5, $i]);
-    //     $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+            $curRow++; #7
+            # A7
+            $sheet->setCellValue([1, $curRow], 'Province:');
+            $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+            $sheet->mergeCells([1, $curRow, 2, $curRow]);
+            $sheet->mergeCells([3, $curRow, 5, $curRow]);
+            $sheet->getStyle([3, $curRow, 5, $curRow])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-    //     $i++; #8
-    //     # A8
-    //     $sheet->setCellValue([1, $i], 'Municipality:');
-    //     $sheet->getStyle([1, $i])->getFont()->setName('Arial');
-    //     $sheet->mergeCells([1, $i, 2, $i]);
-    //     $sheet->mergeCells([3, $i, 5, $i]);
-    //     $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+            $curRow++; #8
+            # A8
+            $sheet->setCellValue([1, $curRow], 'Municipality:');
+            $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+            $sheet->mergeCells([1, $curRow, 2, $curRow]);
+            $sheet->mergeCells([3, $curRow, 5, $curRow]);
+            $sheet->getStyle([3, $curRow, 5, $curRow])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-    //     $i++; #9
-    //     # A9
-    //     $sheet->setCellValue([1, $i], 'Barangay:');
-    //     $sheet->getStyle([1, $i])->getFont()->setName('Arial');
-    //     $sheet->mergeCells([1, $i, 2, $i]);
-    //     $sheet->mergeCells([3, $i, 5, $i]);
-    //     $sheet->getStyle([3, $i, 5, $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+            $curRow++; #9
+            # A9
+            $sheet->setCellValue([1, $curRow], 'Barangay:');
+            $sheet->getStyle([1, $curRow])->getFont()->setName('Arial');
+            $sheet->mergeCells([1, $curRow, 2, $curRow]);
+            $sheet->mergeCells([3, $curRow, 5, $curRow]);
+            $sheet->getStyle([3, $curRow, 5, $curRow])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-    //     $i++; #10
-    //     # A10
-    //     $sheet->getRowDimension($i)->setRowHeight(9);
+            $curRow++; #10
+            # A10
+            $sheet->getRowDimension($curRow)->setRowHeight(9);
 
-    //     $i++; #11
-    //     # A11
-    //     $sheet->getRowDimension($i)->setRowHeight(18.75);
+            $curRow++; #11
+            # A11
+            $sheet->getRowDimension($curRow)->setRowHeight(18.75);
 
-    //     ## Headers
-    //     # B11:E11
-    //     $sheet->setCellValue([2, $i], 'Name of Beneficiary');
-    //     $sheet->mergeCells([2, $i, 5, $i]);
-    //     $sheet->getStyle([2, $i, 5, $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-    //     $sheet->getStyle([2, $i, 5, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //     $sheet->getStyle([2, $i, 5, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            ## Merged Headers
 
-    //     # G11:J11
-    //     $sheet->setCellValue([7, $i], 'Project Location');
-    //     $sheet->mergeCells([7, $i, 10, $i]);
-    //     $sheet->getStyle([7, $i, 10, $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-    //     $sheet->getStyle([7, $i, 10, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //     $sheet->getStyle([7, $i, 10, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            # B11:E11
+            $startCol = 2; # B
+            $endCol = 5; # E
+            $sheet->setCellValue([$startCol, $curRow], 'Name of Beneficiary');
+            $sheet->mergeCells([$startCol, $curRow, $endCol, $curRow]);
+            $sheet->getStyle([$startCol, $curRow, $endCol, $curRow])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle([$startCol, $curRow, $endCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle([$startCol, $curRow, $endCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-    //     # Y11:AB11
-    //     $sheet->setCellValue([25, $i], 'Spouse');
-    //     $sheet->mergeCells([25, $i, $number_of_cols, $i]);
-    //     $sheet->getStyle([25, $i, $number_of_cols, $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-    //     $sheet->getStyle([25, $i, $number_of_cols, $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //     $sheet->getStyle([25, $i, $number_of_cols, $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            # G11:J11
+            $startCol = 7; # G
+            $endCol = 10; # J
+            $sheet->setCellValue([$startCol, $curRow], 'Project Location');
+            $sheet->mergeCells([$startCol, $curRow, $endCol, $curRow]);
+            $sheet->getStyle([$startCol, $curRow, $endCol, $curRow])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle([$startCol, $curRow, $endCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle([$startCol, $curRow, $endCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-    //     ## Set Text & Fill Colors on table header attributes
-    //     # A11:AB12
-    //     $sheet->getStyle([1, $i, $number_of_cols, $i + 1])->getFill()
-    //         ->setFillType(Fill::FILL_SOLID)
-    //         ->getStartColor()->setRGB('B6C6E7');
+            # Y11:$maxCol
+            $startCol = 24; # Y
+            $sheet->setCellValue([$startCol, $curRow], 'Spouse');
+            $sheet->mergeCells([$startCol, $curRow, $maxCol, $curRow]);
+            $sheet->getStyle([$startCol, $curRow, $maxCol, $curRow])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle([$startCol, $curRow, $maxCol, $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle([$startCol, $curRow, $maxCol, $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-    //     ## Set Font Size to 8
-    //     # A11:AB12
-    //     $sheet->getStyle([1, $i, $number_of_cols, $i + 1])->getFont()->setSize(8);
+            ## Set Text & Fill Colors on table header attributes
+            # A11:AB12
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow + 1])->getFill()
+                ->setFillType(Fill::FILL_SOLID)
+                ->getStartColor()->setRGB('B6C6E7');
 
-    //     # A12
-    //     $sheet->getRowDimension($i + 1)->setRowHeight(56.25);
+            ## Set Font Size to 8
+            # A11:AB12
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow + 1])->getFont()->setSize(8);
 
-    //     # A11:AB12
-    //     $j = $i;
-    //     $default = false;
-    //     # Set the Table attribute headers (first name, middle name, birthdate, etc.)
-    //     foreach ($headers as $rowIndex => $row) {
-    //         foreach ($row as $colIndex => $value) {
-    //             if (!in_array($colIndex, $excludedColumns)) {
-    //                 if ($i !== $j && $default === true) {
-    //                     $i--;
-    //                     $default = false;
-    //                 }
-    //                 $sheet->setCellValue([$colIndex + 1, $rowIndex + $i], $value);
-    //                 $sheet->mergeCells([$colIndex + 1, $rowIndex + $i, $colIndex + 1, $rowIndex + $i + 1]);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i, $colIndex + 1, $rowIndex + $i + 1])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
-    //             } else {
-    //                 if ($default === false) {
-    //                     $i++;
-    //                     $default = true;
-    //                 }
-    //                 $sheet->setCellValue([$colIndex + 1, $rowIndex + $i], $value);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-    //                 $sheet->getStyle([$colIndex + 1, $rowIndex + $i])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
-    //             }
+            # A12
+            $sheet->getRowDimension($curRow + 1)->setRowHeight(56.25);
 
-    //         }
-    //     }
+            # Sub Headers ------------------------------------------------------
 
-    //     ## Checks if the value (in the array) is the last one in the `$excludedColumns` array
-    //     ## then aggregate the `$i` (or globalRowIndex). Otherwise, it would be the wrong row
-    //     ## for the next one.
-    //     if ($excludedColumns[sizeof($excludedColumns) - 1] !== $number_of_cols) {
-    //         # A13
-    //         $i++;
-    //     }
+            # It acts as a toggler to control the $curRow manipulation because the
+            # sub headers occupy 2 rows which 1 could be a singular (merged) row
+            # while the other only occupies the bottom row
+            $toggle = false;
 
-    //     # [A13] or A12
-    //     for ($row = 0; $row < $number_of_rows; $row++) {
-    //         $sheet->getRowDimension($row + $i)->setRowHeight(31.5);
-    //         for ($col = 0; $col < $number_of_cols; $col++) {
-    //             if ($col === 0) {
-    //                 $sheet->setCellValue([$col + 1, $row + $i], $row + 1);
-    //             } elseif ($col === 18) {
-    //                 $sheet->setCellValueExplicit([$col + 1, $row + $i], '=IF(ISBLANK(F' . $row + $i . '), "", DATEDIF(DATEVALUE(SUBSTITUTE(F' . $row + $i . ',"/","-")), TODAY(), "Y"))', DataType::TYPE_FORMULA);
-    //             } else {
-    //                 $sheet->getStyle([$col + 1, $row + $i])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
-    //             }
-    //             $sheet->getStyle([$col + 1, $row + $i])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    //             $sheet->getStyle([$col + 1, $row + $i])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-    //             $sheet->getStyle([$col + 1, $row + $i])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-    //         }
-    //     }
+            # Set the Table Sub Headers' Styles
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow + 1])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow + 1])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow + 1])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow + 1])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+            $sheet->getStyle([1, $curRow, $maxCol, $curRow + 1])->getAlignment()->setWrapText(true);
 
-    //     ## Sets the Wrap Text function to true for A11 to AB12
-    //     $sheet->getStyle([1, $i - 2, $number_of_cols, $i + $number_of_rows - 1])->getAlignment()->setWrapText(true);
+            # Loop and Set the Cell Values of the Sub Headers
+            foreach ($headers as $colIndex => $header) {
 
-    //     $i++;
-    //     # Footer Texts
-    //     $sheet->setCellValue([2, $number_of_rows + $i], 'Prepared and Certified true and correct by:');
-    //     $sheet->mergeCells([2, $number_of_rows + $i, 4, $number_of_rows + $i]);
-    //     $i += 4;
-    //     $sheet->getStyle([2, $number_of_rows + $i, 3, $number_of_rows + $i])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-    //     $sheet->mergeCells([2, $number_of_rows + $i, 3, $number_of_rows + $i]);
-    //     $i++;
-    //     $sheet->setCellValue([2, $number_of_rows + $i], 'DOLE or Co-partner');
-    //     $sheet->mergeCells([2, $number_of_rows + $i, 3, $number_of_rows + $i]);
-    //     $i++;
-    //     $sheet->setCellValue([1, $number_of_rows + $i], 'Notes:');
-    //     $sheet->getStyle([1, $number_of_rows + $i])->getFont()->setBold(true);
-    //     $i++;
+                # If It's a Singular Row, set the value on the upper row and merge with the bottom...
+                if (!in_array($colIndex, $excludedColumns)) {
+                    if ($toggle === true) {
+                        $curRow--;
+                        $toggle = false;
+                    }
+                    $sheet->setCellValue([$colIndex + 1, $curRow], $header);
+                    $sheet->mergeCells([$colIndex + 1, $curRow, $colIndex + 1, $curRow + 1]);
+                }
 
-    //     $rich = new RichText();
-    //     $first = $rich->createTextRun('Birthdate:');
-    //     $first->getFont()->setBold(true);
-    //     $first->getFont()->setSize(7);
-    //     $second = $rich->createTextRun(' Year/Month/Day (YYYY/MM/DD)');
-    //     $second->getFont()->setSize(7);
-    //     $sheet->setCellValue([1, $number_of_rows + $i], $rich);
-    //     $sheet->mergeCells([1, $number_of_rows + $i, $number_of_cols, $number_of_rows + $i]);
-    //     $i++;
+                # ...otherwise, set the value on the bottom row
+                else {
+                    if ($toggle === false) {
+                        $curRow++;
+                        $toggle = true;
+                    }
+                    $sheet->setCellValue([$colIndex + 1, $curRow], $header);
+                }
+            }
 
-    //     $rich = new RichText();
-    //     $first = $rich->createTextRun('Project Location:');
-    //     $first->getFont()->setBold(true);
-    //     $first->getFont()->setSize(7);
-    //     $second = $rich->createTextRun(' (Street No. Barangay, City/Municipality, Province, District)');
-    //     $second->getFont()->setSize(7);
-    //     $sheet->setCellValue([1, $number_of_rows + $i], $rich);
-    //     $sheet->mergeCells([1, $number_of_rows + $i, $number_of_cols, $number_of_rows + $i]);
-    //     $i++;
+            ## Checks if the value (in the array) is the last one in the `$excludedColumns` array
+            ## then aggregate the `$curRow` (or globalRowIndex). Otherwise, it would be the wrong row
+            ## for the next one.
+            if ($excludedColumns[sizeof($excludedColumns) - 1] !== $maxCol) {
+                # A13
+                $curRow++;
+            }
 
-    //     $rich = new RichText();
-    //     $first = $rich->createTextRun('Type of Beneficiaries:');
-    //     $first->getFont()->setBold(true);
-    //     $first->getFont()->setSize(7);
-    //     $second = $rich->createTextRun(' (a.) Underemployed/Self-Employed; (b.) Minimum wage/below minimum earners that were displaced due to: temporary suspension of business operations, calamity/crisis situation i.e, earthquake, typhoon, volcanic eruption, global/national financial crisis, other (pls. specify), closure of company, retrenchment, (c.) Person with Disability (PWD), (d) Indigenous People, (e.) Former Violent Extremist Groups');
-    //     $second->getFont()->setSize(7);
-    //     $sheet->setCellValue([1, $number_of_rows + $i], $rich);
-    //     $sheet->mergeCells([1, $number_of_rows + $i, $number_of_cols, $number_of_rows + $i]);
-    //     $i++;
+            # Beneficiaries ----------------------------------------------------
 
-    //     $rich = new RichText();
-    //     $first = $rich->createTextRun('Occupation:');
-    //     $first->getFont()->setBold(true);
-    //     $first->getFont()->setSize(7);
-    //     $second = $rich->createTextRun(' Transport workers, Vendors, Crop growers (please specify, i.e tobacco farmer), Homebased worker (please specify, i.e sewer), Fisherfolks, Livestock/Poultry Raiser, Small Transport drivers, Laborer (please specify); Others (Please specify)');
-    //     $second->getFont()->setSize(7);
-    //     $sheet->setCellValue([1, $number_of_rows + $i], $rich);
-    //     $sheet->mergeCells([1, $number_of_rows + $i, $number_of_cols, $number_of_rows + $i]);
-    //     $i++;
+            # Count the rows
+            $countRows = 0;
 
-    //     $rich = new RichText();
-    //     $first = $rich->createTextRun('Civil Status:');
-    //     $first->getFont()->setBold(true);
-    //     $first->getFont()->setSize(7);
-    //     $second = $rich->createTextRun(' S fro single, M for married, D for divoreced, SP for separated, W for Widowed');
-    //     $second->getFont()->setSize(7);
-    //     $sheet->setCellValue([1, $number_of_rows + $i], $rich);
-    //     $sheet->mergeCells([1, $number_of_rows + $i, $number_of_cols, $number_of_rows + $i]);
-    //     $i++;
+            # This loops the rows of beneficiaries that were queried for exporting
+            foreach ($beneficiaries as $row => $beneficiary) {
 
-    //     $rich = new RichText();
-    //     $first = $rich->createTextRun('Dependent:');
-    //     $first->getFont()->setBold(true);
-    //     $first->getFont()->setSize(7);
-    //     $second = $rich->createTextRun(' Name of the beneficiary of micro-insurance policy holder');
-    //     $second->getFont()->setSize(7);
-    //     $sheet->setCellValue([1, $number_of_rows + $i], $rich);
-    //     $sheet->mergeCells([1, $number_of_rows + $i, $number_of_cols, $number_of_rows + $i]);
-    //     $i++;
+                # Set the height of this row
+                $sheet->getRowDimension($row + $curRow)->setRowHeight(31.5);
 
-    //     $rich = new RichText();
-    //     $first = $rich->createTextRun('Trainings:');
-    //     $first->getFont()->setBold(true);
-    //     $first->getFont()->setSize(7);
-    //     $second = $rich->createTextRun(' Agriculture crops production, Aquaculture, Automotive, Construction, Weilding, Information and Communication Technology, Electrical and electronics, furniture making, garments and textile. Food processin, cooking, housekeeping, tourism, customer services, others (please specify)');
-    //     $second->getFont()->setSize(7);
-    //     $sheet->setCellValue([1, $number_of_rows + $i], $rich);
-    //     $sheet->mergeCells([1, $number_of_rows + $i, $number_of_cols, $number_of_rows + $i]);
-    //     $i++;
+                # Set the styles of the rows
+                $sheet->getStyle([1, $row + $curRow, $maxCol, $row + $curRow])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle([1, $row + $curRow, $maxCol, $row + $curRow])->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getStyle([1, $row + $curRow, $maxCol, $row + $curRow])->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle([1, $row + $curRow, $maxCol, $row + $curRow])->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->getStyle([1, $row + $curRow, $maxCol, $row + $curRow])->getAlignment()->setWrapText(true);
 
-    //     # Globally set font sizes
-    //     $sheet->getStyle([1, $number_of_rows + 20, $number_of_cols, $number_of_rows + $i])->getFont()->setSize(7);
+                # The first column is the No. or the counter (A11)
+                $sheet->setCellValue([1, $row + $curRow], $row + 1);
 
-    //     # Set Worksheet Name & Color
-    //     $sheet->setTitle('ANNEX D - Profile');
-    //     $sheet->getTabColor()->setRGB('FEFD0D'); // Green tab color
+                # The rest would be the beneficiary's information
+                # --------------------------------------------------------------
 
-    //     return $spreadsheet;
-    // }
+                # First Name
+                $sheet->setCellValue([2, $row + $curRow], $beneficiary->first_name);
+
+                # Middle Name
+                $sheet->setCellValue([3, $row + $curRow], $beneficiary->middle_name ?? '-');
+
+                # Last Name
+                $sheet->setCellValue([4, $row + $curRow], $beneficiary->last_name);
+
+                # Extension Name
+                $sheet->setCellValue([5, $row + $curRow], $beneficiary->extension_name ?? '-');
+
+                # Birthdate
+                $sheet->setCellValue([6, $row + $curRow], Carbon::parse($beneficiary->birthdate)->format('Y/m/d'));
+
+                # Barangay
+                $sheet->setCellValue([7, $row + $curRow], mb_strtoupper($beneficiary->barangay_name, "UTF-8"));
+
+                # City/Municipality
+                $sheet->setCellValue([8, $row + $curRow], mb_strtoupper($beneficiary->city_municipality, "UTF-8"));
+
+                # Province
+                $province = null;
+                if (substr($beneficiary->province, 0, 5) === 'Davao') {
+                    $province = mb_strtoupper(substr($beneficiary->province, 5), "UTF-8");
+                }
+                $sheet->setCellValue([9, $row + $curRow], $province ?? mb_strtoupper($beneficiary->province, "UTF-8"));
+
+                # District
+                $district = null;
+                if (in_array(substr($beneficiary->district, 0, 3), ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'])) {
+                    $district = mb_strtoupper(substr($beneficiary->district, 0, 3), "UTF-8");
+                }
+                $sheet->setCellValue([10, $row + $curRow], $district ?? mb_strtoupper($beneficiary->district ?? '-', "UTF-8"));
+
+                # Type of ID
+                $sheet->setCellValue([11, $row + $curRow], $beneficiary->type_of_id);
+
+                # ID No.
+                $sheet->setCellValue([12, $row + $curRow], $beneficiary->id_number);
+
+                # Contact No.
+                $sheet->setCellValue([13, $row + $curRow], Essential::filter_contact_num($beneficiary->contact_num));
+
+                # E-payment/Account No.
+                $sheet->setCellValue([14, $row + $curRow], $beneficiary->e_payment_acc_num ?? '-');
+
+                # Type of Beneficiaries
+                $sheet->setCellValue([15, $row + $curRow], mb_strtoupper($beneficiary->beneficiary_type, "UTF-8"));
+
+                # Occupation
+                $sheet->setCellValue([16, $row + $curRow], $beneficiary->occupation);
+
+                # Sex
+                $sheet->setCellValue([17, $row + $curRow], mb_strtoupper(substr($beneficiary->sex, 0, 1), "UTF-8"));
+
+                # Civil Status
+                $civil_status = null;
+                if (in_array($beneficiary->civil_status, ['single', 'married', 'widowed', 'divorced'])) {
+                    $civil_status = substr($beneficiary->civil_status, 0, 1);
+                } elseif ($civil_status === 'separated') {
+                    $civil_status = 'sp';
+                }
+                $sheet->setCellValue([18, $row + $curRow], mb_strtoupper($civil_status ?? $beneficiary->civil_status, "UTF-8"));
+
+                # Age
+                $sheet->setCellValue([19, $row + $curRow], Carbon::parse($beneficiary->birthdate)->age);
+
+                # Average Monthly Income
+                $sheet->setCellValue([20, $row + $curRow], MoneyFormat::mask($beneficiary->avg_monthly_income));
+
+                # Dependent
+                $sheet->setCellValue([21, $row + $curRow], mb_strtoupper($beneficiary->dependent, "UTF-8"));
+
+                # Interested in Wage Employment or Self Employment? (Yes or No)
+                $sheet->setCellValue([22, $row + $curRow], mb_strtoupper($beneficiary->self_employment, "UTF-8"));
+
+                # Skills Training Needed
+                $sheet->setCellValue([23, $row + $curRow], $beneficiary->skills_training ?? '-');
+
+                # Spouse First Name
+                $sheet->setCellValue([24, $row + $curRow], $beneficiary->spouse_first_name ?? '-');
+
+                # Spouse Middle Name
+                $sheet->setCellValue([25, $row + $curRow], $beneficiary->spouse_middle_name ?? '-');
+
+                # Spouse Last Name
+                $sheet->setCellValue([26, $row + $curRow], $beneficiary->spouse_last_name ?? '-');
+
+                # Spouse Extension Name
+                $sheet->setCellValue([27, $row + $curRow], $beneficiary->spouse_extension_name ?? '-');
+
+                $countRows++;
+            }
+            # Add the count of rows in the current rows
+            $curRow += $countRows;
+
+            # Footer
+            # ------------------------------------------------------------------
+
+            # Footer Texts
+            $curRow++;
+            $sheet->setCellValue([2, $curRow], 'Prepared and Certified true and correct by:');
+            $sheet->mergeCells([2, $curRow, 4, $curRow]);
+            $curRow += 4;
+            $sheet->getStyle([2, $curRow, 3, $curRow])->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->mergeCells([2, $curRow, 3, $curRow]);
+            $curRow++;
+            $sheet->setCellValue([2, $curRow], 'DOLE or Co-partner');
+            $sheet->mergeCells([2, $curRow, 3, $curRow]);
+            $curRow++;
+            $sheet->setCellValue([1, $curRow], 'Notes:');
+            $sheet->getStyle([1, $curRow])->getFont()->setBold(true);
+            $sheet->getStyle([1, $curRow])->getFont()->setSize(7);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+            $rich = new RichText();
+            $first = $rich->createTextRun('Birthdate:');
+            $first->getFont()->setBold(true);
+            $first->getFont()->setSize(7);
+            $second = $rich->createTextRun(' Year/Month/Day (YYYY/MM/DD)');
+            $second->getFont()->setSize(7);
+            $sheet->setCellValue([1, $curRow], $rich);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+            $rich = new RichText();
+            $first = $rich->createTextRun('Project Location:');
+            $first->getFont()->setBold(true);
+            $first->getFont()->setSize(7);
+            $second = $rich->createTextRun(' (Street No. Barangay, City/Municipality, Province, District)');
+            $second->getFont()->setSize(7);
+            $sheet->setCellValue([1, $curRow], $rich);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+            $rich = new RichText();
+            $first = $rich->createTextRun('Type of Beneficiaries:');
+            $first->getFont()->setBold(true);
+            $first->getFont()->setSize(7);
+            $second = $rich->createTextRun(' (a.) Underemployed/Self-Employed; (b.) Minimum wage/below minimum earners that were displaced due to: temporary suspension of business operations, calamity/crisis situation i.e, earthquake, typhoon, volcanic eruption, global/national financial crisis, other (pls. specify), closure of company, retrenchment, (c.) Person with Disability (PWD), (d) Indigenous People, (e.) Former Violent Extremist Groups');
+            $second->getFont()->setSize(7);
+            $sheet->setCellValue([1, $curRow], $rich);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+            $rich = new RichText();
+            $first = $rich->createTextRun('Occupation:');
+            $first->getFont()->setBold(true);
+            $first->getFont()->setSize(7);
+            $second = $rich->createTextRun(' Transport workers, Vendors, Crop growers (please specify, i.e tobacco farmer), Homebased worker (please specify, i.e sewer), Fisherfolks, Livestock/Poultry Raiser, Small Transport drivers, Laborer (please specify); Others (Please specify)');
+            $second->getFont()->setSize(7);
+            $sheet->setCellValue([1, $curRow], $rich);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+            $rich = new RichText();
+            $first = $rich->createTextRun('Civil Status:');
+            $first->getFont()->setBold(true);
+            $first->getFont()->setSize(7);
+            $second = $rich->createTextRun(' S for Single, M for Married, D for Divorced, SP for Separated, W for Widowed');
+            $second->getFont()->setSize(7);
+            $sheet->setCellValue([1, $curRow], $rich);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+            $rich = new RichText();
+            $first = $rich->createTextRun('Dependent:');
+            $first->getFont()->setBold(true);
+            $first->getFont()->setSize(7);
+            $second = $rich->createTextRun(' Name of the beneficiary of micro-insurance policy holder');
+            $second->getFont()->setSize(7);
+            $sheet->setCellValue([1, $curRow], $rich);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+            $rich = new RichText();
+            $first = $rich->createTextRun('Trainings:');
+            $first->getFont()->setBold(true);
+            $first->getFont()->setSize(7);
+            $second = $rich->createTextRun(' Agriculture crops production, Aquaculture, Automotive, Construction, Weilding, Information and Communication Technology, Electrical and electronics, furniture making, garments and textile. Food processin, cooking, housekeeping, tourism, customer services, others (please specify)');
+            $second->getFont()->setSize(7);
+            $sheet->setCellValue([1, $curRow], $rich);
+            $sheet->mergeCells([1, $curRow, $maxCol, $curRow]);
+            $curRow++;
+
+        } elseif ($exportFormat === 'csv') {
+            $sheet->setCellValue('A1', implode(';', $headers));
+
+            $curRow = 2;
+
+            $combinedData = [];
+
+            foreach ($beneficiaries as $count => $beneficiary) {
+                $combinedData = [];
+
+                # No.
+                $combinedData[] = $count + 1;
+
+                # First Name
+                $combinedData[] = $beneficiary->first_name;
+
+                # Middle Name
+                $combinedData[] = $beneficiary->middle_name ?? '-';
+
+                # Last Name
+                $combinedData[] = $beneficiary->last_name;
+
+                # Extension Name
+                $combinedData[] = $beneficiary->extension_name ?? '-';
+
+                # Birthdate
+                $combinedData[] = Carbon::parse($beneficiary->birthdate)->format('Y/m/d');
+
+                # Barangay
+                $combinedData[] = mb_strtoupper($beneficiary->barangay_name, "UTF-8");
+
+                # City/Municipality
+                $combinedData[] = mb_strtoupper($beneficiary->city_municipality, "UTF-8");
+
+                # Province
+                $province = null;
+                if (substr($beneficiary->province, 0, 5) === 'Davao') {
+                    $province = mb_strtoupper(substr($beneficiary->province, 5), "UTF-8");
+                }
+                $combinedData[] = $province ?? mb_strtoupper($beneficiary->province, "UTF-8");
+
+                # District
+                $district = null;
+                if (in_array(substr($beneficiary->district, 0, 3), ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'])) {
+                    $district = mb_strtoupper(substr($beneficiary->district, 0, 3), "UTF-8");
+                }
+                $combinedData[] = $district ?? mb_strtoupper($beneficiary->district ?? '-', "UTF-8");
+
+                # Type of ID
+                $combinedData[] = $beneficiary->type_of_id;
+
+                # ID No.
+                $combinedData[] = $beneficiary->id_number;
+
+                # Contact No.
+                $combinedData[] = Essential::filter_contact_num($beneficiary->contact_num);
+
+                # E-payment/Account No.
+                $combinedData[] = $beneficiary->e_payment_acc_num ?? '-';
+
+                # Type of Beneficiaries
+                $combinedData[] = mb_strtoupper($beneficiary->beneficiary_type, "UTF-8");
+
+                # Occupation
+                $combinedData[] = $beneficiary->occupation;
+
+                # Sex
+                $combinedData[] = mb_strtoupper(substr($beneficiary->sex, 0, 1), "UTF-8");
+
+                # Civil Status
+                $civil_status = null;
+                if (in_array($civil_status, ['single', 'married', 'widowed', 'divorced'])) {
+                    $civil_status = substr($beneficiary->civil_status, 0, 1);
+                } elseif ($civil_status === 'separated') {
+                    $civil_status = 'sp';
+                }
+                $combinedData[] = mb_strtoupper($civil_status ?? $beneficiary->civil_status, "UTF-8");
+
+                # Age
+                $combinedData[] = Carbon::parse($beneficiary->birthdate)->age;
+
+                # Average Monthly Income
+                $combinedData[] = MoneyFormat::mask($beneficiary->avg_monthly_income);
+
+                # Dependent
+                $combinedData[] = mb_strtoupper($beneficiary->dependent, "UTF-8");
+
+                # Interested in Wage Employment or Self Employment? (Yes or No)
+                $combinedData[] = mb_strtoupper($beneficiary->self_employment, "UTF-8");
+
+                # Skills Training Needed
+                $combinedData[] = $beneficiary->skills_training ?? '-';
+
+                # Spouse First Name
+                $combinedData[] = $beneficiary->spouse_first_name ?? '-';
+
+                # Spouse Middle Name
+                $combinedData[] = $beneficiary->spouse_middle_name ?? '-';
+
+                # Spouse Last Name
+                $combinedData[] = $beneficiary->spouse_last_name ?? '-';
+
+                # Spouse Extension Name
+                $combinedData[] = $beneficiary->spouse_extension_name ?? '-';
+
+                $sheet->setCellValue([1, $curRow], implode(';', $combinedData));
+                $curRow++;
+            }
+        }
+
+        return $sheet;
+    }
 
     protected static function annex_e1(Worksheet $sheet, mixed $batch, string $exportFormat): Worksheet
     {

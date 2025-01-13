@@ -78,12 +78,13 @@ class Submissions extends Component
     public $exportFormat = 'xlsx';
     public $exportTypeCsv = 'annex_e1';
     public array $exportType = [
+        'annex_d' => true,
         'annex_e1' => true,
-        'annex_e2' => false,
-        'annex_j2' => false,
-        'annex_l' => false,
-        'annex_l_sign' => false,
-    ]; # annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+        'annex_e2' => true,
+        'annex_j2' => true,
+        'annex_l' => true,
+        'annex_l_sign' => true,
+    ]; # annex_d, annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
     public $currentExportBatch;
     public $searchExportBatch;
 
@@ -176,12 +177,12 @@ class Submissions extends Component
         $fileName = null;
 
         if ($this->exportFormat === 'xlsx') {
-            # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+            # Types of Annexes: annex_d, annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
             $spreadsheet = Annex::export($spreadsheet, $batch, $this->exportType, $this->exportFormat);
             $writer = new Xlsx($spreadsheet);
             $fileName = 'TUPAD Annex.xlsx';
         } elseif ($this->exportFormat === 'csv') {
-            # Types of Annexes: annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
+            # Types of Annexes: annex_d, annex_e1, annex_e2, annex_j2, annex_l, annex_l_sign
             $spreadsheet = Annex::export($spreadsheet, $batch, $this->exportTypeCsv, $this->exportFormat);
             $writer = new Csv($spreadsheet);
             $fileName = 'TUPAD Annex.csv';

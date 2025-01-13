@@ -980,7 +980,7 @@
                     </div>
 
                     <!-- Modal -->
-                    <div x-show="forceApproveModal" x-trap.noscroll.noautofocus="forceApproveModal"
+                    <div x-show="forceApproveModal" x-trap.noscroll="forceApproveModal"
                         class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
 
                         {{-- The Modal --}}
@@ -1071,7 +1071,7 @@
                     </div>
 
                     <!-- Modal -->
-                    <div x-show="pendBatchModal" x-trap.noscroll.noautofocus="pendBatchModal"
+                    <div x-show="pendBatchModal" x-trap.noscroll="pendBatchModal"
                         class="fixed inset-0 p-4 flex items-center justify-center overflow-y-auto z-50 select-none h-[calc(100%-1rem)] max-h-full">
 
                         {{-- The Modal --}}

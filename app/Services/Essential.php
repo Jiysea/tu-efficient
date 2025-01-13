@@ -69,6 +69,22 @@ class Essential
     }
 
     /**
+     * It filters the contact number of the beneficiary based on PH Locale
+     * @param string $number The contact number value.
+     * @return mixed Returns the contact number with `09` prefix. Otherwise it would return false if it's not a valid number.
+     */
+    public static function filter_contact_num(string $number)
+    {
+        if ((substr($number, 0, 2) === '09') && strlen($number) === 11) {
+            return $number;
+        } elseif (substr($number, 0, 4) === '+639' && strlen($number) === 13) {
+            return '0' . substr($number, 3);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * It extracts the date to check if it's a valid date among the listed formats
      * and also returns the converted date value or its date format.
      * 

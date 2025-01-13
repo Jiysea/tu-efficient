@@ -123,7 +123,7 @@ class BeneficiaryFactory extends Factory
             switch ($nameType) {
                 case 'first':
                     if (strtolower($sex) == 'male') {
-                        return $name = fake()->randomElement([
+                        return $name = mb_strtoupper(fake()->randomElement([
                             'Andres',
                             'Antonio',
                             'Angelo',
@@ -381,9 +381,9 @@ class BeneficiaryFactory extends Factory
                             'Zandro',
                             'Zane',
                             'Zosimo'
-                        ]);
+                        ]), "UTF-8");
                     } else if (strtolower($sex) == 'female') {
-                        return $name = fake()->randomElement([
+                        return $name = mb_strtoupper(fake()->randomElement([
                             'Andrea',
                             'Angela',
                             'Adelina',
@@ -620,7 +620,7 @@ class BeneficiaryFactory extends Factory
                             'Zena',
                             'Zenaida',
                             'Zosima'
-                        ]);
+                        ]), "UTF-8");
                     }
                 case 'middle':
                     return $name = $this->getMiddleName();
