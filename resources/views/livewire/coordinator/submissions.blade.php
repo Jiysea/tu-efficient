@@ -1139,17 +1139,21 @@ window.addEventListener('resize', () => {
                                             @click.shift="if($event.shiftKey) {$wire.selectShiftBeneficiary({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
                                             class="relative border-b whitespace-nowrap duration-200 ease-in-out cursor-pointer"
                                             :class="{
-                                                'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
-                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                'bg-gray-100 hover:bg-gray-200 text-blue-1000 hover:text-blue-900': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default-selected') }},
+                                                'hover:bg-gray-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default') }},
+                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect-selected') }},
+                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect') }},
+                                                'bg-amber-200 text-amber-900 hover:bg-amber-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible-selected') }},
+                                                'bg-amber-100 text-amber-700 hover:bg-amber-200': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible') }},
                                             }">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
-                                                    'bg-blue-700': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
-                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                    'bg-blue-700': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default-selected') }},
+                                                    '': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default') }},
+                                                    'bg-red-700': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect-selected') }},
+                                                    '': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect') }},
+                                                    'bg-amber-700': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible-selected') }},
+                                                    '': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible') }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
@@ -1158,9 +1162,12 @@ window.addEventListener('resize', () => {
                                                     <label tabindex="0" @click.stop
                                                         class="relative flex items-center justify-center shrink gap-1 p-0.5 rounded outline-none border-2 cursor-pointer"
                                                         :class="{
-                                                            'bg-blue-700 border-blue-700 text-blue-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                            'bg-red-700 border-red-700 text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                            'border-zinc-300 text-transparent': {{ json_encode(!in_array($key, $selectedBeneficiaryRow)) }},
+                                                            'bg-blue-700 border-blue-700 text-blue-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default-selected') }},
+                                                            'bg-transparent border-blue-500 text-transparent': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default') }},
+                                                            'bg-red-700 border-red-700 text-red-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect-selected') }},
+                                                            'bg-transparent border-red-500 text-transparent': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect') }},
+                                                            'bg-amber-700 border-amber-700 text-amber-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible-selected') }},
+                                                            'bg-transparent border-amber-500 text-transparent': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible') }},
                                                         }"
                                                         for="check-beneficiary-{{ $key }}">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-2"
@@ -1891,7 +1898,7 @@ window.addEventListener('resize', () => {
                                     </div>
 
                                     {{-- Buttons --}}
-                                    <div class="hidden sm:flex flex-1 px-2 py-1 gap-2">
+                                    <div class="hidden sm:flex flex-col flex-1 px-2 py-1 gap-2">
                                         <div
                                             class="relative max-[430px]:flex-col flex flex-1 items-center justify-end gap-2">
 
@@ -1900,11 +1907,11 @@ window.addEventListener('resize', () => {
                                                 @if ($this->batch?->approval_status !== 'approved') @click="$wire.openEdit(); $dispatch('openEdit');"
                                                 @else
                                                 disabled @endif
-                                                class="rounded text-sm font-bold flex flex-1 gap-2 items-center justify-center px-3 py-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:bg-blue-800 focus:ring-2 focus:ring-blue-300 duration-200 ease-in-out">
+                                                class="rounded text-sm font-bold flex flex-1 gap-2 items-center justify-center px-3 py-1 outline-none disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:bg-blue-800 focus:ring-2 focus:ring-blue-300 duration-200 ease-in-out">
                                                 EDIT
 
                                                 {{-- Loading Icon --}}
-                                                <svg class="size-5 animate-spin" wire:loading wire:target="openEdit"
+                                                <svg class="size-4 animate-spin" wire:loading wire:target="openEdit"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -1916,7 +1923,7 @@ window.addEventListener('resize', () => {
                                                 </svg>
 
                                                 {{-- Edit Icon --}}
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
                                                     wire:loading.remove wire:target="openEdit"
                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                     height="400" viewBox="0, 0, 400,400">
@@ -1934,7 +1941,7 @@ window.addEventListener('resize', () => {
                                                 @if ($this->batch?->approval_status !== 'approved') @click="deleteBeneficiaryModal = !deleteBeneficiaryModal;"
                                                 @else
                                                 disabled @endif
-                                                class="rounded text-sm font-bold flex items-center justify-center p-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:bg-red-800 focus:ring-2 focus:ring-red-300 duration-200 ease-in-out">
+                                                class="rounded text-sm font-bold flex items-center justify-center p-1 outline-none disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:bg-red-800 focus:ring-2 focus:ring-red-300 duration-200 ease-in-out">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                     height="400" viewBox="0, 0, 400,400">
@@ -1947,6 +1954,9 @@ window.addEventListener('resize', () => {
                                                 </svg>
                                             </button>
                                         </div>
+
+                                        {{-- Show Duplicates Table --}}
+                                        <livewire:coordinator.submissions.show-duplicates-table :$beneficiaryId />
                                     </div>
                                 </div>
 
@@ -1976,7 +1986,7 @@ window.addEventListener('resize', () => {
                                 </div>
 
                                 {{-- Buttons --}}
-                                <div class="sm:hidden flex col-span-full order-6 px-2 py-1 gap-2">
+                                <div class="sm:hidden flex flex-col col-span-full order-6 px-2 py-1 gap-2">
                                     <div
                                         class="relative max-[430px]:flex-col flex flex-1 items-center justify-end gap-2">
 
@@ -1985,11 +1995,11 @@ window.addEventListener('resize', () => {
                                             @if ($this->batch?->approval_status !== 'approved') @click="$wire.openEdit(); $dispatch('openEdit');"
                                             @else
                                             disabled @endif
-                                            class="rounded text-sm font-bold flex flex-1 gap-2 items-center justify-center px-3 py-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:bg-blue-800 focus:ring-2 focus:ring-blue-300 duration-200 ease-in-out">
+                                            class="rounded text-sm font-bold flex flex-1 gap-2 items-center justify-center px-3 py-1 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-blue-50 focus:bg-blue-800 focus:ring-2 focus:ring-blue-300 duration-200 ease-in-out">
                                             EDIT
 
                                             {{-- Loading Icon --}}
-                                            <svg class="size-5 animate-spin" wire:loading wire:target="openEdit"
+                                            <svg class="size-4 animate-spin" wire:loading wire:target="openEdit"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -2001,7 +2011,7 @@ window.addEventListener('resize', () => {
                                             </svg>
 
                                             {{-- Edit Icon --}}
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5" wire:loading.remove
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" wire:loading.remove
                                                 wire:target="openEdit" xmlns:xlink="http://www.w3.org/1999/xlink"
                                                 width="400" height="400" viewBox="0, 0, 400,400">
                                                 <g>
@@ -2018,7 +2028,7 @@ window.addEventListener('resize', () => {
                                             @if ($this->batch?->approval_status !== 'approved') @click="deleteBeneficiaryModal = !deleteBeneficiaryModal;"
                                             @else
                                             disabled @endif
-                                            class="rounded text-sm font-bold flex items-center justify-center p-2 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:bg-red-800 focus:ring-2 focus:ring-red-300 duration-200 ease-in-out">
+                                            class="rounded text-sm font-bold flex items-center justify-center p-1 outline-none disabled:bg-gray-300 disabled:text-gray-500 bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:bg-red-800 focus:ring-2 focus:ring-red-300 duration-200 ease-in-out">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
                                                 height="400" viewBox="0, 0, 400,400">
@@ -2031,6 +2041,9 @@ window.addEventListener('resize', () => {
                                             </svg>
                                         </button>
                                     </div>
+
+                                    {{-- Show Duplicates Table --}}
+                                    <livewire:coordinator.submissions.show-duplicates-table :$beneficiaryId />
                                 </div>
                             </div>
                         @elseif(count($selectedBeneficiaryRow) > 1)
@@ -2326,15 +2339,15 @@ window.addEventListener('resize', () => {
                                 {{-- 1st Row --}}
                                 <span class="flex items-center flex-wrap gap-2">
                                     {{-- Annex D (Profile) --}}
-                                    <label for="annex_j2"
+                                    <label for="annex_d"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
                                         :class="{
                                             'bg-blue-700 text-blue-50': d_x,
                                             'bg-gray-200 text-gray-500': !d_x,
                                         }">
                                         Annex D (Profile)
-                                        <input type="checkbox" class="hidden absolute inset-0" id="annex_j2"
-                                            wire:model.live="exportType.annex_j2">
+                                        <input type="checkbox" class="hidden absolute inset-0" id="annex_d"
+                                            wire:model.live="exportType.annex_d">
                                     </label>
                                     {{-- Annex E-1 (COS) --}}
                                     <label for="annex_e1"

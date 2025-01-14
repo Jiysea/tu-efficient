@@ -1072,25 +1072,20 @@ class ViewBeneficiary extends Component
     #[Computed]
     public function credentials()
     {
-        $credentials = Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
+        return Credential::where('beneficiaries_id', decrypt($this->beneficiaryId))
             ->get();
-
-        return $credentials;
     }
 
     #[Computed]
     public function implementation()
     {
-        $implementation = Implementation::find($this->batch?->implementations_id);
-        return $implementation;
+        return Implementation::find($this->batch?->implementations_id);
     }
 
     #[Computed]
     public function batch()
     {
-        $batch = Batch::find($this->beneficiary?->batches_id);
-        return $batch;
-
+        return Batch::find($this->beneficiary?->batches_id);
     }
 
     #[Computed]

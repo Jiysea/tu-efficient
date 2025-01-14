@@ -568,8 +568,6 @@ class AddBeneficiariesModal extends Component
             if (!isset($this->similarityResults)) {
                 $this->expanded = false;
             }
-
-            $this->dispatch('init-reload')->self();
         }
     }
 
@@ -704,7 +702,7 @@ class AddBeneficiariesModal extends Component
                 $this->birthdate = null;
             }
 
-            $this->dispatch('init-reload')->self();
+            $this->js('$wire.closeBirthdate();');
         }
 
         if ($property === 'civil_status') {
@@ -831,6 +829,7 @@ class AddBeneficiariesModal extends Component
         return <<<'JS'
             const datepicker = FlowbiteInstances.getInstance('Datepicker', 'birthdate');
             datepicker.hide();
+            $wire.dispatchSelf('init-reload');
         JS;
     }
 

@@ -470,6 +470,8 @@ window.addEventListener('resize', () => {
                                         'bg-green-200 text-green-900': {{ json_encode($this->remainingBatchSlots === 0 && $this->implementation?->status === 'pending') }},
                                         'bg-red-200 text-red-900': {{ json_encode($this->remainingBatchSlots > 0 && $this->implementation?->status === 'implementing') }},
                                         'bg-indigo-200 text-indigo-900': {{ json_encode($this->remainingBatchSlots === 0 && $this->implementation?->status === 'implementing') }},
+                                        'bg-red-200 text-red-900': {{ json_encode($this->remainingBatchSlots > 0 && $this->implementation?->status === 'concluded') }},
+                                        'bg-indigo-200 text-indigo-900': {{ json_encode($this->remainingBatchSlots === 0 && $this->implementation?->status === 'concluded') }},
                                     }">
                                     {{ $this->remainingBatchSlots }}</div>
                             @endif
@@ -1001,8 +1003,7 @@ window.addEventListener('resize', () => {
                                 </thead>
                                 <tbody x-data="{ count: 0 }" class="text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        <tr wire:key="beneficiary-{{ $key }}" {{-- @if ($this->nameCheck($beneficiary)[$key]['coEfficient'] * 100 > $duplicationThreshold) data-popover-target="beneficiary-pop-{{ $key }}"
-                                            data-popover-trigger="hover" @endif --}}
+                                        <tr wire:key="beneficiary-{{ $key }}"
                                             @if (count($this->beneficiaries) > $defaultBeneficiaryPage - 1 && $loop->last) x-intersect.once="$wire.loadMoreBeneficiaries()" @endif
                                             @click="count++"
                                             @click.ctrl="if($event.ctrlKey) {$wire.selectBeneficiaryRow({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
@@ -1011,17 +1012,21 @@ window.addEventListener('resize', () => {
                                             @dblclick="if(!$event.ctrlKey && !$event.shiftKey) {$wire.viewBeneficiary({{ $key }}, '{{ encrypt($beneficiary->id) }}'); count = 0}"
                                             class="relative border-b divide-x whitespace-nowrap cursor-pointer"
                                             :class="{
-                                                'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                'hover:bg-gray-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
-                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                'bg-gray-200 text-indigo-900 hover:bg-gray-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default-selected') }},
+                                                'hover:bg-gray-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default') }},
+                                                'bg-red-200 text-red-900 hover:bg-red-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect-selected') }},
+                                                'bg-red-100 text-red-700 hover:bg-red-200': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect') }},
+                                                'bg-amber-200 text-amber-900 hover:bg-amber-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible-selected') }},
+                                                'bg-amber-100 text-amber-700 hover:bg-amber-200': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible') }},
                                             }">
                                             <td class="absolute h-full w-1 left-0"
                                                 :class="{
-                                                    'bg-indigo-700': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
-                                                    'bg-red-700': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                    '': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
+                                                    'bg-indigo-700': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default-selected') }},
+                                                    '': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default') }},
+                                                    'bg-red-700': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect-selected') }},
+                                                    '': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect') }},
+                                                    'bg-amber-700': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible-selected') }},
+                                                    '': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible') }},
                                                 }">
                                                 {{-- Selected Row Indicator --}}
                                             </td>
@@ -1030,9 +1035,12 @@ window.addEventListener('resize', () => {
                                                     <label tabindex="0" @click.stop
                                                         class="relative flex flex-1 items-center gap-1 rounded p-1 outline-none border-2 cursor-pointer"
                                                         :class="{
-                                                            'bg-indigo-700 border-indigo-700 text-indigo-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                            'bg-red-700 border-red-700 text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                            'border-zinc-300 text-transparent': {{ json_encode(!in_array($key, $selectedBeneficiaryRow)) }},
+                                                            'bg-indigo-700 border-indigo-700 text-indigo-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default-selected') }},
+                                                            'bg-transparent border-indigo-500 text-transparent': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default') }},
+                                                            'bg-red-700 border-red-700 text-red-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect-selected') }},
+                                                            'bg-transparent border-red-500 text-transparent': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect') }},
+                                                            'bg-amber-700 border-amber-700 text-amber-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible-selected') }},
+                                                            'bg-transparent border-amber-500 text-transparent': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible') }},
                                                         }"
                                                         for="check-beneficiary-{{ $key }}">
 
@@ -1138,11 +1146,12 @@ window.addEventListener('resize', () => {
                                                     id="beneficiaryRowButton-{{ $key }}"
                                                     class="flex items-center justify-center z-0 mx-1 p-1 font-medium rounded outline-none duration-200 ease-in-out"
                                                     :class="{
-                                                        'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                        'text-gray-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-gray-300 focus:bg-gray-300': {{ json_encode($beneficiary->beneficiary_type === 'underemployed' && !in_array($key, $selectedBeneficiaryRow)) }},
-                                                        'hover:bg-red-700 focus:bg-red-700 text-red-900 hover:text-red-50 focus:text-red-50': {{ json_encode($beneficiary->beneficiary_type === 'special case' && in_array($key, $selectedBeneficiaryRow)) }},
-                                                        'text-red-700 hover:text-red-900 focus:text-red-900 hover:bg-red-300 focus:bg-red-300': {{ json_encode($beneficiary->beneficiary_type === 'special case' && !in_array($key, $selectedBeneficiaryRow)) }},
-                                                    
+                                                        'hover:bg-indigo-700 focus:bg-indigo-700 text-indigo-900 hover:text-indigo-50 focus:text-indigo-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default-selected') }},
+                                                        'text-zinc-900 hover:text-indigo-900 focus:text-indigo-900 hover:bg-zinc-300 focus:bg-zinc-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'default') }},
+                                                        'hover:bg-red-700 focus:bg-red-700 text-red-900 hover:text-red-50 focus:text-red-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect-selected') }},
+                                                        'text-red-700 hover:text-red-900 focus:text-red-900 hover:bg-red-300 focus:bg-red-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'perfect') }},
+                                                        'hover:bg-amber-700 focus:bg-amber-700 text-amber-900 hover:text-amber-50 focus:text-amber-50': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible-selected') }},
+                                                        'text-amber-700 hover:text-amber-900 focus:text-amber-900 hover:bg-amber-300 focus:bg-amber-300': {{ json_encode($this->rowColorIndicator($beneficiary, $key) === 'possible') }},
                                                     }">
 
                                                     {{-- View Icon --}}
@@ -1366,15 +1375,15 @@ window.addEventListener('resize', () => {
                             <div x-show="exportFormat === 'xlsx'" class="flex flex-col gap-2">
                                 <span class="flex items-center flex-wrap gap-2">
                                     {{-- Annex D (Profile) --}}
-                                    <label for="annex_j2"
+                                    <label for="annex_d"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
                                         :class="{
                                             'bg-indigo-700 text-indigo-50': d_x,
                                             'bg-gray-200 text-gray-500': !d_x,
                                         }">
                                         Annex D (Profile)
-                                        <input type="checkbox" class="hidden absolute inset-0" id="annex_j2"
-                                            wire:model.live="exportType.annex_j2">
+                                        <input type="checkbox" class="hidden absolute inset-0" id="annex_d"
+                                            wire:model.live="exportType.annex_d">
                                     </label>
                                     {{-- Annex E-1 (COS) --}}
                                     <label for="annex_e1"
@@ -1440,14 +1449,14 @@ window.addEventListener('resize', () => {
                             <div x-show="exportFormat === 'csv'" class="flex flex-col gap-2">
                                 <span class="flex items-center flex-wrap gap-2">
                                     {{-- Annex D (Profile) --}}
-                                    <label for="annex_j2_csv"
+                                    <label for="annex_d_csv"
                                         class="relative duration-200 ease-in-out cursor-pointer whitespace-nowrap flex items-center justify-center px-3 py-2 rounded font-semibold"
                                         :class="{
                                             'bg-indigo-700 text-indigo-50': csv_type === 'annex_d',
                                             'bg-gray-200 text-gray-500': csv_type !== 'annex_d',
                                         }">
                                         Annex D (Profile)
-                                        <input type="radio" class="hidden absolute inset-0" id="annex_j2_csv"
+                                        <input type="radio" class="hidden absolute inset-0" id="annex_d_csv"
                                             value="annex_d" wire:model.live="exportTypeCsv">
                                     </label>
                                     {{-- Annex E-1 (COS) --}}

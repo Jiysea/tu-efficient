@@ -71,7 +71,7 @@
 
                     <div class="relative flex items-center justify-center w-full gap-2">
                         <div class="relative">
-                            <input autofocus type="password" id="password" wire:model.blur="password"
+                            <input autofocus type="password" id="password_implementing" wire:model.blur="password"
                                 class="flex flex-1 {{ $errors->has('password') ? 'caret-red-900 border-red-500 focus:border-red-500 bg-red-100 text-red-700 placeholder-red-500 focus:ring-0' : 'caret-indigo-900 border-indigo-300 focus:border-indigo-500 bg-indigo-50 focus:ring-0' }} rounded outline-none border py-2.5 text-sm select-text duration-200 ease-in-out"
                                 placeholder="Enter your password">
                             @error('password')

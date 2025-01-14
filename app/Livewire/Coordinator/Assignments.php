@@ -9,6 +9,7 @@ use App\Models\Code;
 use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Essential;
+use App\Services\JaccardSimilarity;
 use Arr;
 use Auth;
 use Carbon\Carbon;
@@ -27,7 +28,12 @@ class Assignments extends Component
     public $batchId;
     #[Locked]
     public $passedBatchId;
+    #[Locked]
     public $batchNumPrefix;
+    #[Locked]
+    public $duplicationThreshold;
+    #[Locked]
+    public $defaultShowDuplicates;
     public $viewBatchModal = false;
     public $defaultBatches_on_page = 15;
     public $defaultBeneficiaries_on_page = 30;
@@ -197,14 +203,7 @@ class Assignments extends Component
         $beneficiaries = Batch::join('beneficiaries', 'batches.id', '=', 'beneficiaries.batches_id')
             ->where('batches.id', $this->batchId ? decrypt($this->batchId) : null)
             ->select([
-                'beneficiaries.id',
-                'beneficiaries.first_name',
-                'beneficiaries.middle_name',
-                'beneficiaries.last_name',
-                'beneficiaries.extension_name',
-                'beneficiaries.birthdate',
-                'beneficiaries.contact_num',
-                'beneficiaries.beneficiary_type',
+                'beneficiaries.*'
             ])
             ->orderBy('beneficiaries.last_name', 'asc')
             ->take($this->beneficiaries_on_page)
@@ -212,6 +211,59 @@ class Assignments extends Component
 
         return $beneficiaries;
     }
+
+    #[Computed]
+    public function rowColorIndicator($beneficiary)
+    {
+        # This will be the returned value if the other "if" statements are false
+        # "default" means it has neither a possible nor perfect duplicate
+        $indicator = 'default';
+
+        # Turning on show duplicates setting requires extensive memory usage
+        if ($this->defaultShowDuplicates) {
+
+            $thresholdResult = $this->isOverThreshold($beneficiary);
+
+            # If the $thresholdResult returns an array, this will basically satisfy the condition
+            if ($thresholdResult) {
+                foreach ($thresholdResult as $result) {
+                    $databaseBeneficiary = Beneficiary::find(decrypt($result['id']));
+
+                    # If all the results are only possible duplicates...
+                    if (!$result['is_perfect'] && $beneficiary->created_at > $databaseBeneficiary->created_at) {
+                        $indicator = 'possible';
+                    }
+
+                    # If one of the results is a perfect duplicate...
+                    if ($result['is_perfect'] && $beneficiary->beneficiary_type === 'special case') {
+                        $indicator = 'perfect';
+                        break; # break the loop since having a perfect duplicate has more priority than a possible one
+                    }
+                }
+            }
+
+        }
+
+        # If show duplicates setting is off and the beneficiary is a special case...
+        if ($beneficiary->beneficiary_type === 'special case') {
+            $indicator = 'perfect';
+        }
+
+        return $indicator;
+    }
+
+    #[Computed]
+    public function isOverThreshold($person)
+    {
+        $results = null;
+
+        if ($this->beneficiaries?->isNotEmpty()) {
+            $results = JaccardSimilarity::isOverThreshold($person, $this->duplicationThreshold);
+        }
+
+        return $results;
+    }
+
 
     #[Computed]
     public function location()
@@ -398,6 +450,13 @@ class Assignments extends Component
             ->pluck('user_settings.value', 'user_settings.key');
     }
 
+    #[Computed]
+    public function personalSettings()
+    {
+        return UserSetting::where('users_id', auth()->id())
+            ->pluck('value', 'key');
+    }
+
     public function mount()
     {
         $user = Auth::user();
@@ -426,13 +485,13 @@ class Assignments extends Component
 
         $this->defaultStart = $this->calendarStart;
         $this->defaultEnd = $this->calendarEnd;
-
-
     }
 
     public function render()
     {
         $this->batchNumPrefix = $this->globalSettings->get('batch_number_prefix', config('settings.batch_number_prefix', 'DCFO-BN-'));
+        $this->duplicationThreshold = intval($this->globalSettings->get('duplication_threshold', config('settings.duplication_threshold')));
+        $this->defaultShowDuplicates = intval($this->personalSettings->get('default_show_duplicates', config('settings.default_show_duplicates')));
         return view('livewire.coordinator.assignments');
     }
 }

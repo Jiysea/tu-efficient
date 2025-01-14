@@ -51,6 +51,11 @@
                                 Default Archive
                             </a>
                         </li>
+                        <li class="mt-1">
+                            <a href="#default_archive">
+                                Show Duplicates
+                            </a>
+                        </li>
                     </ol>
                 </li>
             </ol>
@@ -160,8 +165,8 @@
                                             </svg>
                                         @else
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5 text-red-600"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                                viewBox="0, 0, 400,400">
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
                                                         d="M177.897 17.596 C 52.789 32.733,-20.336 167.583,35.137 280.859 C 93.796 400.641,258.989 419.540,342.434 316.016 C 445.776 187.805,341.046 -2.144,177.897 17.596 M146.875 125.950 C 148.929 126.558,155.874 132.993,174.805 151.829 L 200.000 176.899 225.195 151.829 C 245.280 131.845,251.022 126.556,253.503 125.759 C 264.454 122.238,275.000 129.525,275.000 140.611 C 275.000 147.712,274.055 148.915,247.831 175.195 L 223.080 200.000 247.831 224.805 C 274.055 251.085,275.000 252.288,275.000 259.389 C 275.000 270.771,263.377 278.313,252.691 273.865 C 250.529 272.965,242.208 265.198,224.805 247.831 L 200.000 223.080 175.195 247.769 C 154.392 268.476,149.792 272.681,146.680 273.836 C 134.111 278.498,121.488 265.871,126.173 253.320 C 127.331 250.217,131.595 245.550,152.234 224.799 L 176.909 199.989 152.163 175.190 C 135.672 158.663,127.014 149.422,126.209 147.486 C 122.989 139.749,126.122 130.459,133.203 126.748 C 137.920 124.276,140.678 124.115,146.875 125.950 "
@@ -453,6 +458,66 @@
                                         <div
                                             class="size-5 bg-blue-50 rounded-full shadow-md transform transition-all
                                             {{ $default_archive ? 'translate-x-5' : 'translate-x-0' }}">
+                                        </div>
+                                    </button>
+                                </span>
+                            </div>
+                        </span>
+
+                        {{-- Show Duplicates --}}
+                        <span id="default_show_duplicates"
+                            class="flex items-center justify-between gap-10 p-5 w-full">
+                            <span class="flex flex-col">
+                                <h1 class="font-medium text-blue-300">Show Duplicates</h1>
+                                <p class="text-xs text-zinc-500">Toggle to show possible duplicates by default. Please
+                                    note
+                                    that this setting uses extensive memory.
+                                </p>
+                            </span>
+
+                            <div class="relative">
+                                {{-- State Indicator --}}
+                                <div x-data="{ show: false, timeoutId: null }"
+                                    @show-duplicates-save.window="
+                                    show = true;
+                                    clearTimeout(timeoutId);
+                                    timeoutId = setTimeout(() => show = false, 3000);"
+                                    class="absolute right-full top-0 flex items-center gap-2 h-full me-2">
+
+                                    {{-- Loading Icon --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class=" size-4 text-blue-50 animate-spin"
+                                        wire:loading wire:target="toggleShowDuplicates" fill="none"
+                                        viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Save Indicator --}}
+                                    <span x-cloak x-show="show" x-transition.opacity
+                                        class="flex items-center gap-2 text-green-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </span>
+                                </div>
+
+                                <span class="relative">
+                                    <button wire:click="toggleShowDuplicates"
+                                        class="w-10 h-5 flex items-center rounded-full transition-all
+                                            {{ $default_show_duplicates ? 'bg-blue-700' : 'bg-zinc-900' }}">
+                                        <div
+                                            class="size-5 bg-blue-50 rounded-full shadow-md transform transition-all
+                                            {{ $default_show_duplicates ? 'translate-x-5' : 'translate-x-0' }}">
                                         </div>
                                     </button>
                                 </span>

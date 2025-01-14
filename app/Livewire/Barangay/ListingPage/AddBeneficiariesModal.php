@@ -581,8 +581,6 @@ class AddBeneficiariesModal extends Component
 
             $this->similarityResults = JaccardSimilarity::getResults($this->first_name, $this->middle_name, $this->last_name, $this->extension_name, $this->duplicationThreshold);
             $this->setCheckers($this->similarityResults);
-
-            $this->dispatch('init-reload')->self();
         }
 
     }
@@ -755,7 +753,7 @@ class AddBeneficiariesModal extends Component
                 $this->birthdate = null;
             }
 
-            $this->dispatch('init-reload')->self();
+            $this->js('$wire.closeBirthdate();');
         }
 
         if ($property === 'civil_status') {
@@ -873,6 +871,7 @@ class AddBeneficiariesModal extends Component
         return <<<'JS'
             const datepicker = FlowbiteInstances.getInstance('Datepicker', 'birthdate');
             datepicker.hide();
+            $wire.dispatchSelf('init-reload');
         JS;
     }
 

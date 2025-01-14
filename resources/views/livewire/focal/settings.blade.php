@@ -71,6 +71,11 @@
                                 Default Archive
                             </a>
                         </li>
+                        <li class="mt-1">
+                            <a href="#default_archive">
+                                Show Duplicates
+                            </a>
+                        </li>
                     </ol>
                 </li>
             </ol>
@@ -169,8 +174,8 @@
                                     <span class="flex items-center justify-center">
                                         @if (auth()->user()->isEmailVerified())
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5 text-green-700"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
-                                                viewBox="0, 0, 400,400">
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="400"
+                                                height="400" viewBox="0, 0, 400,400">
                                                 <g>
                                                     <path
                                                         d="M190.234 1.053 C 183.006 3.443,179.748 6.015,162.891 22.637 C 137.131 48.038,136.175 48.438,101.156 48.438 C 71.648 48.438,66.707 49.653,57.762 59.111 C 49.525 67.820,48.437 72.809,48.437 101.880 C 48.438 136.116,47.952 137.261,22.557 162.961 C 1.288 184.486,0.391 185.985,0.391 200.000 C 0.391 213.983,1.272 215.457,22.513 237.010 C 47.993 262.863,48.438 263.925,48.438 298.909 C 48.438 328.249,49.672 333.312,58.975 342.110 C 67.946 350.594,72.232 351.562,100.798 351.562 C 136.076 351.563,137.208 352.034,162.990 377.469 C 184.541 398.730,186.011 399.609,200.000 399.609 C 213.989 399.609,215.459 398.730,237.010 377.469 C 262.792 352.034,263.924 351.562,299.202 351.563 C 327.768 351.563,332.054 350.594,341.025 342.110 C 350.306 333.332,351.563 328.215,351.563 299.202 C 351.563 263.924,352.034 262.792,377.469 237.010 C 398.730 215.459,399.609 213.989,399.609 200.000 C 399.609 186.011,398.730 184.541,377.469 162.990 C 352.034 137.208,351.563 136.076,351.563 100.798 C 351.563 71.785,350.306 66.668,341.025 57.890 C 332.054 49.406,327.768 48.438,299.202 48.437 C 263.924 48.437,262.792 47.966,237.010 22.531 C 216.042 1.845,213.983 0.563,201.172 0.226 C 196.248 0.096,192.204 0.402,190.234 1.053 M236.530 211.517 L 173.833 274.217 137.307 237.698 L 100.781 201.178 112.109 189.851 L 123.436 178.524 148.439 203.517 L 173.441 228.510 224.802 177.150 L 276.162 125.790 287.694 137.303 L 299.227 148.817 236.530 211.517 "
@@ -358,7 +363,6 @@
 
                     <div
                         class="relative flex flex-col mb-6 size-full border border-[#442E30] rounded-lg divide-y divide-[#442E30]">
-
 
                         {{-- Minimum Wage --}}
                         <span id="minimum_wage" class="relative flex items-center justify-between gap-10 p-5 w-full">
@@ -759,6 +763,66 @@
                                         <div
                                             class="size-5 bg-indigo-50 rounded-full shadow-md transform transition-all
                                             {{ $default_archive ? 'translate-x-5' : 'translate-x-0' }}">
+                                        </div>
+                                    </button>
+                                </span>
+                            </div>
+                        </span>
+
+                        {{-- Show Duplicates --}}
+                        <span id="default_show_duplicates"
+                            class="flex items-center justify-between gap-10 p-5 w-full">
+                            <span class="flex flex-col">
+                                <h1 class="font-medium text-indigo-300">Show Duplicates</h1>
+                                <p class="text-xs text-zinc-500">Toggle to show possible duplicates by default. Please
+                                    note
+                                    that this setting uses extensive memory.
+                                </p>
+                            </span>
+
+                            <div class="relative">
+                                {{-- State Indicator --}}
+                                <div x-data="{ show: false, timeoutId: null }"
+                                    @show-duplicates-save.window="
+                                    show = true;
+                                    clearTimeout(timeoutId);
+                                    timeoutId = setTimeout(() => show = false, 3000);"
+                                    class="absolute right-full top-0 flex items-center gap-2 h-full me-2">
+
+                                    {{-- Loading Icon --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class=" size-4 text-indigo-50 animate-spin" wire:loading
+                                        wire:target="toggleShowDuplicates" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+
+                                    {{-- Save Indicator --}}
+                                    <span x-cloak x-show="show" x-transition.opacity
+                                        class="flex items-center gap-2 text-green-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="400"
+                                            viewBox="0, 0, 400,400">
+                                            <g>
+                                                <path
+                                                    d="M362.500 56.340 C 352.317 58.043,357.949 52.810,246.679 163.959 L 143.749 266.778 96.679 219.844 C 44.257 167.573,46.207 169.193,34.480 168.209 C 8.309 166.015,-9.487 195.204,4.658 217.122 C 9.282 224.286,124.867 338.751,129.688 340.939 C 139.095 345.209,148.860 345.099,158.506 340.613 C 166.723 336.791,393.119 110.272,397.035 101.953 C 408.174 78.291,388.288 52.026,362.500 56.340 "
+                                                    stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+                                            </g>
+                                        </svg>
+                                    </span>
+                                </div>
+
+                                <span class="relative">
+                                    <button wire:click="toggleShowDuplicates"
+                                        class="w-10 h-5 flex items-center rounded-full transition-all
+                                            {{ $default_show_duplicates ? 'bg-indigo-700' : 'bg-zinc-900' }}">
+                                        <div
+                                            class="size-5 bg-indigo-50 rounded-full shadow-md transform transition-all
+                                            {{ $default_show_duplicates ? 'translate-x-5' : 'translate-x-0' }}">
                                         </div>
                                     </button>
                                 </span>

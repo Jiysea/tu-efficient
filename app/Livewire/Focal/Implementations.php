@@ -48,6 +48,7 @@ class Implementations extends Component
     public $exportBatchId;
     public $projectNumPrefix;
     public $duplicationThreshold;
+    public $defaultShowDuplicates;
     public $allSimilarityResults;
     public $alerts = [];
     # ------------------------------------------
@@ -642,19 +643,69 @@ class Implementations extends Component
             ->get();
 
         return $beneficiaries;
-
     }
 
     #[Computed]
-    public function nameCheck($person)
+    public function rowColorIndicator($beneficiary, $key)
+    {
+        # This will be the returned value if the other "if" statements are false
+        # "default" means it has neither a possible nor perfect duplicate
+        $indicator = 'default';
+        if (in_array($key, $this->selectedBeneficiaryRow)) {
+            $indicator .= '-selected';
+        }
+
+        # Turning on show duplicates setting requires extensive memory usage
+        if ($this->defaultShowDuplicates) {
+
+            $thresholdResult = $this->isOverThreshold($beneficiary);
+
+            # If the $thresholdResult returns an array, this will basically satisfy the condition
+            if ($thresholdResult) {
+                foreach ($thresholdResult as $result) {
+                    $databaseBeneficiary = Beneficiary::find(decrypt($result['id']));
+
+                    # If all the results are only possible duplicates...
+                    if (!$result['is_perfect'] && $beneficiary->created_at > $databaseBeneficiary->created_at) {
+                        $indicator = 'possible';
+                        if (in_array($key, $this->selectedBeneficiaryRow)) {
+                            $indicator .= '-selected';
+                        }
+                    }
+
+                    # If one of the results is a perfect duplicate...
+                    if ($result['is_perfect'] && $beneficiary->beneficiary_type === 'special case') {
+                        $indicator = 'perfect';
+                        if (in_array($key, $this->selectedBeneficiaryRow)) {
+                            $indicator .= '-selected';
+                        }
+                        break; # break the loop since having a perfect duplicate has more priority than a possible one
+                    }
+                }
+            }
+
+        }
+
+        # If show duplicates setting is off and the beneficiary is a special case...
+        if ($beneficiary->beneficiary_type === 'special case') {
+            $indicator = 'perfect';
+            if (in_array($key, $this->selectedBeneficiaryRow)) {
+                $indicator .= '-selected';
+            }
+        }
+
+        return $indicator;
+    }
+
+    #[Computed]
+    public function isOverThreshold($person)
     {
         $results = null;
 
-        if ($this->beneficiaries->isNotEmpty()) {
+        if ($this->beneficiaries?->isNotEmpty()) {
             $results = JaccardSimilarity::isOverThreshold($person, $this->duplicationThreshold);
         }
 
-        $this->dispatch('init-reload')->self();
         return $results;
     }
 
@@ -976,6 +1027,7 @@ class Implementations extends Component
     {
         $this->projectNumPrefix = $this->settings->get('project_number_prefix', config('settings.project_number_prefix'));
         $this->duplicationThreshold = intval($this->settings->get('duplication_threshold', config('settings.duplication_threshold')));
+        $this->defaultShowDuplicates = intval($this->settings->get('default_show_duplicates', config('settings.default_show_duplicates')));
         return view('livewire.focal.implementations');
     }
 }

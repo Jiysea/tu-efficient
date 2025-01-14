@@ -47,6 +47,7 @@ class Settings extends Component
     #[Validate]
     public $password_confirmation;
     public $default_archive;
+    public $default_show_duplicates;
 
     public function rules()
     {
@@ -253,6 +254,28 @@ class Settings extends Component
         $this->dispatch('def-archive-save');
     }
 
+    public function toggleShowDuplicates()
+    {
+        if (!isset($this->default_show_duplicates)) {
+            $this->resetValidation('default_show_duplicates');
+            $this->default_show_duplicates = intval($this->settings->get('default_show_duplicates', config('settings.duplication_threshold')));
+            return;
+        }
+
+        $this->default_show_duplicates = !$this->default_show_duplicates;
+
+        $old = $this->settings->get('default_show_duplicates', config('settings.default_show_duplicates'));
+        UserSetting::upsert(
+            ['users_id' => auth()->id(), 'key' => 'default_show_duplicates', 'value' => $this->default_show_duplicates],
+            ['users_id' => auth()->id()],
+            ['value']
+        );
+
+        LogIt::set_default_show_duplicates_settings(auth()->user(), $old, $this->default_show_duplicates);
+
+        $this->dispatch('show-duplicates-save');
+    }
+
     # It's a Livewire `Hook` for properties so the system can take action
     # when a specific property has updated its state. 
     public function updated($prop)
@@ -318,6 +341,7 @@ class Settings extends Component
 
         $this->duplication_threshold = intval($settings->get('duplication_threshold', config('settings.duplication_threshold')));
         $this->default_archive = intval($settings->get('default_archive', config('settings.default_archive')));
+        $this->default_show_duplicates = intval($settings->get('default_show_duplicates', config('settings.default_show_duplicates')));
 
     }
     public function render()

@@ -719,9 +719,12 @@ window.addEventListener('resize', () => {
                                 </thead>
                                 <tbody class="text-xs">
                                     @foreach ($this->beneficiaries as $key => $beneficiary)
-                                        <tr
-                                            class="border-b whitespace-nowrap
-                                            {{ $beneficiary->beneficiary_type === 'special case' ? 'bg-red-100 hover:bg-red-200 text-red-700' : 'hover:bg-gray-50 text-blue-1100' }}">
+                                        <tr class="border-b whitespace-nowrap"
+                                            :class="{
+                                                'hover:bg-gray-50 text-blue-1100': {{ json_encode($this->rowColorIndicator($beneficiary) === 'default') }},
+                                                'bg-red-100 hover:bg-red-200 text-red-700': {{ json_encode($this->rowColorIndicator($beneficiary) === 'perfect') }},
+                                                'bg-amber-100 hover:bg-amber-200 text-amber-700': {{ json_encode($this->rowColorIndicator($beneficiary) === 'possible') }},
+                                            }">
                                             <th scope="row" class="ps-3 py-2 font-semibold whitespace-nowrap">
                                                 {{ $key + 1 }}
                                             </th>

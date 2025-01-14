@@ -68,8 +68,20 @@
                                     'border-green-300 bg-green-50 text-green-900': {{ json_encode($isResolved) }},
                                 }">
 
-                                {{-- If the user is attempting to add the beneficiary on the same implementation --}}
-                                @if ($isSameImplementation)
+                                @if ($isResolved)
+                                    {{-- Resolved Duplication Issue --}}
+                                    <p class="inline mx-2">Possible
+                                        duplication is resolved.
+                                        <button type="button" @click="expanded = ! expanded"
+                                            class="outline-none underline underline-offset-2 font-bold">Show
+                                            possible duplicates</button>
+                                    </p>
+
+                                    <button type="button" @click="addReasonModal = !addReasonModal"
+                                        class="outline-none px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
+                                        REASON</button>
+                                @elseif ($isSameImplementation)
+                                    {{-- If the user is attempting to add the beneficiary on the same implementation --}}
                                     <p class="inline mx-2">You cannot enter the same beneficiary on the same
                                         implementation.
                                         <button type="button" @click="expanded = ! expanded"
@@ -77,9 +89,8 @@
                                             possible
                                             duplicates</button>
                                     </p>
-
-                                    {{-- If the beneficiary has already applied more than 2 times this year --}}
                                 @elseif($isIneligible)
+                                    {{-- If the beneficiary has already applied more than 2 times this year --}}
                                     <p class="inline mx-2">This beneficiary
                                         has already applied more than twice (2) this year.
                                         <button type="button" @click="expanded = ! expanded"
@@ -96,8 +107,8 @@
                                             possible
                                             duplicates</button>
                                     </p>
-                                    {{-- Perfect Duplicate && Unresolved --}}
                                 @elseif ($isPerfectDuplicate && !$isResolved)
+                                    {{-- Perfect Duplicate && Unresolved --}}
                                     <p class="inline mx-2">This beneficiary
                                         has
                                         already
@@ -123,9 +134,8 @@
                                                 Case</strong>
                                         </p>
                                     @endif
-
-                                    {{-- Possible Duplicates && Unresolved --}}
                                 @elseif (!$isPerfectDuplicate && !$isResolved)
+                                    {{-- Possible Duplicates && Unresolved --}}
                                     <p class="inline mx-2">There are
                                         possible
                                         duplicates found
@@ -134,19 +144,6 @@
                                             class="outline-none underline underline-offset-2 font-bold">Show
                                             possible duplicates</button>
                                     </p>
-
-                                    {{-- Resolved Duplication Issue --}}
-                                @elseif($isResolved)
-                                    <p class="inline mx-2">Possible
-                                        duplication is resolved.
-                                        <button type="button" @click="expanded = ! expanded"
-                                            class="outline-none underline underline-offset-2 font-bold">Show
-                                            possible duplicates</button>
-                                    </p>
-
-                                    <button type="button" @click="addReasonModal = !addReasonModal"
-                                        class="outline-none px-2 py-1 rounded font-bold text-xs bg-green-700 hover:bg-green-800 active:bg-green-900 text-green-50">VIEW
-                                        REASON</button>
                                 @endif
                             </div>
 

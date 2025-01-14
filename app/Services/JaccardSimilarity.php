@@ -226,7 +226,7 @@ class JaccardSimilarity
      * @param string $filteredInputString: The full name of the given name of the beneficiary.
      * @return mixed Returns a Collection instance of the beneficiaries
      */
-    protected static function prefetchNames(string $filteredInputString, ?string $middle_name, ?string $extension_name, ?string $ignoreId = null)
+    protected static function prefetchNames(string $filteredInputString, ?string $middle_name, ?string $extension_name, ?string $ignoreId = null, ?array $customDate = [])
     {
         # if there's no beneficiaries from the database yet, return null
         $beneficiariesFromDatabase = null;
@@ -234,6 +234,10 @@ class JaccardSimilarity
         # only take beneficiaries from the start of the year until today
         $startDate = now()->startOfYear();
         $endDate = now();
+        if (!empty($customDate)) {
+            $startDate = $customDate[0];
+            $endDate = $customDate[1];
+        }
 
         # separate each word from all the name fields
         # and get the first letter of each word
@@ -613,13 +617,36 @@ class JaccardSimilarity
     public static function isOverThreshold(mixed $person, int|float $threshold = 65)
     {
         # initialize the $results var so it would return null if there's no similarities
-        $results = [];
+        $results = null;
 
         # Filters the input string to check if the beneficiary from database has a middle name or not
         $filteredInputString = mb_strtoupper(self::personFullName($person), "UTF-8");
 
+        # Before fetching from the database, check if the $person is not in the current year
+        # Rather, it will only fetch from its created_at to the start of that year
+        # So that it won't fetch potential duplicates from the current year
+        # 
+        # Example Results: 
+        # ---> Today's date is 2025-04-19.
+        # 
+        # - Query #1: James Harden (created_at: 2025-01-15) || James Harden (created_at: 2025-04-19 (calamity victim))
+        # ---> ^ Expected result
+        # 
+        # Instead of:
+        # Query #2: James Harden (created_at: 2024-04-21) || Janes Harden (created_at: 2024-06-11) ||
+        # James Harden (created_at: 2025-01-15) || James Harden (created_at: 2025-04-19 (calamity victim)) 
+        # ---> ^ Bloated results
+        # 
+        $customDate = [];
+        if (strtotime($person->created_at) < strtotime(now()->startOfYear())) {
+            $customDate = [
+                Carbon::parse($person->created_at)->startOfYear(),
+                Carbon::parse($person->created_at),
+            ];
+        }
+
         # fetch all the potential duplicating names from the database
-        $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $person->middle_name, $person->extension_name);
+        $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $person->middle_name, $person->extension_name, encrypt($person->id), $customDate);
 
         if (ctype_digit((string) $threshold)) {
 
@@ -636,6 +663,7 @@ class JaccardSimilarity
         }
 
         if (!is_null($beneficiariesFromDatabase)) {
+            $results = [];
             $count = 1;
             # this is where it checks the similarities
             foreach ($beneficiariesFromDatabase as $beneficiary) {
@@ -652,12 +680,12 @@ class JaccardSimilarity
                     $isPerfectDuplicate = false;
 
                     # If the names are exactly the same, then it's considered a Perfect Duplicate
-                    if (intval($coEfficient) === 100) {
+                    if (intval($coEfficient) === 100 && $beneficiaryFromDatabase === $filteredInputString) {
                         $isPerfectDuplicate = true;
                     }
 
                     # if it does, then add them to the $results array
-                    $results = [
+                    $results[] = [
                         'id' => encrypt($beneficiary->id),
                         'coEfficient' => $coEfficient,
                         'is_perfect' => $isPerfectDuplicate,
@@ -665,7 +693,6 @@ class JaccardSimilarity
                 }
             }
         }
-
 
         return $results;
     }

@@ -11,6 +11,7 @@ use App\Models\Implementation;
 use App\Models\UserSetting;
 use App\Services\Annex;
 use App\Services\Essential;
+use App\Services\JaccardSimilarity;
 use App\Services\LogIt;
 use Carbon\Carbon;
 use DB;
@@ -47,7 +48,11 @@ class Submissions extends Component
     #[Locked]
     public $batchNumPrefix;
     #[Locked]
+    public $duplicationThreshold;
+    #[Locked]
     public $defaultArchive;
+    #[Locked]
+    public $defaultShowDuplicates;
     public $alerts = [];
     public $addBeneficiariesModal = false;
     public $editBeneficiaryModal = false;
@@ -824,6 +829,70 @@ class Submissions extends Component
     }
 
     #[Computed]
+    public function rowColorIndicator($beneficiary, $key)
+    {
+        # This will be the returned value if the other "if" statements are false
+        # "default" means it has neither a possible nor perfect duplicate
+        $indicator = 'default';
+        if (in_array($key, $this->selectedBeneficiaryRow)) {
+            $indicator .= '-selected';
+        }
+
+        # Turning on show duplicates setting requires extensive memory usage
+        if ($this->defaultShowDuplicates) {
+
+            $thresholdResult = $this->isOverThreshold($beneficiary);
+
+            # If the $thresholdResult returns an array, this will basically satisfy the condition
+            if ($thresholdResult) {
+                foreach ($thresholdResult as $result) {
+                    $databaseBeneficiary = Beneficiary::find(decrypt($result['id']));
+
+                    # If all the results are only possible duplicates...
+                    if (!$result['is_perfect'] && $beneficiary->created_at > $databaseBeneficiary->created_at) {
+                        $indicator = 'possible';
+                        if (in_array($key, $this->selectedBeneficiaryRow)) {
+                            $indicator .= '-selected';
+                        }
+                    }
+
+                    # If one of the results is a perfect duplicate...
+                    if ($result['is_perfect'] && $beneficiary->beneficiary_type === 'special case') {
+                        $indicator = 'perfect';
+                        if (in_array($key, $this->selectedBeneficiaryRow)) {
+                            $indicator .= '-selected';
+                        }
+                        break; # break the loop since having a perfect duplicate has more priority than a possible one
+                    }
+                }
+            }
+
+        }
+
+        # If show duplicates setting is off and the beneficiary is a special case...
+        if ($beneficiary->beneficiary_type === 'special case') {
+            $indicator = 'perfect';
+            if (in_array($key, $this->selectedBeneficiaryRow)) {
+                $indicator .= '-selected';
+            }
+        }
+
+        return $indicator;
+    }
+
+    #[Computed]
+    public function isOverThreshold($person)
+    {
+        $results = null;
+
+        if ($this->beneficiaries?->isNotEmpty()) {
+            $results = JaccardSimilarity::isOverThreshold($person, $this->duplicationThreshold);
+        }
+
+        return $results;
+    }
+
+    #[Computed]
     public function credentials()
     {
         return Credential::where('beneficiaries_id', $this->beneficiaryId ? decrypt($this->beneficiaryId) : null)
@@ -1276,7 +1345,9 @@ class Submissions extends Component
     public function render()
     {
         $this->batchNumPrefix = $this->globalSettings->get('batch_num_prefix', config('settings.batch_number_prefix'));
+        $this->duplicationThreshold = intval($this->globalSettings->get('duplication_threshold', config('settings.duplication_threshold')));
         $this->defaultArchive = intval($this->personalSettings->get('default_archive', config('settings.default_archive')));
+        $this->defaultShowDuplicates = intval($this->personalSettings->get('default_show_duplicates', config('settings.default_show_duplicates')));
         return view('livewire.coordinator.submissions');
     }
 }
