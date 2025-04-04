@@ -452,7 +452,7 @@ window.addEventListener('resize', () => {
                                     <div class="flex flex-col items-start justify-center">
                                         <h1
                                             class="text-xs sm:text-sm md:text-base text-indigo-950 font-bold leading-normal">
-                                            {{ $this->batchCounters?->total_approval ?? 0 }}
+                                            {{ $this->batchCounters?->total_approved ?? 0 }}
                                         </h1>
                                         <p class="whitespace-nowrap text-xs font-semibold leading-none">
                                             Approved
