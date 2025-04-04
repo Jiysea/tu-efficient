@@ -29,6 +29,17 @@ class BeneficiaryPreview extends Component
 
     # ---------------------------------------------------
 
+    #[Computed]
+    public function batch()
+    {
+        return Batch::find($this->beneficiary?->batches_id);
+    }
+    #[Computed]
+    public function beneficiary()
+    {
+        return Beneficiary::find($this->beneficiaryId ? decrypt($this->beneficiaryId) : null);
+    }
+    
     public function render()
     {
         return view('livewire.coordinator.submissions.beneficiary-preview');

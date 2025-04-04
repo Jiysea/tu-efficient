@@ -206,6 +206,12 @@
                                             <th scope="col" class="p-2">
                                                 dependent
                                             </th>
+                                            <th scope="col" class="p-2">
+                                                date added
+                                            </th>
+                                            <th scope="col" class="p-2">
+                                                last updated
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-xs relative">
@@ -283,6 +289,12 @@
                                                 </td>
                                                 <td class="p-2">
                                                     {{ $result['dependent'] ?? '-' }}
+                                                </td>
+                                                <td class="p-2">
+                                                    {{ $result['created_at'] ?? '-' }}
+                                                </td>
+                                                <td class="p-2">
+                                                    {{ $result['updated_at'] ?? '-' }}
                                                 </td>
                                             </tr>
                                         @empty

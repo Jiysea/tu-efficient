@@ -175,6 +175,7 @@ class AddCoordinatorsModal extends Component
 
         $this->resetCoordinators();
         $this->dispatch('alertNotification', type: null, message: 'Successfully created a coordinator', color: 'indigo');
+        $this->js('addCoordinatorsModal = false;');
     }
 
     public function resetCoordinators()

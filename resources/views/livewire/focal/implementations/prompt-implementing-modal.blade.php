@@ -12,7 +12,7 @@
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between py-2 px-4 rounded-t-md">
                     <h1 class="text-sm sm:text-base font-semibold text-indigo-1100">
-                        {{ $this->implementation?->status === 'implementing' ? 'Marking for Implementation' : 'Marking As Pending' }}
+                        {{ $this->implementation?->status === 'pending' ? 'Marking for Implementation' : 'Marking As Pending' }}
                     </h1>
 
                     <div class="flex items-center justify-center gap-3">
@@ -50,17 +50,17 @@
                         wire:submit.prevent="markAsPending" @endif
                     class="flex flex-col items-center justify-center pt-5 pb-10 px-3 md:px-12 text-indigo-1100 text-xs">
 
-                    @if ($this->implementation?->status === 'implementing')
+                    @if ($this->implementation?->status === 'pending')
                         <p class="mb-2 text-sm font-medium text-indigo-1100">
                             Are you sure about marking this for implementation?
                         </p>
                         <p class="mb-4 text-xs font-medium text-gray-500">
                             You won't be able to modify this project until it is
-                            <span class="rounded-full bg-amber-200 text-amber-800 px-2 py-1 font-semibold">
+                            <span class="rounded-full text-center bg-amber-200 text-amber-800 px-2 py-1 me-1 font-semibold">
                                 PENDING
                             </span> again.
                         </p>
-                    @elseif($this->implementation?->status === 'pending')
+                    @elseif($this->implementation?->status === 'implementing')
                         <p class="mb-2 text-sm font-medium text-indigo-1100">
                             Are you sure about marking this as pending?
                         </p>

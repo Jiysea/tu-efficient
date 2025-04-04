@@ -315,34 +315,62 @@ class JaccardSimilarity
      *  @param int|float $threshold: The similarity threshold for returning only those who passed. (ex. 65, 65.0, 65.5).
      *                              Avoid assigning more than 100 or negative values or it will return unexpected results.
      *  @param string $ignoreId: A beneficiary ID to ignore. This parameter can only be used for EDITs
+     *  @param mixed $person: The model of the beneficiary.
      *  @return array|null Returns the similarity results in an array, otherwise null.
      *  
      */
-    public static function getResults(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, int|float $threshold = 65, ?string $ignoreId = null)
+    public static function getResults(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, int|float $threshold = 65, ?string $ignoreId = null, mixed $person = null)
     {
         # initialize the $results var so it would return null if there's no similarities
         $results = [];
-
         # this var is only used to prefetch names from the database
         $dirtyFullName = Essential::trimmer(strtoupper(self::dirtyFullname($first_name, $middle_name, $last_name, $extension_name)));
 
+        # Before fetching from the database, check if the $person is not in the current year
+        # Rather, it will only fetch from its created_at to the start of that year
+        # So that it won't fetch potential duplicates from the current year
+        # 
+        # Example Results: 
+        # ---> Today's date is 2025-04-19.
+        # 
+        # - Query #1: James Harden (created_at: 2025-01-15) || James Harden (created_at: 2025-04-19 (calamity victim))
+        # ---> ^ Expected result
+        # 
+        # Instead of:
+        # Query #2: James Harden (created_at: 2024-04-21) || Janes Harden (created_at: 2024-06-11) ||
+        # James Harden (created_at: 2025-01-15) || James Harden (created_at: 2025-04-19 (calamity victim)) 
+        # ---> ^ Bloated results
+        # 
+        
+        $customDate = [];
+        if(!is_null($person))
+        {
+            if ((strtotime($person->created_at) < strtotime(now()->startOfYear()))) {
+                
+                $customDate = [
+                    Carbon::parse($person->created_at)->startOfYear(),
+                    Carbon::parse($person->created_at),
+                ];
+            }
+        }
+            
+        
         # fetch all the potential duplicating names from the database
-        $beneficiariesFromDatabase = self::prefetchNames($dirtyFullName, $middle_name, $extension_name, $ignoreId);
+        $beneficiariesFromDatabase = self::prefetchNames($dirtyFullName, $middle_name, $extension_name, $ignoreId, $customDate);
 
-        if (ctype_digit((string) $threshold)) {
+        if (is_numeric($threshold)) {
 
-            if (floatval($threshold) > 100.0) {
+            if (floatval($threshold * 100) > 100.0) {
                 $threshold = 100;
             } else if (MoneyFormat::isNegative((string) $threshold)) {
                 $threshold = 0;
             } else {
-                $threshold = intval(config('settings.duplication_threshold', 65));
+                $threshold = intval($threshold * 100);
             }
-
         } else {
             $threshold = intval(config('settings.duplication_threshold', 65));
         }
-
+        
         if (!is_null($beneficiariesFromDatabase)) {
             $count = 1;
             # this is where it checks the similarities
@@ -381,7 +409,6 @@ class JaccardSimilarity
                     if (intval($coEfficient) === 100 && $beneficiaryFromDatabase === $filteredInputString) {
                         $isPerfectDuplicate = true;
                     }
-
                     # if it does, then add them to the $results array
                     $results[] = [
                         'coEfficient' => $coEfficient,
@@ -415,7 +442,8 @@ class JaccardSimilarity
                         'spouse_middle_name' => $beneficiary->spouse_middle_name,
                         'spouse_last_name' => $beneficiary->spouse_last_name,
                         'spouse_extension_name' => $beneficiary->spouse_extension_name,
-                        'created_at' => $beneficiary->created_at,
+                        'created_at' => Carbon::parse($beneficiary->created_at)->format('F d, Y @ h:i:sa'),
+                        'updated_at' => Carbon::parse($beneficiary->updated_at)->format('F d, Y @ h:i:sa'),
                         'is_perfect' => $isPerfectDuplicate,
                         'identity_image_file_path' => $identity_image_file_path,
                         'reason_image_file_path' => $reason_image_file_path,
@@ -433,134 +461,134 @@ class JaccardSimilarity
         }
     }
 
-    public static function getResultsFromEdit(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, string $birthdate, int|float $threshold = 65, ?string $ignoreId = null)
-    {
-        # initialize the $results var so it would return null if there's no similarities
-        $results = [];
-        $first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $first_name)));
-        $filteredInputString = $first_name;
+    // public static function getResultsFromEdit(string $first_name, ?string $middle_name, string $last_name, ?string $extension_name, string $birthdate, int|float $threshold = 65, ?string $ignoreId = null)
+    // {
+    //     # initialize the $results var so it would return null if there's no similarities
+    //     $results = [];
+    //     $first_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $first_name)));
+    //     $filteredInputString = $first_name;
 
-        if ($middle_name && $middle_name !== '-' && $middle_name !== '' && !is_null($middle_name)) {
-            $middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $middle_name)));
-            $filteredInputString .= ' ' . $middle_name;
-        } else {
-            $middle_name = null;
-        }
+    //     if ($middle_name && $middle_name !== '-' && $middle_name !== '' && !is_null($middle_name)) {
+    //         $middle_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $middle_name)));
+    //         $filteredInputString .= ' ' . $middle_name;
+    //     } else {
+    //         $middle_name = null;
+    //     }
 
-        $last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $last_name)));
-        $filteredInputString .= ' ' . $last_name;
+    //     $last_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $last_name)));
+    //     $filteredInputString .= ' ' . $last_name;
 
-        # Filter the whole name (no extension_name) if in case there's illegal characters 
-        $filteredInputString = self::filterIllegalCharacters($filteredInputString);
+    //     # Filter the whole name (no extension_name) if in case there's illegal characters 
+    //     $filteredInputString = self::filterIllegalCharacters($filteredInputString);
 
-        if ($extension_name && $extension_name !== '-' && $extension_name !== '' && !is_null($extension_name)) {
-            $extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $extension_name)));
-            $filteredInputString .= ' ' . self::filterIllegalCharacters($extension_name, true);
-        } else {
-            $extension_name = null;
-        }
+    //     if ($extension_name && $extension_name !== '-' && $extension_name !== '' && !is_null($extension_name)) {
+    //         $extension_name = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $extension_name)));
+    //         $filteredInputString .= ' ' . self::filterIllegalCharacters($extension_name, true);
+    //     } else {
+    //         $extension_name = null;
+    //     }
 
-        # fetch all the potential duplicating names from the database
-        $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $middle_name, $extension_name, $ignoreId);
+    //     # fetch all the potential duplicating names from the database
+    //     $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $middle_name, $extension_name, $ignoreId);
 
-        if (ctype_digit((string) $threshold)) {
+    //     if (is_numeric($threshold)) {
 
-            if (floatval($threshold) > 100.0) {
-                $threshold = 100;
-            } else if (MoneyFormat::isNegative((string) $threshold)) {
-                $threshold = 0;
-            } else {
-                $threshold = intval(config('settings.duplication_threshold', 65));
-            }
+    //         if (floatval($threshold * 100) > 100.0) {
+    //             $threshold = 100;
+    //         } else if (MoneyFormat::isNegative((string) $threshold)) {
+    //             $threshold = 0;
+    //         } else {
+    //             $threshold = intval($threshold * 100);
+    //         }
+    //     } else {
+    //         $threshold = intval(config('settings.duplication_threshold', 65));
+    //     }
 
-        } else {
-            $threshold = intval(config('settings.duplication_threshold', 65));
-        }
+    //     if (!is_null($beneficiariesFromDatabase)) {
+    //         $count = 1;
+    //         # this is where it checks the similarities
+    //         foreach ($beneficiariesFromDatabase as $beneficiary) {
+    //             $count++;
+    //             # gets the full name of the beneficiary
+    //             $beneficiaryFromDatabase = self::fullName($beneficiary, $middle_name, $extension_name);
 
-        if (!is_null($beneficiariesFromDatabase)) {
-            $count = 1;
-            # this is where it checks the similarities
-            foreach ($beneficiariesFromDatabase as $beneficiary) {
-                $count++;
-                # gets the full name of the beneficiary
-                $beneficiaryFromDatabase = self::fullName($beneficiary, $middle_name, $extension_name);
+    //             # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
+    //             $coEfficient = self::calculateSimilarity($beneficiaryFromDatabase, $filteredInputString) * 100;
 
-                # gets the co-efficient/jaccard index of the 2 names (without birthdate by default)
-                $coEfficient = self::calculateSimilarity($beneficiaryFromDatabase, $filteredInputString) * 100;
+    //             # then check if it goes over the Threshold
+    //             if ($coEfficient >= floatval($threshold)) {
 
-                # then check if it goes over the Threshold
-                if ($coEfficient >= floatval($threshold)) {
+    //                 $isPerfectDuplicate = false;
+    //                 $identity_image_file_path = null;
+    //                 $reason_image_file_path = null;
+    //                 $image_description = null;
+    //                 $credentials = Credential::where('beneficiaries_id', $beneficiary->id)
+    //                     ->get();
 
-                    $isPerfectDuplicate = false;
-                    $identity_image_file_path = null;
-                    $reason_image_file_path = null;
-                    $image_description = null;
-                    $credentials = Credential::where('beneficiaries_id', $beneficiary->id)
-                        ->get();
+    //                 foreach ($credentials as $credential) {
+    //                     if ($credential->for_duplicates === 'yes') {
+    //                         $reason_image_file_path = $credential->image_file_path;
+    //                         $image_description = $credential->image_description;
+    //                     } elseif ($credential->for_duplicates === 'no') {
+    //                         $identity_image_file_path = $credential->image_file_path;
+    //                     }
+    //                 }
 
-                    foreach ($credentials as $credential) {
-                        if ($credential->for_duplicates === 'yes') {
-                            $reason_image_file_path = $credential->image_file_path;
-                            $image_description = $credential->image_description;
-                        } elseif ($credential->for_duplicates === 'no') {
-                            $identity_image_file_path = $credential->image_file_path;
-                        }
-                    }
+    //                 # If the name & birthdate are exactly the same, then it's considered a Perfect Duplicate
+    //                 if (intval($coEfficient) === 100) {
+    //                     $isPerfectDuplicate = true;
+    //                 }
 
-                    # If the name & birthdate are exactly the same, then it's considered a Perfect Duplicate
-                    if (intval($coEfficient) === 100) {
-                        $isPerfectDuplicate = true;
-                    }
+    //                 # if it does, then add them to the $results array
+    //                 $results[] = [
+    //                     'project_num' => $beneficiary->project_num,
+    //                     'batch_num' => $beneficiary->batch_num,
+    //                     'first_name' => $beneficiary->first_name,
+    //                     'middle_name' => $beneficiary->middle_name,
+    //                     'last_name' => $beneficiary->last_name,
+    //                     'extension_name' => $beneficiary->extension_name,
+    //                     'birthdate' => $beneficiary->birthdate,
+    //                     'barangay_name' => $beneficiary->barangay_name,
+    //                     'contact_num' => $beneficiary->contact_num,
+    //                     'occupation' => $beneficiary->occupation,
+    //                     'avg_monthly_income' => $beneficiary->avg_monthly_income,
+    //                     'city_municipality' => $beneficiary->city_municipality,
+    //                     'province' => $beneficiary->province,
+    //                     'district' => $beneficiary->district,
+    //                     'type_of_id' => $beneficiary->type_of_id,
+    //                     'id_number' => $beneficiary->id_number,
+    //                     'e_payment_acc_num' => $beneficiary->e_payment_acc_num,
+    //                     'beneficiary_type' => $beneficiary->beneficiary_type,
+    //                     'sex' => $beneficiary->sex,
+    //                     'civil_status' => $beneficiary->civil_status,
+    //                     'age' => $beneficiary->age,
+    //                     'dependent' => $beneficiary->dependent,
+    //                     'self_employment' => $beneficiary->self_employment,
+    //                     'skills_training' => $beneficiary->skills_training,
+    //                     'is_pwd' => $beneficiary->is_pwd,
+    //                     'is_senior_citizen' => $beneficiary->is_senior_citizen,
+    //                     'spouse_first_name' => $beneficiary->spouse_first_name,
+    //                     'spouse_middle_name' => $beneficiary->spouse_middle_name,
+    //                     'spouse_last_name' => $beneficiary->spouse_last_name,
+    //                     'spouse_extension_name' => $beneficiary->spouse_extension_name,
+    //                     'identity_image_file_path' => $identity_image_file_path,
+    //                     'reason_image_file_path' => $reason_image_file_path,
+    //                     'image_description' => $image_description,
+    //                     'created_at' => $beneficiary->created_at,
+    //                     'coEfficient' => $coEfficient,
+    //                     'is_perfect' => $isPerfectDuplicate,
+    //                 ];
+    //             }
+    //         }
+    //     }
 
-                    # if it does, then add them to the $results array
-                    $results[] = [
-                        'project_num' => $beneficiary->project_num,
-                        'batch_num' => $beneficiary->batch_num,
-                        'first_name' => $beneficiary->first_name,
-                        'middle_name' => $beneficiary->middle_name,
-                        'last_name' => $beneficiary->last_name,
-                        'extension_name' => $beneficiary->extension_name,
-                        'birthdate' => $beneficiary->birthdate,
-                        'barangay_name' => $beneficiary->barangay_name,
-                        'contact_num' => $beneficiary->contact_num,
-                        'occupation' => $beneficiary->occupation,
-                        'avg_monthly_income' => $beneficiary->avg_monthly_income,
-                        'city_municipality' => $beneficiary->city_municipality,
-                        'province' => $beneficiary->province,
-                        'district' => $beneficiary->district,
-                        'type_of_id' => $beneficiary->type_of_id,
-                        'id_number' => $beneficiary->id_number,
-                        'e_payment_acc_num' => $beneficiary->e_payment_acc_num,
-                        'beneficiary_type' => $beneficiary->beneficiary_type,
-                        'sex' => $beneficiary->sex,
-                        'civil_status' => $beneficiary->civil_status,
-                        'age' => $beneficiary->age,
-                        'dependent' => $beneficiary->dependent,
-                        'self_employment' => $beneficiary->self_employment,
-                        'skills_training' => $beneficiary->skills_training,
-                        'is_pwd' => $beneficiary->is_pwd,
-                        'is_senior_citizen' => $beneficiary->is_senior_citizen,
-                        'spouse_first_name' => $beneficiary->spouse_first_name,
-                        'spouse_middle_name' => $beneficiary->spouse_middle_name,
-                        'spouse_last_name' => $beneficiary->spouse_last_name,
-                        'spouse_extension_name' => $beneficiary->spouse_extension_name,
-                        'identity_image_file_path' => $identity_image_file_path,
-                        'reason_image_file_path' => $reason_image_file_path,
-                        'image_description' => $image_description,
-                        'created_at' => $beneficiary->created_at,
-                        'coEfficient' => $coEfficient,
-                        'is_perfect' => $isPerfectDuplicate,
-                    ];
-                }
-            }
-        }
+    //     if (empty($results))
+    //         return null;
+    //     else
+    //         return $results;
+    // }
 
-        if (empty($results))
-            return null;
-        else
-            return $results;
-    }
-
+    
     public static function isPerfect(string $first_name, string $middle_name, string $last_name, string $extension_name, string $birthdate)
     {
         # clear out any previous similarity results / initialize
@@ -648,16 +676,15 @@ class JaccardSimilarity
         # fetch all the potential duplicating names from the database
         $beneficiariesFromDatabase = self::prefetchNames($filteredInputString, $person->middle_name, $person->extension_name, encrypt($person->id), $customDate);
 
-        if (ctype_digit((string) $threshold)) {
+        if (is_numeric($threshold)) {
 
-            if (floatval($threshold) > 100.0) {
+            if (floatval($threshold * 100) > 100.0) {
                 $threshold = 100;
             } else if (MoneyFormat::isNegative((string) $threshold)) {
                 $threshold = 0;
             } else {
-                $threshold = intval(config('settings.duplication_threshold', 65));
+                $threshold = intval($threshold * 100);
             }
-
         } else {
             $threshold = intval(config('settings.duplication_threshold', 65));
         }
@@ -677,6 +704,7 @@ class JaccardSimilarity
 
                 # then check if it goes over the Threshold
                 if ($coEfficient >= floatval($threshold)) {
+
                     $isPerfectDuplicate = false;
 
                     # If the names are exactly the same, then it's considered a Perfect Duplicate
@@ -696,4 +724,8 @@ class JaccardSimilarity
 
         return $results;
     }
+
+    // public static function TestNames($person) {
+    //     dd(mb_strtoupper(self::personFullName($person), "UTF-8"), Essential::trimmer(strtoupper(self::dirtyFullname($person->first_name, $person->middle_name, $person->last_name, $person->extension_name))));
+    // }
 }

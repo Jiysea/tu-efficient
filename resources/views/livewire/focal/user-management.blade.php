@@ -297,7 +297,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
     </div>
 
     {{-- Alert Bar --}}
-    <div x-data="{
+    {{-- <div x-data="{
         successShow: $wire.entangle('showAlert'),
         successMessage: $wire.entangle('alertMessage'),
         init() {
@@ -305,7 +305,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 setTimeout(() => { $wire.showAlert = false; }, 3000);
             });
         },
-    }" x-cloak x-show="successShow" {{-- x-effect="console.log(successShow);" --}}
+    }" x-cloak x-show="successShow"
         x-transition:enter="transition ease-in-out duration-300 origin-left"
         x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
         x-transition:leave="origin-left transition ease-in-out duration-500"
@@ -318,7 +318,7 @@ window.matchMedia('(min-width: 1280px)').addEventListener('change', event => {
                 clip-rule="evenodd" />
         </svg>
         <p x-text="successMessage"></p>
-    </div>
+    </div> --}}
 
     {{-- Alert Notifications --}}
     <div x-data="{

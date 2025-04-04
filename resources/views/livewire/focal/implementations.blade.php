@@ -761,7 +761,7 @@ window.addEventListener('resize', () => {
                             {{-- Import Button --}}
                             <span class="relative" x-data="{ pop: false }">
                                 <button type="button" @mouseleave="pop = false;" @mouseenter="pop = true;"
-                                    @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) @click="importFileModal = !importFileModal;" @else disabled @endif
+                                    @if (($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) && $this->implementation?->status == 'pending') @click="importFileModal = !importFileModal;" @else disabled @endif
                                     class="flex items-center gap-2 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50 hover:text-indigo-100 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-indigo-500 rounded-md px-2 py-1 text-sm font-bold duration-200 ease-in-out">
 
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4"
@@ -778,10 +778,13 @@ window.addEventListener('resize', () => {
                                 {{-- Tooltip Content --}}
                                 <div x-cloak x-show="pop" x-transition.opacity
                                     class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-indigo-50">
-                                    @if ($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries'])
+                                    @if (($batchId && $this->beneficiarySlots['batch_slots_allocated'] > $this->beneficiarySlots['num_of_beneficiaries']) && $this->implementation?->status == 'pending')
                                         Import Beneficiaries from STIF File
                                     @elseif(!$batchId)
                                         Please pick a <span class="text-indigo-400">batch</span> first.
+                                    @elseif($this->implementation?->status != 'pending')
+                                        You cannot import any beneficiary information <br>
+                                        when the project is not <span class="text-indigo-400">pending</span>.
                                     @else
                                         You may able to <span class="text-indigo-400">import</span> beneficiaries <br>
                                         when you select a batch or the batch <br>

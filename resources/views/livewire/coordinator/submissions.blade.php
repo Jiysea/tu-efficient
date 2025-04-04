@@ -2066,8 +2066,10 @@ window.addEventListener('resize', () => {
 
                                     {{-- Buttons: Multi-Delete || Contract Sign --}}
                                     <span class="flex items-center justify-center gap-2 mt-2">
-                                        <button type="button" @click="promptMultiDeleteModal = true;"
-                                            class="outline-none flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-bold rounded-md duration-200 ease-in-out bg-red-700 hover:bg-red-800 active:bg-red-900 text-red-50 focus:ring-2 focus:ring-red-500">
+                                        <button type="button"
+                                            @if ($this->batch?->approval_status != 'approved') @click="promptMultiDeleteModal = true;"
+                                            @else disabled @endif
+                                            class="outline-none flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-bold rounded-md duration-200 ease-in-out bg-red-700 hover:bg-red-800 disabled:bg-gray-300 disabled:text-gray-500 active:bg-red-900 text-red-50 focus:ring-2 focus:ring-red-500">
                                             DELETE
                                             <svg xmlns="http://www.w3.org/2000/svg" class="size-5"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="400"

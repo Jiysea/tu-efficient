@@ -258,7 +258,7 @@ class Assignments extends Component
         $results = null;
 
         if ($this->beneficiaries?->isNotEmpty()) {
-            $results = JaccardSimilarity::isOverThreshold($person, $this->duplicationThreshold);
+            $results = JaccardSimilarity::isOverThreshold($person, $this->duplicationThreshold / 100);
         }
 
         return $results;

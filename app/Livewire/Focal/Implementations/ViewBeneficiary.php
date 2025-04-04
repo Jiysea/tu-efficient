@@ -752,7 +752,12 @@ class ViewBeneficiary extends Component
                         Archive::create([
                             'last_id' => $credential->id,
                             'source_table' => 'credentials',
-                            'data' => $credential->toArray(),
+                            'data' => collect($credential->toArray())->map(function ($value, $key) {
+                                if (in_array($key, ['created_at', 'updated_at']) && $value) {
+                                    return Carbon::parse($value)->setTimezone(config('app.timezone'))->toDateTimeString();
+                                }
+                                return $value;
+                            })->toArray(),
                             'archived_at' => now()
                         ]);
                         $credential->deleteOrFail();
@@ -765,7 +770,12 @@ class ViewBeneficiary extends Component
                     Archive::create([
                         'last_id' => $beneficiary->id,
                         'source_table' => 'beneficiaries',
-                        'data' => $beneficiary->makeHidden('batch')->toArray(),
+                        'data' => collect($beneficiary->makeHidden('batch')->toArray())->map(function ($value, $key) {
+                            if (in_array($key, ['created_at', 'updated_at']) && $value) {
+                                return Carbon::parse($value)->setTimezone(config('app.timezone'))->toDateTimeString();
+                            }
+                            return $value;
+                        })->toArray(),
                         'archived_at' => now()
                     ]);
                     $beneficiary->deleteOrFail();

@@ -69,7 +69,6 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
 
                 $spreadsheet = IOFactory::load(storage_path('app/' . $this->file_path), 0, $testAgainstFormats);
 
-
                 $worksheet = $spreadsheet->getActiveSheet();
                 $minRow = 12;
                 $maxRow = $worksheet->getHighestDataRow();
@@ -110,7 +109,7 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
 
                 $batch = Batches::find($this->batches_id);
                 $implementation = Implementation::find($batch->implementations_id);
-
+                
                 foreach ($worksheet->getRowIterator($minRow, $maxRow) as $row) {
                     if ($row->isEmpty(3, 'A', 'AB')) {
                         continue;
@@ -199,7 +198,7 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
 
                         # Type of Beneficiary value will be defaulted as `underemployed`
                         elseif ($keyCell === 'O') {
-                            if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a') {
+                            if (!isset($value) || empty($value) || $value === '-' || strtolower($value) === 'none' || strtolower($value) === 'n/a' || strtolower($value) !== "underemployed") {
                                 $value = 'underemployed';
                             } else {
                                 $value = mb_strtolower($cell->getValue(), "UTF-8");
@@ -220,19 +219,18 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
                         $beneficiary[$columnNames[$keyCell]] = $value;
 
                     }
-
                     # Add the batches_id first to prevent the user from opening other batches while it is still fresh
                     $list['batches_id'] = encrypt($this->batches_id);
-
+                    
                     # Also validate each row and flag a row that has some validation errors
                     $beneficiary = self::validateAndReturn($beneficiary, $this->maximumIncome, $this->batches_id);
-
+                    
                     # Then we start the similarity checker
                     $beneficiary = self::checkSimilaritiesAndReturn($beneficiary, $this->duplicationThreshold);
-
+                    
                     # Check the rows that were unique and insert to the database without errors && similarities
                     $beneficiary = self::insertUniqueRows($beneficiary, $this->batches_id);
-
+                    
                     if ($beneficiary['success'])
                         $successCounter++;
                     # Compile them all to the list
@@ -781,7 +779,7 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
     {
         if ($data) {
 
-            if (!ctype_digit((string) $data)) {
+            if (!is_numeric(str_replace(',', '', $data))) {
                 return 'Invalid money format.';
             } elseif (MoneyFormat::unmask($data) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
                 return 'The value should be more than 1.';
@@ -807,7 +805,7 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
     static function is_negative($data)
     {
         if ($data) {
-            if (!ctype_digit((string) $data)) {
+            if (!is_numeric(str_replace(',', '', $data))) {
                 return 'Invalid money format.';
             } elseif (MoneyFormat::isNegative($data)) {
                 return 'The value should be more than 1.';
@@ -821,7 +819,7 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
     static function is_money_integer($data)
     {
         if ($data) {
-            if (!ctype_digit((string) $data)) {
+            if (!is_numeric(str_replace(',', '', $data))) {
                 return 'Invalid money format.';
             } elseif (!MoneyFormat::isMaskInt($data)) {
                 return 'The value should be a valid amount.';

@@ -34,15 +34,14 @@ class ShowDuplicatesTable extends Component
     #[Computed]
     public function similarityResults()
     {
-        return JaccardSimilarity::getResults($this->beneficiary?->first_name, $this->beneficiary?->middle_name, $this->beneficiary?->last_name, $this->beneficiary?->extension_name, $this->duplicationThreshold, $this->beneficiaryId);
+        return JaccardSimilarity::getResults($this->beneficiary?->first_name, $this->beneficiary?->middle_name, $this->beneficiary?->last_name, $this->beneficiary?->extension_name, $this->duplicationThreshold, $this->beneficiaryId, $this->beneficiary);
     }
 
     #[Computed]
     public function isOverThreshold($person)
     {
         $results = null;
-
-        if ($this->beneficiaryId) {
+        if ($this->beneficiaryId && !is_null($person)) {
             $results = JaccardSimilarity::isOverThreshold($person, $this->duplicationThreshold);
         }
 

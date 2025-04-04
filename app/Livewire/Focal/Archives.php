@@ -133,8 +133,8 @@ class Archives extends Component
                         ->get();
 
                     # then parse the datetime formats
-                    $data['created_at'] = Carbon::parse($data['created_at'])->format('Y-m-d h:i:s');
-                    $data['updated_at'] = Carbon::parse($data['updated_at'])->format('Y-m-d h:i:s');
+                    $data['created_at'] = Carbon::parse($data['created_at'])->format('Y-m-d H:i:s');
+                    $data['updated_at'] = Carbon::parse($data['updated_at'])->format('Y-m-d H:i:s');
                     $archive->data = $data;
                     $archive->save();
 
@@ -146,8 +146,8 @@ class Archives extends Component
                     if ($credentials->isNotEmpty()) {
                         foreach ($credentials as $credential) {
                             $data = $credential->data;
-                            $data['created_at'] = Carbon::parse($data['created_at'])->format('Y-m-d h:i:s');
-                            $data['updated_at'] = Carbon::parse($data['updated_at'])->format('Y-m-d h:i:s');
+                            $data['created_at'] = Carbon::parse($data['created_at'])->format('Y-m-d H:i:s');
+                            $data['updated_at'] = Carbon::parse($data['updated_at'])->format('Y-m-d H:i:s');
                             $credential->data = $data;
                             $credential->save();
 
