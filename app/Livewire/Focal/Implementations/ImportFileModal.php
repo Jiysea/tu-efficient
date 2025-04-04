@@ -121,7 +121,7 @@ class ImportFileModal extends Component
 
     public function finishImport()
     {
-        $this->nextStep();
+        $this->step = 3;
     }
 
     public function validateFile()

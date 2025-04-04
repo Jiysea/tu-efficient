@@ -1203,7 +1203,7 @@
                                     <span class="px-2 text-xs">
                                         These are rows that were detected as having possible duplicates from the
                                         database on a certain threshold.
-                                        It is possible to insert, delete or ignore these rows.
+                                        You may need to manually add these or ignore these rows.
                                     </span>
                                     @if (!empty($similarityResults) && sizeof($this->similarityResults) > 0)
                                         {{-- Table --}}
