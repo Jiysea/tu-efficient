@@ -409,6 +409,8 @@ class DatabaseSeeder extends Seeder
             LogIt::set_initialization_of_user_settings($initSetting, 'System', $user->regional_office, $user->field_office, $user->created_at);
         }
 
+        # ----------------------------------------------------------------------
+
         $user = User::factory()->create(
             [
                 'first_name' => 'LEONILO III',
@@ -442,6 +444,8 @@ class DatabaseSeeder extends Seeder
 
             LogIt::set_initialization_of_user_settings($initSetting, 'System', $user->regional_office, $user->field_office, $user->created_at);
         }
+
+        # ----------------------------------------------------------------------
 
         $user = User::factory()->create(
             [
@@ -477,6 +481,8 @@ class DatabaseSeeder extends Seeder
             LogIt::set_initialization_of_user_settings($initSetting, 'System', $user->regional_office, $user->field_office, $user->created_at);
         }
 
+        # ----------------------------------------------------------------------
+
         $user = User::factory()->create(
             [
                 'first_name' => 'RYAN',
@@ -511,6 +517,8 @@ class DatabaseSeeder extends Seeder
             LogIt::set_initialization_of_user_settings($initSetting, 'System', $user->regional_office, $user->field_office, $user->created_at);
         }
 
+        # ----------------------------------------------------------------------
+
         $user = User::factory()->create(
             [
                 'first_name' => 'HANNAH',
@@ -543,6 +551,8 @@ class DatabaseSeeder extends Seeder
             ]);
             LogIt::set_initialization_of_user_settings($initSetting, 'System', $user->regional_office, $user->field_office, $user->created_at);
         }
+
+        # ----------------------------------------------------------------------
 
         $user = User::factory()->create(
             [
@@ -577,6 +587,10 @@ class DatabaseSeeder extends Seeder
 
             LogIt::set_initialization_of_user_settings($initSetting, 'System', $user->regional_office, $user->field_office, $user->created_at);
         }
+
+        # ----------------------------------------------------------------------
+
+        // Add more coordinators here...
 
     }
 
