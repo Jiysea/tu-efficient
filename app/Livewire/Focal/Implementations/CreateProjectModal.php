@@ -214,7 +214,7 @@ class CreateProjectModal extends Component
             # always be formatted to 2 simple digits (rounded off)
 
             $tempBudget = MoneyFormat::unmask($this->budget_amount ?? '0.00');
-            $tempWage = MoneyFormat::unmask($this->minimum_wage ?? $this->defaultMinimumWage);
+            $tempWage = MoneyFormat::unmask(isset($this->minimum_wage) && !empty($this->minimum_wage) ? $this->minimum_wage : $this->defaultMinimumWage);
 
             ($this->days_of_work === null || intval($this->days_of_work) === 0) ? $this->days_of_work = 10 : $this->days_of_work;
             $this->total_slots = intval($tempBudget / ($tempWage * $this->days_of_work));
