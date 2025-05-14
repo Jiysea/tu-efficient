@@ -1,7 +1,6 @@
 # Project Setup Instructions
 
 ## Prerequisites
----
 ##### Before setting up the project, I assume that you've already installed the following:
 -   [Git](https://git-scm.com/downloads)
 -   [Composer](https://getcomposer.org/download/)
@@ -11,7 +10,6 @@
 <br>
 
 ## Steps to Set Up the Project
----
 
 1. **Configure XAMPP `php.ini` File**
     - Go to your XAMPP Control Panel
@@ -47,6 +45,7 @@
         ```bash
         npm install
         ```
+    <br>
 4. **Set Up Environment Variables**:
     - Copy `.env.example` and paste to `.env` file
     - (if you didn't have any `.env` file, just create one on the project root destination)
@@ -98,18 +97,18 @@
                     'extension_name' => '<Ext_Name_Here or just use null>',
                     'email' => '<any valid email>',
                     'contact_num' => '<should start with +639>',
-                    'email_verified_at' => $startDate->addMinutes(mt_rand(5,    10))->addSeconds(mt_rand(1, 59)),
-                    'mobile_verified_at' => $startDate->addMinutes(15)  ->addSeconds(mt_rand(1, 59)),
+                    'email_verified_at' => $startDate->addMinutes(mt_rand(5, 10))->addSeconds(mt_rand(1, 59)),
+                    'mobile_verified_at' => $startDate->addMinutes(15)->addSeconds(mt_rand(1, 59)),
                     'created_at' => $startDate,
                     'updated_at' => $startDate,
                 ],
             );
 
-            LogIt::set_register_user($user, $focalUser->id, timestamp:  $user->created_at);
+            LogIt::set_register_user($user, $focalUser->id, timestamp: $user->created_at);
 
             $settingsCoordinator = [
-                'duplication_threshold' => config('settings.    duplication_threshold'),
-                'default_show_duplicates' => config('settings.  default_show_duplicates'),
+                'duplication_threshold' => config('settings.duplication_threshold'),
+                'default_show_duplicates' => config('settings.default_show_duplicates'),
             ];
 
             foreach ($settingsCoordinator as $key => $setting) {
@@ -121,13 +120,12 @@
                     'updated_at' => $user->created_at,
                 ]);
 
-                LogIt::set_initialization_of_user_settings($initSetting,    'System', $user->regional_office, $user->field_office,     $user->created_at);
+                LogIt::set_initialization_of_user_settings($initSetting, 'System', $user->regional_office, $user->field_office, $user->created_at);
             }
             ```
             - Notice that only `first_name`, `middle_name`, `last_name`, `extension_name`, `email`, and `contact_num` are the modifiable fields.
     <br>
 ## Running the Project
----
 - If you haven't done it already, you need to Start the service from the XAMPP Control Panel first:
     - Click on `Start` for the `MySQL` module
     - Click on `Start` for the `Apache` module
