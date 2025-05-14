@@ -19,7 +19,7 @@ use Str;
 
 class DatabaseSeeder extends Seeder
 {
-    protected $implementationAmount = 72;
+    protected $implementationAmount = 10;
     // protected $coordinatorsAmount = 10;
     protected $assignmentAmountMin = 2;
     protected $assignmentAmountMax = 5;
@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $startDate = Carbon::createFromDate(2024, 1, 1);
+        $startDate = Carbon::createFromDate(2025, 1, 1);
         $email_verified_at = $startDate->addMinutes(11)->addSeconds(mt_rand(1, 59));
         $mobile_verified_at = $email_verified_at->addMinutes(mt_rand(20, 59))->addSeconds(mt_rand(0, 59));
 

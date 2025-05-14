@@ -782,7 +782,7 @@ class ProcessImportSimilarity implements ShouldQueueAfterCommit
             if (!is_numeric(str_replace(',', '', $data))) {
                 return 'Invalid money format.';
             } elseif (MoneyFormat::unmask($data) > ($maximumIncome ? intval($maximumIncome) : intval(config('settings.maximum_income')))) {
-                return 'The value should be more than 1.';
+                return 'The value should be less than ₱' . MoneyFormat::mask($maximumIncome) . '.';
             }
 
             return null;

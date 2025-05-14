@@ -97,6 +97,10 @@ class CreateProjectModal extends Component
                     elseif (MoneyFormat::isNegative($value)) {
                         $fail('The value should be nonnegative.');
                     }
+
+                    elseif (MoneyFormat::unmask($value) < MoneyFormat::unmask($this->defaultMinimumWage)) {
+                        $fail('Value should not be lower than ₱'  . $this->defaultMinimumWage . '.');
+                    }
                 },
             ],
             'total_slots' => [
@@ -239,6 +243,15 @@ class CreateProjectModal extends Component
         return $c->getCitiesMunicipalities($this->province);
     }
 
+    public function updatedMinimumWage()
+    {
+        // if (!isset($this->minimum_wage) || empty($this->minimum_wage))
+        // {
+        //     $this->minimum_wage = $this->defaultMinimumWage;
+        //     $this->resetValidation('minimum_wage');
+        // }
+    }
+
     public function updatedProvince()
     {
         $this->city_municipality = $this->cities_municipalities[0];
@@ -284,7 +297,7 @@ class CreateProjectModal extends Component
         $this->defaultMinimumWage = $this->settings->get('minimum_wage', config('settings.minimum_wage'));
         $this->projectNumPrefix = $this->settings->get('project_number_prefix', config('settings.project_number_prefix'));
 
-        if (is_null($this->minimum_wage)) {
+        if (!isset($this->minimum_wage) || empty($this->minimum_wage)) {
             $this->minimum_wage = $this->defaultMinimumWage;
             $this->resetValidation('minimum_wage');
         }

@@ -21,8 +21,8 @@ class ImplementationFactory extends Factory
      */
     public function definition(): array
     {
-        $startDate = Carbon::createFromDate(2024, 1, 1); // Start date (YYYY, MM, DD)
-        $endDate = Carbon::createFromDate(2024, 12, 31); // End date (YYYY, MM, DD)
+        $startDate = Carbon::createFromDate(2025, 1, 1); // Start date (YYYY, MM, DD)
+        $endDate = Carbon::createFromDate(2025, 4, 30); // End date (YYYY, MM, DD)
 
         $budgetAmount = fake()->numberBetween(100000000, 250000000);
         $minimumWage = mt_rand(config('settings.minimum_wage', 481.00) * 100, 61800);

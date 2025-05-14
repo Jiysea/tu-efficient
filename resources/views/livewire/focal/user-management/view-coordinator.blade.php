@@ -434,7 +434,7 @@
                             {{-- Edit && Delete Buttons --}}
                             <div class="relative flex items-end justify-end gap-2 col-span-full lg:col-span-1">
                                 <button type="button" wire:loading.attr="disabled" wire:target="toggleEdit"
-                                    wire:click="" @click="$wire.toggleEdit(); $dispatch('edit-values');"
+                                    @click="$wire.toggleEdit(); $dispatch('edit-values');"
                                     class="flex flex-1 items-center justify-center px-4 py-2.5 rounded outline-none font-bold text-sm duration-200 ease-in-out bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50">
                                     EDIT
                                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ms-2"

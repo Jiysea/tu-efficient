@@ -27,12 +27,9 @@ class UserFactory extends Factory
         $ext = $this->getSuffix();
 
         $email = $this->getEmail($first, $last);
-        $randHour = mt_rand(0, 23);
-        $randMinute = mt_rand(30, 59);
-        $randSecond = mt_rand(0, 59);
-        $startDate = Carbon::createFromDate(2023, 1, 1);
-        $addedTime = $startDate->addHours($randHour)->addMinutes($randMinute)->addSeconds($randSecond);
-        $startMobile = $addedTime->addMinutes(mt_rand(0, 59))->addSeconds(mt_rand(0, 59));
+        $startDate = Carbon::createFromDate(2025, 1, 1);
+        $email_verified_at = $startDate->addMinutes(11)->addSeconds(mt_rand(1, 59));
+        $mobile_verified_at = $email_verified_at->addMinutes(mt_rand(20, 59))->addSeconds(mt_rand(0, 59));
 
         return [
             'first_name' => $first,
@@ -46,8 +43,8 @@ class UserFactory extends Factory
             'field_office' => 'City of Davao',
             'user_type' => 'coordinator',
             'last_login' => null,
-            'email_verified_at' => $addedTime,
-            'mobile_verified_at' => $startMobile,
+            'email_verified_at' => $email_verified_at,
+            'mobile_verified_at' => $mobile_verified_at,
             'ongoing_verification' => 0,
             'created_at' => $startDate,
             'updated_at' => $startDate,

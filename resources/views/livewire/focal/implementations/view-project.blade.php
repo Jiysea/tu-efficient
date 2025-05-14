@@ -529,14 +529,20 @@
                                     {{-- Mark For Implementation --}}
                                     <span x-data="{ pop: false }" class="relative flex">
                                         <button type="button" wire:loading.attr="disabled"
-                                            @if ($this->doesBatchesHaveNoPending) @click="promptImplementingModal = !promptImplementingModal;"
+                                            @if ($this->doesBatchesHaveNoPending && !$this->doesProjectHaveNoBatches) @click="promptImplementingModal = !promptImplementingModal;"
                                     @else @mouseleave="pop = false;" @mouseenter="pop = true;" disabled @endif
                                             class="disabled:cursor-not-allowed text-center px-3 py-1.5 duration-200 ease-in-out outline-none rounded-md 
-                                    {{ !$this->doesBatchesHaveNoPending ? 'bg-gray-300 text-gray-500' : 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' }}">
+                                    {{ (!$this->doesBatchesHaveNoPending || $this->doesProjectHaveNoBatches) ? 'bg-gray-300 text-gray-500' : 'bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-indigo-50' }}">
                                             MARK FOR IMPLEMENTATION
                                         </button>
 
-                                        @if (!$this->doesBatchesHaveNoPending)
+                                        @if ($this->doesProjectHaveNoBatches)
+                                            {{-- Tooltip Content --}}
+                                            <div x-cloak x-show="pop" x-transition.opacity
+                                                class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">
+                                                This project has no batches yet.
+                                            </div>
+                                        @elseif (!$this->doesBatchesHaveNoPending)
                                             {{-- Tooltip Content --}}
                                             <div x-cloak x-show="pop" x-transition.opacity
                                                 class="absolute z-50 bottom-full mb-2 right-0 rounded p-2 shadow text-xs font-normal whitespace-nowrap border bg-zinc-900 border-zinc-300 text-zinc-50">

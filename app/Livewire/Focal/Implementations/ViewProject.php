@@ -273,6 +273,13 @@ class ViewProject extends Component
     }
 
     #[Computed]
+    public function doesProjectHaveNoBatches()
+    {
+        return Batch::where('implementations_id', $this->implementationId ? decrypt($this->implementationId) : null)
+            ->doesntExist();
+    }
+
+    #[Computed]
     public function doesBatchesHaveNoPending()
     {
         return Batch::where('implementations_id', $this->implementationId ? decrypt($this->implementationId) : null)
